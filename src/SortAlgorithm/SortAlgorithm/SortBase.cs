@@ -7,7 +7,7 @@ namespace SortAlgorithm
     public class SortBase<T> : ISort<T> where T : IComparable<T>
     {
         public SortStatics SortStatics => sortStatics;
-        protected SortStatics sortStatics = null;
+        protected SortStatics sortStatics = new SortStatics();
 
         public virtual T[] Sort(T[] array)
         {

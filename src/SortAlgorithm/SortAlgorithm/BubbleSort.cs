@@ -8,7 +8,7 @@ namespace SortAlgorithm
     {
         public override T[] Sort(T[] array)
         {
-            base.sortStatics = new SortStatics(array.Length);
+            base.sortStatics.Reset(array.Length);
             for (var i = 0; i < array.Length; i++)
             {
                 for (var j = array.Length - 1; j > i; j--)
