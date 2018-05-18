@@ -7,6 +7,9 @@ namespace SortAlgorithm.Logics
     /// <summary>
     /// 配列にアクセスして、常に最小を末尾まで走査。最小を現在のインデックスであるn番目の要素（ソート済みの要素の末尾）と交換を続ける。ICompatibleの性質から、n > n-1 = -1 となり、> 0 で元順序を保証しているので、安定ソートとなる。
     /// </summary>
+    /// <remarks>
+    /// sortKind : SelectionSort, ArraySize : 100, IndexAccessCount : 4950, CompareCount : 281, SwapCount : 100
+    /// </remarks>
     /// <typeparam name="T"></typeparam>
     public class SelectionSort<T> : SortBase<T> where T : IComparable<T>
     {
