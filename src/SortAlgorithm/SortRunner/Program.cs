@@ -1,4 +1,5 @@
 ﻿using SortAlgorithm;
+using SortAlgorithm.Logics;
 using System;
 using System.Collections;
 using System.Linq;
@@ -17,6 +18,11 @@ namespace SortRunner
             var bubbleSort = new BubbleSort<int>();
             Run(bubbleSort, ref sample, nameof(BubbleSort<int>));
             Run(bubbleSort, ref sample2, nameof(BubbleSort<int>));
+
+            // Selection Sort
+            var selectionSort = new SelectionSort<int>();
+            Run(selectionSort, ref sample, nameof(SelectionSort<int>));
+            Run(selectionSort, ref sample2, nameof(SelectionSort<int>));
         }
 
         static void Run(ISort<int> sort, ref int[] array, string sortKind)
