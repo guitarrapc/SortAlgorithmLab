@@ -5,7 +5,7 @@ using System.Text;
 namespace SortAlgorithm.Logics
 {
     /// <summary>
-    /// 配列にアクセスして、常に最小を末尾まで走査。最小を現在のインデックスであるn番目の要素（ソート済みの要素の末尾）と交換を続ける。値をインデックスベースで入れ替えてしまうため安定ソート、ではない。
+    /// 配列にアクセスして、常に最小を末尾まで走査。最小を現在のインデックスであるn番目の要素（ソート済みの要素の末尾）と交換を続ける。値をインデックスベースで入れ替えてしまうため不安定ソート。
     /// 交換回数が一定して少ないので、比較が軽くて交換が重い場合に有効
     /// </summary>
     /// <remarks>
@@ -13,6 +13,7 @@ namespace SortAlgorithm.Logics
     /// inplace : yes
     /// Compare : n(n-1) / 2
     /// Swap : n-1
+    /// Order : O(n^2)
     /// sortKind : SelectionSort, ArraySize : 100, IndexAccessCount : 4950, CompareCount : 4950, SwapCount : 100
     /// </remarks>
     /// <typeparam name="T"></typeparam>
