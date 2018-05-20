@@ -22,7 +22,12 @@ namespace SortAlgorithm.Logics
         public override T[] Sort(T[] array)
         {
             base.sortStatics.Reset(array.Length);
-            for (var i = 1; i < array.Length; i++)
+            return Sort(array, 0, array.Length);
+        }
+
+        public T[] Sort(T[] array, int first, int last)
+        {
+            for (var i = first + 1; i < last; i++)
             {
                 var tmp = array[i];
                 base.sortStatics.AddIndexAccess();
@@ -37,7 +42,7 @@ namespace SortAlgorithm.Logics
                         //array.Dump($"[{tmp}] -> {j}, {j - 1} : {array[j - 1]}, {array[j - 1].CompareTo(tmp) > 0}");
                         array[j] = array[j - 1];
                         j--;
-                    } while (j > 0 && array[j - 1].CompareTo(tmp) > 0);
+                    } while (j > first && array[j - 1].CompareTo(tmp) > 0);
                     base.sortStatics.AddSwapCount();
                     Swap(ref array[j], ref tmp);
                 }

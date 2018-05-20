@@ -69,11 +69,17 @@ namespace SortRunner
             Run(gnomeSortOpmized, ref sample2, nameof(GnomeSortOptimized<int>));
             //Run(gnomeSortOpmized, ref sample3, nameof(GnomeSortOptimized<int>));
 
-            // Quick Sort Optimized
+            // Quick Sort
             var quickSort = new QuickSort<int>();
             Run(quickSort, ref sample, nameof(QuickSort<int>));
             Run(quickSort, ref sample2, nameof(QuickSort<int>));
             //Run(gnomeSortOpmized, ref sample3, nameof(GnomeSortOptimized<int>));
+
+            // IntroSort (Quick + Insert)
+            var introSort = new IntroSortQuickInsert<int>();
+            Run(introSort, ref sample, nameof(IntroSortQuickInsert<int>));
+            Run(introSort, ref sample2, nameof(IntroSortQuickInsert<int>));
+            //Run(introSort, ref sample3, nameof(IntroSortQuickInsert<int>));
         }
 
         static void Run(ISort<int> sort, ref int[] array, string sortKind)

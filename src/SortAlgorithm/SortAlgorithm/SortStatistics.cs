@@ -4,7 +4,7 @@ using System.Text;
 
 namespace SortAlgorithm
 {
-    public struct SortStatics
+    public class SortStatics
     {
         public int ArraySize { get; set; }
         public int IndexAccessCount { get; set; }
@@ -30,13 +30,25 @@ namespace SortAlgorithm
         {
             IndexAccessCount++;
         }
+        public void AddIndexAccess(int count)
+        {
+            IndexAccessCount += count;
+        }
         public void AddCompareCount()
         {
             CompareCount++;
         }
+        public void AddCompareCount(int count)
+        {
+            CompareCount += count;
+        }
         public void AddSwapCount()
         {
             SwapCount++;
+        }
+        public void AddSwapCount(int count)
+        {
+            SwapCount += count;
         }
     }
 }

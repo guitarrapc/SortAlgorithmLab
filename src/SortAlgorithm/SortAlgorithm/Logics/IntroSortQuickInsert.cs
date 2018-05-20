@@ -5,28 +5,42 @@ using System.Text;
 namespace SortAlgorithm.Logics
 {
     /// <summary>
-    /// 開始と終わりから中央値を導いて、この3点を枢軸として配列を左右で分ける。左右で中央値よりも小さい(大きい)データに置き換えてデータを分割する(この時点で不安定)。最後に左右それぞれをソートすることで計算量をソート済みに抑えることができる。不安定なソート。
+    /// QuickSort + InsertSortによる IntroSort(HeapSortが入っていないので微妙)。閾値以下の要素になった時にInsertSortに切り替わることでワーストケースをつぶす。
     /// </summary>
     /// <remarks>
     /// stable : no
     /// inplace : yes
     /// Compare : 
     /// Swap : 
-    /// Order : O(n log n) (Worst case : O(nlog^2n))
-    /// sortKind : QuickSort, ArraySize : 100, IndexAccessCount : 158, CompareCount : 158, SwapCount : 147
+    /// Order : O(n log n) (Worst case : O(n nlog n))
+    /// sortKind : IntroSortQuickInsert, ArraySize : 100, IndexAccessCount : 384, CompareCount : 384, SwapCount : 129
     /// </remarks>
     /// <typeparam name="T"></typeparam>
-    public class QuickSort<T> : SortBase<T> where T : IComparable<T>
+    public class IntroSortQuickInsert<T> : SortBase<T> where T : IComparable<T>
     {
+        // ref : https://github.com/nlfiedler/burstsort4j/blob/master/src/org/burstsort4j/Introsort.java
+        private const int IntroThreshold = 16;
+        private InsertSort<T> insertSort = new InsertSort<T>();
+
         public override T[] Sort(T[] array)
         {
             base.sortStatics.Reset(array.Length);
-            return Sort(array, 0, array.Length - 1);
+            var result = Sort(array, 0, array.Length - 1);
+            base.SortStatics.AddCompareCount(insertSort.SortStatics.CompareCount);
+            base.SortStatics.AddIndexAccess(insertSort.SortStatics.IndexAccessCount);
+            base.SortStatics.AddSwapCount(insertSort.SortStatics.SwapCount);
+            return result;
         }
 
         private T[] Sort(T[] array, int first, int last)
         {
             if (first >= last) return array;
+
+            // switch to insert sort
+            if (last - first < IntroThreshold)
+            {
+                return insertSort.Sort(array, first, last + 1);
+            }
 
             // fase 1. decide pivot
             var pivot = Median(array[first], array[(first + (last - first)) / 2], array[last]);
@@ -51,14 +65,6 @@ namespace SortAlgorithm.Logics
             Sort(array, l, last);
             return array;
         }
-
-        //private T Median(T low, T mid, T high)
-        //{
-        //    if (low.CompareTo(mid) > 0) Swap(ref low, ref mid);
-        //    if (low.CompareTo(high) > 0) Swap(ref low, ref high);
-        //    if (mid.CompareTo(high) > 0) Swap(ref mid, ref high);
-        //    return mid;
-        //}
 
         private static T Median(T low, T mid, T high)
         {
