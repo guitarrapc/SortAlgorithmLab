@@ -13,7 +13,7 @@ namespace SortAlgorithm.Logics
     /// inplace : yes
     /// Compare : ((n-1)(n/2)) / 2
     /// Swap : O(n^2) (Average n(n-1)/4)
-    /// sortKind : InsertSort, ArraySize : 100, IndexAccessCount : 4950, CompareCount : 4950, SwapCount : 2278
+    /// sortKind : InsertSort, ArraySize : 100, IndexAccessCount : 2529, CompareCount : 2529, SwapCount : 94
     /// </remarks>
     /// <typeparam name="T"></typeparam>
     public class InsertSort<T> : SortBase<T> where T : IComparable<T>
@@ -43,8 +43,11 @@ namespace SortAlgorithm.Logics
             }
             return array;
         }
+    }
 
-        public virtual T[] Sort2(T[] array)
+    public class InsertSort2<T> : SortBase<T> where T : IComparable<T>
+    {
+        public override T[] Sort(T[] array)
         {
             base.sortStatics.Reset(array.Length);
             for (var i = 1; i < array.Length; i++)

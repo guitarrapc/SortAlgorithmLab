@@ -31,6 +31,12 @@ namespace SortRunner
             Run(insertSort, ref sample, nameof(InsertSort<int>));
             Run(insertSort, ref sample2, nameof(InsertSort<int>));
             //Run(insertSort, ref sample3, nameof(InsertSort<int>));
+
+            // Shell Sort
+            var shellSort = new ShellSort<int>();
+            Run(shellSort, ref sample, nameof(ShellSort<int>));
+            Run(shellSort, ref sample2, nameof(ShellSort<int>));
+            //Run(shellSort, ref sample3, nameof(ShellSort<int>));
         }
 
         static void Run(ISort<int> sort, ref int[] array, string sortKind)
