@@ -52,12 +52,38 @@ namespace SortAlgorithm.Logics
             return array;
         }
 
+        //private T Median(T low, T mid, T high)
+        //{
+        //    if (low.CompareTo(mid) > 0) Swap(ref low, ref mid);
+        //    if (low.CompareTo(high) > 0) Swap(ref low, ref high);
+        //    if (mid.CompareTo(high) > 0) Swap(ref mid, ref high);
+        //    return mid;
+        //}
+
         private T Median(T low, T mid, T high)
         {
-            if (low.CompareTo(mid) > 0) Swap(ref low, ref mid);
-            if (low.CompareTo(high) > 0) Swap(ref low, ref high);
-            if (mid.CompareTo(high) > 0) Swap(ref mid, ref high);
-            return mid;
+            if (low.CompareTo(mid) > 0)
+            {
+                if (mid.CompareTo(high) > 0)
+                {
+                    return mid;
+                }
+                else
+                {
+                    return low.CompareTo(high) > 0 ? high : low;
+                }
+            }
+            else
+            {
+                if (mid.CompareTo(high) > 0)
+                {
+                    return low.CompareTo(high) > 0 ? low : high;
+                }
+                else
+                {
+                    return mid;
+                }
+            }
         }
     }
 }
