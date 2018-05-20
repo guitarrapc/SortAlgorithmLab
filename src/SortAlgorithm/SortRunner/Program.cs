@@ -21,6 +21,12 @@ namespace SortRunner
             Run(bubbleSort, ref sample2, nameof(BubbleSort<int>));
             //Run(bubbleSort, ref sample3, nameof(BubbleSort<int>));
 
+            // Shaker Sort
+            var shakerSort = new ShakerSort<int>();
+            Run(shakerSort, ref sample, nameof(ShakerSort<int>));
+            Run(shakerSort, ref sample2, nameof(ShakerSort<int>));
+            //Run(shakerSort, ref sample3, nameof(ShakerSort<int>));
+
             // Selection Sort
             var selectionSort = new SelectionSort<int>();
             Run(selectionSort, ref sample, nameof(SelectionSort<int>));
