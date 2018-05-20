@@ -52,12 +52,12 @@ namespace SortAlgorithm.Logics
             return array;
         }
 
-        private T Median(T a, T b, T c)
+        private T Median(T low, T mid, T high)
         {
-            if (a.CompareTo(b) > 0) Swap(ref a, ref b);
-            if (a.CompareTo(c) > 0) Swap(ref a, ref c);
-            if (b.CompareTo(c) > 0) Swap(ref b, ref c);
-            return b;
+            if (low.CompareTo(mid) > 0) Swap(ref low, ref mid);
+            if (low.CompareTo(high) > 0) Swap(ref low, ref high);
+            if (mid.CompareTo(high) > 0) Swap(ref mid, ref high);
+            return mid;
         }
     }
 }
