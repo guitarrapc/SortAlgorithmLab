@@ -21,22 +21,11 @@ namespace SortRunner
             Run(bubbleSort, ref sample2, nameof(BubbleSort<int>));
             //Run(bubbleSort, ref sample3, nameof(BubbleSort<int>));
 
-            // Shaker Sort
-            var shakerSort = new ShakerSort<int>();
-            Run(shakerSort, ref sample, nameof(ShakerSort<int>));
-            Run(shakerSort, ref sample2, nameof(ShakerSort<int>));
-            //var shakerSort2 = new ShakerSort2<int>();
-            //Run(shakerSort2, ref sample, nameof(ShakerSort2<int>));
-
-            // Comb Sort
-            var combSort = new CombSort<int>();
-            Run(combSort, ref sample, nameof(CombSort<int>));
-            Run(combSort, ref sample2, nameof(CombSort<int>));
-
             // Selection Sort
             var selectionSort = new SelectionSort<int>();
             Run(selectionSort, ref sample, nameof(SelectionSort<int>));
-            //Run(selectionSort, ref sample2, nameof(SelectionSort<int>));
+            Run(selectionSort, ref sample2, nameof(SelectionSort<int>));
+            //Run(selectionSort, ref sample3, nameof(SelectionSort<int>));
 
             // Insert Sort
             var insertSort = new InsertSort<int>();
@@ -44,11 +33,41 @@ namespace SortRunner
             Run(insertSort, ref sample2, nameof(InsertSort<int>));
             //Run(insertSort, ref sample3, nameof(InsertSort<int>));
 
+            // Shaker Sort (Cocktail Sort)
+            var shakerSort = new ShakerSort<int>();
+            Run(shakerSort, ref sample, nameof(ShakerSort<int>));
+            Run(shakerSort, ref sample2, nameof(ShakerSort<int>));
+            //Run(shakerSort, ref sample3, nameof(ShakerSort<int>));
+            //var shakerSort2 = new ShakerSort2<int>();
+            //Run(shakerSort2, ref sample, nameof(ShakerSort2<int>));
+
+            // Comb Sort
+            var combSort = new CombSort<int>();
+            Run(combSort, ref sample, nameof(CombSort<int>));
+            Run(combSort, ref sample2, nameof(CombSort<int>));
+            //Run(combSort, ref sample3, nameof(CombSort<int>));
+
             // Shell Sort
             var shellSort = new ShellSort<int>();
             Run(shellSort, ref sample, nameof(ShellSort<int>));
             Run(shellSort, ref sample2, nameof(ShellSort<int>));
             //Run(shellSort, ref sample3, nameof(ShellSort<int>));
+
+            // Gnome Sort
+            var gnomeSort = new GnomeSort<int>();
+            Run(gnomeSort, ref sample, nameof(GnomeSort<int>));
+            Run(gnomeSort, ref sample2, nameof(GnomeSort<int>));
+            //Run(gnomeSort, ref sample3, nameof(GnomeSort<int>));
+            var gnomeSort2 = new GnomeSort2<int>();
+            Run(gnomeSort2, ref sample, nameof(GnomeSort2<int>));
+            var gnomeSort3 = new GnomeSort3<int>();
+            Run(gnomeSort3, ref sample, nameof(GnomeSort3<int>));
+
+            // Gnome Sort Optimized
+            var gnomeSortOpmized = new GnomeSort<int>();
+            Run(gnomeSortOpmized, ref sample, nameof(GnomeSortOptimized<int>));
+            Run(gnomeSortOpmized, ref sample2, nameof(GnomeSortOptimized<int>));
+            //Run(gnomeSortOpmized, ref sample3, nameof(GnomeSortOptimized<int>));
         }
 
         static void Run(ISort<int> sort, ref int[] array, string sortKind)
