@@ -11,6 +11,7 @@ namespace SortRunner
         //private static readonly int[] sample = new[] { 2, 5, 7, 0, 1, 0 };
         private static int[] sample = Enumerable.Range(0, 100).Sample(100).ToArray();
         private static int[] sample2 = Enumerable.Range(0, 200).Sample(200).ToArray();
+        private static int[] sample3 = Enumerable.Range(0, 1280).Sample(1280).ToArray();
 
         static void Main(string[] args)
         {
@@ -18,11 +19,18 @@ namespace SortRunner
             var bubbleSort = new BubbleSort<int>();
             Run(bubbleSort, ref sample, nameof(BubbleSort<int>));
             Run(bubbleSort, ref sample2, nameof(BubbleSort<int>));
+            //Run(bubbleSort, ref sample3, nameof(BubbleSort<int>));
 
             // Selection Sort
             var selectionSort = new SelectionSort<int>();
             Run(selectionSort, ref sample, nameof(SelectionSort<int>));
-            Run(selectionSort, ref sample2, nameof(SelectionSort<int>));
+            //Run(selectionSort, ref sample2, nameof(SelectionSort<int>));
+
+            // Insert Sort
+            var insertSort = new InsertSort<int>();
+            Run(insertSort, ref sample, nameof(InsertSort<int>));
+            Run(insertSort, ref sample2, nameof(InsertSort<int>));
+            //Run(insertSort, ref sample3, nameof(InsertSort<int>));
         }
 
         static void Run(ISort<int> sort, ref int[] array, string sortKind)
