@@ -14,7 +14,7 @@ namespace SortAlgorithm.Logics
     /// Compare : 
     /// Swap : 
     /// Order : O(n^2)
-    /// sortKind : GnomeSort, ArraySize : 100, IndexAccessCount : 5008, CompareCount : 5008, SwapCount : 2456
+    /// sortKind : GnomeSort, ArraySize : 100, IndexAccessCount : 4967, CompareCount : 4967, SwapCount : 2438
     /// </remarks>
     /// <typeparam name="T"></typeparam>
     public class GnomeSort<T> : SortBase<T> where T : IComparable<T>
@@ -44,7 +44,7 @@ namespace SortAlgorithm.Logics
     }
 
     /// <remarks>
-    /// sortKind : GnomeSort2, ArraySize : 100, IndexAccessCount : 2552, CompareCount : 2552, SwapCount : 2456
+    /// sortKind : GnomeSort2, ArraySize : 100, IndexAccessCount : 2529, CompareCount : 2529, SwapCount : 2438
     /// </remarks>
     /// <typeparam name="T"></typeparam>
 
@@ -77,7 +77,7 @@ namespace SortAlgorithm.Logics
     }
 
     /// <remarks>
-    /// sortKind : GnomeSort3, ArraySize : 100, IndexAccessCount : 5012, CompareCount : 5012, SwapCount : 2456
+    /// sortKind : GnomeSort3, ArraySize : 100, IndexAccessCount : 4976, CompareCount : 4976, SwapCount : 2438
     /// </remarks>
     /// <typeparam name="T"></typeparam>
     public class GnomeSort3<T> : SortBase<T> where T : IComparable<T>

@@ -13,7 +13,7 @@ namespace SortAlgorithm.Logics
     /// Compare : 
     /// Swap : 
     /// Order : O(n^2)
-    /// sortKind : GnomeSortOptimized, ArraySize : 100, IndexAccessCount : 5008, CompareCount : 5008, SwapCount : 2456
+    /// sortKind : GnomeSortOptimized, ArraySize : 100, IndexAccessCount : 2538, CompareCount : 2438, SwapCount : 2438
     /// </remarks>
     /// <typeparam name="T"></typeparam>
     public class GnomeSortOptimized<T> : SortBase<T> where T : IComparable<T>

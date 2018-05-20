@@ -57,16 +57,22 @@ namespace SortRunner
             var gnomeSort = new GnomeSort<int>();
             Run(gnomeSort, ref sample, nameof(GnomeSort<int>));
             Run(gnomeSort, ref sample2, nameof(GnomeSort<int>));
-            //Run(gnomeSort, ref sample3, nameof(GnomeSort<int>));
+            Run(gnomeSort, ref sample3, nameof(GnomeSort<int>));
             var gnomeSort2 = new GnomeSort2<int>();
             Run(gnomeSort2, ref sample, nameof(GnomeSort2<int>));
             var gnomeSort3 = new GnomeSort3<int>();
             Run(gnomeSort3, ref sample, nameof(GnomeSort3<int>));
 
             // Gnome Sort Optimized
-            var gnomeSortOpmized = new GnomeSort<int>();
+            var gnomeSortOpmized = new GnomeSortOptimized<int>();
             Run(gnomeSortOpmized, ref sample, nameof(GnomeSortOptimized<int>));
             Run(gnomeSortOpmized, ref sample2, nameof(GnomeSortOptimized<int>));
+            //Run(gnomeSortOpmized, ref sample3, nameof(GnomeSortOptimized<int>));
+
+            // Quick Sort Optimized
+            var quickSort = new QuickSort<int>();
+            Run(quickSort, ref sample, nameof(QuickSort<int>));
+            Run(quickSort, ref sample2, nameof(QuickSort<int>));
             //Run(gnomeSortOpmized, ref sample3, nameof(GnomeSortOptimized<int>));
         }
 
