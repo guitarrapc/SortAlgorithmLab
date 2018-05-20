@@ -13,7 +13,7 @@ namespace SortAlgorithm.Logics
     /// Compare : 
     /// Swap : 
     /// Order : O(n log n) (Worst case : O(nlog^2n))
-    /// sortKind : QuickSort, ArraySize : 100, IndexAccessCount : 265, CompareCount : 265, SwapCount : 172
+    /// sortKind : QuickSort, ArraySize : 100, IndexAccessCount : 158, CompareCount : 158, SwapCount : 147
     /// </remarks>
     /// <typeparam name="T"></typeparam>
     public class QuickSort<T> : SortBase<T> where T : IComparable<T>
@@ -26,28 +26,29 @@ namespace SortAlgorithm.Logics
 
         public T[] Sort(T[] array, int first, int last)
         {
-            if (first < last)
+            if (first >= last) return array;
+
+            // fase 1. decide pivot
+            var pivot = Median(array[first], array[(first + (last - first)) / 2], array[last]);
+            var l = first;
+            var r = last;
+
+            while (l <= r)
             {
-                var pivot = Median(array[first], array[(first + (last - first)) / 2], array[last]);
-                var l = first;
-                var r = last;
-
-                while (true)
-                {
-                    base.sortStatics.AddIndexAccess();
-                    base.sortStatics.AddCompareCount();
-                    while (l < last && array[l].CompareTo(pivot) < 0) l++;
-                    while (r > first && array[r].CompareTo(pivot) > 0) r--;
-                    if (l >= r) break;
-                    base.sortStatics.AddSwapCount();
-                    Swap(ref array[l], ref array[r]);
-                    l++;
-                    r--;
-                }
-
-                Sort(array, first, l - 1);
-                Sort(array, r + 1, last);
+                base.sortStatics.AddIndexAccess();
+                base.sortStatics.AddCompareCount();
+                while (l < last && array[l].CompareTo(pivot) < 0) l++;
+                while (r > first && array[r].CompareTo(pivot) >= 0) r--;
+                if (l > r) break;
+                base.sortStatics.AddSwapCount();
+                Swap(ref array[l], ref array[r]);
+                l++;
+                r--;
             }
+
+            // fase 2. Sort Left and Right
+            Sort(array, first, l - 1);
+            Sort(array, l, last);
             return array;
         }
 
