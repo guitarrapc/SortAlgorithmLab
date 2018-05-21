@@ -80,6 +80,17 @@ namespace SortRunner
             Run(introSort, ref sample, nameof(IntroSortQuickInsert<int>));
             Run(introSort, ref sample2, nameof(IntroSortQuickInsert<int>));
             //Run(introSort, ref sample3, nameof(IntroSortQuickInsert<int>));
+
+            // Merge Sort
+            var mergeSort = new MergeSort<int>();
+            Run(mergeSort, ref sample, nameof(MergeSort<int>));
+            Run(mergeSort, ref sample2, nameof(MergeSort<int>));
+            //Run(mergeSort, ref sample3, nameof(MergeSort<int>));
+
+            var mergeSort2 = new MergeSort2<int>();
+            Run(mergeSort2, ref sample, nameof(MergeSort2<int>));
+            Run(mergeSort2, ref sample2, nameof(MergeSort2<int>));
+            //Run(mergeSort2, ref sample3, nameof(MergeSort2<int>));
         }
 
         static void Run(ISort<int> sort, ref int[] array, string sortKind)
