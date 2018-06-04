@@ -6,9 +6,14 @@ using System.Text;
 namespace SortAlgorithm.Logics
 {
     /// <summary>
-    /// 
+    /// 配列から、常に最大の要素をルートにもつ2分木構造(ヒープ)を作る(この時点で不安定)。あとは、ルート要素をソート済み配列の末尾に詰めて、ヒープの末端をルートに持ってきて再度ヒープ構造を作る。これを繰り返すことでヒープの最大値は常にルート要素になり、これをソート済み配列につめていくことで自然とソートができる。
     /// </summary>
     /// <remarks>
+    /// stable : no
+    /// inplace : yes
+    /// Compare : n log2 n
+    /// Swap : n log2 2n
+    /// Order : O(n log n) (Worst case : O(n log n))
     /// sortKind : HeapSort, ArraySize : 100, IndexAccessCount : 714, CompareCount : 1063, SwapCount : 520
     /// </remarks>
     /// <typeparam name="T"></typeparam>

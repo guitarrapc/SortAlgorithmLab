@@ -6,9 +6,14 @@ using System.Text;
 namespace SortAlgorithm.Logics
 {
     /// <summary>
-    /// 
+    /// 配列を半分い割り、左、右それぞれを2つペアまで分割しそれぞれをソート(分割統治)。左側でソートしたペアを2->4->8->16.... と順にマージしつつソートする。右側も同様に、ペアをマージしつつソートする。最後に左と右をマージする。これによりソートの範囲を常に抑えることで常に安定しつつ、安定したソートを行うことができる。
     /// </summary>
     /// <remarks>
+    /// stable : yes
+    /// inplace : no
+    /// Compare : n log2 n
+    /// Swap : n log2 n
+    /// Order : O(n log n) (Worst case : O(n log n))
     /// sortKind : MergeSort, ArraySize : 100, IndexAccessCount : 542, CompareCount : 539, SwapCount : 626
     /// </remarks>
     /// <typeparam name="T"></typeparam>
