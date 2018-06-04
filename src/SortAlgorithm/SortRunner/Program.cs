@@ -91,6 +91,12 @@ namespace SortRunner
             Run(mergeSort2, ref sample, nameof(MergeSort2<int>));
             Run(mergeSort2, ref sample2, nameof(MergeSort2<int>));
             //Run(mergeSort2, ref sample3, nameof(MergeSort2<int>));
+
+            // Merge Sort
+            var heapSort = new HeapSort<int>();
+            Run(heapSort, ref sample, nameof(HeapSort<int>));
+            Run(heapSort, ref sample2, nameof(HeapSort<int>));
+            //Run(heapSort, ref sample3, nameof(HeapSort<int>));
         }
 
         static void Run(ISort<int> sort, ref int[] array, string sortKind)

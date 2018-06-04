@@ -9,7 +9,7 @@ namespace SortAlgorithm.Logics
     /// 
     /// </summary>
     /// <remarks>
-    /// sortKind : MergeSort, ArraySize : 100, IndexAccessCount : 517, CompareCount : 548, SwapCount : 610
+    /// sortKind : MergeSort, ArraySize : 100, IndexAccessCount : 542, CompareCount : 539, SwapCount : 626
     /// </remarks>
     /// <typeparam name="T"></typeparam>
 
@@ -111,7 +111,7 @@ namespace SortAlgorithm.Logics
     /// 
     /// </summary>
     /// <remarks>
-    /// sortKind : MergeSort2, ArraySize : 100, IndexAccessCount : 771, CompareCount : 543, SwapCount : 672
+    /// sortKind : MergeSort2, ArraySize : 100, IndexAccessCount : 771, CompareCount : 538, SwapCount : 672
     /// </remarks>
     /// <typeparam name="T"></typeparam>
     public class MergeSort2<T> : SortBase<T> where T : IComparable<T>
