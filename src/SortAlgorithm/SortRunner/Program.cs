@@ -113,6 +113,22 @@ namespace SortRunner
             RunBucketTSort(bucketSortT, item => item.Key, dicSample.Max(x => x.Key), dicSample, nameof(BucketSortT<int>));
             RunBucketTSort(bucketSortT, item => item.Key, dicSample2.Max(x => x.Key), dicSample2, nameof(BucketSortT<int>));
             //RunBucketTSort(bucketSortT, item => item.Key, dicSample2.Max(x => x.Key), dicSample3, nameof(BucketSortT<int>));
+
+            // Radix Sort
+            var radix10Sort = new Radix10Sort<int>();
+            Run(radix10Sort, array => radix10Sort.Sort(array), ref sample, nameof(Radix10Sort<int>));
+            Run(radix10Sort, array => radix10Sort.Sort(array), ref sample2, nameof(Radix10Sort<int>));
+            //Run(radix10Sort, array => radix10Sort.Sort(array), ref sample3, nameof(Radix10Sort<int>));
+
+            var radix4Sort = new Radix4Sort<int>();
+            Run(radix4Sort, array => radix4Sort.Sort(array), ref sample, nameof(Radix4Sort<int>));
+            Run(radix4Sort, array => radix4Sort.Sort(array), ref sample2, nameof(Radix4Sort<int>));
+            //Run(radix4Sort, array => radix4Sort.Sort(array), ref sample3, nameof(Radix4Sort<int>));
+
+            var radix2Sort = new Radix2Sort<int>();
+            Run(radix2Sort, array => radix2Sort.Sort(array), ref sample, nameof(Radix2Sort<int>));
+            Run(radix2Sort, array => radix2Sort.Sort(array), ref sample2, nameof(Radix2Sort<int>));
+            //Run(radix2Sort, array => radix2Sort.Sort(array), ref sample3, nameof(Radix2Sort<int>));
         }
 
         static void Run(ISort<int> sort, ref int[] array, string sortKind)
