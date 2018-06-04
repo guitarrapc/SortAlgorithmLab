@@ -129,6 +129,12 @@ namespace SortRunner
             Run(radix2Sort, array => radix2Sort.Sort(array), ref sample, nameof(Radix2Sort<int>));
             Run(radix2Sort, array => radix2Sort.Sort(array), ref sample2, nameof(Radix2Sort<int>));
             //Run(radix2Sort, array => radix2Sort.Sort(array), ref sample3, nameof(Radix2Sort<int>));
+
+            // Counting Sort
+            var countingSort = new CountingSort<int>();
+            Run(countingSort, array => countingSort.Sort(array), ref sample, nameof(CountingSort<int>));
+            Run(countingSort, array => countingSort.Sort(array), ref sample2, nameof(CountingSort<int>));
+            //Run(countingSort, array => countingSort.Sort(array), ref sample3, nameof(CountingSort<int>));
         }
 
         static void Run(ISort<int> sort, ref int[] array, string sortKind)
