@@ -41,11 +41,19 @@ namespace SortAlgorithm.Logics
         // escape left to work, then merge right, and last for left.
         private T[] Merge(T[] array, int left, int right, int mid, T[] work)
         {
+            T max = default(T);
             // if array[2] = x,y. set work[0] = x
             for (var i = left; i <= mid; i++)
             {
                 base.sortStatics.AddIndexAccess();
                 work[i - left] = array[i];
+
+                // max assign
+                if (i - left >= work.Length - 1)
+                {
+                    max = array.Max();
+                    break;
+                }
             }
 
             int l = left;
@@ -66,7 +74,15 @@ namespace SortAlgorithm.Logics
                         base.sortStatics.AddIndexAccess();
                         base.sortStatics.AddSwapCount();
                         k = l + r - (mid + 1);
-                        array[k] = work[l++ - left];
+                        array[k] = work[l - left];
+
+                        // max assign on edge case
+                        if (l - left >= work.Length - 1)
+                        {
+                            array[right] = max;
+                            break;
+                        }
+                        l++;
                     }
                     break;
                 }
