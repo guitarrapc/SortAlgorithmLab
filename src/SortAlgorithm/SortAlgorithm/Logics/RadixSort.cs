@@ -27,7 +27,7 @@ namespace SortAlgorithm.Logics
             var bucket = new List<int>[256];
             var digit = 4;
 
-            for (int d = 0, logR = 1; d < digit; ++d, logR += 8)
+            for (int d = 0, logR = 0; d < digit; ++d, logR += 8)
             {
                 // make bucket for possibly assigned number of int
                 for (var i = 0; i < array.Length; i++)
@@ -80,7 +80,7 @@ namespace SortAlgorithm.Logics
             var bucket = new List<int>[256];
             var digit = 2;
 
-            for (int d = 0, logR = 1; d < digit; ++d, logR += 8)
+            for (int d = 0, logR = 0; d < digit; ++d, logR += 8)
             {
                 // make bucket for possibly assigned number of int
                 for (var i = 0; i < array.Length; i++)
