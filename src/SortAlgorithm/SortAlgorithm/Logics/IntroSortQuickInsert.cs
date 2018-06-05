@@ -52,7 +52,10 @@ namespace SortAlgorithm.Logics
                 base.sortStatics.AddIndexAccess();
                 base.sortStatics.AddCompareCount();
                 while (l < last && array[l].CompareTo(pivot) < 0) l++;
-                while (r > first && array[r].CompareTo(pivot) >= 0) r--;
+
+                base.sortStatics.AddCompareCount();
+                while (r > first && array[r].CompareTo(pivot) > 0) r--;
+
                 if (l > r) break;
                 base.sortStatics.AddSwapCount();
                 Swap(ref array[l], ref array[r]);

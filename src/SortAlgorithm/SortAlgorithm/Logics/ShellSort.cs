@@ -32,24 +32,16 @@ namespace SortAlgorithm.Logics
             {
                 //h.Dump(array.Length.ToString());
                 // Same as InsertSort (1 will be h, and > 0 will be >= h)
+                //h.Dump(array.Length.ToString());
+                // Same as InsertSort (1 will be h)
                 for (var i = h; i < array.Length; i++)
                 {
-                    var tmp = array[i];
-                    base.sortStatics.AddIndexAccess();
                     base.sortStatics.AddCompareCount();
-                    if (array[i - h].CompareTo(tmp) > 0)
+                    for (int j = i; j >= h && array[j - h].CompareTo(array[j]) > 0; j -= h)
                     {
-                        var j = i;
-                        do
-                        {
-                            base.sortStatics.AddIndexAccess();
-                            base.sortStatics.AddCompareCount();
-                            //array.Dump($"[{tmp}] -> {j}, {j - h} : {array[j - h]}, {array[j - h].CompareTo(tmp) > 0}");
-                            array[j] = array[j - h];
-                            j--;
-                        } while (j >= h && array[j - h].CompareTo(tmp) > 0);
+                        base.sortStatics.AddIndexAccess();
                         base.sortStatics.AddSwapCount();
-                        Swap(ref array[j], ref tmp);
+                        Swap(ref array[j], ref array[j - h]);
                     }
                 }
             }

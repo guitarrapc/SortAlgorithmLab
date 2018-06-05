@@ -20,124 +20,110 @@ namespace SortRunner
 
         static void Main(string[] args)
         {
-            // Bubble Sort
-            var bubbleSort = new BubbleSort<int>();
-            Run(bubbleSort, ref sample, nameof(BubbleSort<int>));
-            Run(bubbleSort, ref sample2, nameof(BubbleSort<int>));
-            //Run(bubbleSort, ref sample3, nameof(BubbleSort<int>));
+            foreach (var item in new[] { sample, sample2 })
+            {
+                // Init
+                Runner.Init(item);
+                Runner.Init(dicSample);
 
-            // Selection Sort
-            var selectionSort = new SelectionSort<int>();
-            Run(selectionSort, ref sample, nameof(SelectionSort<int>));
-            Run(selectionSort, ref sample2, nameof(SelectionSort<int>));
-            //Run(selectionSort, ref sample3, nameof(SelectionSort<int>));
+                // Bubble Sort
+                var bubbleSort = new BubbleSort<int>();
+                Runner.Run(bubbleSort, item, nameof(BubbleSort<int>));
 
-            // Insert Sort
-            var insertSort = new InsertSort<int>();
-            Run(insertSort, ref sample, nameof(InsertSort<int>));
-            Run(insertSort, ref sample2, nameof(InsertSort<int>));
-            //Run(insertSort, ref sample3, nameof(InsertSort<int>));
+                // Selection Sort
+                var selectionSort = new SelectionSort<int>();
+                Runner.Run(selectionSort, item, nameof(SelectionSort<int>));
 
-            // Shaker Sort (Cocktail Sort)
-            var shakerSort = new ShakerSort<int>();
-            Run(shakerSort, ref sample, nameof(ShakerSort<int>));
-            Run(shakerSort, ref sample2, nameof(ShakerSort<int>));
-            //Run(shakerSort, ref sample3, nameof(ShakerSort<int>));
-            //var shakerSort2 = new ShakerSort2<int>();
-            //Run(shakerSort2, ref sample, nameof(ShakerSort2<int>));
+                // Insert Sort
+                var insertSort = new InsertSort<int>();
+                Runner.Run(insertSort, item, nameof(InsertSort<int>));
 
-            // Comb Sort
-            var combSort = new CombSort<int>();
-            Run(combSort, ref sample, nameof(CombSort<int>));
-            Run(combSort, ref sample2, nameof(CombSort<int>));
-            //Run(combSort, ref sample3, nameof(CombSort<int>));
+                // Shaker Sort (Cocktail Sort)
+                var shakerSort = new ShakerSort<int>();
+                Runner.Run(shakerSort, item, nameof(ShakerSort<int>));
+                var shakerSort2 = new ShakerSort2<int>();
+                Runner.Run(shakerSort2, item, nameof(ShakerSort2<int>));
 
-            // Shell Sort
-            var shellSort = new ShellSort<int>();
-            Run(shellSort, ref sample, nameof(ShellSort<int>));
-            Run(shellSort, ref sample2, nameof(ShellSort<int>));
-            //Run(shellSort, ref sample3, nameof(ShellSort<int>));
+                // Comb Sort
+                var combSort = new CombSort<int>();
+                Runner.Run(combSort, item, nameof(CombSort<int>));
 
-            // Gnome Sort
-            var gnomeSort = new GnomeSort<int>();
-            Run(gnomeSort, ref sample, nameof(GnomeSort<int>));
-            Run(gnomeSort, ref sample2, nameof(GnomeSort<int>));
-            Run(gnomeSort, ref sample3, nameof(GnomeSort<int>));
-            var gnomeSort2 = new GnomeSort2<int>();
-            Run(gnomeSort2, ref sample, nameof(GnomeSort2<int>));
-            var gnomeSort3 = new GnomeSort3<int>();
-            Run(gnomeSort3, ref sample, nameof(GnomeSort3<int>));
+                // Shell Sort
+                var shellSort = new ShellSort<int>();
+                Runner.Run(shellSort, item, nameof(ShellSort<int>));
 
-            // Gnome Sort Optimized
-            var gnomeSortOpmized = new GnomeSortOptimized<int>();
-            Run(gnomeSortOpmized, ref sample, nameof(GnomeSortOptimized<int>));
-            Run(gnomeSortOpmized, ref sample2, nameof(GnomeSortOptimized<int>));
-            //Run(gnomeSortOpmized, ref sample3, nameof(GnomeSortOptimized<int>));
+                // Gnome Sort
+                var gnomeSort = new GnomeSort<int>();
+                Runner.Run(gnomeSort, item, nameof(GnomeSort<int>));
+                var gnomeSort2 = new GnomeSort2<int>();
+                Runner.Run(gnomeSort2, item, nameof(GnomeSort2<int>));
+                var gnomeSort3 = new GnomeSort3<int>();
+                Runner.Run(gnomeSort3, item, nameof(GnomeSort3<int>));
 
-            // Quick Sort
-            var quickSort = new QuickSort<int>();
-            Run(quickSort, ref sample, nameof(QuickSort<int>));
-            Run(quickSort, ref sample2, nameof(QuickSort<int>));
-            //Run(gnomeSortOpmized, ref sample3, nameof(GnomeSortOptimized<int>));
+                // Gnome Sort Optimized
+                var gnomeSortOpmized = new GnomeSortOptimized<int>();
+                Runner.Run(gnomeSortOpmized, item, nameof(GnomeSortOptimized<int>));
 
-            // IntroSort (Quick + Insert)
-            var introSort = new IntroSortQuickInsert<int>();
-            Run(introSort, ref sample, nameof(IntroSortQuickInsert<int>));
-            Run(introSort, ref sample2, nameof(IntroSortQuickInsert<int>));
-            //Run(introSort, ref sample3, nameof(IntroSortQuickInsert<int>));
+                // Quick Sort
+                var quickSort = new QuickSort<int>();
+                Runner.Run(quickSort, item, nameof(QuickSort<int>));
 
-            // Merge Sort
-            var mergeSort = new MergeSort<int>();
-            Run(mergeSort, ref sample, nameof(MergeSort<int>));
-            Run(mergeSort, ref sample2, nameof(MergeSort<int>));
-            //Run(mergeSort, ref sample3, nameof(MergeSort<int>));
+                // IntroSort (Quick + Insert)
+                var introSort = new IntroSortQuickInsert<int>();
+                Runner.Run(introSort, item, nameof(IntroSortQuickInsert<int>));
 
-            var mergeSort2 = new MergeSort2<int>();
-            Run(mergeSort2, ref sample, nameof(MergeSort2<int>));
-            Run(mergeSort2, ref sample2, nameof(MergeSort2<int>));
-            //Run(mergeSort2, ref sample3, nameof(MergeSort2<int>));
+                // Merge Sort
+                var mergeSort = new MergeSort<int>();
+                Runner.Run(mergeSort, item, nameof(MergeSort<int>));
 
-            // Merge Sort
-            var heapSort = new HeapSort<int>();
-            Run(heapSort, ref sample, nameof(HeapSort<int>));
-            Run(heapSort, ref sample2, nameof(HeapSort<int>));
-            //Run(heapSort, ref sample3, nameof(HeapSort<int>));
+                var mergeSort2 = new MergeSort2<int>();
+                Runner.Run(mergeSort2, item, nameof(MergeSort2<int>));
 
-            // Bucket Sort
-            var bucketSort = new BucketSort<int>();
-            Run(bucketSort, array => bucketSort.Sort(array), ref sample, nameof(BucketSort<int>));
-            Run(bucketSort, array => bucketSort.Sort(array), ref sample2, nameof(BucketSort<int>));
-            //Run(bucketSort, array => bucketSort.Sort(array), ref sample3, nameof(BucketSort<int>));
+                // Merge Sort
+                var heapSort = new HeapSort<int>();
+                Runner.Run(heapSort, item, nameof(HeapSort<int>));
 
+                // Bucket Sort
+                var bucketSort = new BucketSort<int>();
+                Runner.Run(bucketSort, array => bucketSort.Sort(array), item, nameof(BucketSort<int>));
+
+                // Radix Sort
+                var radix10Sort = new Radix10Sort<int>();
+                Runner.Run(radix10Sort, array => radix10Sort.Sort(array), item, nameof(Radix10Sort<int>));
+
+                var radix4Sort = new Radix4Sort<int>();
+                Runner.Run(radix4Sort, array => radix4Sort.Sort(array), item, nameof(Radix4Sort<int>));
+
+                var radix2Sort = new Radix2Sort<int>();
+                Runner.Run(radix2Sort, array => radix2Sort.Sort(array), item, nameof(Radix2Sort<int>));
+
+                // Counting Sort
+                var countingSort = new CountingSort<int>();
+                Runner.Run(countingSort, array => countingSort.Sort(array), item, nameof(CountingSort<int>));
+            }
+
+            // BucketSort<T>
             var bucketSortT = new BucketSortT<KeyValuePair<int, string>>();
-            RunBucketTSort(bucketSortT, item => item.Key, dicSample.Max(x => x.Key), dicSample, nameof(BucketSortT<int>));
-            RunBucketTSort(bucketSortT, item => item.Key, dicSample2.Max(x => x.Key), dicSample2, nameof(BucketSortT<int>));
-            //RunBucketTSort(bucketSortT, item => item.Key, dicSample2.Max(x => x.Key), dicSample3, nameof(BucketSortT<int>));
+            Runner.RunBucketTSort(bucketSortT, item => item.Key, dicSample.Max(x => x.Key), dicSample, nameof(BucketSortT<int>));
+        }
+    }
 
-            // Radix Sort
-            var radix10Sort = new Radix10Sort<int>();
-            Run(radix10Sort, array => radix10Sort.Sort(array), ref sample, nameof(Radix10Sort<int>));
-            Run(radix10Sort, array => radix10Sort.Sort(array), ref sample2, nameof(Radix10Sort<int>));
-            //Run(radix10Sort, array => radix10Sort.Sort(array), ref sample3, nameof(Radix10Sort<int>));
+    public static class Runner
+    {
+        private static int[] validateArray;
+        private static KeyValuePair<int, string>[] validateDic;
 
-            var radix4Sort = new Radix4Sort<int>();
-            Run(radix4Sort, array => radix4Sort.Sort(array), ref sample, nameof(Radix4Sort<int>));
-            Run(radix4Sort, array => radix4Sort.Sort(array), ref sample2, nameof(Radix4Sort<int>));
-            //Run(radix4Sort, array => radix4Sort.Sort(array), ref sample3, nameof(Radix4Sort<int>));
-
-            var radix2Sort = new Radix2Sort<int>();
-            Run(radix2Sort, array => radix2Sort.Sort(array), ref sample, nameof(Radix2Sort<int>));
-            Run(radix2Sort, array => radix2Sort.Sort(array), ref sample2, nameof(Radix2Sort<int>));
-            //Run(radix2Sort, array => radix2Sort.Sort(array), ref sample3, nameof(Radix2Sort<int>));
-
-            // Counting Sort
-            var countingSort = new CountingSort<int>();
-            Run(countingSort, array => countingSort.Sort(array), ref sample, nameof(CountingSort<int>));
-            Run(countingSort, array => countingSort.Sort(array), ref sample2, nameof(CountingSort<int>));
-            //Run(countingSort, array => countingSort.Sort(array), ref sample3, nameof(CountingSort<int>));
+        public static void Init(int[] array)
+        {
+            validateArray = array.OrderBy(x => x).ToArray();
         }
 
-        static void Run(ISort<int> sort, ref int[] array, string sortKind)
+        public static void Init(KeyValuePair<int, string>[] array)
+        {
+            validateDic = array.OrderBy(x => x.Key).ToArray();
+        }
+
+        public static void Run(ISort<int> sort, int[] array, string sortKind)
         {
             // prerequites
             var keep = new int[array.Length];
@@ -146,16 +132,20 @@ namespace SortRunner
             // run sort
             var after = sort.Sort(array);
 
+            // validate
+            sort.SortStatics.IsSorted = after.SequenceEqual(validateArray);
+
             // result
-            Console.WriteLine($@"{nameof(sortKind)} : {sortKind}, {nameof(sort.SortStatics.ArraySize)} : {sort.SortStatics.ArraySize}, {nameof(sort.SortStatics.IndexAccessCount)} : {sort.SortStatics.IndexAccessCount}, {nameof(sort.SortStatics.CompareCount)} : {sort.SortStatics.CompareCount}, {nameof(sort.SortStatics.SwapCount)} : {sort.SortStatics.SwapCount}
-Before : {keep.ToJoinedString(" ")}
-After  : {after.ToJoinedString(" ")}");
+            var sortResult = sort.SortStatics.IsSorted ? "" : $@"Before : {keep.ToJoinedString(" ")}
+After  : {after.ToJoinedString(" ")}";
+            Console.WriteLine($@"{nameof(sortKind)} : {sortKind}, {nameof(sort.SortStatics.IsSorted)} : {sort.SortStatics.IsSorted}, {nameof(sort.SortStatics.ArraySize)} : {sort.SortStatics.ArraySize}, {nameof(sort.SortStatics.IndexAccessCount)} : {sort.SortStatics.IndexAccessCount}, {nameof(sort.SortStatics.CompareCount)} : {sort.SortStatics.CompareCount}, {nameof(sort.SortStatics.SwapCount)} : {sort.SortStatics.SwapCount}
+{sortResult}");
 
             // reset
             ResetArray(ref keep, ref array);
         }
 
-        static void Run(ISort<int> sort, Func<int[], int[]> func, ref int[] array, string sortKind)
+        public static void Run(ISort<int> sort, Func<int[], int[]> func, int[] array, string sortKind)
         {
             // prerequites
             var keep = new int[array.Length];
@@ -164,16 +154,20 @@ After  : {after.ToJoinedString(" ")}");
             // run sort
             var after = func(array);
 
+            // validate
+            sort.SortStatics.IsSorted = after.SequenceEqual(validateArray);
+
             // result
-            Console.WriteLine($@"{nameof(sortKind)} : {sortKind}, {nameof(sort.SortStatics.ArraySize)} : {sort.SortStatics.ArraySize}, {nameof(sort.SortStatics.IndexAccessCount)} : {sort.SortStatics.IndexAccessCount}, {nameof(sort.SortStatics.CompareCount)} : {sort.SortStatics.CompareCount}, {nameof(sort.SortStatics.SwapCount)} : {sort.SortStatics.SwapCount}
-Before : {keep.ToJoinedString(" ")}
-After  : {after.ToJoinedString(" ")}");
+            var sortResult = sort.SortStatics.IsSorted ? "" : $@"Before : {keep.ToJoinedString(" ")}
+After  : {after.ToJoinedString(" ")}";
+            Console.WriteLine($@"{nameof(sortKind)} : {sortKind}, {nameof(sort.SortStatics.IsSorted)} : {sort.SortStatics.IsSorted}, {nameof(sort.SortStatics.ArraySize)} : {sort.SortStatics.ArraySize}, {nameof(sort.SortStatics.IndexAccessCount)} : {sort.SortStatics.IndexAccessCount}, {nameof(sort.SortStatics.CompareCount)} : {sort.SortStatics.CompareCount}, {nameof(sort.SortStatics.SwapCount)} : {sort.SortStatics.SwapCount}
+{sortResult}");
 
             // reset
             ResetArray(ref keep, ref array);
         }
 
-        static void RunBucketTSort(BucketSortT<KeyValuePair<int, string>> sort, Func<KeyValuePair<int, string>, int> func, int max, KeyValuePair<int, string>[] array, string sortKind)
+        public static void RunBucketTSort(BucketSortT<KeyValuePair<int, string>> sort, Func<KeyValuePair<int, string>, int> func, int max, KeyValuePair<int, string>[] array, string sortKind)
         {
             // prerequites
             var keep = new KeyValuePair<int, string>[array.Length];
@@ -182,10 +176,14 @@ After  : {after.ToJoinedString(" ")}");
             // run sort
             var after = sort.Sort(array, func, max);
 
+            // validate
+            sort.SortStatics.IsSorted = after.SequenceEqual(validateDic);
+
             // result
-            Console.WriteLine($@"{nameof(sortKind)} : {sortKind}, {nameof(sort.SortStatics.ArraySize)} : {sort.SortStatics.ArraySize}, {nameof(sort.SortStatics.IndexAccessCount)} : {sort.SortStatics.IndexAccessCount}, {nameof(sort.SortStatics.CompareCount)} : {sort.SortStatics.CompareCount}, {nameof(sort.SortStatics.SwapCount)} : {sort.SortStatics.SwapCount}
-Before : {keep.ToJoinedString(" ")}
-After  : {after.ToJoinedString(" ")}");
+            var sortResult = sort.SortStatics.IsSorted ? "" : $@"Before : {keep.ToJoinedString(" ")}
+After  : {after.ToJoinedString(" ")}";
+            Console.WriteLine($@"{nameof(sortKind)} : {sortKind}, {nameof(sort.SortStatics.IsSorted)} : {sort.SortStatics.IsSorted}, {nameof(sort.SortStatics.ArraySize)} : {sort.SortStatics.ArraySize}, {nameof(sort.SortStatics.IndexAccessCount)} : {sort.SortStatics.IndexAccessCount}, {nameof(sort.SortStatics.CompareCount)} : {sort.SortStatics.CompareCount}, {nameof(sort.SortStatics.SwapCount)} : {sort.SortStatics.SwapCount}
+{sortResult}");
 
             // reset
             ResetArray(ref keep, ref array);

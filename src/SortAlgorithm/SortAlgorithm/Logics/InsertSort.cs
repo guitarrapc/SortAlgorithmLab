@@ -22,40 +22,6 @@ namespace SortAlgorithm.Logics
         public override T[] Sort(T[] array)
         {
             base.sortStatics.Reset(array.Length);
-            return Sort(array, 0, array.Length);
-        }
-
-        public T[] Sort(T[] array, int first, int last)
-        {
-            for (var i = first + 1; i < last; i++)
-            {
-                var tmp = array[i];
-                base.sortStatics.AddIndexAccess();
-                base.sortStatics.AddCompareCount();
-                if (array[i - 1].CompareTo(tmp) > 0)
-                {
-                    var j = i;
-                    do
-                    {
-                        base.sortStatics.AddIndexAccess();
-                        base.sortStatics.AddCompareCount();
-                        //array.Dump($"[{tmp}] -> {j}, {j - 1} : {array[j - 1]}, {array[j - 1].CompareTo(tmp) > 0}");
-                        array[j] = array[j - 1];
-                        j--;
-                    } while (j > first && array[j - 1].CompareTo(tmp) > 0);
-                    base.sortStatics.AddSwapCount();
-                    Swap(ref array[j], ref tmp);
-                }
-            }
-            return array;
-        }
-    }
-
-    public class InsertSort2<T> : SortBase<T> where T : IComparable<T>
-    {
-        public override T[] Sort(T[] array)
-        {
-            base.sortStatics.Reset(array.Length);
             for (var i = 1; i < array.Length; i++)
             {
                 var tmp = array[i];
@@ -69,6 +35,22 @@ namespace SortAlgorithm.Logics
                         base.sortStatics.AddSwapCount();
                         Swap(ref array[j], ref array[j - 1]);
                     }
+                }
+            }
+            return array;
+        }
+
+        public T[] Sort(T[] array, int first, int last)
+        {
+            base.sortStatics.Reset(array.Length);
+            for (var i = first + 1; i < last; i++)
+            {
+                base.sortStatics.AddCompareCount();
+                for (var j = i; j > first && array[j - 1].CompareTo(array[j]) > 0; --j)
+                {
+                    base.sortStatics.AddIndexAccess();
+                    base.sortStatics.AddSwapCount();
+                    Swap(ref array[j], ref array[j - 1]);
                 }
             }
             return array;

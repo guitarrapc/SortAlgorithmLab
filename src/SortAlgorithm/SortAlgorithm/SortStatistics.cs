@@ -10,12 +10,14 @@ namespace SortAlgorithm
         public int IndexAccessCount { get; set; }
         public int CompareCount { get; set; }
         public int SwapCount { get; set; }
+        public bool IsSorted { get; set; }
 
         public void Reset()
         {
             IndexAccessCount = 0;
             CompareCount = 0;
             SwapCount = 0;
+            IsSorted = false;
         }
 
         public void Reset(int arraySize)
@@ -24,6 +26,7 @@ namespace SortAlgorithm
             IndexAccessCount = 0;
             CompareCount = 0;
             SwapCount = 0;
+            IsSorted = false;
         }
 
         public void AddIndexAccess()
