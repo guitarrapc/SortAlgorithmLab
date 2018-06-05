@@ -20,7 +20,7 @@ namespace SortRunner
 
         static void Main(string[] args)
         {
-            foreach (var item in new[] { sample, sample2 })
+            foreach (var item in new[] { sample, sample2, sample3 })
             {
                 // Init
                 Runner.Init(item);

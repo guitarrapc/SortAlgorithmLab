@@ -24,20 +24,10 @@ namespace SortAlgorithm.Logics
 
             // same logic as ShellSort, but CombSort use divide by 1.3.
             // divide by 1.3
-            var h = array.Length * 10 / 13;
+            var h = CalculateH(array.Length);
 
             while (true)
             {
-                if (h != 1)
-                {
-                    h = h * 10 / 13;
-                    // comb11
-                    if (h == 9 || h == 10)
-                    {
-                        h = 11;
-                    }
-                }
-
                 var swapped = false;
                 for (var i = 0; i + h < array.Length; i++)
                 {
@@ -51,9 +41,28 @@ namespace SortAlgorithm.Logics
                     }
                 }
 
-                if (!swapped) break;
+                if (h == 1)
+                {
+                    if (!swapped) break;
+                }
+                else
+                {
+                    h = CalculateH(h);
+                }
+
             }
             return array;
+        }
+
+        int CalculateH(int length)
+        {
+            var h = length * 10 / 13;
+            // comb11
+            if (h == 9 || h == 10)
+            {
+                h = 11;
+            }
+            return h;
         }
     }
 }
