@@ -11,8 +11,9 @@ namespace SortRunner
     {
         //private static readonly int[] sample = new[] { 2, 5, 7, 0, 1, 0 };
         private static int[] sample = Enumerable.Range(0, 100).Sample(100).ToArray();
-        private static int[] sample2 = Enumerable.Range(0, 200).Sample(200).ToArray();
-        private static int[] sample3 = Enumerable.Range(0, 1280).Sample(1280).ToArray();
+        private static int[] sample2 = Enumerable.Range(0, 1000).Sample(1000).ToArray();
+        private static int[] sample3 = Enumerable.Range(0, 10000).Sample(10000).ToArray();
+        private static int[] sample4 = Enumerable.Range(0, 100000).Sample(100000).ToArray();
         private static int i = 0;
         private static KeyValuePair<int, string>[] dicSample = sample.Select(x => new KeyValuePair<int, string>(x, $"{x / 25}{((char)(65 + (x % 26)))}{i++}")).ToArray();
         private static KeyValuePair<int, string>[] dicSample2 = sample2.Select(x => new KeyValuePair<int, string>(x, $"{x / 25}{((char)(65 + (x % 26)))}{i++}")).ToArray();
@@ -94,9 +95,6 @@ namespace SortRunner
                 var radix4Sort = new Radix4Sort<int>();
                 Runner.Run(radix4Sort, array => radix4Sort.Sort(array), item, nameof(Radix4Sort<int>));
 
-                var radix2Sort = new Radix2Sort<int>();
-                Runner.Run(radix2Sort, array => radix2Sort.Sort(array), item, nameof(Radix2Sort<int>));
-
                 // Counting Sort
                 var countingSort = new CountingSort<int>();
                 Runner.Run(countingSort, array => countingSort.Sort(array), item, nameof(CountingSort<int>));
@@ -136,10 +134,9 @@ namespace SortRunner
             sort.SortStatics.IsSorted = after.SequenceEqual(validateArray);
 
             // result
-            var sortResult = sort.SortStatics.IsSorted ? "" : $@"Before : {keep.ToJoinedString(" ")}
+            var sortResult = sort.SortStatics.IsSorted ? "" : $@"\nBefore : {keep.ToJoinedString(" ")}
 After  : {after.ToJoinedString(" ")}";
-            Console.WriteLine($@"{nameof(sortKind)} : {sortKind}, {nameof(sort.SortStatics.IsSorted)} : {sort.SortStatics.IsSorted}, {nameof(sort.SortStatics.ArraySize)} : {sort.SortStatics.ArraySize}, {nameof(sort.SortStatics.IndexAccessCount)} : {sort.SortStatics.IndexAccessCount}, {nameof(sort.SortStatics.CompareCount)} : {sort.SortStatics.CompareCount}, {nameof(sort.SortStatics.SwapCount)} : {sort.SortStatics.SwapCount}
-{sortResult}");
+            Console.WriteLine($@"{nameof(sortKind)} : {sortKind}, {nameof(sort.SortStatics.IsSorted)} : {sort.SortStatics.IsSorted}, {nameof(sort.SortStatics.ArraySize)} : {sort.SortStatics.ArraySize}, {nameof(sort.SortStatics.IndexAccessCount)} : {sort.SortStatics.IndexAccessCount}, {nameof(sort.SortStatics.CompareCount)} : {sort.SortStatics.CompareCount}, {nameof(sort.SortStatics.SwapCount)} : {sort.SortStatics.SwapCount}{sortResult}");
 
             // reset
             ResetArray(ref keep, ref array);
@@ -158,10 +155,9 @@ After  : {after.ToJoinedString(" ")}";
             sort.SortStatics.IsSorted = after.SequenceEqual(validateArray);
 
             // result
-            var sortResult = sort.SortStatics.IsSorted ? "" : $@"Before : {keep.ToJoinedString(" ")}
+            var sortResult = sort.SortStatics.IsSorted ? "" : $@"\nBefore : {keep.ToJoinedString(" ")}
 After  : {after.ToJoinedString(" ")}";
-            Console.WriteLine($@"{nameof(sortKind)} : {sortKind}, {nameof(sort.SortStatics.IsSorted)} : {sort.SortStatics.IsSorted}, {nameof(sort.SortStatics.ArraySize)} : {sort.SortStatics.ArraySize}, {nameof(sort.SortStatics.IndexAccessCount)} : {sort.SortStatics.IndexAccessCount}, {nameof(sort.SortStatics.CompareCount)} : {sort.SortStatics.CompareCount}, {nameof(sort.SortStatics.SwapCount)} : {sort.SortStatics.SwapCount}
-{sortResult}");
+            Console.WriteLine($@"{nameof(sortKind)} : {sortKind}, {nameof(sort.SortStatics.IsSorted)} : {sort.SortStatics.IsSorted}, {nameof(sort.SortStatics.ArraySize)} : {sort.SortStatics.ArraySize}, {nameof(sort.SortStatics.IndexAccessCount)} : {sort.SortStatics.IndexAccessCount}, {nameof(sort.SortStatics.CompareCount)} : {sort.SortStatics.CompareCount}, {nameof(sort.SortStatics.SwapCount)} : {sort.SortStatics.SwapCount}{sortResult}");
 
             // reset
             ResetArray(ref keep, ref array);
@@ -180,10 +176,9 @@ After  : {after.ToJoinedString(" ")}";
             sort.SortStatics.IsSorted = after.SequenceEqual(validateDic);
 
             // result
-            var sortResult = sort.SortStatics.IsSorted ? "" : $@"Before : {keep.ToJoinedString(" ")}
+            var sortResult = sort.SortStatics.IsSorted ? "" : $@"\nBefore : {keep.ToJoinedString(" ")}
 After  : {after.ToJoinedString(" ")}";
-            Console.WriteLine($@"{nameof(sortKind)} : {sortKind}, {nameof(sort.SortStatics.IsSorted)} : {sort.SortStatics.IsSorted}, {nameof(sort.SortStatics.ArraySize)} : {sort.SortStatics.ArraySize}, {nameof(sort.SortStatics.IndexAccessCount)} : {sort.SortStatics.IndexAccessCount}, {nameof(sort.SortStatics.CompareCount)} : {sort.SortStatics.CompareCount}, {nameof(sort.SortStatics.SwapCount)} : {sort.SortStatics.SwapCount}
-{sortResult}");
+            Console.WriteLine($@"{nameof(sortKind)} : {sortKind}, {nameof(sort.SortStatics.IsSorted)} : {sort.SortStatics.IsSorted}, {nameof(sort.SortStatics.ArraySize)} : {sort.SortStatics.ArraySize}, {nameof(sort.SortStatics.IndexAccessCount)} : {sort.SortStatics.IndexAccessCount}, {nameof(sort.SortStatics.CompareCount)} : {sort.SortStatics.CompareCount}, {nameof(sort.SortStatics.SwapCount)} : {sort.SortStatics.SwapCount}{sortResult}");
 
             // reset
             ResetArray(ref keep, ref array);
