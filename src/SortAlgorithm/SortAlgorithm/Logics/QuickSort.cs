@@ -13,9 +13,9 @@ namespace SortAlgorithm.Logics
     /// Compare : 
     /// Swap : 
     /// Order : O(n log n) (Worst case : O(nlog^2n))
-    /// ArraySize : 100, IsSorted : True, sortKind : QuickSort, IndexAccessCount : 425, CompareCount : 716, SwapCount : 201
-    /// ArraySize : 1000, IsSorted : True, sortKind : QuickSort, IndexAccessCount : 7215, CompareCount : 10203, SwapCount : 2812
-    /// ArraySize : 10000, IsSorted : True, sortKind : QuickSort, IndexAccessCount : 98989, CompareCount : 128977, SwapCount : 35819
+    /// ArraySize : 100, IsSorted : True, sortKind : QuickSort, IndexAccessCount : 424, CompareCount : 714, SwapCount : 202
+    /// ArraySize : 1000, IsSorted : True, sortKind : QuickSort, IndexAccessCount : 8470, CompareCount : 11461, SwapCount : 2745
+    /// ArraySize : 10000, IsSorted : True, sortKind : QuickSort, IndexAccessCount : 103782, CompareCount : 133770, SwapCount : 35789
     /// </remarks>
     /// <typeparam name="T"></typeparam>
     public class QuickSort<T> : SortBase<T> where T : IComparable<T>

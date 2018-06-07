@@ -13,9 +13,9 @@ namespace SortAlgorithm.Logics
     /// Compare : n log n
     /// Swap : n log n
     /// Order : O(n log n) (Worst case : O(n log n))
-    /// ArraySize : 100, IsSorted : True, sortKind : IntroSort, IndexAccessCount : 225, CompareCount : 234, SwapCount : 182
-    /// ArraySize : 1000, IsSorted : True, sortKind : IntroSort, IndexAccessCount : 4200, CompareCount : 4358, SwapCount : 3317
-    /// ArraySize : 10000, IsSorted : True, sortKind : IntroSort, IndexAccessCount : 74629, CompareCount : 76268, SwapCount : 47361
+    /// ArraySize : 100, IsSorted : True, sortKind : IntroSort, IndexAccessCount : 433, CompareCount : 403, SwapCount : 133
+    /// ArraySize : 1000, IsSorted : True, sortKind : IntroSort, IndexAccessCount : 5367, CompareCount : 5545, SwapCount : 1593
+    /// ArraySize : 10000, IsSorted : True, sortKind : IntroSort, IndexAccessCount : 71351, CompareCount : 72961, SwapCount : 23974
     /// </remarks>
     /// <typeparam name="T"></typeparam>
     public class IntroSort<T> : SortBase<T> where T : IComparable<T>
@@ -81,7 +81,6 @@ namespace SortAlgorithm.Logics
                     return l;
                 }
 
-                base.Statics.AddSwapCount();
                 Swap(ref array[l], ref array[r]);
                 l++;
             }

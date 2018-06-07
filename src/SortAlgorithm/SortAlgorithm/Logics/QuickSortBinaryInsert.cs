@@ -13,15 +13,15 @@ namespace SortAlgorithm.Logics
     /// Compare : 
     /// Swap : 
     /// Order : O(n log n) (Worst case : O(n nlog n))
-    /// ArraySize : 100, IsSorted : True, sortKind : QuickSortInsert, IndexAccessCount : 304, CompareCount : 315, SwapCount : 105
-    /// ArraySize : 1000, IsSorted : True, sortKind : QuickSortInsert, IndexAccessCount : 5707, CompareCount : 5953, SwapCount : 1620
-    /// ArraySize : 10000, IsSorted : True, sortKind : QuickSortInsert, IndexAccessCount : 83644, CompareCount : 86039, SwapCount : 23737
+    /// ArraySize : 100, IsSorted : True, sortKind : QuickSortInsert, IndexAccessCount : 301, CompareCount : 286, SwapCount : 123
+    /// ArraySize : 1000, IsSorted : True, sortKind : QuickSortInsert, IndexAccessCount : 6867, CompareCount : 7051, SwapCount : 1565
+    /// ArraySize : 10000, IsSorted : True, sortKind : QuickSortInsert, IndexAccessCount : 87913, CompareCount : 90256, SwapCount : 23686
     /// </remarks>
     /// <typeparam name="T"></typeparam>
     public class QuickSortBinaryInsert<T> : SortBase<T> where T : IComparable<T>
     {
         // ref : https://github.com/nlfiedler/burstsort4j/blob/master/src/org/burstsort4j/Introsort.java
-        private const int IntroThreshold = 16;
+        private const int InsertThreshold = 16;
         private BinaryInsertSort<T> insertSort = new BinaryInsertSort<T>();
 
         public override T[] Sort(T[] array)
@@ -39,7 +39,7 @@ namespace SortAlgorithm.Logics
             if (left >= right) return array;
 
             // switch to insert sort
-            if (right - left < IntroThreshold)
+            if (right - left < InsertThreshold)
             {
                 return insertSort.Sort(array, left, right + 1);
             }

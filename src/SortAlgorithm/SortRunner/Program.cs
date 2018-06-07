@@ -10,14 +10,14 @@ namespace SortRunner
     class Program
     {
         //private static readonly int[] sample = new[] { 2, 5, 7, 0, 1, 0 };
-        private static int[] sample = Enumerable.Range(0, 100).Sample(100).ToArray();
-        private static int[] sample2 = Enumerable.Range(0, 1000).Sample(1000).ToArray();
-        private static int[] sample3 = Enumerable.Range(0, 10000).Sample(10000).ToArray();
-        private static int[] sample4 = Enumerable.Range(0, 100000).Sample(100000).ToArray();
+        private static readonly int[] sample = Enumerable.Range(0, 100).Sample(100).ToArray();
+        private static readonly int[] sample2 = Enumerable.Range(0, 1000).Sample(1000).ToArray();
+        private static readonly int[] sample3 = Enumerable.Range(0, 10000).Sample(10000).ToArray();
+        private static readonly int[] sample4 = Enumerable.Range(0, 100000).Sample(100000).ToArray();
         private static int i = 0;
-        private static KeyValuePair<int, string>[] dicSample = sample.Select(x => new KeyValuePair<int, string>(x, $"{x / 25}{((char)(65 + (x % 26)))}{i++}")).ToArray();
-        private static KeyValuePair<int, string>[] dicSample2 = sample2.Select(x => new KeyValuePair<int, string>(x, $"{x / 25}{((char)(65 + (x % 26)))}{i++}")).ToArray();
-        private static KeyValuePair<int, string>[] dicSample3 = sample3.Select(x => new KeyValuePair<int, string>(x, $"{x / 25}{((char)(65 + (x % 26)))}{i++}")).ToArray();
+        private static readonly KeyValuePair<int, string>[] dicSample = sample.Select(x => new KeyValuePair<int, string>(x, $"{x / 25}{((char)(65 + (x % 26)))}{i++}")).ToArray();
+        private static readonly KeyValuePair<int, string>[] dicSample2 = sample2.Select(x => new KeyValuePair<int, string>(x, $"{x / 25}{((char)(65 + (x % 26)))}{i++}")).ToArray();
+        private static readonly KeyValuePair<int, string>[] dicSample3 = sample3.Select(x => new KeyValuePair<int, string>(x, $"{x / 25}{((char)(65 + (x % 26)))}{i++}")).ToArray();
 
         static void Main(string[] args)
         {
@@ -77,6 +77,10 @@ namespace SortRunner
                 // QuickSort (Quick + BinaryInsert)
                 var quicksortBinaryInsert = new QuickSortBinaryInsert<int>();
                 Runner.Run(quicksortBinaryInsert, item, nameof(QuickSortBinaryInsert<int>));
+
+                // Dual Pivot QuickSort
+                var quickDualPivotSort = new QuickDualPivotSort<int>();
+                Runner.Run(quickDualPivotSort, item, nameof(QuickDualPivotSort<int>));
 
                 // IntroSort (Quick + Heap + Insert)
                 var IntroInsert = new IntroSort<int>();
