@@ -15,8 +15,9 @@ namespace SortAlgorithm.Logics
     /// Compare : n(n-1) / 2
     /// Swap : O(n^2) (Average n(n-1)/4)
     /// Order : O(n^2)
-    /// sortKind : ShakerSort, ArraySize : 100, IndexAccessCount : 3376, CompareCount : 3376, SwapCount : 2519
-    /// sortKind : ShakerSort, ArraySize : 100, IndexAccessCount : 3822, CompareCount : 3822, SwapCount : 2361
+    /// ArraySize : 100, IsSorted : True, sortKind : ShakerSort, IndexAccessCount : 3502, CompareCount : 3502, SwapCount : 2491
+    /// ArraySize : 1000, IsSorted : True, sortKind : ShakerSort, IndexAccessCount : 342426, CompareCount : 342426, SwapCount : 254017
+    /// ArraySize : 10000, IsSorted : True, sortKind : ShakerSort, IndexAccessCount : 33024349, CompareCount : 33024349, SwapCount : 24763456
     /// </remarks>
     /// <typeparam name="T"></typeparam>
     public class ShakerSort<T> : SortBase<T> where T : IComparable<T>
@@ -75,7 +76,9 @@ namespace SortAlgorithm.Logics
     /// inplace : yes
     /// Compare : n(n-1) / 2
     /// Swap : O(n^2) (Average n(n-1)/4)
-    /// sortKind : ShakerSort, ArraySize : 100, IndexAccessCount : 3822, CompareCount : 3822, SwapCount : 2361
+    /// ArraySize : 100, IsSorted : True, sortKind : ShakerSort2, IndexAccessCount : 4170, CompareCount : 4170, SwapCount : 2491
+    /// ArraySize : 1000, IsSorted : True, sortKind : ShakerSort2, IndexAccessCount : 389285, CompareCount : 389285, SwapCount : 254017
+    /// ArraySize : 10000, IsSorted : True, sortKind : ShakerSort2, IndexAccessCount : 37205847, CompareCount : 37205847, SwapCount : 24763456
     /// </remarks>
     /// <typeparam name="T"></typeparam>
     public class ShakerSort2<T> : SortBase<T> where T : IComparable<T>

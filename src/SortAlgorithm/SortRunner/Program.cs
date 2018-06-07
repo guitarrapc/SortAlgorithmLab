@@ -38,6 +38,10 @@ namespace SortRunner
                 var insertSort = new InsertSort<int>();
                 Runner.Run(insertSort, item, nameof(InsertSort<int>));
 
+                // Binary Insert Sort
+                var binaryInsertSort = new BinaryInsertSort<int>();
+                Runner.Run(binaryInsertSort, item, nameof(BinaryInsertSort<int>));
+
                 // Shaker Sort (Cocktail Sort)
                 var shakerSort = new ShakerSort<int>();
                 Runner.Run(shakerSort, item, nameof(ShakerSort<int>));
@@ -69,6 +73,10 @@ namespace SortRunner
                 // QuickSort (Quick + Insert)
                 var quicksortInsert = new QuickSortInsert<int>();
                 Runner.Run(quicksortInsert, item, nameof(QuickSortInsert<int>));
+
+                // QuickSort (Quick + BinaryInsert)
+                var quicksortBinaryInsert = new QuickSortBinaryInsert<int>();
+                Runner.Run(quicksortBinaryInsert, item, nameof(QuickSortBinaryInsert<int>));
 
                 // IntroSort (Quick + Heap + Insert)
                 var IntroInsert = new IntroSort<int>();

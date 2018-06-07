@@ -13,7 +13,9 @@ namespace SortAlgorithm.Logics
     /// Compare : O(nlogn) * O(n) (O(n^0.25)～O(n^0.5) * O(n) = O(n^1.25))
     /// Swap : 
     /// Order : O(n^1.25) (Better case : O(n)) (Worst case : O(nlog^2n))
-    /// sortKind : ShellSort, ArraySize : 100, IndexAccessCount : 2433, CompareCount : 2433, SwapCount : 172
+    /// ArraySize : 100, IsSorted : True, sortKind : ShellSort, IndexAccessCount : 431, CompareCount : 282, SwapCount : 431
+    /// ArraySize : 1000, IsSorted : True, sortKind : ShellSort, IndexAccessCount : 9384, CompareCount : 4821, SwapCount : 9384
+    /// ArraySize : 10000, IsSorted : True, sortKind : ShellSort, IndexAccessCount : 167650, CompareCount : 75084, SwapCount : 167650
     /// </remarks>
     /// <typeparam name="T"></typeparam>
     public class ShellSort<T> : SortBase<T> where T : IComparable<T>

@@ -14,7 +14,9 @@ namespace SortAlgorithm.Logics
     /// Compare : n log2 n
     /// Swap : n log2 n
     /// Order : O(n log n) (Worst case : O(n log n))
-    /// sortKind : MergeSort, ArraySize : 100, IndexAccessCount : 542, CompareCount : 539, SwapCount : 626
+    /// ArraySize : 100, IsSorted : True, sortKind : MergeSort, IndexAccessCount : 534, CompareCount : 544, SwapCount : 623
+    /// ArraySize : 1000, IsSorted : True, sortKind : MergeSort, IndexAccessCount : 6661, CompareCount : 8724, SwapCount : 9342
+    /// ArraySize : 10000, IsSorted : True, sortKind : MergeSort, IndexAccessCount : 86596, CompareCount : 120487, SwapCount : 128076
     /// </remarks>
     /// <typeparam name="T"></typeparam>
 
@@ -110,10 +112,12 @@ namespace SortAlgorithm.Logics
     }
 
     /// <summary>
-    /// 
+    /// 非効率なマージソート
     /// </summary>
     /// <remarks>
-    /// sortKind : MergeSort2, ArraySize : 100, IndexAccessCount : 771, CompareCount : 538, SwapCount : 672
+    /// ArraySize : 100, IsSorted : True, sortKind : MergeSort2, IndexAccessCount : 771, CompareCount : 536, SwapCount : 672
+    /// ArraySize : 1000, IsSorted : True, sortKind : MergeSort2, IndexAccessCount : 10975, CompareCount : 8736, SwapCount : 9976
+    /// ArraySize : 10000, IsSorted : True, sortKind : MergeSort2, IndexAccessCount : 143615, CompareCount : 120366, SwapCount : 133616
     /// </remarks>
     /// <typeparam name="T"></typeparam>
     public class MergeSort2<T> : SortBase<T> where T : IComparable<T>

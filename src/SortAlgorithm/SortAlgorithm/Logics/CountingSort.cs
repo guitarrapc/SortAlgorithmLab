@@ -14,7 +14,9 @@ namespace SortAlgorithm.Logics
     /// Compare : 0
     /// Swap : 0
     /// Order : O(n + k) (k = helper array = counting + result)
-    /// sortKind : CountingSort, ArraySize : 100, IndexAccessCount : 300, CompareCount : 0, SwapCount : 0
+    /// ArraySize : 100, IsSorted : True, sortKind : CountingSort, IndexAccessCount : 298, CompareCount : 0, SwapCount : 0
+    /// ArraySize : 1000, IsSorted : True, sortKind : CountingSort, IndexAccessCount : 3000, CompareCount : 0, SwapCount : 0
+    /// ArraySize : 10000, IsSorted : True, sortKind : CountingSort, IndexAccessCount : 29999, CompareCount : 0, SwapCount : 0
     /// </remarks>
     /// <typeparam name="T"></typeparam>
 

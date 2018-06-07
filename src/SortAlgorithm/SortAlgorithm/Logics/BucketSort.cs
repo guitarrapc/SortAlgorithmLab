@@ -14,8 +14,10 @@ namespace SortAlgorithm.Logics
     /// inplace : no
     /// Compare : 2n
     /// Swap : 0
-    /// Order : O(n)
-    /// sortKind : BucketSortT, ArraySize : 100, IndexAccessCount : 299, CompareCount : 100, SwapCount : 0
+    /// Order : O(n) (Worst case : O(n^2))
+    /// ArraySize : 100, IsSorted : True, sortKind : BucketSort, IndexAccessCount : 200, CompareCount : 100, SwapCount : 0
+    /// ArraySize : 1000, IsSorted : True, sortKind : BucketSort, IndexAccessCount : 2000, CompareCount : 1000, SwapCount : 0
+    /// ArraySize : 10000, IsSorted : True, sortKind : BucketSort, IndexAccessCount : 20000, CompareCount : 10000, SwapCount : 0
     /// </remarks>
     /// <typeparam name="T"></typeparam>
 
@@ -65,7 +67,9 @@ namespace SortAlgorithm.Logics
     /// 整数専用のバケットソート
     /// </summary>
     /// <remarks>
-    /// sortKind : BucketSort, ArraySize : 100, IndexAccessCount : 200, CompareCount : 100, SwapCount : 0
+    /// ArraySize : 100, IsSorted : True, sortKind : BucketSortT, IndexAccessCount : 233, CompareCount : 100, SwapCount : 0
+    /// ArraySize : 1000, IsSorted : True, sortKind : BucketSortT, IndexAccessCount : 2370, CompareCount : 1000, SwapCount : 0
+    /// ArraySize : 10000, IsSorted : True, sortKind : BucketSortT, IndexAccessCount : 23670, CompareCount : 10000, SwapCount : 0
     /// </remarks>
     /// <typeparam name="T"></typeparam>
     public class BucketSort<T> : SortBase<T> where T : IComparable<T>

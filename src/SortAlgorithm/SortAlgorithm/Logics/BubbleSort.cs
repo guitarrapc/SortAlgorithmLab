@@ -14,7 +14,9 @@ namespace SortAlgorithm.Logics
     /// Compare : n(n-1) / 2
     /// Swap : Average n(n-1)/4
     /// Order : O(n^2)
-    /// sortKind : BubbleSort, ArraySize : 100, IndexAccessCount : 4950, CompareCount : 4950, SwapCount : 2278
+    /// ArraySize : 100, IsSorted : True, sortKind : BubbleSort, IndexAccessCount : 4950, CompareCount : 4950, SwapCount : 2491
+    /// ArraySize : 1000, IsSorted : True, sortKind : BubbleSort, IndexAccessCount : 499500, CompareCount : 499500, SwapCount : 254017
+    /// ArraySize : 10000, IsSorted : True, sortKind : BubbleSort, IndexAccessCount : 49995000, CompareCount : 49995000, SwapCount : 24763456
     /// </remarks>
     /// <typeparam name="T"></typeparam>
     public class BubbleSort<T> : SortBase<T> where T : IComparable<T>
