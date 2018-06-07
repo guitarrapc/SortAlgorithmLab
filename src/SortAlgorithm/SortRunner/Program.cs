@@ -25,7 +25,6 @@ namespace SortRunner
             {
                 // Init
                 Runner.Init(item);
-                Runner.Init(dicSample);
 
                 // Bubble Sort
                 var bubbleSort = new BubbleSort<int>();
@@ -71,6 +70,10 @@ namespace SortRunner
                 var quicksortInsert = new QuickSortInsert<int>();
                 Runner.Run(quicksortInsert, item, nameof(QuickSortInsert<int>));
 
+                // IntroSort (Quick + Heap + Insert)
+                var IntroInsert = new IntroSort<int>();
+                Runner.Run(IntroInsert, item, nameof(IntroSort<int>));
+
                 // Merge Sort
                 var mergeSort = new MergeSort<int>();
                 Runner.Run(mergeSort, item, nameof(MergeSort<int>));
@@ -98,9 +101,15 @@ namespace SortRunner
                 Runner.Run(countingSort, array => countingSort.Sort(array), item, nameof(CountingSort<int>));
             }
 
-            // BucketSort<T>
-            var bucketSortT = new BucketSortT<KeyValuePair<int, string>>();
-            Runner.RunBucketTSort(bucketSortT, item => item.Key, dicSample.Max(x => x.Key), dicSample, nameof(BucketSortT<int>));
+            foreach (var item in new[] { dicSample, dicSample2, dicSample3 })
+            {
+                // Init
+                Runner.Init(item);
+
+                // BucketSort<T>
+                var bucketSortT = new BucketSortT<KeyValuePair<int, string>>();
+                Runner.RunBucketTSort(bucketSortT, x => x.Key, item.Max(x => x.Key), item, nameof(BucketSortT<int>));
+            }
         }
     }
 
@@ -132,7 +141,8 @@ namespace SortRunner
             sort.Statics.IsSorted = after.SequenceEqual(validateArray);
 
             // result
-            var sortResult = sort.Statics.IsSorted ? "" : $@"\nBefore : {keep.ToJoinedString(" ")}
+            var sortResult = sort.Statics.IsSorted ? "" : $@"
+Before : {keep.ToJoinedString(" ")}
 After  : {after.ToJoinedString(" ")}";
             Console.WriteLine($@"{nameof(sort.Statics.ArraySize)} : {sort.Statics.ArraySize}, {nameof(sort.Statics.IsSorted)} : {sort.Statics.IsSorted}, {nameof(sortKind)} : {sortKind}, {nameof(sort.Statics.IndexAccessCount)} : {sort.Statics.IndexAccessCount}, {nameof(sort.Statics.CompareCount)} : {sort.Statics.CompareCount}, {nameof(sort.Statics.SwapCount)} : {sort.Statics.SwapCount}{sortResult}");
 
@@ -153,7 +163,8 @@ After  : {after.ToJoinedString(" ")}";
             sort.Statics.IsSorted = after.SequenceEqual(validateArray);
 
             // result
-            var sortResult = sort.Statics.IsSorted ? "" : $@"\nBefore : {keep.ToJoinedString(" ")}
+            var sortResult = sort.Statics.IsSorted ? "" : $@"
+Before : {keep.ToJoinedString(" ")}
 After  : {after.ToJoinedString(" ")}";
             Console.WriteLine($@"{nameof(sort.Statics.ArraySize)} : {sort.Statics.ArraySize}, {nameof(sort.Statics.IsSorted)} : {sort.Statics.IsSorted}, {nameof(sortKind)} : {sortKind}, {nameof(sort.Statics.IndexAccessCount)} : {sort.Statics.IndexAccessCount}, {nameof(sort.Statics.CompareCount)} : {sort.Statics.CompareCount}, {nameof(sort.Statics.SwapCount)} : {sort.Statics.SwapCount}{sortResult}");
 
@@ -174,7 +185,8 @@ After  : {after.ToJoinedString(" ")}";
             sort.Statics.IsSorted = after.SequenceEqual(validateDic);
 
             // result
-            var sortResult = sort.Statics.IsSorted ? "" : $@"\nBefore : {keep.ToJoinedString(" ")}
+            var sortResult = sort.Statics.IsSorted ? "" : $@"
+Before : {keep.ToJoinedString(" ")}
 After  : {after.ToJoinedString(" ")}";
             Console.WriteLine($@"{nameof(sort.Statics.ArraySize)} : {sort.Statics.ArraySize}, {nameof(sort.Statics.IsSorted)} : {sort.Statics.IsSorted}, {nameof(sortKind)} : {sortKind}, {nameof(sort.Statics.IndexAccessCount)} : {sort.Statics.IndexAccessCount}, {nameof(sort.Statics.CompareCount)} : {sort.Statics.CompareCount}, {nameof(sort.Statics.SwapCount)} : {sort.Statics.SwapCount}{sortResult}");
 
