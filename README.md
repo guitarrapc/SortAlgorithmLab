@@ -1,93 +1,94 @@
 # SortAlgorithm
 
-
-ArraySize : 100, IsSorted : True, sortKind : BubbleSort, IndexAccessCount : 4950, CompareCount : 4950, SwapCount : 2221
-ArraySize : 100, IsSorted : True, sortKind : SelectionSort, IndexAccessCount : 4950, CompareCount : 4950, SwapCount : 100
-ArraySize : 100, IsSorted : True, sortKind : InsertSort, IndexAccessCount : 2221, CompareCount : 2221, SwapCount : 2221
-ArraySize : 100, IsSorted : True, sortKind : BinaryInsertSort, IndexAccessCount : 2945, CompareCount : 526, SwapCount : 2320
-ArraySize : 100, IsSorted : True, sortKind : ShakerSort, IndexAccessCount : 3028, CompareCount : 3028, SwapCount : 2221
-ArraySize : 100, IsSorted : True, sortKind : ShakerSort2, IndexAccessCount : 3624, CompareCount : 3624, SwapCount : 2221
-ArraySize : 100, IsSorted : True, sortKind : CombSort, IndexAccessCount : 1195, CompareCount : 1195, SwapCount : 222
-ArraySize : 100, IsSorted : True, sortKind : ShellSort, IndexAccessCount : 469, CompareCount : 282, SwapCount : 469
-ArraySize : 100, IsSorted : True, sortKind : GnomeSort, IndexAccessCount : 2321, CompareCount : 2221, SwapCount : 2221
-ArraySize : 100, IsSorted : True, sortKind : GnomeSort1, IndexAccessCount : 4538, CompareCount : 4538, SwapCount : 2221
-ArraySize : 100, IsSorted : True, sortKind : GnomeSort2, IndexAccessCount : 2224, CompareCount : 2317, SwapCount : 2221
-ArraySize : 100, IsSorted : True, sortKind : GnomeSort3, IndexAccessCount : 4542, CompareCount : 4542, SwapCount : 2221
-ArraySize : 100, IsSorted : True, sortKind : QuickSortMedian3, IndexAccessCount : 398, CompareCount : 693, SwapCount : 201
-ArraySize : 100, IsSorted : True, sortKind : QuickSortMedian3Insert, IndexAccessCount : 246, CompareCount : 258, SwapCount : 93
-ArraySize : 100, IsSorted : True, sortKind : QuickSortMedian3BinaryInsert, IndexAccessCount : 312, CompareCount : 300, SwapCount : 101
-ArraySize : 100, IsSorted : True, sortKind : QuickSortMedian9, IndexAccessCount : 325, CompareCount : 1211, SwapCount : 203
-ArraySize : 100, IsSorted : True, sortKind : QuickSortMedian9Insert, IndexAccessCount : 239, CompareCount : 276, SwapCount : 123
-ArraySize : 100, IsSorted : True, sortKind : QuickSortMedian9BinaryInsert, IndexAccessCount : 349, CompareCount : 347, SwapCount : 136
-ArraySize : 100, IsSorted : True, sortKind : QuickDualPivotSort, IndexAccessCount : 352, CompareCount : 490, SwapCount : 329
-ArraySize : 100, IsSorted : True, sortKind : QuickDualPivotSortInsert, IndexAccessCount : 240, CompareCount : 316, SwapCount : 193
-ArraySize : 100, IsSorted : True, sortKind : IntroSortMedian3, IndexAccessCount : 275, CompareCount : 294, SwapCount : 75
-ArraySize : 100, IsSorted : True, sortKind : IntroSortMedian9, IndexAccessCount : 216, CompareCount : 300, SwapCount : 86
-ArraySize : 100, IsSorted : True, sortKind : MergeSort, IndexAccessCount : 534, CompareCount : 544, SwapCount : 623
-ArraySize : 100, IsSorted : True, sortKind : MergeSort2, IndexAccessCount : 771, CompareCount : 536, SwapCount : 672
-ArraySize : 100, IsSorted : True, sortKind : HeapSort, IndexAccessCount : 722, CompareCount : 1065, SwapCount : 626
-ArraySize : 100, IsSorted : True, sortKind : BucketSort, IndexAccessCount : 200, CompareCount : 100, SwapCount : 0
-ArraySize : 100, IsSorted : True, sortKind : RadixLSD10Sort, IndexAccessCount : 420, CompareCount : 200, SwapCount : 0
-ArraySize : 100, IsSorted : True, sortKind : RadixLSD4Sort, IndexAccessCount : 2781, CompareCount : 400, SwapCount : 0
-ArraySize : 100, IsSorted : True, sortKind : CountingSort, IndexAccessCount : 300, CompareCount : 0, SwapCount : 0
-ArraySize : 1000, IsSorted : True, sortKind : BubbleSort, IndexAccessCount : 499500, CompareCount : 499500, SwapCount : 259486
-ArraySize : 1000, IsSorted : True, sortKind : SelectionSort, IndexAccessCount : 499500, CompareCount : 499500, SwapCount : 1000
-ArraySize : 1000, IsSorted : True, sortKind : InsertSort, IndexAccessCount : 259486, CompareCount : 259486, SwapCount : 259486
-ArraySize : 1000, IsSorted : True, sortKind : BinaryInsertSort, IndexAccessCount : 270076, CompareCount : 8592, SwapCount : 260485
-ArraySize : 1000, IsSorted : True, sortKind : ShakerSort, IndexAccessCount : 344177, CompareCount : 344177, SwapCount : 259486
-ArraySize : 1000, IsSorted : True, sortKind : ShakerSort2, IndexAccessCount : 385497, CompareCount : 385497, SwapCount : 259486
-ArraySize : 1000, IsSorted : True, sortKind : CombSort, IndexAccessCount : 21704, CompareCount : 21704, SwapCount : 4085
-ArraySize : 1000, IsSorted : True, sortKind : ShellSort, IndexAccessCount : 10362, CompareCount : 4821, SwapCount : 10362
-ArraySize : 1000, IsSorted : True, sortKind : GnomeSort, IndexAccessCount : 260486, CompareCount : 259486, SwapCount : 259486
-ArraySize : 1000, IsSorted : True, sortKind : GnomeSort1, IndexAccessCount : 519967, CompareCount : 519967, SwapCount : 259486
-ArraySize : 1000, IsSorted : True, sortKind : GnomeSort2, IndexAccessCount : 259490, CompareCount : 260481, SwapCount : 259486
-ArraySize : 1000, IsSorted : True, sortKind : GnomeSort3, IndexAccessCount : 519972, CompareCount : 519972, SwapCount : 259486
-ArraySize : 1000, IsSorted : True, sortKind : QuickSortMedian3, IndexAccessCount : 7509, CompareCount : 10496, SwapCount : 2845
-ArraySize : 1000, IsSorted : True, sortKind : QuickSortMedian3Insert, IndexAccessCount : 6000, CompareCount : 6181, SwapCount : 1645
-ArraySize : 1000, IsSorted : True, sortKind : QuickSortMedian3BinaryInsert, IndexAccessCount : 6180, CompareCount : 6316, SwapCount : 1660
-ArraySize : 1000, IsSorted : True, sortKind : QuickSortMedian9, IndexAccessCount : 5546, CompareCount : 14506, SwapCount : 2924
-ArraySize : 1000, IsSorted : True, sortKind : QuickSortMedian9Insert, IndexAccessCount : 4295, CompareCount : 5127, SwapCount : 1586
-ArraySize : 1000, IsSorted : True, sortKind : QuickSortMedian9BinaryInsert, IndexAccessCount : 4433, CompareCount : 5229, SwapCount : 1598
-ArraySize : 1000, IsSorted : True, sortKind : QuickDualPivotSort, IndexAccessCount : 6643, CompareCount : 8927, SwapCount : 4537
-ArraySize : 1000, IsSorted : True, sortKind : QuickDualPivotSortInsert, IndexAccessCount : 5647, CompareCount : 7343, SwapCount : 3247
-ArraySize : 1000, IsSorted : True, sortKind : IntroSortMedian3, IndexAccessCount : 4843, CompareCount : 5011, SwapCount : 1609
-ArraySize : 1000, IsSorted : True, sortKind : IntroSortMedian9, IndexAccessCount : 4154, CompareCount : 5023, SwapCount : 1660
-ArraySize : 1000, IsSorted : True, sortKind : MergeSort, IndexAccessCount : 6714, CompareCount : 8731, SwapCount : 9402
-ArraySize : 1000, IsSorted : True, sortKind : MergeSort2, IndexAccessCount : 10975, CompareCount : 8708, SwapCount : 9976
-ArraySize : 1000, IsSorted : True, sortKind : HeapSort, IndexAccessCount : 10552, CompareCount : 17203, SwapCount : 9561
-ArraySize : 1000, IsSorted : True, sortKind : BucketSort, IndexAccessCount : 2000, CompareCount : 1000, SwapCount : 0
-ArraySize : 1000, IsSorted : True, sortKind : RadixLSD10Sort, IndexAccessCount : 6030, CompareCount : 3000, SwapCount : 0
-ArraySize : 1000, IsSorted : True, sortKind : RadixLSD4Sort, IndexAccessCount : 9793, CompareCount : 4000, SwapCount : 0
-ArraySize : 1000, IsSorted : True, sortKind : CountingSort, IndexAccessCount : 2999, CompareCount : 0, SwapCount : 0
-ArraySize : 10000, IsSorted : True, sortKind : BubbleSort, IndexAccessCount : 49995000, CompareCount : 49995000, SwapCount : 25046286
-ArraySize : 10000, IsSorted : True, sortKind : SelectionSort, IndexAccessCount : 49995000, CompareCount : 49995000, SwapCount : 10000
-ArraySize : 10000, IsSorted : True, sortKind : InsertSort, IndexAccessCount : 25046286, CompareCount : 25046286, SwapCount : 25046286
-ArraySize : 10000, IsSorted : True, sortKind : BinaryInsertSort, IndexAccessCount : 25185353, CompareCount : 119069, SwapCount : 25056285
-ArraySize : 10000, IsSorted : True, sortKind : ShakerSort, IndexAccessCount : 33343092, CompareCount : 33343092, SwapCount : 25046286
-ArraySize : 10000, IsSorted : True, sortKind : ShakerSort2, IndexAccessCount : 37397310, CompareCount : 37397310, SwapCount : 25046286
-ArraySize : 10000, IsSorted : True, sortKind : CombSort, IndexAccessCount : 306727, CompareCount : 306727, SwapCount : 59065
-ArraySize : 10000, IsSorted : True, sortKind : ShellSort, IndexAccessCount : 167989, CompareCount : 75084, SwapCount : 167989
-ArraySize : 10000, IsSorted : True, sortKind : GnomeSort, IndexAccessCount : 25056286, CompareCount : 25046286, SwapCount : 25046286
-ArraySize : 10000, IsSorted : True, sortKind : GnomeSort1, IndexAccessCount : 50102556, CompareCount : 50102556, SwapCount : 25046286
-ArraySize : 10000, IsSorted : True, sortKind : GnomeSort2, IndexAccessCount : 25046281, CompareCount : 25056270, SwapCount : 25046286
-ArraySize : 10000, IsSorted : True, sortKind : GnomeSort3, IndexAccessCount : 50102572, CompareCount : 50102572, SwapCount : 25046286
-ArraySize : 10000, IsSorted : True, sortKind : QuickSortMedian3, IndexAccessCount : 97851, CompareCount : 127842, SwapCount : 35940
-ArraySize : 10000, IsSorted : True, sortKind : QuickSortMedian3Insert, IndexAccessCount : 82454, CompareCount : 84812, SwapCount : 23876
-ArraySize : 10000, IsSorted : True, sortKind : QuickSortMedian3BinaryInsert, IndexAccessCount : 82621, CompareCount : 84946, SwapCount : 23887
-ArraySize : 10000, IsSorted : True, sortKind : QuickSortMedian9, IndexAccessCount : 70393, CompareCount : 160388, SwapCount : 37765
-ArraySize : 10000, IsSorted : True, sortKind : QuickSortMedian9Insert, IndexAccessCount : 57961, CompareCount : 66775, SwapCount : 24231
-ArraySize : 10000, IsSorted : True, sortKind : QuickSortMedian9BinaryInsert, IndexAccessCount : 58021, CompareCount : 66823, SwapCount : 24235
-ArraySize : 10000, IsSorted : True, sortKind : QuickDualPivotSort, IndexAccessCount : 91301, CompareCount : 126405, SwapCount : 72861
-ArraySize : 10000, IsSorted : True, sortKind : QuickDualPivotSortInsert, IndexAccessCount : 81004, CompareCount : 109870, SwapCount : 59229
-ArraySize : 10000, IsSorted : True, sortKind : IntroSortMedian3, IndexAccessCount : 76637, CompareCount : 78316, SwapCount : 23565
-ArraySize : 10000, IsSorted : True, sortKind : IntroSortMedian9, IndexAccessCount : 59737, CompareCount : 68586, SwapCount : 24095
-ArraySize : 10000, IsSorted : True, sortKind : MergeSort, IndexAccessCount : 86828, CompareCount : 120311, SwapCount : 128132
-ArraySize : 10000, IsSorted : True, sortKind : MergeSort2, IndexAccessCount : 143615, CompareCount : 120419, SwapCount : 133616
-ArraySize : 10000, IsSorted : True, sortKind : HeapSort, IndexAccessCount : 139269, CompareCount : 239036, SwapCount : 129280
-ArraySize : 10000, IsSorted : True, sortKind : BucketSort, IndexAccessCount : 20000, CompareCount : 10000, SwapCount : 0
-ArraySize : 10000, IsSorted : True, sortKind : RadixLSD10Sort, IndexAccessCount : 80040, CompareCount : 40000, SwapCount : 0
-ArraySize : 10000, IsSorted : True, sortKind : RadixLSD4Sort, IndexAccessCount : 81750, CompareCount : 40000, SwapCount : 0
-ArraySize : 10000, IsSorted : True, sortKind : CountingSort, IndexAccessCount : 29999, CompareCount : 0, SwapCount : 0
-ArraySize : 100, IsSorted : True, sortKind : BucketSortT, IndexAccessCount : 236, CompareCount : 100, SwapCount : 0
-ArraySize : 1000, IsSorted : True, sortKind : BucketSortT, IndexAccessCount : 2363, CompareCount : 1000, SwapCount : 0
-ArraySize : 10000, IsSorted : True, sortKind : BucketSortT, IndexAccessCount : 23685, CompareCount : 10000, SwapCount : 0
+ArraySize | IsSorted | sortKind | IndexAccessCount | CompareCount | SwapCount
+---- | ---- | ---- | ---- | ---- | ----
+100 | True | BubbleSort | 4950 | 4950 | 2221
+100 | True | SelectionSort | 4950 | 4950 | 100
+100 | True | InsertSort | 2221 | 2221 | 2221
+100 | True | BinaryInsertSort | 2945 | 526 | 2320
+100 | True | ShakerSort | 3028 | 3028 | 2221
+100 | True | ShakerSort2 | 3624 | 3624 | 2221
+100 | True | CombSort | 1195 | 1195 | 222
+100 | True | ShellSort | 469 | 282 | 469
+100 | True | GnomeSort | 2321 | 2221 | 2221
+100 | True | GnomeSort1 | 4538 | 4538 | 2221
+100 | True | GnomeSort2 | 2224 | 2317 | 2221
+100 | True | GnomeSort3 | 4542 | 4542 | 2221
+100 | True | QuickSortMedian3 | 398 | 693 | 201
+100 | True | QuickSortMedian3Insert | 246 | 258 | 93
+100 | True | QuickSortMedian3BinaryInsert | 312 | 300 | 101
+100 | True | QuickSortMedian9 | 325 | 1211 | 203
+100 | True | QuickSortMedian9Insert | 239 | 276 | 123
+100 | True | QuickSortMedian9BinaryInsert | 349 | 347 | 136
+100 | True | QuickDualPivotSort | 352 | 490 | 329
+100 | True | QuickDualPivotSortInsert | 240 | 316 | 193
+100 | True | IntroSortMedian3 | 275 | 294 | 75
+100 | True | IntroSortMedian9 | 216 | 300 | 86
+100 | True | MergeSort | 534 | 544 | 623
+100 | True | MergeSort2 | 771 | 536 | 672
+100 | True | HeapSort | 722 | 1065 | 626
+100 | True | BucketSort | 200 | 100 | 0
+100 | True | RadixLSD10Sort | 420 | 200 | 0
+100 | True | RadixLSD4Sort | 2781 | 400 | 0
+100 | True | CountingSort | 300 | 0 | 0
+1000 | True | BubbleSort | 499500 | 499500 | 259486
+1000 | True | SelectionSort | 499500 | 499500 | 1000
+1000 | True | InsertSort | 259486 | 259486 | 259486
+1000 | True | BinaryInsertSort | 270076 | 8592 | 260485
+1000 | True | ShakerSort | 344177 | 344177 | 259486
+1000 | True | ShakerSort2 | 385497 | 385497 | 259486
+1000 | True | CombSort | 21704 | 21704 | 4085
+1000 | True | ShellSort | 10362 | 4821 | 10362
+1000 | True | GnomeSort | 260486 | 259486 | 259486
+1000 | True | GnomeSort1 | 519967 | 519967 | 259486
+1000 | True | GnomeSort2 | 259490 | 260481 | 259486
+1000 | True | GnomeSort3 | 519972 | 519972 | 259486
+1000 | True | QuickSortMedian3 | 7509 | 10496 | 2845
+1000 | True | QuickSortMedian3Insert | 6000 | 6181 | 1645
+1000 | True | QuickSortMedian3BinaryInsert | 6180 | 6316 | 1660
+1000 | True | QuickSortMedian9 | 5546 | 14506 | 2924
+1000 | True | QuickSortMedian9Insert | 4295 | 5127 | 1586
+1000 | True | QuickSortMedian9BinaryInsert | 4433 | 5229 | 1598
+1000 | True | QuickDualPivotSort | 6643 | 8927 | 4537
+1000 | True | QuickDualPivotSortInsert | 5647 | 7343 | 3247
+1000 | True | IntroSortMedian3 | 4843 | 5011 | 1609
+1000 | True | IntroSortMedian9 | 4154 | 5023 | 1660
+1000 | True | MergeSort | 6714 | 8731 | 9402
+1000 | True | MergeSort2 | 10975 | 8708 | 9976
+1000 | True | HeapSort | 10552 | 17203 | 9561
+1000 | True | BucketSort | 2000 | 1000 | 0
+1000 | True | RadixLSD10Sort | 6030 | 3000 | 0
+1000 | True | RadixLSD4Sort | 9793 | 4000 | 0
+1000 | True | CountingSort | 2999 | 0 | 0
+10000 | True | BubbleSort | 49995000 | 49995000 | 25046286
+10000 | True | SelectionSort | 49995000 | 49995000 | 10000
+10000 | True | InsertSort | 25046286 | 25046286 | 25046286
+10000 | True | BinaryInsertSort | 25185353 | 119069 | 25056285
+10000 | True | ShakerSort | 33343092 | 33343092 | 25046286
+10000 | True | ShakerSort2 | 37397310 | 37397310 | 25046286
+10000 | True | CombSort | 306727 | 306727 | 59065
+10000 | True | ShellSort | 167989 | 75084 | 167989
+10000 | True | GnomeSort | 25056286 | 25046286 | 25046286
+10000 | True | GnomeSort1 | 50102556 | 50102556 | 25046286
+10000 | True | GnomeSort2 | 25046281 | 25056270 | 25046286
+10000 | True | GnomeSort3 | 50102572 | 50102572 | 25046286
+10000 | True | QuickSortMedian3 | 97851 | 127842 | 35940
+10000 | True | QuickSortMedian3Insert | 82454 | 84812 | 23876
+10000 | True | QuickSortMedian3BinaryInsert | 82621 | 84946 | 23887
+10000 | True | QuickSortMedian9 | 70393 | 160388 | 37765
+10000 | True | QuickSortMedian9Insert | 57961 | 66775 | 24231
+10000 | True | QuickSortMedian9BinaryInsert | 58021 | 66823 | 24235
+10000 | True | QuickDualPivotSort | 91301 | 126405 | 72861
+10000 | True | QuickDualPivotSortInsert | 81004 | 109870 | 59229
+10000 | True | IntroSortMedian3 | 76637 | 78316 | 23565
+10000 | True | IntroSortMedian9 | 59737 | 68586 | 24095
+10000 | True | MergeSort | 86828 | 120311 | 128132
+10000 | True | MergeSort2 | 143615 | 120419 | 133616
+10000 | True | HeapSort | 139269 | 239036 | 129280
+10000 | True | BucketSort | 20000 | 10000 | 0
+10000 | True | RadixLSD10Sort | 80040 | 40000 | 0
+10000 | True | RadixLSD4Sort | 81750 | 40000 | 0
+10000 | True | CountingSort | 29999 | 0 | 0
+100 | True | BucketSortT | 236 | 100 | 0
+1000 | True | BucketSortT | 2363 | 1000 | 0
+10000 | True | BucketSortT | 23685 | 10000 | 0
