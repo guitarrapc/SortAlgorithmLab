@@ -66,25 +66,45 @@ namespace SortRunner
                 var gnomeSort3 = new GnomeSort3<int>();
                 Runner.Run(gnomeSort3, item, nameof(GnomeSort3<int>));
 
-                // Quick Sort
-                var quickSort = new QuickSort<int>();
-                Runner.Run(quickSort, item, nameof(QuickSort<int>));
+                // Quick Sort Median3
+                var quickSortMedian3 = new QuickSortMedian3<int>();
+                Runner.Run(quickSortMedian3, item, nameof(QuickSortMedian3<int>));
 
-                // QuickSort (Quick + Insert)
-                var quicksortInsert = new QuickSortInsert<int>();
-                Runner.Run(quicksortInsert, item, nameof(QuickSortInsert<int>));
+                // QuickSort Median3 (Quick + Insert)
+                var quicksortMedian3Insert = new QuickSortMedian3Insert<int>();
+                Runner.Run(quicksortMedian3Insert, item, nameof(QuickSortMedian3Insert<int>));
 
-                // QuickSort (Quick + BinaryInsert)
-                var quicksortBinaryInsert = new QuickSortBinaryInsert<int>();
-                Runner.Run(quicksortBinaryInsert, item, nameof(QuickSortBinaryInsert<int>));
+                // QuickSort Median3 (Quick + BinaryInsert)
+                var quicksortMedian3BinaryInsert = new QuickSortMedian3BinaryInsert<int>();
+                Runner.Run(quicksortMedian3BinaryInsert, item, nameof(QuickSortMedian3BinaryInsert<int>));
+
+                // Quick Sort Median9
+                var quickSortMedian9 = new QuickSortMedian9<int>();
+                Runner.Run(quickSortMedian9, item, nameof(QuickSortMedian9<int>));
+
+                // QuickSort Median9 (Quick + Insert)
+                var quicksortMedian9Insert = new QuickSortMedian9Insert<int>();
+                Runner.Run(quicksortMedian9Insert, item, nameof(QuickSortMedian9Insert<int>));
+
+                // QuickSort Median9 (Quick + BinaryInsert)
+                var quicksortMedian9BinaryInsert = new QuickSortMedian9BinaryInsert<int>();
+                Runner.Run(quicksortMedian9BinaryInsert, item, nameof(QuickSortMedian9BinaryInsert<int>));
 
                 // Dual Pivot QuickSort
                 var quickDualPivotSort = new QuickDualPivotSort<int>();
                 Runner.Run(quickDualPivotSort, item, nameof(QuickDualPivotSort<int>));
 
-                // IntroSort (Quick + Heap + Insert)
-                var IntroInsert = new IntroSort<int>();
-                Runner.Run(IntroInsert, item, nameof(IntroSort<int>));
+                // Dual Pivot Quick Sort (Quick + Insert)
+                var dualPivotQuickSortInsert = new QuickDualPivotSortInsert<int>();
+                Runner.Run(dualPivotQuickSortInsert, item, nameof(QuickDualPivotSortInsert<int>));
+
+                // IntroSort Median3 (Quick + Heap + Insert)
+                var IntroInsertMedian3 = new IntroSortMedian3<int>();
+                Runner.Run(IntroInsertMedian3, item, nameof(IntroSortMedian3<int>));
+
+                // IntroSort Median9 (Quick + Heap + Insert)
+                var IntroInsertMedian9 = new IntroSortMedian9<int>();
+                Runner.Run(IntroInsertMedian9, item, nameof(IntroSortMedian9<int>));
 
                 // Merge Sort
                 var mergeSort = new MergeSort<int>();

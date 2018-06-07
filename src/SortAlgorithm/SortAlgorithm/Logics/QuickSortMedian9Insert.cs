@@ -5,7 +5,7 @@ using System.Text;
 namespace SortAlgorithm.Logics
 {
     /// <summary>
-    /// QuickSort + InsertSortによる Quick Searchでだいたいソート済みになった時に最速を目指す。
+    /// QuickSort + InsertSortによる Quick Searchでだいたいソート済みになった時に最速を目指す。Median9バージョン
     /// </summary>
     /// <remarks>
     /// stable : no
@@ -13,16 +13,16 @@ namespace SortAlgorithm.Logics
     /// Compare : 
     /// Swap : 
     /// Order : O(n log n) (Worst case : O(n nlog n))
-    /// ArraySize : 100, IsSorted : True, sortKind : QuickSortInsert, IndexAccessCount : 301, CompareCount : 286, SwapCount : 123
-    /// ArraySize : 1000, IsSorted : True, sortKind : QuickSortInsert, IndexAccessCount : 6867, CompareCount : 7051, SwapCount : 1565
-    /// ArraySize : 10000, IsSorted : True, sortKind : QuickSortInsert, IndexAccessCount : 87913, CompareCount : 90256, SwapCount : 23686
+    /// ArraySize : 100, IsSorted : True, sortKind : QuickSortBinaryInsert, IndexAccessCount : 397, CompareCount : 349, SwapCount : 134
+    /// ArraySize : 1000, IsSorted : True, sortKind : QuickSortBinaryInsert, IndexAccessCount : 7041, CompareCount : 7180, SwapCount : 1580
+    /// ArraySize : 10000, IsSorted : True, sortKind : QuickSortBinaryInsert, IndexAccessCount : 88049, CompareCount : 90365, SwapCount : 23695
     /// </remarks>
     /// <typeparam name="T"></typeparam>
-    public class QuickSortBinaryInsert<T> : SortBase<T> where T : IComparable<T>
+    public class QuickSortMedian9Insert<T> : SortBase<T> where T : IComparable<T>
     {
         // ref : https://github.com/nlfiedler/burstsort4j/blob/master/src/org/burstsort4j/Introsort.java
         private const int InsertThreshold = 16;
-        private BinaryInsertSort<T> insertSort = new BinaryInsertSort<T>();
+        private InsertSort<T> insertSort = new InsertSort<T>();
 
         public override T[] Sort(T[] array)
         {
@@ -46,7 +46,7 @@ namespace SortAlgorithm.Logics
 
             // fase 1. decide pivot
             base.Statics.AddIndexAccess();
-            var pivot = Median(array[left], array[(left + (right - left)) / 2], array[right]);
+            var pivot = Median9(array, left, right);
             var l = left;
             var r = right;
 
@@ -78,7 +78,7 @@ namespace SortAlgorithm.Logics
             return array;
         }
 
-        private T Median(T low, T mid, T high)
+        private T Median3(T low, T mid, T high)
         {
             base.Statics.AddCompareCount();
             if (low.CompareTo(mid) > 0)
@@ -107,6 +107,23 @@ namespace SortAlgorithm.Logics
                     return mid;
                 }
             }
+        }
+
+        private T Median9(T[] array, int low, int high)
+        {
+            var m2 = (high - low) / 2;
+            var m4 = m2 / 2;
+            var m8 = m4 / 2;
+            var a = array[low];
+            var b = array[low + m8];
+            var c = array[low + m4];
+            var d = array[low + m2 - m8];
+            var e = array[low + m2];
+            var f = array[low + m2 + m8];
+            var g = array[high - m4];
+            var h = array[high - m8];
+            var i = array[high];
+            return Median3(Median3(a, b, c), Median3(d, e, f), Median3(g, h, i));
         }
     }
 }

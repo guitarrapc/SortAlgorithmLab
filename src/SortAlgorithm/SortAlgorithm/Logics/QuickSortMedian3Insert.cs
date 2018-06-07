@@ -5,7 +5,7 @@ using System.Text;
 namespace SortAlgorithm.Logics
 {
     /// <summary>
-    /// QuickSort + BinaryInsertSortによる Quick Searchでだいたいソート済みになった時に最速を目指すが、InsertSortの方がわずかに効率が良くBinarySearchのコストが目立つ
+    /// QuickSort + InsertSortによる Quick Searchでだいたいソート済みになった時に最速を目指す。
     /// </summary>
     /// <remarks>
     /// stable : no
@@ -18,7 +18,7 @@ namespace SortAlgorithm.Logics
     /// ArraySize : 10000, IsSorted : True, sortKind : QuickSortBinaryInsert, IndexAccessCount : 88049, CompareCount : 90365, SwapCount : 23695
     /// </remarks>
     /// <typeparam name="T"></typeparam>
-    public class QuickSortInsert<T> : SortBase<T> where T : IComparable<T>
+    public class QuickSortMedian3Insert<T> : SortBase<T> where T : IComparable<T>
     {
         // ref : https://github.com/nlfiedler/burstsort4j/blob/master/src/org/burstsort4j/Introsort.java
         private const int InsertThreshold = 16;
@@ -46,7 +46,7 @@ namespace SortAlgorithm.Logics
 
             // fase 1. decide pivot
             base.Statics.AddIndexAccess();
-            var pivot = Median(array[left], array[(left + (right - left)) / 2], array[right]);
+            var pivot = Median3(array[left], array[(left + (right - left)) / 2], array[right]);
             var l = left;
             var r = right;
 
@@ -78,7 +78,7 @@ namespace SortAlgorithm.Logics
             return array;
         }
 
-        private T Median(T low, T mid, T high)
+        private T Median3(T low, T mid, T high)
         {
             base.Statics.AddCompareCount();
             if (low.CompareTo(mid) > 0)

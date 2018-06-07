@@ -13,13 +13,16 @@ namespace SortAlgorithm.Logics
     /// Compare : 
     /// Swap : 
     /// Order : O(n log n) (Worst case : O(nlog^2n))
-    /// ArraySize : 100, IsSorted : True, sortKind : QuickDualPivotSort, IndexAccessCount : 405, CompareCount : 539, SwapCount : 363
-    /// ArraySize : 1000, IsSorted : True, sortKind : QuickDualPivotSort, IndexAccessCount : 5882, CompareCount : 8036, SwapCount : 4673
-    /// ArraySize : 10000, IsSorted : True, sortKind : QuickDualPivotSort, IndexAccessCount : 87174, CompareCount : 121604, SwapCount : 64344
+    /// ArraySize : 100, IsSorted : True, sortKind : QuickDualPivotSortInsert, IndexAccessCount : 296, CompareCount : 361, SwapCount : 222
+    /// ArraySize : 1000, IsSorted : True, sortKind : QuickDualPivotSortInsert, IndexAccessCount : 4816, CompareCount : 6313, SwapCount : 3240
+    /// ArraySize : 10000, IsSorted : True, sortKind : QuickDualPivotSortInsert, IndexAccessCount : 77049, CompareCount : 105503, SwapCount : 50877
     /// </remarks>
     /// <typeparam name="T"></typeparam>
-    public class QuickDualPivotSort<T> : SortBase<T> where T : IComparable<T>
+    public class QuickDualPivotSortInsert<T> : SortBase<T> where T : IComparable<T>
     {
+        private const int InsertThreshold = 16;
+        private InsertSort<T> insertSort = new InsertSort<T>();
+
         public override T[] Sort(T[] array)
         {
             base.Statics.Reset(array.Length);
@@ -29,6 +32,12 @@ namespace SortAlgorithm.Logics
         private T[] Sort(T[] array, int left, int right)
         {
             if (right <= left) return array;
+
+            // switch to insert sort
+            if (right - left < InsertThreshold)
+            {
+                return insertSort.Sort(array, left, right + 1);
+            }
 
             base.Statics.AddCompareCount();
             // fase 0. Make sure left item is lower than right item
