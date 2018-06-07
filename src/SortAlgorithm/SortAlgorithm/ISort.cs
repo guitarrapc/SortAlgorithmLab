@@ -4,7 +4,7 @@ namespace SortAlgorithm
 {
     public interface ISort<T> where T : IComparable<T>
     {
-        SortStatics SortStatics { get; }
+        SortStatics Statics { get; }
         T[] Sort(T[] array);
     }
 }

@@ -20,10 +20,10 @@ namespace SortAlgorithm.Logics
     {
         public override T[] Sort(T[] array)
         {
-            base.sortStatics.Reset(array.Length);
+            base.Statics.Reset(array.Length);
 
             // calculate h
-            // most efficient h will be : h(i + 1) = 3h(i) + 1 = O(nlog^2n) = 1,4,13,40,121,364,1093
+            // most efficient h will be : h(i + 1) = 3h(i) + 1
             var h = 0;
             for (h = 1; h < array.Length / 9; h = h * 3 + 1) ;
 
@@ -31,16 +31,13 @@ namespace SortAlgorithm.Logics
             for (; h > 0; h /= 3)
             {
                 //h.Dump(array.Length.ToString());
-                // Same as InsertSort (1 will be h, and > 0 will be >= h)
-                //h.Dump(array.Length.ToString());
                 // Same as InsertSort (1 will be h)
                 for (var i = h; i < array.Length; i++)
                 {
-                    base.sortStatics.AddCompareCount();
+                    base.Statics.AddCompareCount();
                     for (int j = i; j >= h && array[j - h].CompareTo(array[j]) > 0; j -= h)
                     {
-                        base.sortStatics.AddIndexAccess();
-                        base.sortStatics.AddSwapCount();
+                        base.Statics.AddIndexAccess();
                         Swap(ref array[j], ref array[j - h]);
                     }
                 }

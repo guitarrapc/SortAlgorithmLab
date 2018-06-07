@@ -22,7 +22,7 @@ namespace SortAlgorithm.Logics
     {
         public int[] Sort(int[] array)
         {
-            base.sortStatics.Reset(array.Length);
+            base.Statics.Reset(array.Length);
 
             var min = 0;
             var max = 0;
@@ -45,21 +45,21 @@ namespace SortAlgorithm.Logics
             // count up each number of element to countArray
             for (var i = 0; i < array.Length; i++)
             {
-                base.sortStatics.AddIndexAccess();
+                base.Statics.AddIndexAccess();
                 ++countArray[array[i]];
             }
 
             // change current index element counter by adding previous index counter. 
             for (var i = 1; i < countArray.Length; i++)
             {
-                base.sortStatics.AddIndexAccess();
+                base.Statics.AddIndexAccess();
                 countArray[i] += countArray[i - 1];
             }
 
             // set countArrayed index element into resultArray, then decrement countArray.
             for (var i = 0; i < array.Length; i++)
             {
-                base.sortStatics.AddIndexAccess();
+                base.Statics.AddIndexAccess();
                 resultArray[countArray[array[i]] - 1] = array[i];
                 --countArray[array[i]];
             }

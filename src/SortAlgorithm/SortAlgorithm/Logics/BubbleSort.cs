@@ -21,17 +21,16 @@ namespace SortAlgorithm.Logics
     {
         public override T[] Sort(T[] array)
         {
-            base.sortStatics.Reset(array.Length);
+            base.Statics.Reset(array.Length);
             for (var i = 0; i < array.Length; i++)
             {
                 for (var j = array.Length - 1; j > i; j--)
                 {
-                    base.sortStatics.AddIndexAccess();
-                    base.sortStatics.AddCompareCount();
-                    //array.Dump($"{j} : {array[j]}, {j - 1} : {array[j - 1]}, {array[j - 1].CompareTo(array[j]) < 0}");
+                    base.Statics.AddIndexAccess();
+                    base.Statics.AddCompareCount();
+                    //array.Dump($"{j} : {array[j]}, {j - 1} : {array[j - 1]}, {array[j - 1].CompareTo(array[j]) > 0}");
                     if (array[j].CompareTo(array[j - 1]) < 0)
                     {
-                        base.sortStatics.AddSwapCount();
                         Swap(ref array[j], ref array[j - 1]);
                     }
                 }

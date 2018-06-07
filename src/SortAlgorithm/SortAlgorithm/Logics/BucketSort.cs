@@ -21,18 +21,18 @@ namespace SortAlgorithm.Logics
 
     public class BucketSortT<T>
     {
-        public SortStatics SortStatics => sortStatics;
-        protected SortStatics sortStatics = new SortStatics();
+        public SortStatics Statics => statics;
+        protected SortStatics statics = new SortStatics();
 
         public T[] Sort(T[] array, Func<T, int> getKey, int max)
         {
-            sortStatics.Reset(array.Length);
+            statics.Reset(array.Length);
             var bucket = new List<T>[max + 1];
 
             foreach (var item in array)
             {
-                sortStatics.AddIndexAccess();
-                sortStatics.AddCompareCount();
+                statics.AddIndexAccess();
+                statics.AddCompareCount();
                 var key = getKey(item);
                 if (bucket[key] == null)
                 {
@@ -43,14 +43,17 @@ namespace SortAlgorithm.Logics
 
             for (int j = 0, i = 0; j < bucket.Length; ++j)
             {
-                sortStatics.AddIndexAccess();
                 if (bucket[j] != null)
                 {
                     foreach (var item in bucket[j])
                     {
-                        sortStatics.AddIndexAccess();
+                        statics.AddIndexAccess();
                         array[i++] = item;
                     }
+                }
+                else
+                {
+                    statics.AddIndexAccess();
                 }
             }
 
@@ -69,15 +72,15 @@ namespace SortAlgorithm.Logics
     {
         public int[] Sort(int[] array)
         {
-            base.sortStatics.Reset(array.Length);
+            base.Statics.Reset(array.Length);
             var max = array.Max();
 
             // make bucket for possibly assigned number of int
             var bucket = new int[max + 1];
             for (var i = 0; i < array.Length; i++)
             {
-                base.sortStatics.AddIndexAccess();
-                base.sortStatics.AddCompareCount();
+                base.Statics.AddIndexAccess();
+                base.Statics.AddCompareCount();
                 bucket[array[i]]++;
             }
 
@@ -86,7 +89,7 @@ namespace SortAlgorithm.Logics
             {
                 for (var k = bucket[j]; k != 0; --k, ++i)
                 {
-                    base.sortStatics.AddIndexAccess();
+                    base.Statics.AddIndexAccess();
                     array[i] = j;
                 }
             }

@@ -21,18 +21,17 @@ namespace SortAlgorithm.Logics
     {
         public override T[] Sort(T[] array)
         {
-            base.sortStatics.Reset(array.Length);
+            base.Statics.Reset(array.Length);
             for (var i = 1; i < array.Length; i++)
             {
                 var tmp = array[i];
                 for (var j = i; j >= 1 && array[j - 1].CompareTo(array[j]) > 0; --j)
                 {
-                    base.sortStatics.AddIndexAccess();
-                    base.sortStatics.AddCompareCount();
+                    base.Statics.AddIndexAccess();
+                    base.Statics.AddCompareCount();
                     //array.Dump($"{j - 1} : {array[j - 1]}, {j} : {array[j]}, {array[j - 1].CompareTo(array[j]) > 0}");
                     if (array[j - 1].CompareTo(array[j]) > 0)
                     {
-                        base.sortStatics.AddSwapCount();
                         Swap(ref array[j], ref array[j - 1]);
                     }
                 }
@@ -42,14 +41,13 @@ namespace SortAlgorithm.Logics
 
         public T[] Sort(T[] array, int first, int last)
         {
-            base.sortStatics.Reset(array.Length);
+            base.Statics.Reset(array.Length);
             for (var i = first + 1; i < last; i++)
             {
-                base.sortStatics.AddCompareCount();
+                base.Statics.AddCompareCount();
                 for (var j = i; j > first && array[j - 1].CompareTo(array[j]) > 0; --j)
                 {
-                    base.sortStatics.AddIndexAccess();
-                    base.sortStatics.AddSwapCount();
+                    base.Statics.AddIndexAccess();
                     Swap(ref array[j], ref array[j - 1]);
                 }
             }

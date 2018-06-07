@@ -22,7 +22,7 @@ namespace SortAlgorithm.Logics
     {
         public override T[] Sort(T[] array)
         {
-            base.sortStatics.Reset(array.Length);
+            base.Statics.Reset(array.Length);
 
             var i = 0;
             // create heap node
@@ -41,18 +41,38 @@ namespace SortAlgorithm.Logics
             return array;
         }
 
+        public T[] Sort(T[] array, int first, int last)
+        {
+            base.Statics.Reset(array.Length);
+
+            var n = last - first;
+            // create heap node
+            for (var i = n / 2; i >= 1; i--)
+            {
+                DownHeap(array, i, n, first);
+            }
+            // pick root and re-heap.
+            for (var i = n; i > 1; i--)
+            {
+                // move Max Heap to sorted array
+                Swap(ref array[0], ref array[i]);
+                // re-heap
+                DownHeap(array, 1, i - 1, first);
+            }
+            return array;
+        }
+
         // compare and move it to upward if larger or equal.
         private void UpHeap(T[] array, int current)
         {
             while (current != 0)
             {
-                base.sortStatics.AddIndexAccess();
+                base.Statics.AddIndexAccess();
                 var parent = (current - 1) / 2;
 
-                base.sortStatics.AddCompareCount();
+                base.Statics.AddCompareCount();
                 if (array[current].CompareTo(array[parent]) > 0)
                 {
-                    base.sortStatics.AddSwapCount();
                     Swap(ref array[current], ref array[parent]);
                     current = parent;
                 }
@@ -70,18 +90,17 @@ namespace SortAlgorithm.Logics
             var parent = 0;
             while (true)
             {
-                base.sortStatics.AddIndexAccess();
+                base.Statics.AddIndexAccess();
                 var child = 2 * parent + 1;
                 if (child > current) break;
-                base.sortStatics.AddCompareCount();
+                base.Statics.AddCompareCount();
                 if (child < current && array[child].CompareTo(array[child + 1]) < 0)
                 {
                     child++;
                 }
-                base.sortStatics.AddCompareCount();
+                base.Statics.AddCompareCount();
                 if (array[parent].CompareTo(array[child]) < 0)
                 {
-                    base.sortStatics.AddSwapCount();
                     Swap(ref array[parent], ref array[child]);
                     parent = child;
                 }
@@ -90,6 +109,29 @@ namespace SortAlgorithm.Logics
                     break;
                 }
             }
+        }
+
+        private void DownHeap(T[] array, int current, int mid, int first)
+        {
+            var d = array[first + current - 1];
+            int child;
+            while (current <= mid / 2)
+            {
+                base.Statics.AddIndexAccess();
+                child = 2 * current;
+                base.Statics.AddCompareCount();
+                if (child < mid && array[first + child - 1].CompareTo(array[first + child]) < 0)
+                {
+                    child++;
+                }
+                base.Statics.AddCompareCount();
+                if (array[first + child - 1].CompareTo(d) > 0)
+                {
+                    Swap(ref array[first + current - 1], ref array[first + child - 1]);
+                    current = child;
+                }
+            }
+            //array[first + current - 1] = mid;
         }
     }
 }

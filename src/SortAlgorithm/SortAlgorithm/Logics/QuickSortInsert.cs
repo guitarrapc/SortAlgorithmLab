@@ -16,7 +16,7 @@ namespace SortAlgorithm.Logics
     /// sortKind : IntroSortQuickInsert, ArraySize : 100, IndexAccessCount : 384, CompareCount : 384, SwapCount : 129
     /// </remarks>
     /// <typeparam name="T"></typeparam>
-    public class IntroSortQuickInsert<T> : SortBase<T> where T : IComparable<T>
+    public class QuickSortInsert<T> : SortBase<T> where T : IComparable<T>
     {
         // ref : https://github.com/nlfiedler/burstsort4j/blob/master/src/org/burstsort4j/Introsort.java
         private const int IntroThreshold = 16;
@@ -24,68 +24,80 @@ namespace SortAlgorithm.Logics
 
         public override T[] Sort(T[] array)
         {
-            base.sortStatics.Reset(array.Length);
+            base.Statics.Reset(array.Length);
             var result = Sort(array, 0, array.Length - 1);
-            base.SortStatics.AddCompareCount(insertSort.SortStatics.CompareCount);
-            base.SortStatics.AddIndexAccess(insertSort.SortStatics.IndexAccessCount);
-            base.SortStatics.AddSwapCount(insertSort.SortStatics.SwapCount);
+            base.Statics.AddCompareCount(insertSort.Statics.CompareCount);
+            base.Statics.AddIndexAccess(insertSort.Statics.IndexAccessCount);
+            base.Statics.AddSwapCount(insertSort.Statics.SwapCount);
             return result;
         }
 
-        private T[] Sort(T[] array, int first, int last)
+        private T[] Sort(T[] array, int left, int right)
         {
-            if (first >= last) return array;
+            if (left >= right) return array;
 
             // switch to insert sort
-            if (last - first < IntroThreshold)
+            if (right - left < IntroThreshold)
             {
-                return insertSort.Sort(array, first, last + 1);
+                return insertSort.Sort(array, left, right + 1);
             }
 
             // fase 1. decide pivot
-            var pivot = Median(array[first], array[(first + (last - first)) / 2], array[last]);
-            var l = first;
-            var r = last;
+            base.Statics.AddIndexAccess();
+            var pivot = Median(array[left], array[(left + (right - left)) / 2], array[right]);
+            var l = left;
+            var r = right;
 
             while (l <= r)
             {
-                base.sortStatics.AddIndexAccess();
-                base.sortStatics.AddCompareCount();
-                while (l < last && array[l].CompareTo(pivot) < 0) l++;
+                while (l < right && array[l].CompareTo(pivot) < 0)
+                {
+                    base.Statics.AddIndexAccess();
+                    base.Statics.AddCompareCount();
+                    l++;
+                }
 
-                base.sortStatics.AddCompareCount();
-                while (r > first && array[r].CompareTo(pivot) > 0) r--;
+                while (r > left && array[r].CompareTo(pivot) > 0)
+                {
+                    base.Statics.AddIndexAccess();
+                    base.Statics.AddCompareCount();
+                    r--;
+                }
 
                 if (l > r) break;
-                base.sortStatics.AddSwapCount();
                 Swap(ref array[l], ref array[r]);
                 l++;
                 r--;
             }
 
             // fase 2. Sort Left and Right
-            Sort(array, first, l - 1);
-            Sort(array, l, last);
+            Sort(array, left, l - 1);
+            Sort(array, l, right);
             return array;
         }
 
-        private static T Median(T low, T mid, T high)
+        private T Median(T low, T mid, T high)
         {
+            base.Statics.AddCompareCount();
             if (low.CompareTo(mid) > 0)
             {
+                base.Statics.AddCompareCount();
                 if (mid.CompareTo(high) > 0)
                 {
                     return mid;
                 }
                 else
                 {
+                    base.Statics.AddCompareCount();
                     return low.CompareTo(high) > 0 ? high : low;
                 }
             }
             else
             {
+                base.Statics.AddCompareCount();
                 if (mid.CompareTo(high) > 0)
                 {
+                    base.Statics.AddCompareCount();
                     return low.CompareTo(high) > 0 ? low : high;
                 }
                 else

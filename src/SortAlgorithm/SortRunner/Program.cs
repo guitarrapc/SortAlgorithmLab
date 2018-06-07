@@ -56,22 +56,20 @@ namespace SortRunner
                 // Gnome Sort
                 var gnomeSort = new GnomeSort<int>();
                 Runner.Run(gnomeSort, item, nameof(GnomeSort<int>));
+                var gnomeSort1 = new GnomeSort1<int>();
+                Runner.Run(gnomeSort1, item, nameof(GnomeSort1<int>));
                 var gnomeSort2 = new GnomeSort2<int>();
                 Runner.Run(gnomeSort2, item, nameof(GnomeSort2<int>));
                 var gnomeSort3 = new GnomeSort3<int>();
                 Runner.Run(gnomeSort3, item, nameof(GnomeSort3<int>));
 
-                // Gnome Sort Optimized
-                var gnomeSortOpmized = new GnomeSortOptimized<int>();
-                Runner.Run(gnomeSortOpmized, item, nameof(GnomeSortOptimized<int>));
-
                 // Quick Sort
                 var quickSort = new QuickSort<int>();
                 Runner.Run(quickSort, item, nameof(QuickSort<int>));
 
-                // IntroSort (Quick + Insert)
-                var introSort = new IntroSortQuickInsert<int>();
-                Runner.Run(introSort, item, nameof(IntroSortQuickInsert<int>));
+                // QuickSort (Quick + Insert)
+                var quicksortInsert = new QuickSortInsert<int>();
+                Runner.Run(quicksortInsert, item, nameof(QuickSortInsert<int>));
 
                 // Merge Sort
                 var mergeSort = new MergeSort<int>();
@@ -88,12 +86,12 @@ namespace SortRunner
                 var bucketSort = new BucketSort<int>();
                 Runner.Run(bucketSort, array => bucketSort.Sort(array), item, nameof(BucketSort<int>));
 
-                // Radix Sort
-                var radix10Sort = new Radix10Sort<int>();
-                Runner.Run(radix10Sort, array => radix10Sort.Sort(array), item, nameof(Radix10Sort<int>));
+                // Radix Sort(LSD)
+                var radix10Sort = new RadixLSD10Sort<int>();
+                Runner.Run(radix10Sort, array => radix10Sort.Sort(array), item, nameof(RadixLSD10Sort<int>));
 
-                var radix4Sort = new Radix4Sort<int>();
-                Runner.Run(radix4Sort, array => radix4Sort.Sort(array), item, nameof(Radix4Sort<int>));
+                var radix4Sort = new RadixLSD4Sort<int>();
+                Runner.Run(radix4Sort, array => radix4Sort.Sort(array), item, nameof(RadixLSD4Sort<int>));
 
                 // Counting Sort
                 var countingSort = new CountingSort<int>();
@@ -131,12 +129,12 @@ namespace SortRunner
             var after = sort.Sort(array);
 
             // validate
-            sort.SortStatics.IsSorted = after.SequenceEqual(validateArray);
+            sort.Statics.IsSorted = after.SequenceEqual(validateArray);
 
             // result
-            var sortResult = sort.SortStatics.IsSorted ? "" : $@"\nBefore : {keep.ToJoinedString(" ")}
+            var sortResult = sort.Statics.IsSorted ? "" : $@"\nBefore : {keep.ToJoinedString(" ")}
 After  : {after.ToJoinedString(" ")}";
-            Console.WriteLine($@"{nameof(sortKind)} : {sortKind}, {nameof(sort.SortStatics.IsSorted)} : {sort.SortStatics.IsSorted}, {nameof(sort.SortStatics.ArraySize)} : {sort.SortStatics.ArraySize}, {nameof(sort.SortStatics.IndexAccessCount)} : {sort.SortStatics.IndexAccessCount}, {nameof(sort.SortStatics.CompareCount)} : {sort.SortStatics.CompareCount}, {nameof(sort.SortStatics.SwapCount)} : {sort.SortStatics.SwapCount}{sortResult}");
+            Console.WriteLine($@"{nameof(sort.Statics.ArraySize)} : {sort.Statics.ArraySize}, {nameof(sort.Statics.IsSorted)} : {sort.Statics.IsSorted}, {nameof(sortKind)} : {sortKind}, {nameof(sort.Statics.IndexAccessCount)} : {sort.Statics.IndexAccessCount}, {nameof(sort.Statics.CompareCount)} : {sort.Statics.CompareCount}, {nameof(sort.Statics.SwapCount)} : {sort.Statics.SwapCount}{sortResult}");
 
             // reset
             ResetArray(ref keep, ref array);
@@ -152,12 +150,12 @@ After  : {after.ToJoinedString(" ")}";
             var after = func(array);
 
             // validate
-            sort.SortStatics.IsSorted = after.SequenceEqual(validateArray);
+            sort.Statics.IsSorted = after.SequenceEqual(validateArray);
 
             // result
-            var sortResult = sort.SortStatics.IsSorted ? "" : $@"\nBefore : {keep.ToJoinedString(" ")}
+            var sortResult = sort.Statics.IsSorted ? "" : $@"\nBefore : {keep.ToJoinedString(" ")}
 After  : {after.ToJoinedString(" ")}";
-            Console.WriteLine($@"{nameof(sortKind)} : {sortKind}, {nameof(sort.SortStatics.IsSorted)} : {sort.SortStatics.IsSorted}, {nameof(sort.SortStatics.ArraySize)} : {sort.SortStatics.ArraySize}, {nameof(sort.SortStatics.IndexAccessCount)} : {sort.SortStatics.IndexAccessCount}, {nameof(sort.SortStatics.CompareCount)} : {sort.SortStatics.CompareCount}, {nameof(sort.SortStatics.SwapCount)} : {sort.SortStatics.SwapCount}{sortResult}");
+            Console.WriteLine($@"{nameof(sort.Statics.ArraySize)} : {sort.Statics.ArraySize}, {nameof(sort.Statics.IsSorted)} : {sort.Statics.IsSorted}, {nameof(sortKind)} : {sortKind}, {nameof(sort.Statics.IndexAccessCount)} : {sort.Statics.IndexAccessCount}, {nameof(sort.Statics.CompareCount)} : {sort.Statics.CompareCount}, {nameof(sort.Statics.SwapCount)} : {sort.Statics.SwapCount}{sortResult}");
 
             // reset
             ResetArray(ref keep, ref array);
@@ -173,12 +171,12 @@ After  : {after.ToJoinedString(" ")}";
             var after = sort.Sort(array, func, max);
 
             // validate
-            sort.SortStatics.IsSorted = after.SequenceEqual(validateDic);
+            sort.Statics.IsSorted = after.SequenceEqual(validateDic);
 
             // result
-            var sortResult = sort.SortStatics.IsSorted ? "" : $@"\nBefore : {keep.ToJoinedString(" ")}
+            var sortResult = sort.Statics.IsSorted ? "" : $@"\nBefore : {keep.ToJoinedString(" ")}
 After  : {after.ToJoinedString(" ")}";
-            Console.WriteLine($@"{nameof(sortKind)} : {sortKind}, {nameof(sort.SortStatics.IsSorted)} : {sort.SortStatics.IsSorted}, {nameof(sort.SortStatics.ArraySize)} : {sort.SortStatics.ArraySize}, {nameof(sort.SortStatics.IndexAccessCount)} : {sort.SortStatics.IndexAccessCount}, {nameof(sort.SortStatics.CompareCount)} : {sort.SortStatics.CompareCount}, {nameof(sort.SortStatics.SwapCount)} : {sort.SortStatics.SwapCount}{sortResult}");
+            Console.WriteLine($@"{nameof(sort.Statics.ArraySize)} : {sort.Statics.ArraySize}, {nameof(sort.Statics.IsSorted)} : {sort.Statics.IsSorted}, {nameof(sortKind)} : {sortKind}, {nameof(sort.Statics.IndexAccessCount)} : {sort.Statics.IndexAccessCount}, {nameof(sort.Statics.CompareCount)} : {sort.Statics.CompareCount}, {nameof(sort.Statics.SwapCount)} : {sort.Statics.SwapCount}{sortResult}");
 
             // reset
             ResetArray(ref keep, ref array);

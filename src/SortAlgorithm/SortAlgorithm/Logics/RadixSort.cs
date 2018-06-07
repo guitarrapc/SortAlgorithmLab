@@ -19,11 +19,11 @@ namespace SortAlgorithm.Logics
     /// </remarks>
     /// <typeparam name="T"></typeparam>
 
-    public class Radix4Sort<T> : SortBase<T> where T : IComparable<T>
+    public class RadixLSD4Sort<T> : SortBase<T> where T : IComparable<T>
     {
         public int[] Sort(int[] array)
         {
-            base.sortStatics.Reset(array.Length);
+            base.Statics.Reset(array.Length);
             var bucket = new List<int>[256];
             var digit = 4;
 
@@ -32,8 +32,8 @@ namespace SortAlgorithm.Logics
                 // make bucket for possibly assigned number of int
                 for (var i = 0; i < array.Length; i++)
                 {
-                    base.sortStatics.AddIndexAccess();
-                    base.sortStatics.AddCompareCount();
+                    base.Statics.AddIndexAccess();
+                    base.Statics.AddCompareCount();
                     // pick 256 radix d's digit number
                     var key = (array[i] >> logR) & 255;
                     if (bucket[key] == null) bucket[key] = new List<int>();
@@ -43,20 +43,23 @@ namespace SortAlgorithm.Logics
                 // put array int to each bucket.
                 for (int j = 0, i = 0; j < bucket.Length; ++j)
                 {
-                    sortStatics.AddIndexAccess();
                     if (bucket[j] != null)
                     {
                         foreach (var item in bucket[j])
                         {
-                            sortStatics.AddIndexAccess();
+                            base.Statics.AddIndexAccess();
                             array[i++] = item;
                         }
+                    }
+                    else
+                    {
+                        base.Statics.AddIndexAccess();
                     }
                 }
 
                 for (var j = 0; j < bucket.Length; ++j)
                 {
-                    sortStatics.AddIndexAccess();
+                    base.Statics.AddIndexAccess();
                     bucket[j] = null;
                 }
             }
@@ -71,11 +74,11 @@ namespace SortAlgorithm.Logics
     /// sortKind : Radix10Sort, ArraySize : 100, IndexAccessCount : 440, CompareCount : 200, SwapCount : 0
     /// </remarks>
     /// <typeparam name="T"></typeparam>
-    public class Radix10Sort<T> : SortBase<T> where T : IComparable<T>
+    public class RadixLSD10Sort<T> : SortBase<T> where T : IComparable<T>
     {
         public int[] Sort(int[] array)
         {
-            base.sortStatics.Reset(array.Length);
+            base.Statics.Reset(array.Length);
             var digit = 1 + (int)array.Max(x => Math.Log10(x));
 
             var bucket = new List<int>[10];
@@ -85,8 +88,8 @@ namespace SortAlgorithm.Logics
                 // make bucket for possibly assigned number of int
                 for (var i = 0; i < array.Length; i++)
                 {
-                    base.sortStatics.AddIndexAccess();
-                    base.sortStatics.AddCompareCount();
+                    base.Statics.AddIndexAccess();
+                    base.Statics.AddCompareCount();
                     var key = (array[i] / r) % 10;
                     if (bucket[key] == null) bucket[key] = new List<int>();
                     bucket[key].Add(array[i]);
@@ -95,20 +98,23 @@ namespace SortAlgorithm.Logics
                 // put array int to each bucket.
                 for (int j = 0, i = 0; j < bucket.Length; ++j)
                 {
-                    sortStatics.AddIndexAccess();
                     if (bucket[j] != null)
                     {
                         foreach (var item in bucket[j])
                         {
-                            sortStatics.AddIndexAccess();
+                            base.Statics.AddIndexAccess();
                             array[i++] = item;
                         }
+                    }
+                    else
+                    {
+                        base.Statics.AddIndexAccess();
                     }
                 }
 
                 for (var j = 0; j < bucket.Length; ++j)
                 {
-                    sortStatics.AddIndexAccess();
+                    base.Statics.AddIndexAccess();
                     bucket[j] = null;
                 }
             }

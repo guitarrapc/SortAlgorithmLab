@@ -6,16 +6,17 @@ namespace SortAlgorithm
 {
     public class SortBase<T> : ISort<T> where T : IComparable<T>
     {
-        public SortStatics SortStatics => sortStatics;
-        protected SortStatics sortStatics = new SortStatics();
+        public SortStatics Statics => statics;
+        protected SortStatics statics = new SortStatics();
 
         public virtual T[] Sort(T[] array)
         {
             throw new NotImplementedException();
         }
 
-        public static void Swap(ref T a, ref T b)
+        public void Swap(ref T a, ref T b)
         {
+            Statics.AddSwapCount();
             var tmp = a;
             a = b;
             b = tmp;

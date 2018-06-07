@@ -20,66 +20,94 @@ namespace SortAlgorithm.Logics
     {
         public override T[] Sort(T[] array)
         {
-            base.sortStatics.Reset(array.Length);
+            base.Statics.Reset(array.Length);
             return Sort(array, 0, array.Length - 1);
         }
 
-        private T[] Sort(T[] array, int first, int last)
+        private T[] Sort(T[] array, int left, int right)
         {
-            if (first >= last) return array;
+            if (left >= right) return array;
 
             // fase 1. decide pivot
-            var pivot = Median(array[first], array[(first + (last - first)) / 2], array[last]);
-            var l = first;
-            var r = last;
+            var pivot = Median(array[left], array[(left + (right - left)) / 2], array[right]);
+            var l = left;
+            var r = right;
 
             while (l <= r)
             {
-                base.sortStatics.AddIndexAccess();
-                base.sortStatics.AddCompareCount();
-                while (l < last && array[l].CompareTo(pivot) < 0) l++;
+                while (l < right && array[l].CompareTo(pivot) < 0)
+                {
+                    base.Statics.AddIndexAccess();
+                    base.Statics.AddCompareCount();
+                    l++;
+                }
 
-                base.sortStatics.AddCompareCount();
-                while (r > first && array[r].CompareTo(pivot) > 0) r--;
+                while (r > left && array[r].CompareTo(pivot) > 0)
+                {
+                    base.Statics.AddIndexAccess();
+                    base.Statics.AddCompareCount();
+                    r--;
+                }
 
                 if (l > r) break;
-                base.sortStatics.AddSwapCount();
                 Swap(ref array[l], ref array[r]);
                 l++;
                 r--;
             }
 
             // fase 2. Sort Left and Right
-            Sort(array, first, l - 1);
-            Sort(array, l, last);
+            Sort(array, left, l - 1);
+            Sort(array, l, right);
             return array;
         }
 
-        //private T Median(T low, T mid, T high)
-        //{
-        //    if (low.CompareTo(mid) > 0) Swap(ref low, ref mid);
-        //    if (low.CompareTo(high) > 0) Swap(ref low, ref high);
-        //    if (mid.CompareTo(high) > 0) Swap(ref mid, ref high);
-        //    return mid;
-        //}
+        // less efficient compatison
+        //    private T Median(T low, T mid, T high)
+        //    {
+        //        base.Statics.AddCompareCount();
+        //        if (low.CompareTo(mid) > 0)
+        //        {
+        //            base.Statics.AddCompareCount();
+        //            Swap(ref low, ref mid);
+        //        }
+        //        base.Statics.AddCompareCount();
+        //        if (low.CompareTo(high) > 0)
+        //        {
+        //            base.Statics.AddCompareCount();
+        //            Swap(ref low, ref high);
+        //        }
+        //        base.Statics.AddCompareCount();
+        //        if (mid.CompareTo(high) > 0)
+        //        {
+        //            base.Statics.AddCompareCount();
+        //            Swap(ref mid, ref high);
+        //        }
+        //        return mid;
+        //    }
 
-        private static T Median(T low, T mid, T high)
+        // much more efficient comparison
+        private T Median(T low, T mid, T high)
         {
+            base.Statics.AddCompareCount();
             if (low.CompareTo(mid) > 0)
             {
+                base.Statics.AddCompareCount();
                 if (mid.CompareTo(high) > 0)
                 {
                     return mid;
                 }
                 else
                 {
+                    base.Statics.AddCompareCount();
                     return low.CompareTo(high) > 0 ? high : low;
                 }
             }
             else
             {
+                base.Statics.AddCompareCount();
                 if (mid.CompareTo(high) > 0)
                 {
+                    base.Statics.AddCompareCount();
                     return low.CompareTo(high) > 0 ? low : high;
                 }
                 else

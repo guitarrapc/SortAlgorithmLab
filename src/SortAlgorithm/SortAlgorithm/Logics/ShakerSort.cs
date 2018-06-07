@@ -23,24 +23,21 @@ namespace SortAlgorithm.Logics
     {
         public override T[] Sort(T[] array)
         {
-            base.sortStatics.Reset(array.Length);
+            base.Statics.Reset(array.Length);
             var min = 0;
             var max = array.Length - 1;
 
-            // Is "while true" required? Isn't min != max enough?
-            //while(true)
             while (min != max)
             {
                 // 順方向スキャン
                 var lastSwapIndex = min;
                 for (var i = min; i < max; i++)
                 {
-                    base.sortStatics.AddIndexAccess();
-                    base.sortStatics.AddCompareCount();
+                    base.Statics.AddIndexAccess();
+                    base.Statics.AddCompareCount();
                     if (array[i].CompareTo(array[i + 1]) > 0)
                     {
-                        //array.Dump($"min -> {i} : {array[i]}, {i + 1} : {array[i + 1]}");
-                        base.sortStatics.AddSwapCount();
+                        //array.Dump($"min -> {i} : {array[i]}, {i + 1} : {array[i+1]}");
                         Swap(ref array[i], ref array[i + 1]);
                         lastSwapIndex = i;
                     }
@@ -53,12 +50,11 @@ namespace SortAlgorithm.Logics
                 lastSwapIndex = max;
                 for (var i = max; i > min; i--)
                 {
-                    base.sortStatics.AddIndexAccess();
-                    base.sortStatics.AddCompareCount();
+                    base.Statics.AddIndexAccess();
+                    base.Statics.AddCompareCount();
                     if (array[i].CompareTo(array[i - 1]) < 0)
                     {
                         //array.Dump($"max -> {i} : {array[i]}, {i + 1} : {array[i + 1]}");
-                        base.sortStatics.AddSwapCount();
                         Swap(ref array[i], ref array[i - 1]);
                         lastSwapIndex = i;
                     }
@@ -86,9 +82,9 @@ namespace SortAlgorithm.Logics
     {
         public override T[] Sort(T[] array)
         {
-            base.sortStatics.Reset(array.Length);
+            base.Statics.Reset(array.Length);
 
-            // half array is fine
+            // half calculation
             for (int i = 0; i < array.Length / 2; i++)
             {
                 var swapped = false;
@@ -96,12 +92,11 @@ namespace SortAlgorithm.Logics
                 // Bubble Sort (To Min)
                 for (int j = i; j < array.Length - i - 1; j++)
                 {
-                    base.sortStatics.AddIndexAccess();
-                    base.sortStatics.AddCompareCount();
+                    base.Statics.AddIndexAccess();
+                    base.Statics.AddCompareCount();
                     if (array[j].CompareTo(array[j + 1]) > 0)
                     {
                         //array.Dump($"min -> {j} : {array[j]}, {j + 1} : {array[j + 1]}");
-                        base.sortStatics.AddSwapCount();
                         Swap(ref array[j], ref array[j + 1]);
                         swapped = true;
                     }
@@ -110,12 +105,11 @@ namespace SortAlgorithm.Logics
                 // Bubble Sort (To Max)
                 for (int j = array.Length - 2 - i; j > i; j--)
                 {
-                    base.sortStatics.AddIndexAccess();
-                    base.sortStatics.AddCompareCount();
+                    base.Statics.AddIndexAccess();
+                    base.Statics.AddCompareCount();
                     if (array[j].CompareTo(array[j - 1]) < 0)
                     {
                         //array.Dump($"max -> {j} : {array[j]}, {j - 1} : {array[j-1]}");
-                        base.sortStatics.AddSwapCount();
                         Swap(ref array[j], ref array[j - 1]);
                         swapped = true;
                     }

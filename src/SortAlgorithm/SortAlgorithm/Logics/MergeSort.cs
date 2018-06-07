@@ -22,7 +22,7 @@ namespace SortAlgorithm.Logics
     {
         public override T[] Sort(T[] array)
         {
-            base.sortStatics.Reset(array.Length);
+            base.Statics.Reset(array.Length);
             var work = new T[(array.Length) / 2];
             Sort(array, 0, array.Length - 1, work);
             return array;
@@ -32,7 +32,7 @@ namespace SortAlgorithm.Logics
         {
             var mid = (left + right) / 2;
             if (left == right) return array;
-            base.sortStatics.AddIndexAccess();
+            base.Statics.AddIndexAccess();
 
             // left : merge + sort
             Sort(array, left, mid, work);
@@ -50,7 +50,7 @@ namespace SortAlgorithm.Logics
             // if array[2] = x,y. set work[0] = x
             for (var i = left; i <= mid; i++)
             {
-                base.sortStatics.AddIndexAccess();
+                base.Statics.AddIndexAccess();
                 work[i - left] = array[i];
 
                 // max assign
@@ -76,10 +76,9 @@ namespace SortAlgorithm.Logics
                 {
                     while (l <= mid)
                     {
-                        base.sortStatics.AddIndexAccess();
-                        base.sortStatics.AddSwapCount();
+                        base.Statics.AddIndexAccess();
                         k = l + r - (mid + 1);
-                        array[k] = work[l - left];
+                        Swap(ref array[k], ref work[l - left]);
 
                         // max assign on edge case
                         if (l - left >= work.Length - 1)
@@ -93,17 +92,15 @@ namespace SortAlgorithm.Logics
                 }
 
                 // sort
-                base.sortStatics.AddCompareCount();
+                base.Statics.AddCompareCount();
                 if (work[l - left].CompareTo(array[r]) < 0)
                 {
-                    base.sortStatics.AddSwapCount();
-                    array[k] = work[l - left];
+                    Swap(ref array[k], ref work[l - left]);
                     l++;
                 }
                 else
                 {
-                    base.sortStatics.AddSwapCount();
-                    array[k] = array[r];
+                    Swap(ref array[k], ref array[r]);
                     r++;
                 }
             }
@@ -124,12 +121,12 @@ namespace SortAlgorithm.Logics
         public override T[] Sort(T[] array)
         {
             if (array.Length <= 1) return array;
-            if (sortStatics.ArraySize <= array.Length)
+            if (base.Statics.ArraySize <= array.Length)
             {
-                base.sortStatics.Reset(array.Length);
+                base.Statics.Reset(array.Length);
             }
 
-            base.sortStatics.AddIndexAccess();
+            base.Statics.AddIndexAccess();
 
             int mid = array.Length / 2;
             var left = array.Take(mid).ToArray();
@@ -148,29 +145,25 @@ namespace SortAlgorithm.Logics
             var current = 0;
             while (i < left.Length || j < right.Length)
             {
-                base.sortStatics.AddIndexAccess();
+                base.Statics.AddIndexAccess();
                 if (i < left.Length && j < right.Length)
                 {
-                    base.sortStatics.AddCompareCount();
+                    base.Statics.AddCompareCount();
                     if (left[i].CompareTo(right[j]) <= 0)
                     {
-                        base.sortStatics.AddSwapCount();
                         Swap(ref result[current], ref left[i++]);
                     }
                     else
                     {
-                        base.sortStatics.AddSwapCount();
                         Swap(ref result[current], ref right[j++]);
                     }
                 }
                 else if (i < left.Length)
                 {
-                    base.sortStatics.AddSwapCount();
                     Swap(ref result[current], ref left[i++]);
                 }
                 else
                 {
-                    base.sortStatics.AddSwapCount();
                     Swap(ref result[current], ref right[j++]);
                 }
                 current++;
