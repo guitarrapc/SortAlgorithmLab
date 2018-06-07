@@ -5,7 +5,7 @@ using System.Text;
 namespace SortAlgorithm.Logics
 {
     /// <summary>
-    /// QuickSort + InsertSortによる IntroSort(HeapSortが入っていないので微妙)。閾値以下の要素になった時にInsertSortに切り替わることでワーストケースをつぶす。
+    /// QuickSort + InsertSortによる Quick Searchでだいたいソート済みになった時に最速を目指す。
     /// </summary>
     /// <remarks>
     /// stable : no
