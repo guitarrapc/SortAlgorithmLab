@@ -13,9 +13,6 @@ namespace SortAlgorithm.Logics
     /// Compare :
     /// Swap :
     /// Order : O(n log n) (Worst case : O(n nlog n))
-    /// ArraySize : 100, IsSorted : True, sortKind : QuickSortMedian9Insert, IndexAccessCount : 217, CompareCount : 288, SwapCount : 100
-    /// ArraySize : 1000, IsSorted : True, sortKind : QuickSortMedian9Insert, IndexAccessCount : 4231, CompareCount : 5023, SwapCount : 1618
-    /// ArraySize : 10000, IsSorted : True, sortKind : QuickSortMedian9Insert, IndexAccessCount : 56848, CompareCount : 65578, SwapCount : 24342
     /// </remarks>
     /// <typeparam name="T"></typeparam>
     public class QuickSortMedian9BinaryInsert<T> : SortBase<T> where T : IComparable<T>

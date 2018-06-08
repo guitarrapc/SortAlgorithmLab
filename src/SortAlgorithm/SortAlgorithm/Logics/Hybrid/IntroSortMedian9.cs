@@ -13,9 +13,6 @@ namespace SortAlgorithm.Logics
     /// Compare : n log n
     /// Swap : n log n
     /// Order : O(n log n) (Worst case : O(n log n))
-    /// ArraySize : 100, IsSorted : True, sortKind : IntroSortMedian9, IndexAccessCount : 228, CompareCount : 296, SwapCount : 104
-    /// ArraySize : 1000, IsSorted : True, sortKind : IntroSortMedian9, IndexAccessCount : 4003, CompareCount : 4782, SwapCount : 1662
-    /// ArraySize : 10000, IsSorted : True, sortKind : IntroSortMedian9, IndexAccessCount : 59764, CompareCount : 68683, SwapCount : 24295
     /// </remarks>
     /// <typeparam name="T"></typeparam>
     public class IntroSortMedian9<T> : SortBase<T> where T : IComparable<T>

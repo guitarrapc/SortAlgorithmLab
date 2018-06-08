@@ -13,9 +13,6 @@ namespace SortAlgorithm.Logics
     /// inplace : yes
     /// Compare : O(n log n)
     /// Swap : O(n log n)
-    /// ArraySize : 100, IsSorted : True, sortKind : CombSort, IndexAccessCount : 1195, CompareCount : 1195, SwapCount : 244
-    /// ArraySize : 1000, IsSorted : True, sortKind : CombSort, IndexAccessCount : 21704, CompareCount : 21704, SwapCount : 4006
-    /// ArraySize : 10000, IsSorted : True, sortKind : CombSort, IndexAccessCount : 306727, CompareCount : 306727, SwapCount : 58678
     /// </remarks>
     /// <typeparam name="T"></typeparam>
     public class CombSort<T> : SortBase<T> where T : IComparable<T>

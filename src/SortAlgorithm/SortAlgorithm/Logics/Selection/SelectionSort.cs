@@ -14,9 +14,6 @@ namespace SortAlgorithm.Logics
     /// Compare : n(n-1) / 2
     /// Swap : n-1
     /// Order : O(n^2)
-    /// ArraySize : 100, IsSorted : True, sortKind : SelectionSort, IndexAccessCount : 4950, CompareCount : 4950, SwapCount : 100
-    /// ArraySize : 1000, IsSorted : True, sortKind : SelectionSort, IndexAccessCount : 499500, CompareCount : 499500, SwapCount : 1000
-    /// ArraySize : 10000, IsSorted : True, sortKind : SelectionSort, IndexAccessCount : 49995000, CompareCount : 49995000, SwapCount : 10000
     /// </remarks>
     /// <typeparam name="T"></typeparam>
     public class SelectionSort<T> : SortBase<T> where T : IComparable<T>

@@ -38,6 +38,9 @@ namespace SortRunner
                 // Comb Sort
                 Runner.Run(new CombSort<int>(), item);
 
+                // Cycle Sort
+                Runner.Run(new CycleSort<int>(), item);
+
                 // Gnome Sort
                 Runner.Run(new GnomeSort<int>(), item);
                 Runner.Run(new GnomeSort1<int>(), item);

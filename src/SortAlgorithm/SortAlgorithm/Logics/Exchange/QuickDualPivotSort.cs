@@ -13,9 +13,6 @@ namespace SortAlgorithm.Logics
     /// Compare :
     /// Swap :
     /// Order : O(n log n) (Worst case : O(nlog^2n))
-    /// ArraySize : 100, IsSorted : True, sortKind : QuickDualPivotSort, IndexAccessCount : 405, CompareCount : 539, SwapCount : 363
-    /// ArraySize : 1000, IsSorted : True, sortKind : QuickDualPivotSort, IndexAccessCount : 5882, CompareCount : 8036, SwapCount : 4673
-    /// ArraySize : 10000, IsSorted : True, sortKind : QuickDualPivotSort, IndexAccessCount : 87174, CompareCount : 121604, SwapCount : 64344
     /// </remarks>
     /// <typeparam name="T"></typeparam>
     public class QuickDualPivotSort<T> : SortBase<T> where T : IComparable<T>

@@ -13,9 +13,6 @@ namespace SortAlgorithm.Logics
     /// Compare :
     /// Swap :
     /// Order : O(n^2)
-    /// ArraySize : 100, IsSorted : True, sortKind : GnomeSort, IndexAccessCount : 2591, CompareCount : 2491, SwapCount : 2491
-    /// ArraySize : 1000, IsSorted : True, sortKind : GnomeSort, IndexAccessCount : 255017, CompareCount : 254017, SwapCount : 254017
-    /// ArraySize : 10000, IsSorted : True, sortKind : GnomeSort, IndexAccessCount : 24773456, CompareCount : 24763456, SwapCount : 24763456
     /// </remarks>
     /// <typeparam name="T"></typeparam>
     public class GnomeSort<T> : SortBase<T> where T : IComparable<T>
@@ -49,9 +46,6 @@ namespace SortAlgorithm.Logics
     /// Compare :
     /// Swap :
     /// Order : O(n^2)
-    /// ArraySize : 100, IsSorted : True, sortKind : GnomeSort1, IndexAccessCount : 5077, CompareCount : 5077, SwapCount : 2491
-    /// ArraySize : 1000, IsSorted : True, sortKind : GnomeSort1, IndexAccessCount : 509029, CompareCount : 509029, SwapCount : 254017
-    /// ArraySize : 10000, IsSorted : True, sortKind : GnomeSort1, IndexAccessCount : 49536899, CompareCount : 49536899, SwapCount : 24763456
     /// </remarks>
     /// <typeparam name="T"></typeparam>
     public class GnomeSort1<T> : SortBase<T> where T : IComparable<T>
@@ -81,13 +75,10 @@ namespace SortAlgorithm.Logics
         }
     }
 
-    /// <remarks>
-    /// ArraySize : 100, IsSorted : True, sortKind : GnomeSort2, IndexAccessCount : 2488, CompareCount : 2586, SwapCount : 2491
-    /// ArraySize : 1000, IsSorted : True, sortKind : GnomeSort2, IndexAccessCount : 254018, CompareCount : 255012, SwapCount : 254017
-    /// ArraySize : 10000, IsSorted : True, sortKind : GnomeSort2, IndexAccessCount : 24763454, CompareCount : 24773443, SwapCount : 24763456
-    /// </remarks>
+    /// <summary>
+    /// <see cref="GnomeSort{T}"/> に似ているが最適化がされていない
+    /// </summary>
     /// <typeparam name="T"></typeparam>
-
     public class GnomeSort2<T> : SortBase<T> where T : IComparable<T>
     {
         public override SortType SortType => SortType.Exchange;
@@ -119,11 +110,9 @@ namespace SortAlgorithm.Logics
         }
     }
 
-    /// <remarks>
-    /// ArraySize : 100, IsSorted : True, sortKind : GnomeSort3, IndexAccessCount : 5082, CompareCount : 5082, SwapCount : 2491
-    /// ArraySize : 1000, IsSorted : True, sortKind : GnomeSort3, IndexAccessCount : 509034, CompareCount : 509034, SwapCount : 254017
-    /// ArraySize : 10000, IsSorted : True, sortKind : GnomeSort3, IndexAccessCount : 49536912, CompareCount : 49536912, SwapCount : 24763456
-    /// </remarks>
+    /// <summary>
+    /// 実装はシンプルだが遅い
+    /// </summary>
     /// <typeparam name="T"></typeparam>
     public class GnomeSort3<T> : SortBase<T> where T : IComparable<T>
     {

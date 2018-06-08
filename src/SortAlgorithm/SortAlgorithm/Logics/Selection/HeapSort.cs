@@ -14,9 +14,6 @@ namespace SortAlgorithm.Logics
     /// Compare : n log2 n
     /// Swap : n log2 2n
     /// Order : O(n log n) (Worst case : O(n log n))
-    /// ArraySize : 100, IsSorted : True, sortKind : HeapSort, IndexAccessCount : 696, CompareCount : 1048, SwapCount : 598
-    /// ArraySize : 1000, IsSorted : True, sortKind : HeapSort, IndexAccessCount : 10527, CompareCount : 17206, SwapCount : 9534
-    /// ArraySize : 10000, IsSorted : True, sortKind : HeapSort, IndexAccessCount : 139491, CompareCount : 239338, SwapCount : 129502
     /// </remarks>
     /// <typeparam name="T"></typeparam>
 

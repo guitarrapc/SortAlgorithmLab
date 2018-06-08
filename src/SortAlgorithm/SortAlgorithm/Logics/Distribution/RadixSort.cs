@@ -15,9 +15,6 @@ namespace SortAlgorithm.Logics
     /// Compare : 2kn
     /// Swap : 0
     /// Order : O(kn)
-    /// ArraySize : 100, IsSorted : True, sortKind : RadixLSD4Sort, IndexAccessCount : 2780, CompareCount : 400, SwapCount : 0
-    /// ArraySize : 1000, IsSorted : True, sortKind : RadixLSD4Sort, IndexAccessCount : 9796, CompareCount : 4000, SwapCount : 0
-    /// ArraySize : 10000, IsSorted : True, sortKind : RadixLSD4Sort, IndexAccessCount : 81750, CompareCount : 40000, SwapCount : 0
     /// </remarks>
     /// <typeparam name="T"></typeparam>
 
@@ -72,14 +69,6 @@ namespace SortAlgorithm.Logics
         }
     }
 
-    /// <summary>
-    /// </summary>
-    /// <remarks>
-    /// ArraySize : 100, IsSorted : True, sortKind : RadixLSD10Sort, IndexAccessCount : 420, CompareCount : 200, SwapCount : 0
-    /// ArraySize : 1000, IsSorted : True, sortKind : RadixLSD10Sort, IndexAccessCount : 6030, CompareCount : 3000, SwapCount : 0
-    /// ArraySize : 10000, IsSorted : True, sortKind : RadixLSD10Sort, IndexAccessCount : 80040, CompareCount : 40000, SwapCount : 0
-    /// </remarks>
-    /// <typeparam name="T"></typeparam>
     public class RadixLSD10Sort<T> : SortBase<T> where T : IComparable<T>
     {
         public override SortType SortType => SortType.Distributed;

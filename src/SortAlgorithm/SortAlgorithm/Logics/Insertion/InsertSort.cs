@@ -14,9 +14,6 @@ namespace SortAlgorithm.Logics
     /// Compare : n(n-1) / 2
     /// Swap : n^2/2
     /// Order : O(n^2) (Better case : O(n)) (Worst case : O(n^2))
-    /// ArraySize : 100, IsSorted : True, sortKind : InsertSort, IndexAccessCount : 2491, CompareCount : 2491, SwapCount : 2491
-    /// ArraySize : 1000, IsSorted : True, sortKind : InsertSort, IndexAccessCount : 254017, CompareCount : 254017, SwapCount : 254017
-    /// ArraySize : 10000, IsSorted : True, sortKind : InsertSort, IndexAccessCount : 24763456, CompareCount : 24763456, SwapCount : 24763456
     /// </remarks>
     /// <typeparam name="T"></typeparam>
     public class InsertSort<T> : SortBase<T> where T : IComparable<T>
