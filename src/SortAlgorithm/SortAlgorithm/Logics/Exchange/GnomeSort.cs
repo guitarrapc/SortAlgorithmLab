@@ -10,8 +10,8 @@ namespace SortAlgorithm.Logics
     /// <remarks>
     /// stable : yes
     /// inplace : yes
-    /// Compare : 
-    /// Swap : 
+    /// Compare :
+    /// Swap :
     /// Order : O(n^2)
     /// ArraySize : 100, IsSorted : True, sortKind : GnomeSort, IndexAccessCount : 2591, CompareCount : 2491, SwapCount : 2491
     /// ArraySize : 1000, IsSorted : True, sortKind : GnomeSort, IndexAccessCount : 255017, CompareCount : 254017, SwapCount : 254017
@@ -24,7 +24,7 @@ namespace SortAlgorithm.Logics
 
         public override T[] Sort(T[] array)
         {
-            base.Statics.Reset(array.Length);
+            base.Statics.Reset(array.Length, SortType, nameof(GnomeSort<T>));
             for (var i = 0; i < array.Length; i++)
             {
                 base.Statics.AddIndexAccess();
@@ -46,8 +46,8 @@ namespace SortAlgorithm.Logics
     /// <remarks>
     /// stable : yes
     /// inplace : yes
-    /// Compare : 
-    /// Swap : 
+    /// Compare :
+    /// Swap :
     /// Order : O(n^2)
     /// ArraySize : 100, IsSorted : True, sortKind : GnomeSort1, IndexAccessCount : 5077, CompareCount : 5077, SwapCount : 2491
     /// ArraySize : 1000, IsSorted : True, sortKind : GnomeSort1, IndexAccessCount : 509029, CompareCount : 509029, SwapCount : 254017
@@ -60,7 +60,7 @@ namespace SortAlgorithm.Logics
 
         public override T[] Sort(T[] array)
         {
-            base.Statics.Reset(array.Length);
+            base.Statics.Reset(array.Length, SortType, nameof(GnomeSort1<T>));
             for (var i = 1; i < array.Length;)
             {
                 base.Statics.AddIndexAccess();
@@ -94,7 +94,7 @@ namespace SortAlgorithm.Logics
 
         public override T[] Sort(T[] array)
         {
-            base.Statics.Reset(array.Length);
+            base.Statics.Reset(array.Length, SortType, nameof(GnomeSort2<T>));
             for (var i = 0; i < array.Length - 1; i++)
             {
                 base.Statics.AddCompareCount();
@@ -131,8 +131,9 @@ namespace SortAlgorithm.Logics
 
         public override T[] Sort(T[] array)
         {
+            base.Statics.Reset(array.Length, SortType, nameof(GnomeSort3<T>));
+
             var i = 0;
-            base.Statics.Reset(array.Length);
             while (i < array.Length)
             {
                 base.Statics.AddIndexAccess();

@@ -27,7 +27,7 @@ namespace SortAlgorithm.Logics
 
         public int[] Sort(int[] array)
         {
-            base.Statics.Reset(array.Length);
+            base.Statics.Reset(array.Length, SortType, nameof(RadixLSD4Sort<T>));
             var bucket = new List<int>[256];
             var digit = 4;
 
@@ -86,7 +86,7 @@ namespace SortAlgorithm.Logics
 
         public int[] Sort(int[] array)
         {
-            base.Statics.Reset(array.Length);
+            base.Statics.Reset(array.Length, SortType, nameof(RadixLSD10Sort<T>));
             var digit = 1 + (int)array.Max(x => Math.Log10(x));
 
             var bucket = new List<int>[10];

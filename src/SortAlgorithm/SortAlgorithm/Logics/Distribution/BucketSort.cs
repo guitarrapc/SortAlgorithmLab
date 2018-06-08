@@ -30,7 +30,7 @@ namespace SortAlgorithm.Logics
 
         public T[] Sort(T[] array, Func<T, int> getKey, int max)
         {
-            statics.Reset(array.Length);
+            Statics.Reset(array.Length, SortType, nameof(BucketSortT<T>));
             var bucket = new List<T>[max + 1];
 
             foreach (var item in array)
@@ -80,7 +80,7 @@ namespace SortAlgorithm.Logics
 
         public int[] Sort(int[] array)
         {
-            base.Statics.Reset(array.Length);
+            base.Statics.Reset(array.Length, SortType, nameof(BucketSort<T>));
             var max = array.Max();
 
             // make bucket for possibly assigned number of int

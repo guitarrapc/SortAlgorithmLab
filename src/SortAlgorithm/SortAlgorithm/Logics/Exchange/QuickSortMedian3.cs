@@ -10,8 +10,8 @@ namespace SortAlgorithm.Logics
     /// <remarks>
     /// stable : no
     /// inplace : yes
-    /// Compare : 
-    /// Swap : 
+    /// Compare :
+    /// Swap :
     /// Order : O(n log n) (Worst case : O(nlog^2n))
     /// ArraySize : 100, IsSorted : True, sortKind : QuickSort, IndexAccessCount : 424, CompareCount : 714, SwapCount : 202
     /// ArraySize : 1000, IsSorted : True, sortKind : QuickSort, IndexAccessCount : 8470, CompareCount : 11461, SwapCount : 2745
@@ -24,7 +24,7 @@ namespace SortAlgorithm.Logics
 
         public override T[] Sort(T[] array)
         {
-            base.Statics.Reset(array.Length);
+            base.Statics.Reset(array.Length, SortType, nameof(QuickSortMedian3<T>));
             return Sort(array, 0, array.Length - 1);
         }
 

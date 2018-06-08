@@ -26,7 +26,7 @@ namespace SortAlgorithm.Logics
 
         public int[] Sort(int[] array)
         {
-            base.Statics.Reset(array.Length);
+            base.Statics.Reset(array.Length, SortType, nameof(CountingSort<T>));
 
             var min = 0;
             var max = 0;
@@ -53,7 +53,7 @@ namespace SortAlgorithm.Logics
                 ++countArray[array[i]];
             }
 
-            // change current index element counter by adding previous index counter. 
+            // change current index element counter by adding previous index counter.
             for (var i = 1; i < countArray.Length; i++)
             {
                 base.Statics.AddIndexAccess();

@@ -25,7 +25,7 @@ namespace SortAlgorithm.Logics
 
         public override T[] Sort(T[] array)
         {
-            base.Statics.Reset(array.Length);
+            base.Statics.Reset(array.Length, SortType, nameof(InsertSort<T>));
             for (var i = 1; i < array.Length; i++)
             {
                 var tmp = array[i];
@@ -45,7 +45,7 @@ namespace SortAlgorithm.Logics
 
         public T[] Sort(T[] array, int first, int last)
         {
-            base.Statics.Reset(array.Length);
+            base.Statics.Reset(array.Length, SortType, nameof(InsertSort<T>));
             for (var i = first + 1; i < last; i++)
             {
                 base.Statics.AddCompareCount();

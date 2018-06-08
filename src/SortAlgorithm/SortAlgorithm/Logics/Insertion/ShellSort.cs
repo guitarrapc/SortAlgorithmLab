@@ -11,7 +11,7 @@ namespace SortAlgorithm.Logics
     /// stable : no
     /// inplace : yes
     /// Compare : O(nlogn) * O(n) (O(n^0.25)～O(n^0.5) * O(n) = O(n^1.25))
-    /// Swap : 
+    /// Swap :
     /// Order : O(n^1.25) (Better case : O(n)) (Worst case : O(nlog^2n))
     /// ArraySize : 100, IsSorted : True, sortKind : ShellSort, IndexAccessCount : 431, CompareCount : 282, SwapCount : 431
     /// ArraySize : 1000, IsSorted : True, sortKind : ShellSort, IndexAccessCount : 9384, CompareCount : 4821, SwapCount : 9384
@@ -20,9 +20,11 @@ namespace SortAlgorithm.Logics
     /// <typeparam name="T"></typeparam>
     public class ShellSort<T> : SortBase<T> where T : IComparable<T>
     {
+        public override SortType SortType => SortType.Insertion;
+
         public override T[] Sort(T[] array)
         {
-            base.Statics.Reset(array.Length);
+            base.Statics.Reset(array.Length, SortType, nameof(ShellSort<T>));
 
             // calculate h
             // most efficient h will be : h(i + 1) = 3h(i) + 1

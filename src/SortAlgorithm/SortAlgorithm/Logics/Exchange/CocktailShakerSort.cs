@@ -26,7 +26,7 @@ namespace SortAlgorithm.Logics
 
         public override T[] Sort(T[] array)
         {
-            base.Statics.Reset(array.Length);
+            base.Statics.Reset(array.Length, SortType, nameof(CocktailShakerSort<T>));
             var min = 0;
             var max = array.Length - 1;
 
@@ -83,13 +83,13 @@ namespace SortAlgorithm.Logics
     /// ArraySize : 10000, IsSorted : True, sortKind : ShakerSort2, IndexAccessCount : 37205847, CompareCount : 37205847, SwapCount : 24763456
     /// </remarks>
     /// <typeparam name="T"></typeparam>
-    public class ShakerSort2<T> : SortBase<T> where T : IComparable<T>
+    public class CocktailShakerSort2<T> : SortBase<T> where T : IComparable<T>
     {
         public override SortType SortType => SortType.Exchange;
 
         public override T[] Sort(T[] array)
         {
-            base.Statics.Reset(array.Length);
+            base.Statics.Reset(array.Length, SortType, nameof(CocktailShakerSort2<T>));
 
             // half calculation
             for (int i = 0; i < array.Length / 2; i++)

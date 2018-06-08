@@ -29,7 +29,7 @@ namespace SortAlgorithm.Logics
 
         public override T[] Sort(T[] array)
         {
-            base.Statics.Reset(array.Length);
+            base.Statics.Reset(array.Length, SortType, nameof(IntroSortMedian3<T>));
             var result = Sort(array, 0, array.Length - 1, 2 * FloorLog(array.Length));
             base.Statics.AddCompareCount(heapSort.Statics.CompareCount);
             base.Statics.AddIndexAccess(heapSort.Statics.IndexAccessCount);

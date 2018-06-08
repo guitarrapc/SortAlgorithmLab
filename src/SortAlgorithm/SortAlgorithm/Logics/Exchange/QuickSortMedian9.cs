@@ -10,8 +10,8 @@ namespace SortAlgorithm.Logics
     /// <remarks>
     /// stable : no
     /// inplace : yes
-    /// Compare : 
-    /// Swap : 
+    /// Compare :
+    /// Swap :
     /// Order : O(n log n) (Worst case : O(nlog^2n))
     /// ArraySize : 100, IsSorted : True, sortKind : QuickSortMedian9BinaryInsert, IndexAccessCount : 293, CompareCount : 337, SwapCount : 109
     /// ArraySize : 1000, IsSorted : True, sortKind : QuickSortMedian9BinaryInsert, IndexAccessCount : 4371, CompareCount : 5127, SwapCount : 1630
@@ -24,7 +24,7 @@ namespace SortAlgorithm.Logics
 
         public override T[] Sort(T[] array)
         {
-            base.Statics.Reset(array.Length);
+            base.Statics.Reset(array.Length, SortType, nameof(QuickSortMedian9<T>));
             return Sort(array, 0, array.Length - 1);
         }
 

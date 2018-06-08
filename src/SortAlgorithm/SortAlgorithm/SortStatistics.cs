@@ -6,6 +6,8 @@ namespace SortAlgorithm
 {
     public class SortStatics
     {
+        public SortType SortType { get; set; }
+        public string Algorithm { get; set; }
         public int ArraySize { get; set; }
         public int IndexAccessCount { get; set; }
         public int CompareCount { get; set; }
@@ -14,14 +16,18 @@ namespace SortAlgorithm
 
         public void Reset()
         {
+            SortType = SortType.None;
+            Algorithm = "";
             IndexAccessCount = 0;
             CompareCount = 0;
             SwapCount = 0;
             IsSorted = false;
         }
 
-        public void Reset(int arraySize)
+        public void Reset(int arraySize, SortType sortType, string sortAlgorithm)
         {
+            SortType = sortType;
+            Algorithm = sortAlgorithm;
             ArraySize = arraySize;
             IndexAccessCount = 0;
             CompareCount = 0;

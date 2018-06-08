@@ -5,13 +5,13 @@ using System.Text;
 namespace SortAlgorithm.Logics
 {
     /// <summary>
-    /// ピボットを2つにすることで再帰の深さを浅くすることで、QuickSortを高速化する。
+    /// Dual-Pivot QuickSort に InsertSortを組み合わせて最速を狙う
     /// </summary>
     /// <remarks>
     /// stable : no
     /// inplace : yes
-    /// Compare : 
-    /// Swap : 
+    /// Compare :
+    /// Swap :
     /// Order : O(n log n) (Worst case : O(nlog^2n))
     /// ArraySize : 100, IsSorted : True, sortKind : QuickDualPivotSortInsert, IndexAccessCount : 296, CompareCount : 361, SwapCount : 222
     /// ArraySize : 1000, IsSorted : True, sortKind : QuickDualPivotSortInsert, IndexAccessCount : 4816, CompareCount : 6313, SwapCount : 3240
@@ -27,7 +27,7 @@ namespace SortAlgorithm.Logics
 
         public override T[] Sort(T[] array)
         {
-            base.Statics.Reset(array.Length);
+            base.Statics.Reset(array.Length, SortType, nameof(QuickDualPivotSortInsert<T>));
             return Sort(array, 0, array.Length - 1);
         }
 
@@ -48,7 +48,7 @@ namespace SortAlgorithm.Logics
                 Swap(ref array[left], ref array[right]);
             }
 
-            // fase 1. decide pivot       
+            // fase 1. decide pivot
             var l = left + 1;
             var k = l;
             var g = right - 1;

@@ -26,7 +26,7 @@ namespace SortAlgorithm.Logics
 
         public override T[] Sort(T[] array)
         {
-            base.Statics.Reset(array.Length);
+            base.Statics.Reset(array.Length, SortType, nameof(MergeSort<T>));
             var work = new T[(array.Length) / 2];
             Sort(array, 0, array.Length - 1, work);
             return array;
@@ -128,19 +128,21 @@ namespace SortAlgorithm.Logics
 
         public override T[] Sort(T[] array)
         {
+            base.Statics.Reset(array.Length, SortType, nameof(MergeSort2<T>));
+            return SortImpl(array);
+        }
+
+        private T[] SortImpl(T[] array)
+        {
             if (array.Length <= 1) return array;
-            if (base.Statics.ArraySize <= array.Length)
-            {
-                base.Statics.Reset(array.Length);
-            }
 
             base.Statics.AddIndexAccess();
 
             int mid = array.Length / 2;
             var left = array.Take(mid).ToArray();
             var right = array.Skip(mid).ToArray();
-            left = Sort(left);
-            right = Sort(right);
+            left = SortImpl(left);
+            right = SortImpl(right);
             var result = Merge(left, right);
             return result;
         }

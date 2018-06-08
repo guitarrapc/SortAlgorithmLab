@@ -10,8 +10,8 @@ namespace SortAlgorithm.Logics
     /// <remarks>
     /// stable : no
     /// inplace : yes
-    /// Compare : 
-    /// Swap : 
+    /// Compare :
+    /// Swap :
     /// Order : O(n log n) (Worst case : O(nlog^2n))
     /// ArraySize : 100, IsSorted : True, sortKind : QuickDualPivotSort, IndexAccessCount : 405, CompareCount : 539, SwapCount : 363
     /// ArraySize : 1000, IsSorted : True, sortKind : QuickDualPivotSort, IndexAccessCount : 5882, CompareCount : 8036, SwapCount : 4673
@@ -24,7 +24,7 @@ namespace SortAlgorithm.Logics
 
         public override T[] Sort(T[] array)
         {
-            base.Statics.Reset(array.Length);
+            base.Statics.Reset(array.Length, SortType, nameof(QuickDualPivotSort<T>));
             return Sort(array, 0, array.Length - 1);
         }
 
@@ -39,7 +39,7 @@ namespace SortAlgorithm.Logics
                 Swap(ref array[left], ref array[right]);
             }
 
-            // fase 1. decide pivot       
+            // fase 1. decide pivot
             var l = left + 1;
             var k = l;
             var g = right - 1;

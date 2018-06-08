@@ -21,11 +21,11 @@ namespace SortAlgorithm.Logics
     /// <typeparam name="T"></typeparam>
     public class SelectionSort<T> : SortBase<T> where T : IComparable<T>
     {
-        public override SortType SortType => SortType.Selection;
+    public override SortType SortType => SortType.Selection;
 
         public override T[] Sort(T[] array)
         {
-            base.Statics.Reset(array.Length);
+            base.Statics.Reset(array.Length, SortType, nameof(SelectionSort<T>));
             for (var i = 0; i < array.Length; i++)
             {
                 var min = i;

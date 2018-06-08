@@ -26,7 +26,7 @@ namespace SortAlgorithm.Logics
 
         public override T[] Sort(T[] array)
         {
-            base.Statics.Reset(array.Length);
+            base.Statics.Reset(array.Length, SortType, nameof(HeapSort<T>));
 
             var i = 0;
             // create heap node
@@ -47,7 +47,7 @@ namespace SortAlgorithm.Logics
 
         public T[] Sort(T[] array, int first, int last)
         {
-            base.Statics.Reset(array.Length);
+            base.Statics.Reset(array.Length, SortType, nameof(HeapSort<T>));
 
             var n = last - first;
             // create heap node

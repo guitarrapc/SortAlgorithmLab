@@ -25,7 +25,7 @@ namespace SortAlgorithm.Logics
 
         public override T[] Sort(T[] array)
         {
-            base.Statics.Reset(array.Length);
+            base.Statics.Reset(array.Length, SortType, nameof(BubbleSort<T>));
             for (var i = 0; i < array.Length; i++)
             {
                 for (var j = array.Length - 1; j > i; j--)
