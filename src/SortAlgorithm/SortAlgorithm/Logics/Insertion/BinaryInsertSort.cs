@@ -21,6 +21,8 @@ namespace SortAlgorithm.Logics
     /// <typeparam name="T"></typeparam>
     public class BinaryInsertSort<T> : SortBase<T> where T : IComparable<T>
     {
+        public override SortType SortType => SortType.Insertion;
+
         public override T[] Sort(T[] array)
         {
             base.Statics.Reset(array.Length);

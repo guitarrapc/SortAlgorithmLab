@@ -20,6 +20,8 @@ namespace SortAlgorithm.Logics
     /// <typeparam name="T"></typeparam>
     public class GnomeSort<T> : SortBase<T> where T : IComparable<T>
     {
+        public override SortType SortType => SortType.Exchange;
+
         public override T[] Sort(T[] array)
         {
             base.Statics.Reset(array.Length);
@@ -54,6 +56,8 @@ namespace SortAlgorithm.Logics
     /// <typeparam name="T"></typeparam>
     public class GnomeSort1<T> : SortBase<T> where T : IComparable<T>
     {
+        public override SortType SortType => SortType.Exchange;
+
         public override T[] Sort(T[] array)
         {
             base.Statics.Reset(array.Length);
@@ -86,6 +90,8 @@ namespace SortAlgorithm.Logics
 
     public class GnomeSort2<T> : SortBase<T> where T : IComparable<T>
     {
+        public override SortType SortType => SortType.Exchange;
+
         public override T[] Sort(T[] array)
         {
             base.Statics.Reset(array.Length);
@@ -121,6 +127,8 @@ namespace SortAlgorithm.Logics
     /// <typeparam name="T"></typeparam>
     public class GnomeSort3<T> : SortBase<T> where T : IComparable<T>
     {
+        public override SortType SortType => SortType.Exchange;
+
         public override T[] Sort(T[] array)
         {
             var i = 0;

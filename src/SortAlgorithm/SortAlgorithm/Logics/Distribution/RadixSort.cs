@@ -23,6 +23,8 @@ namespace SortAlgorithm.Logics
 
     public class RadixLSD4Sort<T> : SortBase<T> where T : IComparable<T>
     {
+        public override SortType SortType => SortType.Distributed;
+
         public int[] Sort(int[] array)
         {
             base.Statics.Reset(array.Length);
@@ -80,6 +82,8 @@ namespace SortAlgorithm.Logics
     /// <typeparam name="T"></typeparam>
     public class RadixLSD10Sort<T> : SortBase<T> where T : IComparable<T>
     {
+        public override SortType SortType => SortType.Distributed;
+
         public int[] Sort(int[] array)
         {
             base.Statics.Reset(array.Length);

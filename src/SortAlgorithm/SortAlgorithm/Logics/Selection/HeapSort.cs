@@ -22,6 +22,8 @@ namespace SortAlgorithm.Logics
 
     public class HeapSort<T> : SortBase<T> where T : IComparable<T>
     {
+        public override SortType SortType => SortType.Selection;
+
         public override T[] Sort(T[] array)
         {
             base.Statics.Reset(array.Length);

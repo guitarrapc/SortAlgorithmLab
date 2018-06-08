@@ -22,6 +22,8 @@ namespace SortAlgorithm.Logics
 
     public class MergeSort<T> : SortBase<T> where T : IComparable<T>
     {
+        public override SortType SortType => SortType.Merge;
+
         public override T[] Sort(T[] array)
         {
             base.Statics.Reset(array.Length);
@@ -122,6 +124,8 @@ namespace SortAlgorithm.Logics
     /// <typeparam name="T"></typeparam>
     public class MergeSort2<T> : SortBase<T> where T : IComparable<T>
     {
+        public override SortType SortType => SortType.Merge;
+
         public override T[] Sort(T[] array)
         {
             if (array.Length <= 1) return array;

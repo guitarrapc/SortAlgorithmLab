@@ -22,6 +22,8 @@ namespace SortAlgorithm.Logics
 
     public class CountingSort<T> : SortBase<T> where T : IComparable<T>
     {
+        public override SortType SortType => SortType.Distributed;
+
         public int[] Sort(int[] array)
         {
             base.Statics.Reset(array.Length);

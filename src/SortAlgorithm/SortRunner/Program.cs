@@ -26,35 +26,21 @@ namespace SortRunner
                 // Init
                 Runner.Init(item);
 
+                // -- Exchange -- //
+
                 // Bubble Sort
                 var bubbleSort = new BubbleSort<int>();
                 Runner.Run(bubbleSort, item, nameof(BubbleSort<int>));
 
-                // Selection Sort
-                var selectionSort = new SelectionSort<int>();
-                Runner.Run(selectionSort, item, nameof(SelectionSort<int>));
-
-                // Insert Sort
-                var insertSort = new InsertSort<int>();
-                Runner.Run(insertSort, item, nameof(InsertSort<int>));
-
-                // Binary Insert Sort
-                var binaryInsertSort = new BinaryInsertSort<int>();
-                Runner.Run(binaryInsertSort, item, nameof(BinaryInsertSort<int>));
-
-                // Shaker Sort (Cocktail Sort)
-                var shakerSort = new ShakerSort<int>();
-                Runner.Run(shakerSort, item, nameof(ShakerSort<int>));
-                var shakerSort2 = new ShakerSort2<int>();
-                Runner.Run(shakerSort2, item, nameof(ShakerSort2<int>));
+                // Cocktail Shaker Sort
+                var cocktailshakerSort = new CocktailShakerSort<int>();
+                Runner.Run(cocktailshakerSort, item, nameof(CocktailShakerSort<int>));
+                var cocktailshakerSort2 = new ShakerSort2<int>();
+                Runner.Run(cocktailshakerSort2, item, nameof(ShakerSort2<int>));
 
                 // Comb Sort
                 var combSort = new CombSort<int>();
                 Runner.Run(combSort, item, nameof(CombSort<int>));
-
-                // Shell Sort
-                var shellSort = new ShellSort<int>();
-                Runner.Run(shellSort, item, nameof(ShellSort<int>));
 
                 // Gnome Sort
                 var gnomeSort = new GnomeSort<int>();
@@ -70,41 +56,39 @@ namespace SortRunner
                 var quickSortMedian3 = new QuickSortMedian3<int>();
                 Runner.Run(quickSortMedian3, item, nameof(QuickSortMedian3<int>));
 
-                // QuickSort Median3 (Quick + Insert)
-                var quicksortMedian3Insert = new QuickSortMedian3Insert<int>();
-                Runner.Run(quicksortMedian3Insert, item, nameof(QuickSortMedian3Insert<int>));
-
-                // QuickSort Median3 (Quick + BinaryInsert)
-                var quicksortMedian3BinaryInsert = new QuickSortMedian3BinaryInsert<int>();
-                Runner.Run(quicksortMedian3BinaryInsert, item, nameof(QuickSortMedian3BinaryInsert<int>));
-
                 // Quick Sort Median9
                 var quickSortMedian9 = new QuickSortMedian9<int>();
                 Runner.Run(quickSortMedian9, item, nameof(QuickSortMedian9<int>));
-
-                // QuickSort Median9 (Quick + Insert)
-                var quicksortMedian9Insert = new QuickSortMedian9Insert<int>();
-                Runner.Run(quicksortMedian9Insert, item, nameof(QuickSortMedian9Insert<int>));
-
-                // QuickSort Median9 (Quick + BinaryInsert)
-                var quicksortMedian9BinaryInsert = new QuickSortMedian9BinaryInsert<int>();
-                Runner.Run(quicksortMedian9BinaryInsert, item, nameof(QuickSortMedian9BinaryInsert<int>));
 
                 // Dual Pivot QuickSort
                 var quickDualPivotSort = new QuickDualPivotSort<int>();
                 Runner.Run(quickDualPivotSort, item, nameof(QuickDualPivotSort<int>));
 
-                // Dual Pivot Quick Sort (Quick + Insert)
-                var dualPivotQuickSortInsert = new QuickDualPivotSortInsert<int>();
-                Runner.Run(dualPivotQuickSortInsert, item, nameof(QuickDualPivotSortInsert<int>));
+                // -- Selection -- //
 
-                // IntroSort Median3 (Quick + Heap + Insert)
-                var IntroInsertMedian3 = new IntroSortMedian3<int>();
-                Runner.Run(IntroInsertMedian3, item, nameof(IntroSortMedian3<int>));
+                // Selection Sort
+                var selectionSort = new SelectionSort<int>();
+                Runner.Run(selectionSort, item, nameof(SelectionSort<int>));
 
-                // IntroSort Median9 (Quick + Heap + Insert)
-                var IntroInsertMedian9 = new IntroSortMedian9<int>();
-                Runner.Run(IntroInsertMedian9, item, nameof(IntroSortMedian9<int>));
+                // Heap Sort
+                var heapSort = new HeapSort<int>();
+                Runner.Run(heapSort, item, nameof(HeapSort<int>));
+
+                // -- Insertion -- //
+
+                // Insert Sort
+                var insertSort = new InsertSort<int>();
+                Runner.Run(insertSort, item, nameof(InsertSort<int>));
+
+                // Binary Insert Sort
+                var binaryInsertSort = new BinaryInsertSort<int>();
+                Runner.Run(binaryInsertSort, item, nameof(BinaryInsertSort<int>));
+
+                // Shell Sort
+                var shellSort = new ShellSort<int>();
+                Runner.Run(shellSort, item, nameof(ShellSort<int>));
+
+                // -- Merge -- //
 
                 // Merge Sort
                 var mergeSort = new MergeSort<int>();
@@ -113,9 +97,7 @@ namespace SortRunner
                 var mergeSort2 = new MergeSort2<int>();
                 Runner.Run(mergeSort2, item, nameof(MergeSort2<int>));
 
-                // Merge Sort
-                var heapSort = new HeapSort<int>();
-                Runner.Run(heapSort, item, nameof(HeapSort<int>));
+                // -- Distribution -- //
 
                 // Bucket Sort
                 var bucketSort = new BucketSort<int>();
@@ -131,6 +113,37 @@ namespace SortRunner
                 // Counting Sort
                 var countingSort = new CountingSort<int>();
                 Runner.Run(countingSort, array => countingSort.Sort(array), item, nameof(CountingSort<int>));
+
+                // -- Hybrid -- //
+
+                // QuickSort Median3 (Quick + Insert)
+                var quicksortMedian3Insert = new QuickSortMedian3Insert<int>();
+                Runner.Run(quicksortMedian3Insert, item, nameof(QuickSortMedian3Insert<int>));
+
+                // QuickSort Median3 (Quick + BinaryInsert)
+                var quicksortMedian3BinaryInsert = new QuickSortMedian3BinaryInsert<int>();
+                Runner.Run(quicksortMedian3BinaryInsert, item, nameof(QuickSortMedian3BinaryInsert<int>));
+
+                // QuickSort Median9 (Quick + Insert)
+                var quicksortMedian9Insert = new QuickSortMedian9Insert<int>();
+                Runner.Run(quicksortMedian9Insert, item, nameof(QuickSortMedian9Insert<int>));
+
+                // QuickSort Median9 (Quick + BinaryInsert)
+                var quicksortMedian9BinaryInsert = new QuickSortMedian9BinaryInsert<int>();
+                Runner.Run(quicksortMedian9BinaryInsert, item, nameof(QuickSortMedian9BinaryInsert<int>));
+
+                // Dual Pivot Quick Sort (Quick + Insert)
+                var dualPivotQuickSortInsert = new QuickDualPivotSortInsert<int>();
+                Runner.Run(dualPivotQuickSortInsert, item, nameof(QuickDualPivotSortInsert<int>));
+
+                // IntroSort Median3 (Quick + Heap + Insert)
+                var IntroInsertMedian3 = new IntroSortMedian3<int>();
+                Runner.Run(IntroInsertMedian3, item, nameof(IntroSortMedian3<int>));
+
+                // IntroSort Median9 (Quick + Heap + Insert)
+                var IntroInsertMedian9 = new IntroSortMedian9<int>();
+                Runner.Run(IntroInsertMedian9, item, nameof(IntroSortMedian9<int>));
+
             }
 
             foreach (var item in new[] { dicSample, dicSample2, dicSample3 })
@@ -176,7 +189,7 @@ namespace SortRunner
             var sortResult = sort.Statics.IsSorted ? "" : $@"
 Before : {keep.ToJoinedString(" ")}
 After  : {after.ToJoinedString(" ")}";
-            Console.WriteLine($@"{nameof(sort.Statics.ArraySize)} : {sort.Statics.ArraySize}, {nameof(sort.Statics.IsSorted)} : {sort.Statics.IsSorted}, {nameof(sortKind)} : {sortKind}, {nameof(sort.Statics.IndexAccessCount)} : {sort.Statics.IndexAccessCount}, {nameof(sort.Statics.CompareCount)} : {sort.Statics.CompareCount}, {nameof(sort.Statics.SwapCount)} : {sort.Statics.SwapCount}{sortResult}");
+            Console.WriteLine($@"{nameof(sort.Statics.ArraySize)} : {sort.Statics.ArraySize}, {nameof(sort.Statics.IsSorted)} : {sort.Statics.IsSorted}, {nameof(sort.SortType)} : {sort.SortType}, {nameof(sortKind)} : {sortKind}, {nameof(sort.Statics.IndexAccessCount)} : {sort.Statics.IndexAccessCount}, {nameof(sort.Statics.CompareCount)} : {sort.Statics.CompareCount}, {nameof(sort.Statics.SwapCount)} : {sort.Statics.SwapCount}{sortResult}");
 
             // reset
             ResetArray(ref keep, ref array);
@@ -198,7 +211,7 @@ After  : {after.ToJoinedString(" ")}";
             var sortResult = sort.Statics.IsSorted ? "" : $@"
 Before : {keep.ToJoinedString(" ")}
 After  : {after.ToJoinedString(" ")}";
-            Console.WriteLine($@"{nameof(sort.Statics.ArraySize)} : {sort.Statics.ArraySize}, {nameof(sort.Statics.IsSorted)} : {sort.Statics.IsSorted}, {nameof(sortKind)} : {sortKind}, {nameof(sort.Statics.IndexAccessCount)} : {sort.Statics.IndexAccessCount}, {nameof(sort.Statics.CompareCount)} : {sort.Statics.CompareCount}, {nameof(sort.Statics.SwapCount)} : {sort.Statics.SwapCount}{sortResult}");
+            Console.WriteLine($@"{nameof(sort.Statics.ArraySize)} : {sort.Statics.ArraySize}, {nameof(sort.Statics.IsSorted)} : {sort.Statics.IsSorted}, {nameof(sort.SortType)} : {sort.SortType}, {nameof(sortKind)} : {sortKind}, {nameof(sort.Statics.IndexAccessCount)} : {sort.Statics.IndexAccessCount}, {nameof(sort.Statics.CompareCount)} : {sort.Statics.CompareCount}, {nameof(sort.Statics.SwapCount)} : {sort.Statics.SwapCount}{sortResult}");
 
             // reset
             ResetArray(ref keep, ref array);
@@ -220,7 +233,7 @@ After  : {after.ToJoinedString(" ")}";
             var sortResult = sort.Statics.IsSorted ? "" : $@"
 Before : {keep.ToJoinedString(" ")}
 After  : {after.ToJoinedString(" ")}";
-            Console.WriteLine($@"{nameof(sort.Statics.ArraySize)} : {sort.Statics.ArraySize}, {nameof(sort.Statics.IsSorted)} : {sort.Statics.IsSorted}, {nameof(sortKind)} : {sortKind}, {nameof(sort.Statics.IndexAccessCount)} : {sort.Statics.IndexAccessCount}, {nameof(sort.Statics.CompareCount)} : {sort.Statics.CompareCount}, {nameof(sort.Statics.SwapCount)} : {sort.Statics.SwapCount}{sortResult}");
+            Console.WriteLine($@"{nameof(sort.Statics.ArraySize)} : {sort.Statics.ArraySize}, {nameof(sort.Statics.IsSorted)} : {sort.Statics.IsSorted}, {nameof(sort.SortType)} : {sort.SortType}, {nameof(sortKind)} : {sortKind}, {nameof(sort.Statics.IndexAccessCount)} : {sort.Statics.IndexAccessCount}, {nameof(sort.Statics.CompareCount)} : {sort.Statics.CompareCount}, {nameof(sort.Statics.SwapCount)} : {sort.Statics.SwapCount}{sortResult}");
 
             // reset
             ResetArray(ref keep, ref array);

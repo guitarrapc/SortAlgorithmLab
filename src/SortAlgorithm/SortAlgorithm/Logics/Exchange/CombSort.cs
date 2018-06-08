@@ -20,6 +20,8 @@ namespace SortAlgorithm.Logics
     /// <typeparam name="T"></typeparam>
     public class CombSort<T> : SortBase<T> where T : IComparable<T>
     {
+        public override SortType SortType => SortType.Exchange;
+
         public override T[] Sort(T[] array)
         {
             base.Statics.Reset(array.Length);

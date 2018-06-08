@@ -20,6 +20,8 @@ namespace SortAlgorithm.Logics
     /// <typeparam name="T"></typeparam>
     public class QuickDualPivotSortInsert<T> : SortBase<T> where T : IComparable<T>
     {
+        public override SortType SortType => SortType.Exchange;
+
         private const int InsertThreshold = 16;
         private InsertSort<T> insertSort = new InsertSort<T>();
 

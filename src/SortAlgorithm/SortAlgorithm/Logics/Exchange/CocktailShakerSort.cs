@@ -20,8 +20,10 @@ namespace SortAlgorithm.Logics
     /// ArraySize : 10000, IsSorted : True, sortKind : ShakerSort, IndexAccessCount : 33024349, CompareCount : 33024349, SwapCount : 24763456
     /// </remarks>
     /// <typeparam name="T"></typeparam>
-    public class ShakerSort<T> : SortBase<T> where T : IComparable<T>
+    public class CocktailShakerSort<T> : SortBase<T> where T : IComparable<T>
     {
+        public override SortType SortType => SortType.Exchange;
+
         public override T[] Sort(T[] array)
         {
             base.Statics.Reset(array.Length);
@@ -83,6 +85,8 @@ namespace SortAlgorithm.Logics
     /// <typeparam name="T"></typeparam>
     public class ShakerSort2<T> : SortBase<T> where T : IComparable<T>
     {
+        public override SortType SortType => SortType.Exchange;
+
         public override T[] Sort(T[] array)
         {
             base.Statics.Reset(array.Length);

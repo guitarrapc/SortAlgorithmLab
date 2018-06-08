@@ -9,6 +9,8 @@ namespace SortAlgorithm
         public SortStatics Statics => statics;
         protected SortStatics statics = new SortStatics();
 
+        public virtual SortType SortType => SortType.None;
+
         public virtual T[] Sort(T[] array)
         {
             throw new NotImplementedException();

@@ -5,77 +5,87 @@ using System.Text;
 namespace SortAlgorithm.Logics
 {
     /// <summary>
-    /// QuickSort + InsertSortによる Quick Searchでだいたいソート済みになった時に最速を目指す。Median9バージョン
+    /// IntroSort のMEdian9バージョン
     /// </summary>
     /// <remarks>
     /// stable : no
     /// inplace : yes
-    /// Compare : 
-    /// Swap : 
-    /// Order : O(n log n) (Worst case : O(n nlog n))
-    /// ArraySize : 100, IsSorted : True, sortKind : QuickSortBinaryInsert, IndexAccessCount : 397, CompareCount : 349, SwapCount : 134
-    /// ArraySize : 1000, IsSorted : True, sortKind : QuickSortBinaryInsert, IndexAccessCount : 7041, CompareCount : 7180, SwapCount : 1580
-    /// ArraySize : 10000, IsSorted : True, sortKind : QuickSortBinaryInsert, IndexAccessCount : 88049, CompareCount : 90365, SwapCount : 23695
+    /// Compare : n log n
+    /// Swap : n log n
+    /// Order : O(n log n) (Worst case : O(n log n))
+    /// ArraySize : 100, IsSorted : True, sortKind : IntroSortMedian9, IndexAccessCount : 228, CompareCount : 296, SwapCount : 104
+    /// ArraySize : 1000, IsSorted : True, sortKind : IntroSortMedian9, IndexAccessCount : 4003, CompareCount : 4782, SwapCount : 1662
+    /// ArraySize : 10000, IsSorted : True, sortKind : IntroSortMedian9, IndexAccessCount : 59764, CompareCount : 68683, SwapCount : 24295
     /// </remarks>
     /// <typeparam name="T"></typeparam>
-    public class QuickSortMedian9Insert<T> : SortBase<T> where T : IComparable<T>
+    public class IntroSortMedian9<T> : SortBase<T> where T : IComparable<T>
     {
-        // ref : https://github.com/nlfiedler/burstsort4j/blob/master/src/org/burstsort4j/Introsort.java
-        private const int InsertThreshold = 16;
+        public override SortType SortType => SortType.Hybrid;
+
+        // ref : https://www.cs.waikato.ac.nz/~bernhard/317/source/IntroSort.java
+        private const int IntroThreshold = 16;
+        private HeapSort<T> heapSort = new HeapSort<T>();
         private InsertSort<T> insertSort = new InsertSort<T>();
 
         public override T[] Sort(T[] array)
         {
             base.Statics.Reset(array.Length);
-            var result = Sort(array, 0, array.Length - 1);
+            var result = Sort(array, 0, array.Length - 1, 2 * FloorLog(array.Length));
+            base.Statics.AddCompareCount(heapSort.Statics.CompareCount);
+            base.Statics.AddIndexAccess(heapSort.Statics.IndexAccessCount);
+            base.Statics.AddSwapCount(heapSort.Statics.SwapCount);
             base.Statics.AddCompareCount(insertSort.Statics.CompareCount);
             base.Statics.AddIndexAccess(insertSort.Statics.IndexAccessCount);
             base.Statics.AddSwapCount(insertSort.Statics.SwapCount);
             return result;
         }
 
-        private T[] Sort(T[] array, int left, int right)
+        private T[] Sort(T[] array, int left, int right, int depthLimit)
         {
-            if (left >= right) return array;
-
-            // switch to insert sort
-            if (right - left < InsertThreshold)
+            while (right - left > IntroThreshold)
             {
-                return insertSort.Sort(array, left, right + 1);
+                if (depthLimit == 0)
+                {
+                    heapSort.Sort(array, left, right);
+                    return array;
+                }
+                depthLimit--;
+                base.Statics.AddIndexAccess();
+                var partition = Partition(array, left, right, Median9(array, left, right));
+                Sort(array, partition, right, depthLimit);
+                right = partition;
             }
+            return insertSort.Sort(array, left, right + 1);
+        }
 
-            // fase 1. decide pivot
-            base.Statics.AddIndexAccess();
-            var pivot = Median9(array, left, right);
+        private int Partition(T[] array, int left, int right, T pivot)
+        {
             var l = left;
             var r = right;
-
-            while (l <= r)
+            while (true)
             {
-                while (l < right && array[l].CompareTo(pivot) < 0)
+                while (array[l].CompareTo(pivot) < 0)
                 {
                     base.Statics.AddIndexAccess();
                     base.Statics.AddCompareCount();
                     l++;
                 }
-
-                while (r > left && array[r].CompareTo(pivot) > 0)
+                r--;
+                while (pivot.CompareTo(array[r]) < 0)
                 {
                     base.Statics.AddIndexAccess();
                     base.Statics.AddCompareCount();
                     r--;
                 }
 
-                if (l > r) break;
+                if (!(l < r))
+                {
+                    return l;
+                }
+
                 Swap(ref array[l], ref array[r]);
                 l++;
-                r--;
             }
-
-            // fase 2. Sort Left and Right
-            Sort(array, left, l - 1);
-            Sort(array, l, right);
-            return array;
         }
 
         private T Median3(T low, T mid, T high)
@@ -124,6 +134,11 @@ namespace SortAlgorithm.Logics
             var h = array[high - m8];
             var i = array[high];
             return Median3(Median3(a, b, c), Median3(d, e, f), Median3(g, h, i));
+        }
+
+        private static int FloorLog(int length)
+        {
+            return (int)(Math.Floor(Math.Log(length) / Math.Log(2)));
         }
     }
 }

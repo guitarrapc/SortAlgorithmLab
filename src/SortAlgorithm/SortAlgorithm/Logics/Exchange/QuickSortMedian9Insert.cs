@@ -5,7 +5,7 @@ using System.Text;
 namespace SortAlgorithm.Logics
 {
     /// <summary>
-    /// QuickSort + InsertSortによる Quick Searchでだいたいソート済みになった時に最速を目指す。
+    /// QuickSort + InsertSortによる Quick Searchでだいたいソート済みになった時に最速を目指す。Median9バージョン
     /// </summary>
     /// <remarks>
     /// stable : no
@@ -18,8 +18,10 @@ namespace SortAlgorithm.Logics
     /// ArraySize : 10000, IsSorted : True, sortKind : QuickSortBinaryInsert, IndexAccessCount : 88049, CompareCount : 90365, SwapCount : 23695
     /// </remarks>
     /// <typeparam name="T"></typeparam>
-    public class QuickSortMedian3Insert<T> : SortBase<T> where T : IComparable<T>
+    public class QuickSortMedian9Insert<T> : SortBase<T> where T : IComparable<T>
     {
+        public override SortType SortType => SortType.Exchange;
+
         // ref : https://github.com/nlfiedler/burstsort4j/blob/master/src/org/burstsort4j/Introsort.java
         private const int InsertThreshold = 16;
         private InsertSort<T> insertSort = new InsertSort<T>();
@@ -46,7 +48,7 @@ namespace SortAlgorithm.Logics
 
             // fase 1. decide pivot
             base.Statics.AddIndexAccess();
-            var pivot = Median3(array[left], array[(left + (right - left)) / 2], array[right]);
+            var pivot = Median9(array, left, right);
             var l = left;
             var r = right;
 
@@ -107,6 +109,23 @@ namespace SortAlgorithm.Logics
                     return mid;
                 }
             }
+        }
+
+        private T Median9(T[] array, int low, int high)
+        {
+            var m2 = (high - low) / 2;
+            var m4 = m2 / 2;
+            var m8 = m4 / 2;
+            var a = array[low];
+            var b = array[low + m8];
+            var c = array[low + m4];
+            var d = array[low + m2 - m8];
+            var e = array[low + m2];
+            var f = array[low + m2 + m8];
+            var g = array[high - m4];
+            var h = array[high - m8];
+            var i = array[high];
+            return Median3(Median3(a, b, c), Median3(d, e, f), Median3(g, h, i));
         }
     }
 }

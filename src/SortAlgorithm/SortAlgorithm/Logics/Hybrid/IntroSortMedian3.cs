@@ -5,7 +5,7 @@ using System.Text;
 namespace SortAlgorithm.Logics
 {
     /// <summary>
-    /// IntroSort のMEdian9バージョン
+    /// QuickSort + HeapSort + InsertSort によるQuickSortの最悪ケースでのO(n^2) を回避する実装。一定の深度以下になった場合にHeapSortにスイッチすることで最悪ケースを防ぎ、ほぼソート済み状況ではInsertSortで最速を狙う。
     /// </summary>
     /// <remarks>
     /// stable : no
@@ -13,13 +13,15 @@ namespace SortAlgorithm.Logics
     /// Compare : n log n
     /// Swap : n log n
     /// Order : O(n log n) (Worst case : O(n log n))
-    /// ArraySize : 100, IsSorted : True, sortKind : IntroSortMedian9, IndexAccessCount : 228, CompareCount : 296, SwapCount : 104
-    /// ArraySize : 1000, IsSorted : True, sortKind : IntroSortMedian9, IndexAccessCount : 4003, CompareCount : 4782, SwapCount : 1662
-    /// ArraySize : 10000, IsSorted : True, sortKind : IntroSortMedian9, IndexAccessCount : 59764, CompareCount : 68683, SwapCount : 24295
+    /// ArraySize : 100, IsSorted : True, sortKind : IntroSortMedian3, IndexAccessCount : 236, CompareCount : 216, SwapCount : 123
+    /// ArraySize : 1000, IsSorted : True, sortKind : IntroSortMedian3, IndexAccessCount : 4895, CompareCount : 5062, SwapCount : 1561
+    /// ArraySize : 10000, IsSorted : True, sortKind : IntroSortMedian3, IndexAccessCount : 74461, CompareCount : 76123, SwapCount : 23871
     /// </remarks>
     /// <typeparam name="T"></typeparam>
-    public class IntroSortMedian9<T> : SortBase<T> where T : IComparable<T>
+    public class IntroSortMedian3<T> : SortBase<T> where T : IComparable<T>
     {
+        public override SortType SortType => SortType.Hybrid;
+
         // ref : https://www.cs.waikato.ac.nz/~bernhard/317/source/IntroSort.java
         private const int IntroThreshold = 16;
         private HeapSort<T> heapSort = new HeapSort<T>();
@@ -49,7 +51,7 @@ namespace SortAlgorithm.Logics
                 }
                 depthLimit--;
                 base.Statics.AddIndexAccess();
-                var partition = Partition(array, left, right, Median9(array, left, right));
+                var partition = Partition(array, left, right, Median3(array[left], array[left + ((right - left) / 2) + 1], array[right - 1]));
                 Sort(array, partition, right, depthLimit);
                 right = partition;
             }
@@ -115,23 +117,6 @@ namespace SortAlgorithm.Logics
                     return mid;
                 }
             }
-        }
-
-        private T Median9(T[] array, int low, int high)
-        {
-            var m2 = (high - low) / 2;
-            var m4 = m2 / 2;
-            var m8 = m4 / 2;
-            var a = array[low];
-            var b = array[low + m8];
-            var c = array[low + m4];
-            var d = array[low + m2 - m8];
-            var e = array[low + m2];
-            var f = array[low + m2 + m8];
-            var g = array[high - m4];
-            var h = array[high - m8];
-            var i = array[high];
-            return Median3(Median3(a, b, c), Median3(d, e, f), Median3(g, h, i));
         }
 
         private static int FloorLog(int length)

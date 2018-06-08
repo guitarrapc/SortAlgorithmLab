@@ -23,6 +23,8 @@ namespace SortAlgorithm.Logics
 
     public class BucketSortT<T>
     {
+        public SortType SortType => SortType.Distributed;
+
         public SortStatics Statics => statics;
         protected SortStatics statics = new SortStatics();
 
@@ -74,6 +76,8 @@ namespace SortAlgorithm.Logics
     /// <typeparam name="T"></typeparam>
     public class BucketSort<T> : SortBase<T> where T : IComparable<T>
     {
+        public override SortType SortType => SortType.Distributed;
+
         public int[] Sort(int[] array)
         {
             base.Statics.Reset(array.Length);
