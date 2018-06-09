@@ -30,7 +30,7 @@ namespace SortAlgorithm.Logics
             }
             else
             {
-                return SortImplNegative(array).Dump(); ;
+                return SortImplNegative(array);
             }
         }
 
