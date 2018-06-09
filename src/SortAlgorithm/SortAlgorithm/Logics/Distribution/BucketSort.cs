@@ -28,7 +28,7 @@ namespace SortAlgorithm.Logics
         public T[] Sort(T[] array, Func<T, int> getKey)
         {
             Statics.Reset(array.Length, SortType, nameof(BucketSortT<T>));
-            var size = array.Select(x => getKey(x)).Max();
+            var size = array.Select(x => getKey(x)).Max() + 1;
 
             // 0 position
             var offset = 0;
