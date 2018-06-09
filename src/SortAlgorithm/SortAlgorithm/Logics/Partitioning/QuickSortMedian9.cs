@@ -5,47 +5,32 @@ using System.Text;
 namespace SortAlgorithm.Logics
 {
     /// <summary>
-    /// QuickSort + BinaryInsertSortによる Quick Searchでだいたいソート済みになった時に最速を目指すが、InsertSortの方がわずかに効率が良くBinarySearchのコストが目立つ
+    /// QuickSortのMedian-3 Killer対策に、Median9を採用する。ランダムデータでは若干おそくなるものの、山型データでは高速化、および最悪ケースの頻度は下がる
     /// </summary>
     /// <remarks>
     /// stable : no
     /// inplace : yes
     /// Compare :
     /// Swap :
-    /// Order : O(n log n) (Worst case : O(n nlog n))
+    /// Order : O(n log n) (Worst case : O(nlog^2n))
     /// </remarks>
     /// <typeparam name="T"></typeparam>
-    public class QuickSortMedian3BinaryInsert<T> : SortBase<T> where T : IComparable<T>
+    public class QuickSortMedian9<T> : SortBase<T> where T : IComparable<T>
     {
-        public override SortType SortType => SortType.Exchange;
-
-        // ref : https://github.com/nlfiedler/burstsort4j/blob/master/src/org/burstsort4j/Introsort.java
-        private const int InsertThreshold = 16;
-        private BinaryInsertSort<T> insertSort = new BinaryInsertSort<T>();
+        public override SortType SortType => SortType.Partition;
 
         public override T[] Sort(T[] array)
         {
-            base.Statics.Reset(array.Length, SortType, nameof(QuickSortMedian3BinaryInsert<T>));
-            var result = Sort(array, 0, array.Length - 1);
-            base.Statics.AddCompareCount(insertSort.Statics.CompareCount);
-            base.Statics.AddIndexAccess(insertSort.Statics.IndexAccessCount);
-            base.Statics.AddSwapCount(insertSort.Statics.SwapCount);
-            return result;
+            base.Statics.Reset(array.Length, SortType, nameof(QuickSortMedian9<T>));
+            return Sort(array, 0, array.Length - 1);
         }
 
         private T[] Sort(T[] array, int left, int right)
         {
             if (left >= right) return array;
 
-            // switch to insert sort
-            if (right - left < InsertThreshold)
-            {
-                return insertSort.Sort(array, left, right + 1);
-            }
-
             // fase 1. decide pivot
-            base.Statics.AddIndexAccess();
-            var pivot = Median3(array[left], array[(left + (right - left)) / 2], array[right]);
+            var pivot = Median9(array, left, right);
             var l = left;
             var r = right;
 
@@ -106,6 +91,23 @@ namespace SortAlgorithm.Logics
                     return mid;
                 }
             }
+        }
+
+        private T Median9(T[] array, int low, int high)
+        {
+            var m2 = (high - low) / 2;
+            var m4 = m2 / 2;
+            var m8 = m4 / 2;
+            var a = array[low];
+            var b = array[low + m8];
+            var c = array[low + m4];
+            var d = array[low + m2 - m8];
+            var e = array[low + m2];
+            var f = array[low + m2 + m8];
+            var g = array[high - m4];
+            var h = array[high - m8];
+            var i = array[high];
+            return Median3(Median3(a, b, c), Median3(d, e, f), Median3(g, h, i));
         }
     }
 }

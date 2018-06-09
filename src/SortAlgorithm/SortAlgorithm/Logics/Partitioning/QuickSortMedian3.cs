@@ -5,7 +5,7 @@ using System.Text;
 namespace SortAlgorithm.Logics
 {
     /// <summary>
-    /// QuickSortのMedian-3 Killer対策に、Median9を採用する。ランダムデータでは若干おそくなるものの、山型データでは高速化、および最悪ケースの頻度は下がる
+    /// 開始と終わりから中央値を導いて、この3点を枢軸として配列を左右で分ける。左右で中央値よりも小さい(大きい)データに置き換えてデータを分割する(分割統治)。最後に左右それぞれをソートする(この時点で不安定)ことで計算量をソート済みに抑えることができる。不安定なソート。
     /// </summary>
     /// <remarks>
     /// stable : no
@@ -15,13 +15,13 @@ namespace SortAlgorithm.Logics
     /// Order : O(n log n) (Worst case : O(nlog^2n))
     /// </remarks>
     /// <typeparam name="T"></typeparam>
-    public class QuickSortMedian9<T> : SortBase<T> where T : IComparable<T>
+    public class QuickSortMedian3<T> : SortBase<T> where T : IComparable<T>
     {
-        public override SortType SortType => SortType.Exchange;
+        public override SortType SortType => SortType.Partition;
 
         public override T[] Sort(T[] array)
         {
-            base.Statics.Reset(array.Length, SortType, nameof(QuickSortMedian9<T>));
+            base.Statics.Reset(array.Length, SortType, nameof(QuickSortMedian3<T>));
             return Sort(array, 0, array.Length - 1);
         }
 
@@ -30,7 +30,7 @@ namespace SortAlgorithm.Logics
             if (left >= right) return array;
 
             // fase 1. decide pivot
-            var pivot = Median9(array, left, right);
+            var pivot = Median3(array[left], array[(left + (right - left)) / 2], array[right]);
             var l = left;
             var r = right;
 
@@ -62,6 +62,31 @@ namespace SortAlgorithm.Logics
             return array;
         }
 
+        // less efficient compatison
+        //    private T Median3(T low, T mid, T high)
+        //    {
+        //        base.Statics.AddCompareCount();
+        //        if (low.CompareTo(mid) > 0)
+        //        {
+        //            base.Statics.AddCompareCount();
+        //            Swap(ref low, ref mid);
+        //        }
+        //        base.Statics.AddCompareCount();
+        //        if (low.CompareTo(high) > 0)
+        //        {
+        //            base.Statics.AddCompareCount();
+        //            Swap(ref low, ref high);
+        //        }
+        //        base.Statics.AddCompareCount();
+        //        if (mid.CompareTo(high) > 0)
+        //        {
+        //            base.Statics.AddCompareCount();
+        //            Swap(ref mid, ref high);
+        //        }
+        //        return mid;
+        //    }
+
+        // much more efficient comparison
         private T Median3(T low, T mid, T high)
         {
             base.Statics.AddCompareCount();
@@ -91,23 +116,6 @@ namespace SortAlgorithm.Logics
                     return mid;
                 }
             }
-        }
-
-        private T Median9(T[] array, int low, int high)
-        {
-            var m2 = (high - low) / 2;
-            var m4 = m2 / 2;
-            var m8 = m4 / 2;
-            var a = array[low];
-            var b = array[low + m8];
-            var c = array[low + m4];
-            var d = array[low + m2 - m8];
-            var e = array[low + m2];
-            var f = array[low + m2 + m8];
-            var g = array[high - m4];
-            var h = array[high - m8];
-            var i = array[high];
-            return Median3(Median3(a, b, c), Median3(d, e, f), Median3(g, h, i));
         }
     }
 }

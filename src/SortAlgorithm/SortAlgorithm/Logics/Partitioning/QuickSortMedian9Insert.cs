@@ -17,7 +17,7 @@ namespace SortAlgorithm.Logics
     /// <typeparam name="T"></typeparam>
     public class QuickSortMedian9Insert<T> : SortBase<T> where T : IComparable<T>
     {
-        public override SortType SortType => SortType.Exchange;
+        public override SortType SortType => SortType.Partition;
 
         // ref : https://github.com/nlfiedler/burstsort4j/blob/master/src/org/burstsort4j/Introsort.java
         private const int InsertThreshold = 16;

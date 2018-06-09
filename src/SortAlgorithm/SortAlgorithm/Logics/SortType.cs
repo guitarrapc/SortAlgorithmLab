@@ -8,6 +8,7 @@ namespace SortAlgorithm
     {
         None,
         Exchange,
+        Partition,
         Selection,
         Insertion,
         Merge,

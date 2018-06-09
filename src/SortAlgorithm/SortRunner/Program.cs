@@ -31,6 +31,9 @@ namespace SortRunner
                 // Bubble Sort
                 Runner.Run(new BubbleSort<int>(), item);
 
+                // OddEven Sort
+                Runner.Run(new OddEvenSort<int>(), item);
+
                 // Cocktail Shaker Sort
                 Runner.Run(new CocktailShakerSort<int>(), item);
                 Runner.Run(new CocktailShakerSort2<int>(), item);
@@ -46,6 +49,27 @@ namespace SortRunner
                 Runner.Run(new GnomeSort1<int>(), item);
                 Runner.Run(new GnomeSort2<int>(), item);
                 Runner.Run(new GnomeSort3<int>(), item);
+
+                // -- Selection -- //
+
+                // Selection Sort
+                Runner.Run(new SelectionSort<int>(), item);
+
+                // Heap Sort
+                Runner.Run(new HeapSort<int>(), item);
+
+                // -- Insertion -- //
+
+                // Insert Sort
+                Runner.Run(new InsertSort<int>(), item);
+
+                // Binary Insert Sort
+                Runner.Run(new BinaryInsertSort<int>(), item);
+
+                // Shell Sort
+                Runner.Run(new ShellSort<int>(), item);
+
+                // -- Partitionig -- //
 
                 // Quick Sort Median3
                 Runner.Run(new QuickSortMedian3<int>(), item);
@@ -73,25 +97,6 @@ namespace SortRunner
 
                 // Dual Pivot Quick Sort (Quick + BinaryInsert)
                 Runner.Run(new QuickDualPivotSortBinaryInsert<int>(), item);
-
-                // -- Selection -- //
-
-                // Selection Sort
-                Runner.Run(new SelectionSort<int>(), item);
-
-                // Heap Sort
-                Runner.Run(new HeapSort<int>(), item);
-
-                // -- Insertion -- //
-
-                // Insert Sort
-                Runner.Run(new InsertSort<int>(), item);
-
-                // Binary Insert Sort
-                Runner.Run(new BinaryInsertSort<int>(), item);
-
-                // Shell Sort
-                Runner.Run(new ShellSort<int>(), item);
 
                 // -- Merge -- //
 

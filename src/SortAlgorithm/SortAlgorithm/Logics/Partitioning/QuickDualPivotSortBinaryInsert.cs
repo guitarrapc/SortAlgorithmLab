@@ -5,7 +5,7 @@ using System.Text;
 namespace SortAlgorithm.Logics
 {
     /// <summary>
-    /// Dual-Pivot QuickSort に InsertSortを組み合わせて最速を狙う
+    /// Dual-Pivot QuickSort に BinaryInsertSortを組み合わせて最速を狙う
     /// </summary>
     /// <remarks>
     /// stable : no
@@ -15,16 +15,16 @@ namespace SortAlgorithm.Logics
     /// Order : O(n log n) (Worst case : O(nlog^2n))
     /// </remarks>
     /// <typeparam name="T"></typeparam>
-    public class QuickDualPivotSortInsert<T> : SortBase<T> where T : IComparable<T>
+    public class QuickDualPivotSortBinaryInsert<T> : SortBase<T> where T : IComparable<T>
     {
-        public override SortType SortType => SortType.Exchange;
+        public override SortType SortType => SortType.Partition;
 
         private const int InsertThreshold = 16;
-        private InsertSort<T> insertSort = new InsertSort<T>();
+        private BinaryInsertSort<T> insertSort = new BinaryInsertSort<T>();
 
         public override T[] Sort(T[] array)
         {
-            base.Statics.Reset(array.Length, SortType, nameof(QuickDualPivotSortInsert<T>));
+            base.Statics.Reset(array.Length, SortType, nameof(QuickDualPivotSortBinaryInsert<T>));
             return Sort(array, 0, array.Length - 1);
         }
 

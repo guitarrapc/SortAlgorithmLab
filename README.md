@@ -92,3 +92,8 @@ ArraySize | IsSorted | sortKind | IndexAccessCount | CompareCount | SwapCount
 100 | True | BucketSortT | 236 | 100 | 0
 1000 | True | BucketSortT | 2363 | 1000 | 0
 10000 | True | BucketSortT | 23685 | 10000 | 0
+
+
+## Refer
+
+* ShiftSort by @JamesQuintero : https://github.com/JamesQuintero/ShiftSort
