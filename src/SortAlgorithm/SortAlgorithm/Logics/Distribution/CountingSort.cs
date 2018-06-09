@@ -24,7 +24,18 @@ namespace SortAlgorithm.Logics
         public int[] Sort(int[] array)
         {
             base.Statics.Reset(array.Length, SortType, nameof(CountingSort<T>));
+            if (array.Min() >= 0)
+            {
+                return SortImplPositive(array);
+            }
+            else
+            {
+                return SortImplNegative(array).Dump(); ;
+            }
+        }
 
+        private int[] SortImplPositive(int[] array)
+        {
             var min = 0;
             var max = 0;
 
@@ -66,6 +77,46 @@ namespace SortAlgorithm.Logics
             }
 
             return resultArray;
+        }
+
+        private int[] SortImplNegative(int[] array)
+        {
+            var max = -1;
+            for (var i = 0; i < array.Length; i++)
+            {
+                base.Statics.AddIndexAccess();
+                if (Math.Abs(array[i]) > max)
+                {
+                    base.Statics.AddIndexAccess();
+                    max = Math.Abs(array[i]);
+                }
+            }
+            var stack = new int[max * 2 + 1];
+
+            for (var i = 0; i < array.Length; i++)
+            {
+                base.Statics.AddIndexAccess();
+                stack[array[i] + max]++;
+            }
+
+            var j = stack.Length - 1;
+            var k = array.Length - 1;
+            while (k >= 0)
+            {
+                base.Statics.AddIndexAccess();
+                if (stack[j] > 0)
+                {
+                    base.Statics.AddIndexAccess();
+                    stack[j]--;
+                    array[k] = j - max;
+                    k--;
+                }
+                else
+                {
+                    j--;
+                }
+            }
+            return array;
         }
     }
 }
