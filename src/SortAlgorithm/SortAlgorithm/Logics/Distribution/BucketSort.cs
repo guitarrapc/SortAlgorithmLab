@@ -75,15 +75,26 @@ namespace SortAlgorithm.Logics
         public int[] Sort(int[] array)
         {
             base.Statics.Reset(array.Length, SortType, nameof(BucketSort<T>));
-            var max = array.Max();
+            var size = array.Max();
+
+            // 0 position
+            var offset = 0;
+            var min = array.Min();
+
+            // incase lower than 0
+            if (min < 0)
+            {
+                offset = Math.Abs(min);
+                size = array.Max() - min;
+            }
 
             // make bucket for possibly assigned number of int
-            var bucket = new int[max + 1];
+            var bucket = new int[size + 1];
             for (var i = 0; i < array.Length; i++)
             {
                 base.Statics.AddIndexAccess();
                 base.Statics.AddCompareCount();
-                bucket[array[i]]++;
+                bucket[array[i] + offset]++;
             }
 
             // put array int to each bucket.
@@ -92,7 +103,7 @@ namespace SortAlgorithm.Logics
                 for (var k = bucket[j]; k != 0; --k, ++i)
                 {
                     base.Statics.AddIndexAccess();
-                    array[i] = j;
+                    array[i] = j - offset;
                 }
             }
 
