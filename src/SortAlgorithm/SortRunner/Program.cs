@@ -99,6 +99,9 @@ namespace SortRunner
                 Runner.Run(new MergeSort<int>(), item);
                 Runner.Run(new MergeSort2<int>(), item);
 
+                // Shift Sort
+                Runner.Run(new ShiftSort<int>(), item);
+
                 // -- Distribution -- //
 
                 // Bucket Sort
