@@ -76,6 +76,18 @@ namespace SortAlgorithm.Logics
         public int[] Sort(int[] array)
         {
             base.Statics.Reset(array.Length, SortType, nameof(RadixLSD10Sort<T>));
+            if (array.Min() >= 0)
+            {
+                return SortImplPositive(array);
+            }
+            else
+            {
+                return SortImplNegative(array);
+            }
+        }
+
+        private int[] SortImplPositive(int[] array)
+        {
             var digit = 1 + (int)array.Max(x => Math.Log10(x));
 
             var bucket = new List<int>[10];
@@ -117,6 +129,67 @@ namespace SortAlgorithm.Logics
             }
 
             return array;
+        }
+
+        private int[] SortImplNegative(int[] array)
+        {
+            var bucket = new List<int>[20];
+            // findmax
+            var max = 0;
+            int digit = 0;
+            for (var i = 0; i < array.Length; i++)
+            {
+                base.Statics.AddIndexAccess();
+                digit = GetDigit(array[i]);
+                if (digit > max)
+                {
+                    max = digit;
+                }
+            }
+
+            for (var r = 1; r <= max; r++)
+            {
+                for (var i = 0; i < array.Length; i++)
+                {
+                    base.Statics.AddIndexAccess();
+                    var tmp = array[i];
+                    var radix = tmp < 0
+                        ? -(int)(Math.Abs(tmp) / Math.Pow(10, r - 1)) % 10
+                        : (int)(tmp / Math.Pow(10, r - 1)) % 10;
+                    radix += 9;
+                    if (bucket[radix] == null) bucket[radix] = new List<int>();
+                    bucket[radix].Add(tmp);
+                }
+
+                for (int j = 0, i = 0; j < bucket.Length; ++j)
+                {
+                    if (bucket[j] != null)
+                    {
+                        foreach (var item in bucket[j])
+                        {
+                            base.Statics.AddIndexAccess();
+                            array[i++] = item;
+                        }
+                    }
+                    else
+                    {
+                        base.Statics.AddIndexAccess();
+                    }
+                }
+
+                for (var j = 0; j < bucket.Length; ++j)
+                {
+                    base.Statics.AddIndexAccess();
+                    bucket[j] = null;
+                }
+            }
+
+            return array;
+        }
+
+        private int GetDigit(int i)
+        {
+            return Math.Abs(i) < 10 ? 1 : 1 + GetDigit(i / 10);
         }
     }
 }

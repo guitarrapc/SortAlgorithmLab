@@ -14,6 +14,10 @@ namespace SortRunner
         private static readonly int[] sample2 = Enumerable.Range(0, 1000).Sample(1000).ToArray();
         private static readonly int[] sample3 = Enumerable.Range(0, 10000).Sample(10000).ToArray();
         private static readonly int[] sample4 = Enumerable.Range(0, 100000).Sample(100000).ToArray();
+        private static readonly int[] npSample = Enumerable.Range(-50, 100).Sample(100).ToArray();
+        private static readonly int[] npSample2 = Enumerable.Range(-500, 1000).Sample(1000).ToArray();
+        private static readonly int[] nSample = Enumerable.Range(-100, 100).Sample(100).ToArray();
+        private static readonly int[] nSample2 = Enumerable.Range(-1000, 1000).Sample(1000).ToArray();
         private static int i = 0;
         private static readonly KeyValuePair<int, string>[] dicSample = sample.Select(x => new KeyValuePair<int, string>(x, $"{x / 25}{((char)(65 + (x % 26)))}{i++}")).ToArray();
         private static readonly KeyValuePair<int, string>[] dicSample2 = sample2.Select(x => new KeyValuePair<int, string>(x, $"{x / 25}{((char)(65 + (x % 26)))}{i++}")).ToArray();
@@ -21,7 +25,7 @@ namespace SortRunner
 
         static void Main(string[] args)
         {
-            foreach (var item in new[] { sample, sample2, sample3 })
+            foreach (var item in new[] { sample, sample2, sample3, npSample, npSample2, nSample, nSample2 })
             {
                 // Init
                 Runner.Init(item);
