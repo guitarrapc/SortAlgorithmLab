@@ -43,12 +43,21 @@ namespace SortAlgorithm.Logics
 
         private T[] SortImpl(T[] array, int first, int last)
         {
+            // C# Managed Code BinarySearch + Swap
+            // for (var i = first + 1; i < last; i++)
+            // {
+            //     var j = Array.BinarySearch(array, 0, i, tmp);
+            //     Array.Copy(array, j, array, j+1, i-j);
+            //     Swap(ref array[j], ref tmp);
+            // }
+
+            // Handmade BinarySearch + Swap
             for (var i = first + 1; i < last; i++)
             {
                 base.Statics.AddIndexAccess();
                 var tmp = array[i];
 
-                // Hand BinarySearch
+                // BinarySearch
                 var left = BinarySearch(ref array, tmp, i);
 
                 // Stable Sort
