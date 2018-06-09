@@ -23,18 +23,35 @@ namespace SortAlgorithm.Logics
         public override T[] Sort(T[] array)
         {
             base.Statics.Reset(array.Length, SortType, nameof(BinaryInsertSort<T>));
-            for (var i = 1; i < array.Length; i++)
+            SortImpl(array, 0, array.Length);
+            return array;
+        }
+
+        public T[] Sort(T[] array, int first, int last)
+        {
+            base.Statics.Reset(array.Length, SortType, nameof(BinaryInsertSort<T>));
+            SortImpl(array, first, last);
+            return array;
+        }
+
+        public T[] Sort(T[] array, int first, int last, int start)
+        {
+            base.Statics.Reset(array.Length, SortType, nameof(BinaryInsertSort<T>));
+            SortImpl(array, first, last, start);
+            return array;
+        }
+
+        private T[] SortImpl(T[] array, int first, int last)
+        {
+            for (var i = first + 1; i < last; i++)
             {
                 base.Statics.AddIndexAccess();
                 var tmp = array[i];
 
-                // C# Managed Code BinarySearch + Swap
-                // var j = Array.BinarySearch(array, 0, i, tmp);
-                // Array.Copy(array, j, array, j+1, i-j);
-                // Swap(ref array[j], ref tmp);
-
                 // Hand BinarySearch
                 var left = BinarySearch(ref array, tmp, i);
+
+                // Stable Sort
                 for (var j = left; j <= i; j++)
                 {
                     base.Statics.AddIndexAccess();
@@ -44,21 +61,30 @@ namespace SortAlgorithm.Logics
             return array;
         }
 
-        public T[] Sort(T[] array, int first, int last)
+        private T[] SortImpl(T[] array, int first, int last, int start)
         {
-            base.Statics.Reset(array.Length, SortType, nameof(BinaryInsertSort<T>));
-            for (var i = first + 1; i < last; i++)
+            if (start == first)
+            {
+                start++;
+            }
+
+            for (; start < last; start++)
             {
                 base.Statics.AddIndexAccess();
-                var tmp = array[i];
+                var tmp = array[start];
 
-                // Hand BinarySearch
-                var left = BinarySearch(ref array, tmp, i);
-                for (var j = left; j <= i; j++)
+                // BinarySearch
+                var left = BinarySearch(ref array, tmp, start);
+
+                // Stable Sort
+                for (var n = start - left; n > 0; n--)
                 {
                     base.Statics.AddIndexAccess();
-                    Swap(ref array[j], ref tmp);
+                    Swap(ref array[left + n], ref array[left + n - 1]);
                 }
+
+                base.Statics.AddIndexAccess();
+                Swap(ref array[left], ref tmp);
             }
             return array;
         }
