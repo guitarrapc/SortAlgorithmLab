@@ -211,7 +211,7 @@ After  : {after.ToJoinedString(" ")}";
             ResetArray(ref array, ref keep);
 
             // run sort
-            var after = sort.Sort(array, func, max);
+            var after = sort.Sort(array, func);
 
             // validate
             sort.Statics.IsSorted = after.SequenceEqual(validateDic);

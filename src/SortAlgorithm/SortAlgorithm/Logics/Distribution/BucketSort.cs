@@ -25,16 +25,30 @@ namespace SortAlgorithm.Logics
         public SortStatics Statics => statics;
         protected SortStatics statics = new SortStatics();
 
-        public T[] Sort(T[] array, Func<T, int> getKey, int max)
+        public T[] Sort(T[] array, Func<T, int> getKey)
         {
             Statics.Reset(array.Length, SortType, nameof(BucketSortT<T>));
-            var bucket = new List<T>[max + 1];
+            var size = array.Select(x => getKey(x)).Max();
+
+            // 0 position
+            var offset = 0;
+            var min = array.Select(x => getKey(x)).Min();
+
+            // incase lower than 0
+            if (min < 0)
+            {
+                offset = Math.Abs(min);
+                size = array.Select(x => getKey(x)).Max() - min + 1;
+            }
+
+            var bucket = new List<T>[size];
+            var keys = array.Select(x => getKey(x)).ToArray();
 
             foreach (var item in array)
             {
                 statics.AddIndexAccess();
                 statics.AddCompareCount();
-                var key = getKey(item);
+                var key = getKey(item) + offset;
                 if (bucket[key] == null)
                 {
                     bucket[key] = new List<T>();
