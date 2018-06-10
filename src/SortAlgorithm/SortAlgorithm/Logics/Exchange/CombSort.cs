@@ -21,7 +21,7 @@ namespace SortAlgorithm.Logics
 
         public override T[] Sort(T[] array)
         {
-            base.Statics.Reset(array.Length, SortType, nameof(CombSort<T>));
+            base.Statistics.Reset(array.Length, SortType, nameof(CombSort<T>));
 
             // same logic as ShellSort, but CombSort use divide by 1.3.
             // divide by 1.3
@@ -32,8 +32,8 @@ namespace SortAlgorithm.Logics
                 var swapped = false;
                 for (var i = 0; i + h < array.Length; i++)
                 {
-                    base.Statics.AddIndexAccess();
-                    base.Statics.AddCompareCount();
+                    base.Statistics.AddIndexAccess();
+                    base.Statistics.AddCompareCount();
                     if (array[i].CompareTo(array[i + h]) > 0)
                     {
                         Swap(ref array[i], ref array[i + h]);

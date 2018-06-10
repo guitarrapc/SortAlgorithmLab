@@ -24,7 +24,7 @@ namespace SortAlgorithm.Logics
 
         public override T[] Sort(T[] array)
         {
-            base.Statics.Reset(array.Length, SortType, nameof(MergeSort<T>));
+            base.Statistics.Reset(array.Length, SortType, nameof(MergeSort<T>));
             var work = new T[(array.Length) / 2];
             Sort(array, 0, array.Length - 1, work);
             return array;
@@ -34,7 +34,7 @@ namespace SortAlgorithm.Logics
         {
             var mid = (left + right) / 2;
             if (left == right) return array;
-            base.Statics.AddIndexAccess();
+            base.Statistics.AddIndexAccess();
 
             // left : merge + sort
             Sort(array, left, mid, work);
@@ -52,7 +52,7 @@ namespace SortAlgorithm.Logics
             // if array[2] = x,y. set work[0] = x
             for (var i = left; i <= mid; i++)
             {
-                base.Statics.AddIndexAccess();
+                base.Statistics.AddIndexAccess();
                 work[i - left] = array[i];
 
                 // max assign
@@ -78,7 +78,7 @@ namespace SortAlgorithm.Logics
                 {
                     while (l <= mid)
                     {
-                        base.Statics.AddIndexAccess();
+                        base.Statistics.AddIndexAccess();
                         k = l + r - (mid + 1);
                         Swap(ref array[k], ref work[l - left]);
 
@@ -94,7 +94,7 @@ namespace SortAlgorithm.Logics
                 }
 
                 // sort
-                base.Statics.AddCompareCount();
+                base.Statistics.AddCompareCount();
                 if (work[l - left].CompareTo(array[r]) < 0)
                 {
                     Swap(ref array[k], ref work[l - left]);
@@ -123,7 +123,7 @@ namespace SortAlgorithm.Logics
 
         public override T[] Sort(T[] array)
         {
-            base.Statics.Reset(array.Length, SortType, nameof(MergeSort2<T>));
+            base.Statistics.Reset(array.Length, SortType, nameof(MergeSort2<T>));
             return SortImpl(array);
         }
 
@@ -131,7 +131,7 @@ namespace SortAlgorithm.Logics
         {
             if (array.Length <= 1) return array;
 
-            base.Statics.AddIndexAccess();
+            base.Statistics.AddIndexAccess();
 
             int mid = array.Length / 2;
             var left = array.Take(mid).ToArray();
@@ -150,10 +150,10 @@ namespace SortAlgorithm.Logics
             var current = 0;
             while (i < left.Length || j < right.Length)
             {
-                base.Statics.AddIndexAccess();
+                base.Statistics.AddIndexAccess();
                 if (i < left.Length && j < right.Length)
                 {
-                    base.Statics.AddCompareCount();
+                    base.Statistics.AddCompareCount();
                     if (left[i].CompareTo(right[j]) <= 0)
                     {
                         Swap(ref result[current], ref left[i++]);

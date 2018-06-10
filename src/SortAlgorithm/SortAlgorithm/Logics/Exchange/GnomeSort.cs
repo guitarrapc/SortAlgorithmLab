@@ -21,13 +21,13 @@ namespace SortAlgorithm.Logics
 
         public override T[] Sort(T[] array)
         {
-            base.Statics.Reset(array.Length, SortType, nameof(GnomeSort<T>));
+            base.Statistics.Reset(array.Length, SortType, nameof(GnomeSort<T>));
             for (var i = 0; i < array.Length; i++)
             {
-                base.Statics.AddIndexAccess();
+                base.Statistics.AddIndexAccess();
                 while (i > 0 && array[i - 1].CompareTo(array[i]) > 0)
                 {
-                    base.Statics.AddCompareCount();
+                    base.Statistics.AddCompareCount();
                     Swap(ref array[i - 1], ref array[i]);
                     i--;
                 }
@@ -54,11 +54,11 @@ namespace SortAlgorithm.Logics
 
         public override T[] Sort(T[] array)
         {
-            base.Statics.Reset(array.Length, SortType, nameof(GnomeSort1<T>));
+            base.Statistics.Reset(array.Length, SortType, nameof(GnomeSort1<T>));
             for (var i = 1; i < array.Length;)
             {
-                base.Statics.AddIndexAccess();
-                base.Statics.AddCompareCount();
+                base.Statistics.AddIndexAccess();
+                base.Statistics.AddCompareCount();
                 if (array[i - 1].CompareTo(array[i]) <= 0)
                 {
                     i++;
@@ -85,17 +85,17 @@ namespace SortAlgorithm.Logics
 
         public override T[] Sort(T[] array)
         {
-            base.Statics.Reset(array.Length, SortType, nameof(GnomeSort2<T>));
+            base.Statistics.Reset(array.Length, SortType, nameof(GnomeSort2<T>));
             for (var i = 0; i < array.Length - 1; i++)
             {
-                base.Statics.AddCompareCount();
+                base.Statistics.AddCompareCount();
                 if (array[i].CompareTo(array[i + 1]) > 0)
                 {
                     Swap(ref array[i], ref array[i + 1]);
                     for (var j = i; j > 0; j--)
                     {
-                        base.Statics.AddIndexAccess();
-                        base.Statics.AddCompareCount();
+                        base.Statistics.AddIndexAccess();
+                        base.Statistics.AddCompareCount();
                         if (array[j - 1].CompareTo(array[j]) <= 0) break;
 
                         Swap(ref array[j - 1], ref array[j]);
@@ -103,7 +103,7 @@ namespace SortAlgorithm.Logics
                 }
                 else
                 {
-                    base.Statics.AddIndexAccess();
+                    base.Statistics.AddIndexAccess();
                 }
             }
             return array;
@@ -120,13 +120,13 @@ namespace SortAlgorithm.Logics
 
         public override T[] Sort(T[] array)
         {
-            base.Statics.Reset(array.Length, SortType, nameof(GnomeSort3<T>));
+            base.Statistics.Reset(array.Length, SortType, nameof(GnomeSort3<T>));
 
             var i = 0;
             while (i < array.Length)
             {
-                base.Statics.AddIndexAccess();
-                base.Statics.AddCompareCount();
+                base.Statistics.AddIndexAccess();
+                base.Statistics.AddCompareCount();
                 if (i == 0 || array[i - 1].CompareTo(array[i]) <= 0)
                 {
                     i++;

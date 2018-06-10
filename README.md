@@ -15,9 +15,63 @@ Swift | 4.x | not yet.
 
 ## TODO
 
-* [ ] Benchmark (preparing)
+<details>
+<summary>CSharp Status</summary>
+
+* [x] Implementation
+    - Exchange Sort
+        - [x] BubbleSort
+        - [x] OddEvenSort
+        - [x] CocktailShakerSort
+            - [x] Optimized
+            - [x] Normal
+        - [x] CombSort
+        - [x] CycleSort
+        - [x] GnomeSort
+            - [x] Optimized
+            - [x] Normal
+            - [x] Nearly Optimized
+            - [x] Unefficient
+    - Selection Sort
+        - [x] SelectionSort
+        - [x] HeapSort
+    - Insertion Sort
+        - [x] InsertSort
+        - [x] BinaryInsertSort
+        - [x] ShellSort
+        - [x] BinaryTreeSort
+    - Partition Sort (+Exchange Sort)
+        - [x] QuickSort
+            - [x] Median3
+            - [x] Median9
+            - [x] DualPivot
+            - [x] Median3 + Insert
+            - [x] Median9 + Insert
+            - [x] DualPivot + Insert
+            - [x] Median3 + BinaryInsert
+            - [x] Median9 + BinaryInsert
+            - [x] DualPivot + BinaryInsert
+    - Merge Sort
+        - [x] MergeSort
+            - [x] Optimized
+            - [x] Normal
+        - [x] ShiftSort
+    - Distributed Sort
+        - [x] BucketSort
+            - [x] Int only
+            - [x] T
+        - [x] RadixLSD10Sort
+        - [x] RadixLSD4Sort
+        - [x] CountingSort
+    - Hybrid Sort
+        - [x] IntroSortMedian9 (Quick + Heap + Insert)
+        - [ ] TimSort (Merge + Insert) : WIP
+* [ ] Benchmark : WIP
+* [x] Tests
 * [x] Data
 * [x] Chart
+
+</details>
 
 ## Result
 
@@ -39,14 +93,20 @@ IntroSort | X | log n | n log n | MergeSort has some bug on this implementation.
 ShiftSort | O | n | n log n | Better than MergeSort and is Stable.
 TimSort | O | n | n logg n | Not implemented yet.
 
-### Description Chart
+<details>
+<summary>Description Chart</summary>
 
 ![](images/all.png)
 ![](images/by_performance/better_onlogn.png)
 
+</details>
+
 ## Data
 
-### Random
+## Random
+
+<details>
+<summary>ShowData</summary>
 
 #### Size : 100
 
@@ -165,7 +225,12 @@ Random | 10000 | True | Distributed | CountingSort | 39999 | 0 | 0
 Random | 10000 | True | Hybrid | IntroSortMedian9 | 60070 | 68887 | 24280
 DictionaryRamdom | 10000 | True | Distributed | BucketSortT | 23671 | 10000 | 0
 
+</details>
+
 ### MixRandom
+
+<details>
+<summary>ShowData</summary>
 
 ##### Size : 100
 
@@ -281,7 +346,12 @@ MixRandom | 10000 | True | Distributed | RadixLSD4Sort | 82516 | 40000 | 0
 MixRandom | 10000 | True | Distributed | CountingSort | 50008 | 0 | 0
 MixRandom | 10000 | True | Hybrid | IntroSortMedian9 | 62559 | 71469 | 24055
 
+</details>
+
 ### NegativeRandom
+
+<details>
+<summary>ShowData</summary>
 
 #### Size : 100
 
@@ -397,7 +467,12 @@ NegativeRandom | 10000 | True | Distributed | RadixLSD4Sort | 82774 | 40000 | 0
 NegativeRandom | 10000 | True | Distributed | CountingSort | 60010 | 0 | 0
 NegativeRandom | 10000 | True | Hybrid | IntroSortMedian9 | 59767 | 68571 | 24194
 
+</details>
+
 ### Reversed
+
+<details>
+<summary>ShowData</summary>
 
 #### Size : 100
 
@@ -513,7 +588,13 @@ Reversed | 10000 | True | Distributed | RadixLSD4Sort | 81750 | 0 | 0
 Reversed | 10000 | True | Distributed | CountingSort | 39998 | 0 | 0
 Reversed | 10000 | True | Hybrid | IntroSortMedian9 | 90001 | 98184 | 5008
 
+</details>
+
+
 ### Mountain
+
+<details>
+<summary>ShowData</summary>
 
 #### Size : 100
 
@@ -629,7 +710,12 @@ Mountain | 10000 | True | Distributed | RadixLSD4Sort | 81770 | 0 | 0
 Mountain | 10000 | True | Distributed | CountingSort | 34999 | 0 | 0
 Mountain | 10000 | True | Hybrid | IntroSortMedian9 | 56664 | 65097 | 24920
 
+</details>
+
 ### NearlySorted
+
+<details>
+<summary>ShowData</summary>
 
 #### Size : 100
 
@@ -745,7 +831,12 @@ NearlySorted | 10000 | True | Distributed | RadixLSD4Sort | 81750 | 0 | 0
 NearlySorted | 10000 | True | Distributed | CountingSort | 39989 | 0 | 0
 NearlySorted | 10000 | True | Hybrid | IntroSortMedian9 | 90753 | 98050 | 5061
 
+</details>
+
 ### Sorted
+
+<details>
+<summary>ShowData</summary>
 
 #### Size : 100
 
@@ -861,7 +952,12 @@ Sorted | 10000 | True | Distributed | RadixLSD4Sort | 81750 | 0 | 0
 Sorted | 10000 | True | Distributed | CountingSort | 39999 | 0 | 0
 Sorted | 10000 | True | Hybrid | IntroSortMedian9 | 99990 | 107160 | 0
 
+</details>
+
 ### SameValues
+
+<details>
+<summary>ShowData</summary>
 
 #### Size : 100
 
@@ -977,16 +1073,25 @@ SameValues | 10000 | True | Distributed | RadixLSD4Sort | 82029 | 0 | 0
 SameValues | 10000 | True | Distributed | CountingSort | 37954 | 0 | 0
 SameValues | 10000 | True | Hybrid | IntroSortMedian9 | 21267 | 28369 | 40246
 
+</details>
 
 ## Charts
 
 ### By Performance
 
+<details>
+<summary>Show Image</summary>
+
 ![](images/by_performance/o^2.png)
 ![](images/by_performance/onlogn.png)
 ![](images/by_performance/on.png)
 
+</details>
+
 ### By SortType
+
+<details>
+<summary>Show Image</summary>
 
 ![](images/by_sorttype/exchange_10000.png)
 ![](images/by_sorttype/insertion_10000.png)
@@ -996,7 +1101,13 @@ SameValues | 10000 | True | Hybrid | IntroSortMedian9 | 21267 | 28369 | 40246
 ![](images/by_sorttype/hybrid_10000.png)
 ![](images/by_sorttype/distributed_10000.png)
 
+</details>
+
+
 ### By InputType
+
+<details>
+<summary>Show Image</summary>
 
 ![](images/by_inputtype/random_10000.png)
 ![](images/by_inputtype/reversed_10000.png)
@@ -1004,3 +1115,5 @@ SameValues | 10000 | True | Hybrid | IntroSortMedian9 | 21267 | 28369 | 40246
 ![](images/by_inputtype/nearlysorted_10000.png)
 ![](images/by_inputtype/sorted_10000.png)
 ![](images/by_inputtype/samevalues_10000.png)
+
+</details>

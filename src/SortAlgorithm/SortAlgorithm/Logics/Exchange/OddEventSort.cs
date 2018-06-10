@@ -22,7 +22,7 @@ namespace SortAlgorithm.Logics
 
         public override T[] Sort(T[] array)
         {
-            base.Statics.Reset(array.Length, SortType, nameof(OddEvenSort<T>));
+            base.Statistics.Reset(array.Length, SortType, nameof(OddEvenSort<T>));
 
             var sorted = false;
             while (!sorted)
@@ -32,8 +32,8 @@ namespace SortAlgorithm.Logics
                 // odd-even ({1,2},{3,4}) sort
                 for (var i = 0; i < array.Length - 1; i += 2)
                 {
-                    base.Statics.AddIndexAccess();
-                    base.Statics.AddCompareCount();
+                    base.Statistics.AddIndexAccess();
+                    base.Statistics.AddCompareCount();
                     if (array[i].CompareTo(array[i + 1]) > 0)
                     {
                         Swap(ref array[i], ref array[i + 1]);
@@ -44,8 +44,8 @@ namespace SortAlgorithm.Logics
                 // even-odd ({2,3},{4,5}) sort
                 for (var i = 1; i < array.Length - 1; i += 2)
                 {
-                    base.Statics.AddIndexAccess();
-                    base.Statics.AddCompareCount();
+                    base.Statistics.AddIndexAccess();
+                    base.Statistics.AddCompareCount();
                     if (array[i].CompareTo(array[i + 1]) > 0)
                     {
                         Swap(ref array[i], ref array[i + 1]);

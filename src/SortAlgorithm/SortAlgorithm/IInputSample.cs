@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace SortRunner
+namespace SortAlgorithm
 {
     public enum InputType
     {

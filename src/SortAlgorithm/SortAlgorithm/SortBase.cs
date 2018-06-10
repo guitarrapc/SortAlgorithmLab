@@ -6,8 +6,8 @@ namespace SortAlgorithm
 {
     public class SortBase<T> : ISort<T> where T : IComparable<T>
     {
-        public IStatics Statics => statics;
-        protected IStatics statics = new SortStatics();
+        public IStatistics Statistics => statistics;
+        protected IStatistics statistics = new SortStatistics();
 
         public virtual SortType SortType => SortType.None;
 
@@ -18,7 +18,7 @@ namespace SortAlgorithm
 
         protected void Swap(ref T a, ref T b)
         {
-            Statics.AddSwapCount();
+            Statistics.AddSwapCount();
             var tmp = a;
             a = b;
             b = tmp;

@@ -22,15 +22,14 @@ namespace SortAlgorithm.Logics
 
         public override T[] Sort(T[] array)
         {
-            base.Statics.Reset(array.Length, SortType, nameof(BinaryTreeSort<T>));
+            base.Statistics.Reset(array.Length, SortType, nameof(BinaryTreeSort<T>));
             return SortImpl(array);
         }
-
         private T[] SortImpl(T[] array)
         {
             for (var i = 0; i < array.Length; i++)
             {
-                base.Statics.AddIndexAccess();
+                base.Statistics.AddIndexAccess();
                 Insert(array[i]);
             }
 
@@ -60,7 +59,7 @@ namespace SortAlgorithm.Logics
                 Node parent;
                 while (true)
                 {
-                    base.Statics.AddCompareCount();
+                    base.Statistics.AddCompareCount();
                     parent = current;
                     if (id.CompareTo(current.item) < 0)
                     {

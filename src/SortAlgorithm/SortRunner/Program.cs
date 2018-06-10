@@ -237,16 +237,16 @@ namespace SortRunner
             var after = sort.Sort(array);
 
             // validate
-            sort.Statics.IsSorted = after.SequenceEqual(validateArray);
+            sort.Statistics.IsSorted = after.SequenceEqual(validateArray);
 
             // result
-            MarkDownOutputList.Add(new MarkdownOutput(sort.Statics, input.InputType));
+            MarkDownOutputList.Add(new MarkdownOutput(sort.Statistics, input.InputType));
 
             // Console Output
-            var sortResult = sort.Statics.IsSorted ? "Correct" : $@"
+            var sortResult = sort.Statistics.IsSorted ? "Correct" : $@"
 Before : {keep.ToJoinedString(" ")}
 After  : {after.ToJoinedString(" ")}";
-            var console = new ConsoleOutput(sort.Statics, sortResult, input.InputType);
+            var console = new ConsoleOutput(sort.Statistics, sortResult, input.InputType);
             Console.WriteLine(console.ToString());
 
             // reset
@@ -265,16 +265,16 @@ After  : {after.ToJoinedString(" ")}";
             var after = func(array);
 
             // validate
-            sort.Statics.IsSorted = after.SequenceEqual(validateArray);
+            sort.Statistics.IsSorted = after.SequenceEqual(validateArray);
 
             // result
-            MarkDownOutputList.Add(new MarkdownOutput(sort.Statics, input.InputType));
+            MarkDownOutputList.Add(new MarkdownOutput(sort.Statistics, input.InputType));
 
             // Console Output
-            var sortResult = sort.Statics.IsSorted ? "Correct" : $@"
+            var sortResult = sort.Statistics.IsSorted ? "Correct" : $@"
 Before : {keep.ToJoinedString(" ")}
 After  : {after.ToJoinedString(" ")}";
-            var console = new ConsoleOutput(sort.Statics, sortResult, input.InputType);
+            var console = new ConsoleOutput(sort.Statistics, sortResult, input.InputType);
             Console.WriteLine(console.ToString());
 
             // reset

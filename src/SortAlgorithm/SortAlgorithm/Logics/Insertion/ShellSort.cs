@@ -21,7 +21,7 @@ namespace SortAlgorithm.Logics
 
         public override T[] Sort(T[] array)
         {
-            base.Statics.Reset(array.Length, SortType, nameof(ShellSort<T>));
+            base.Statistics.Reset(array.Length, SortType, nameof(ShellSort<T>));
 
             // calculate h
             // most efficient h will be : h(i + 1) = 3h(i) + 1
@@ -35,10 +35,10 @@ namespace SortAlgorithm.Logics
                 // Same as InsertSort (1 will be h)
                 for (var i = h; i < array.Length; i++)
                 {
-                    base.Statics.AddCompareCount();
+                    base.Statistics.AddCompareCount();
                     for (int j = i; j >= h && array[j - h].CompareTo(array[j]) > 0; j -= h)
                     {
-                        base.Statics.AddIndexAccess();
+                        base.Statistics.AddIndexAccess();
                         Swap(ref array[j], ref array[j - h]);
                     }
                 }

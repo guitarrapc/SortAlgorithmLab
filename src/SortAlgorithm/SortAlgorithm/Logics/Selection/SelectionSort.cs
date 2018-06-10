@@ -22,14 +22,14 @@ namespace SortAlgorithm.Logics
 
         public override T[] Sort(T[] array)
         {
-            base.Statics.Reset(array.Length, SortType, nameof(SelectionSort<T>));
+            base.Statistics.Reset(array.Length, SortType, nameof(SelectionSort<T>));
             for (var i = 0; i < array.Length; i++)
             {
                 var min = i;
                 for (var j = i + 1; j < array.Length; j++)
                 {
-                    base.Statics.AddIndexAccess();
-                    base.Statics.AddCompareCount();
+                    base.Statistics.AddIndexAccess();
+                    base.Statistics.AddCompareCount();
                     //array.Dump($"{min} : {array[min]}, {j} : {array[j]}, {array[min].CompareTo(array[j]) > 0}");
                     if (array[min].CompareTo(array[j]) > 0)
                     {

@@ -23,7 +23,7 @@ namespace SortAlgorithm.Logics
 
         public int[] Sort(int[] array)
         {
-            base.Statics.Reset(array.Length, SortType, nameof(RadixLSD10Sort<T>));
+            base.Statistics.Reset(array.Length, SortType, nameof(RadixLSD10Sort<T>));
             if (array.Min() >= 0)
             {
                 return SortImplPositive(array);
@@ -45,8 +45,8 @@ namespace SortAlgorithm.Logics
                 // make bucket for possibly assigned number of int
                 for (var i = 0; i < array.Length; i++)
                 {
-                    base.Statics.AddIndexAccess();
-                    base.Statics.AddCompareCount();
+                    base.Statistics.AddIndexAccess();
+                    base.Statistics.AddCompareCount();
                     var key = (array[i] / r) % 10;
                     if (bucket[key] == null) bucket[key] = new List<int>();
                     bucket[key].Add(array[i]);
@@ -59,19 +59,19 @@ namespace SortAlgorithm.Logics
                     {
                         foreach (var item in bucket[j])
                         {
-                            base.Statics.AddIndexAccess();
+                            base.Statistics.AddIndexAccess();
                             array[i++] = item;
                         }
                     }
                     else
                     {
-                        base.Statics.AddIndexAccess();
+                        base.Statistics.AddIndexAccess();
                     }
                 }
 
                 for (var j = 0; j < bucket.Length; ++j)
                 {
-                    base.Statics.AddIndexAccess();
+                    base.Statistics.AddIndexAccess();
                     bucket[j] = null;
                 }
             }
@@ -87,7 +87,7 @@ namespace SortAlgorithm.Logics
             int digit = 0;
             for (var i = 0; i < array.Length; i++)
             {
-                base.Statics.AddIndexAccess();
+                base.Statistics.AddIndexAccess();
                 digit = GetDigit(array[i]);
                 if (digit > max)
                 {
@@ -99,7 +99,7 @@ namespace SortAlgorithm.Logics
             {
                 for (var i = 0; i < array.Length; i++)
                 {
-                    base.Statics.AddIndexAccess();
+                    base.Statistics.AddIndexAccess();
                     var tmp = array[i];
                     var radix = tmp < 0
                         ? -(int)(Math.Abs(tmp) / Math.Pow(10, r - 1)) % 10
@@ -115,19 +115,19 @@ namespace SortAlgorithm.Logics
                     {
                         foreach (var item in bucket[j])
                         {
-                            base.Statics.AddIndexAccess();
+                            base.Statistics.AddIndexAccess();
                             array[i++] = item;
                         }
                     }
                     else
                     {
-                        base.Statics.AddIndexAccess();
+                        base.Statistics.AddIndexAccess();
                     }
                 }
 
                 for (var j = 0; j < bucket.Length; ++j)
                 {
-                    base.Statics.AddIndexAccess();
+                    base.Statistics.AddIndexAccess();
                     bucket[j] = null;
                 }
             }

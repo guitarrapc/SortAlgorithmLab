@@ -22,21 +22,21 @@ namespace SortAlgorithm.Logics
 
         public override T[] Sort(T[] array)
         {
-            base.Statics.Reset(array.Length, SortType, nameof(BinaryInsertSort<T>));
+            base.Statistics.Reset(array.Length, SortType, nameof(BinaryInsertSort<T>));
             SortImpl(array, 0, array.Length);
             return array;
         }
 
         public T[] Sort(T[] array, int first, int last)
         {
-            base.Statics.Reset(array.Length, SortType, nameof(BinaryInsertSort<T>));
+            base.Statistics.Reset(array.Length, SortType, nameof(BinaryInsertSort<T>));
             SortImpl(array, first, last);
             return array;
         }
 
         public T[] Sort(T[] array, int first, int last, int start)
         {
-            base.Statics.Reset(array.Length, SortType, nameof(BinaryInsertSort<T>));
+            base.Statistics.Reset(array.Length, SortType, nameof(BinaryInsertSort<T>));
             SortImpl(array, first, last, start);
             return array;
         }
@@ -54,7 +54,7 @@ namespace SortAlgorithm.Logics
             // Handmade BinarySearch + Swap
             for (var i = first + 1; i < last; i++)
             {
-                base.Statics.AddIndexAccess();
+                base.Statistics.AddIndexAccess();
                 var tmp = array[i];
 
                 // BinarySearch
@@ -63,7 +63,7 @@ namespace SortAlgorithm.Logics
                 // Stable Sort
                 for (var j = left; j <= i; j++)
                 {
-                    base.Statics.AddIndexAccess();
+                    base.Statistics.AddIndexAccess();
                     Swap(ref array[j], ref tmp);
                 }
             }
@@ -79,7 +79,7 @@ namespace SortAlgorithm.Logics
 
             for (; start < last; start++)
             {
-                base.Statics.AddIndexAccess();
+                base.Statistics.AddIndexAccess();
                 var tmp = array[start];
 
                 // BinarySearch
@@ -88,11 +88,11 @@ namespace SortAlgorithm.Logics
                 // Stable Sort
                 for (var n = start - left; n > 0; n--)
                 {
-                    base.Statics.AddIndexAccess();
+                    base.Statistics.AddIndexAccess();
                     Swap(ref array[left + n], ref array[left + n - 1]);
                 }
 
-                base.Statics.AddIndexAccess();
+                base.Statistics.AddIndexAccess();
                 Swap(ref array[left], ref tmp);
             }
             return array;
@@ -104,8 +104,8 @@ namespace SortAlgorithm.Logics
             var right = index;
             while (left < right)
             {
-                base.Statics.AddIndexAccess();
-                base.Statics.AddCompareCount();
+                base.Statistics.AddIndexAccess();
+                base.Statistics.AddCompareCount();
                 var mid = (left + right) / 2;
                 if (array[mid].CompareTo(tmp) <= 0)
                 {

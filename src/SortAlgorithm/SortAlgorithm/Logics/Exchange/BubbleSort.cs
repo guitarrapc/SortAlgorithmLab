@@ -22,13 +22,13 @@ namespace SortAlgorithm.Logics
 
         public override T[] Sort(T[] array)
         {
-            base.Statics.Reset(array.Length, SortType, nameof(BubbleSort<T>));
+            base.Statistics.Reset(array.Length, SortType, nameof(BubbleSort<T>));
             for (var i = 0; i < array.Length; i++)
             {
                 for (var j = array.Length - 1; j > i; j--)
                 {
-                    base.Statics.AddIndexAccess();
-                    base.Statics.AddCompareCount();
+                    base.Statistics.AddIndexAccess();
+                    base.Statistics.AddCompareCount();
                     //array.Dump($"{j} : {array[j]}, {j - 1} : {array[j - 1]}, {array[j - 1].CompareTo(array[j]) > 0}");
                     if (array[j].CompareTo(array[j - 1]) < 0)
                     {

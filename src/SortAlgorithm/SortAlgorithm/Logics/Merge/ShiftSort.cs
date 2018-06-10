@@ -24,7 +24,7 @@ namespace SortAlgorithm.Logics
 
         public override T[] Sort(T[] array)
         {
-            base.Statics.Reset(array.Length, SortType, nameof(ShiftSort<T>));
+            base.Statistics.Reset(array.Length, SortType, nameof(ShiftSort<T>));
 
             var zeroIndices = new int[(int)(array.Length / 2) + 2];
             zeroIndices[0] = array.Length;
@@ -34,12 +34,12 @@ namespace SortAlgorithm.Logics
             // check 3items where decrease order like "array[x -2] < array[x - 1] < array[x]"
             for (var x = array.Length - 1; x >= 1; x--)
             {
-                base.Statics.AddIndexAccess();
-                base.Statics.AddCompareCount();
+                base.Statistics.AddIndexAccess();
+                base.Statistics.AddCompareCount();
                 if (array[x].CompareTo(array[x - 1]) < 0)
                 {
-                    base.Statics.AddIndexAccess();
-                    base.Statics.AddCompareCount();
+                    base.Statistics.AddIndexAccess();
+                    base.Statistics.AddCompareCount();
                     if (x > 1 && array[x - 1].CompareTo(array[x - 2]) < 0)
                     {
                         // change to increase order
@@ -47,11 +47,11 @@ namespace SortAlgorithm.Logics
 
                         if (x != array.Length - 1)
                         {
-                            base.Statics.AddIndexAccess();
-                            base.Statics.AddCompareCount();
+                            base.Statistics.AddIndexAccess();
+                            base.Statistics.AddCompareCount();
                             if (array[x + 1].CompareTo(array[x]) < 0)
                             {
-                                base.Statics.AddIndexAccess();
+                                base.Statistics.AddIndexAccess();
                                 zeroIndices[endTracker] = x + 1;
                                 endTracker++;
                             }
@@ -79,7 +79,7 @@ namespace SortAlgorithm.Logics
             // i == j -2
             if ((j - i) == 2)
             {
-                base.Statics.AddIndexAccess();
+                base.Statistics.AddIndexAccess();
                 Merge(array, zeroIndices[j], zeroIndices[j - 1], zeroIndices[i]);
                 return;
             }
@@ -112,7 +112,7 @@ namespace SortAlgorithm.Logics
                 var counter = 0;
                 for (var y = second; y < third; y++)
                 {
-                    base.Statics.AddIndexAccess();
+                    base.Statistics.AddIndexAccess();
                     tmp2nd[counter] = array[y];
                     counter++;
                 }
@@ -122,8 +122,8 @@ namespace SortAlgorithm.Logics
                 var left = second - 1;
                 while (secondCounter > 0)
                 {
-                    base.Statics.AddIndexAccess();
-                    base.Statics.AddCompareCount();
+                    base.Statistics.AddIndexAccess();
+                    base.Statistics.AddCompareCount();
                     if (left >= first && array[left].CompareTo(tmp2nd[secondCounter - 1]) >= 0)
                     {
                         array[left + secondCounter] = array[left];
@@ -143,7 +143,7 @@ namespace SortAlgorithm.Logics
                 var counter = 0;
                 for (var y = first; y < second; y++)
                 {
-                    base.Statics.AddIndexAccess();
+                    base.Statistics.AddIndexAccess();
                     tmp1st[counter] = array[y];
                     counter++;
                 }
@@ -154,8 +154,8 @@ namespace SortAlgorithm.Logics
                 var right = second;
                 while (firstCounter < tmp1st.Length)
                 {
-                    base.Statics.AddIndexAccess();
-                    base.Statics.AddCompareCount();
+                    base.Statistics.AddIndexAccess();
+                    base.Statistics.AddCompareCount();
                     if (right < third && array[right].CompareTo(tmp1st[firstCounter]) < 0)
                     {
                         array[right - tmpLength] = array[right];

@@ -23,7 +23,7 @@ namespace SortAlgorithm.Logics
 
         public override T[] Sort(T[] array)
         {
-            base.Statics.Reset(array.Length, SortType, nameof(HeapSort<T>));
+            base.Statistics.Reset(array.Length, SortType, nameof(HeapSort<T>));
 
             var i = 0;
             // create heap node
@@ -44,7 +44,7 @@ namespace SortAlgorithm.Logics
 
         public T[] Sort(T[] array, int low, int high)
         {
-            base.Statics.Reset(array.Length, SortType, nameof(HeapSort<T>));
+            base.Statistics.Reset(array.Length, SortType, nameof(HeapSort<T>));
 
             var n = high - low;
             // create heap node
@@ -68,10 +68,10 @@ namespace SortAlgorithm.Logics
         {
             while (current != 0)
             {
-                base.Statics.AddIndexAccess();
+                base.Statistics.AddIndexAccess();
                 var parent = (current - 1) / 2;
 
-                base.Statics.AddCompareCount();
+                base.Statistics.AddCompareCount();
                 if (array[current].CompareTo(array[parent]) > 0)
                 {
                     Swap(ref array[current], ref array[parent]);
@@ -91,15 +91,15 @@ namespace SortAlgorithm.Logics
             var parent = 0;
             while (true)
             {
-                base.Statics.AddIndexAccess();
+                base.Statistics.AddIndexAccess();
                 var child = 2 * parent + 1;
                 if (child > current) break;
-                base.Statics.AddCompareCount();
+                base.Statistics.AddCompareCount();
                 if (child < current && array[child].CompareTo(array[child + 1]) < 0)
                 {
                     child++;
                 }
-                base.Statics.AddCompareCount();
+                base.Statistics.AddCompareCount();
                 if (array[parent].CompareTo(array[child]) < 0)
                 {
                     Swap(ref array[parent], ref array[child]);
@@ -119,13 +119,13 @@ namespace SortAlgorithm.Logics
             while (i <= n / 2)
             {
                 child = 2 * i;
-                base.Statics.AddIndexAccess();
-                base.Statics.AddCompareCount();
+                base.Statistics.AddIndexAccess();
+                base.Statistics.AddCompareCount();
                 if (child < n && array[low + child - 1].CompareTo(array[low + child]) < 0)
                 {
                     child++;
                 }
-                base.Statics.AddCompareCount();
+                base.Statistics.AddCompareCount();
                 if (d.CompareTo(array[low + child - 1]) >= 0) break;
                 array[low + i - 1] = array[low + child - 1];
                 i = child;

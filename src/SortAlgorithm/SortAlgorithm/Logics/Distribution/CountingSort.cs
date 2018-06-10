@@ -23,7 +23,7 @@ namespace SortAlgorithm.Logics
 
         public int[] Sort(int[] array)
         {
-            base.Statics.Reset(array.Length, SortType, nameof(CountingSort<T>));
+            base.Statistics.Reset(array.Length, SortType, nameof(CountingSort<T>));
             if (array.Min() >= 0)
             {
                 return SortImplPositive(array);
@@ -41,7 +41,7 @@ namespace SortAlgorithm.Logics
 
             for (var i = 1; i < array.Length; i++)
             {
-                base.Statics.AddIndexAccess();
+                base.Statistics.AddIndexAccess();
                 if (array[i] < min)
                 {
                     min = array[i];
@@ -58,21 +58,21 @@ namespace SortAlgorithm.Logics
             // count up each number of element to countArray
             for (var i = 0; i < array.Length; i++)
             {
-                base.Statics.AddIndexAccess();
+                base.Statistics.AddIndexAccess();
                 ++countArray[array[i]];
             }
 
             // change current index element counter by adding previous index counter.
             for (var i = 1; i < countArray.Length; i++)
             {
-                base.Statics.AddIndexAccess();
+                base.Statistics.AddIndexAccess();
                 countArray[i] += countArray[i - 1];
             }
 
             // set countArrayed index element into resultArray, then decrement countArray.
             for (var i = 0; i < array.Length; i++)
             {
-                base.Statics.AddIndexAccess();
+                base.Statistics.AddIndexAccess();
                 resultArray[countArray[array[i]] - 1] = array[i];
                 --countArray[array[i]];
             }
@@ -84,10 +84,10 @@ namespace SortAlgorithm.Logics
             var max = -1;
             for (var i = 0; i < array.Length; i++)
             {
-                base.Statics.AddIndexAccess();
+                base.Statistics.AddIndexAccess();
                 if (Math.Abs(array[i]) > max)
                 {
-                    base.Statics.AddIndexAccess();
+                    base.Statistics.AddIndexAccess();
                     max = Math.Abs(array[i]);
                 }
             }
@@ -95,7 +95,7 @@ namespace SortAlgorithm.Logics
 
             for (var i = 0; i < array.Length; i++)
             {
-                base.Statics.AddIndexAccess();
+                base.Statistics.AddIndexAccess();
                 stack[array[i] + max]++;
             }
 
@@ -103,10 +103,10 @@ namespace SortAlgorithm.Logics
             var k = array.Length - 1;
             while (k >= 0)
             {
-                base.Statics.AddIndexAccess();
+                base.Statistics.AddIndexAccess();
                 if (stack[j] > 0)
                 {
-                    base.Statics.AddIndexAccess();
+                    base.Statistics.AddIndexAccess();
                     stack[j]--;
                     array[k] = j - max;
                     k--;

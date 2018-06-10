@@ -4,7 +4,7 @@ using System.Text;
 
 namespace SortAlgorithm
 {
-    public class SortStatics : IStatics
+    public class SortStatistics : IStatistics
     {
         public SortType SortType { get; set; }
         public string Algorithm { get; set; }
@@ -61,7 +61,7 @@ namespace SortAlgorithm
         }
     }
 
-    public interface IStatics
+    public interface IStatistics
     {
         SortType SortType { get; set; }
         string Algorithm { get; set; }

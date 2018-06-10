@@ -22,8 +22,8 @@ namespace SortAlgorithm.Logics
     {
         public SortType SortType => SortType.Distributed;
 
-        public IStatics Statics => statics;
-        protected IStatics statics = new SortStatics();
+        public IStatistics Statics => statics;
+        protected IStatistics statics = new SortStatistics();
 
         public T[] Sort(T[] array, Func<T, int> getKey)
         {
@@ -86,9 +86,10 @@ namespace SortAlgorithm.Logics
     {
         public override SortType SortType => SortType.Distributed;
 
+
         public int[] Sort(int[] array)
         {
-            base.Statics.Reset(array.Length, SortType, nameof(BucketSort<T>));
+            base.Statistics.Reset(array.Length, SortType, nameof(BucketSort<T>));
             var size = array.Max();
 
             // 0 position
@@ -106,8 +107,8 @@ namespace SortAlgorithm.Logics
             var bucket = new int[size + 1];
             for (var i = 0; i < array.Length; i++)
             {
-                base.Statics.AddIndexAccess();
-                base.Statics.AddCompareCount();
+                base.Statistics.AddIndexAccess();
+                base.Statistics.AddCompareCount();
                 bucket[array[i] + offset]++;
             }
 
@@ -116,7 +117,7 @@ namespace SortAlgorithm.Logics
             {
                 for (var k = bucket[j]; k != 0; --k, ++i)
                 {
-                    base.Statics.AddIndexAccess();
+                    base.Statistics.AddIndexAccess();
                     array[i] = j - offset;
                 }
             }

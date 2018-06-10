@@ -21,11 +21,11 @@ namespace SortAlgorithm.Logics
 
         public override T[] Sort(T[] array)
         {
-            base.Statics.Reset(array.Length, SortType, nameof(QuickSortMedian3<T>));
-            return Sort(array, 0, array.Length - 1);
+            base.Statistics.Reset(array.Length, SortType, nameof(QuickSortMedian3<T>));
+            return SortImpl(array, 0, array.Length - 1);
         }
 
-        private T[] Sort(T[] array, int left, int right)
+        private T[] SortImpl(T[] array, int left, int right)
         {
             if (left >= right) return array;
 
@@ -38,15 +38,15 @@ namespace SortAlgorithm.Logics
             {
                 while (l < right && array[l].CompareTo(pivot) < 0)
                 {
-                    base.Statics.AddIndexAccess();
-                    base.Statics.AddCompareCount();
+                    base.Statistics.AddIndexAccess();
+                    base.Statistics.AddCompareCount();
                     l++;
                 }
 
                 while (r > left && array[r].CompareTo(pivot) > 0)
                 {
-                    base.Statics.AddIndexAccess();
-                    base.Statics.AddCompareCount();
+                    base.Statistics.AddIndexAccess();
+                    base.Statistics.AddCompareCount();
                     r--;
                 }
 
@@ -57,8 +57,8 @@ namespace SortAlgorithm.Logics
             }
 
             // fase 2. Sort Left and Right
-            Sort(array, left, l - 1);
-            Sort(array, l, right);
+            SortImpl(array, left, l - 1);
+            SortImpl(array, l, right);
             return array;
         }
 
@@ -89,26 +89,26 @@ namespace SortAlgorithm.Logics
         // much more efficient comparison
         private T Median3(T low, T mid, T high)
         {
-            base.Statics.AddCompareCount();
+            base.Statistics.AddCompareCount();
             if (low.CompareTo(mid) > 0)
             {
-                base.Statics.AddCompareCount();
+                base.Statistics.AddCompareCount();
                 if (mid.CompareTo(high) > 0)
                 {
                     return mid;
                 }
                 else
                 {
-                    base.Statics.AddCompareCount();
+                    base.Statistics.AddCompareCount();
                     return low.CompareTo(high) > 0 ? high : low;
                 }
             }
             else
             {
-                base.Statics.AddCompareCount();
+                base.Statistics.AddCompareCount();
                 if (mid.CompareTo(high) > 0)
                 {
-                    base.Statics.AddCompareCount();
+                    base.Statistics.AddCompareCount();
                     return low.CompareTo(high) > 0 ? low : high;
                 }
                 else

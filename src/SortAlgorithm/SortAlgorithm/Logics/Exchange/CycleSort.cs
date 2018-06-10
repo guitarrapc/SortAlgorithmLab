@@ -20,13 +20,13 @@ namespace SortAlgorithm.Logics
 
         public override T[] Sort(T[] array)
         {
-            base.Statics.Reset(array.Length, SortType, nameof(CycleSort<T>));
+            base.Statistics.Reset(array.Length, SortType, nameof(CycleSort<T>));
             var writes = 0;
 
             for (var start = 0; start <= array.Length - 2; start++)
             {
                 // compare value
-                base.Statics.AddIndexAccess();
+                base.Statistics.AddIndexAccess();
                 var tmp = array[start];
 
                 // Find position to swap.
@@ -34,8 +34,8 @@ namespace SortAlgorithm.Logics
                 var pos = start;
                 for (var i = start + 1; i < array.Length; i++)
                 {
-                    base.Statics.AddIndexAccess();
-                    base.Statics.AddCompareCount();
+                    base.Statistics.AddIndexAccess();
+                    base.Statistics.AddCompareCount();
                     if (array[i].CompareTo(tmp) < 0)
                     {
                         pos++;
@@ -48,7 +48,7 @@ namespace SortAlgorithm.Logics
                 // ignore duplicate
                 while (tmp.CompareTo(array[pos]) == 0)
                 {
-                    base.Statics.AddCompareCount();
+                    base.Statistics.AddCompareCount();
                     pos++;
                 }
 
@@ -64,8 +64,8 @@ namespace SortAlgorithm.Logics
                     pos = start;
                     for (var i = start + 1; i < array.Length; i++)
                     {
-                        base.Statics.AddIndexAccess();
-                        base.Statics.AddCompareCount();
+                        base.Statistics.AddIndexAccess();
+                        base.Statistics.AddCompareCount();
                         if (array[i].CompareTo(tmp) < 0)
                         {
                             pos++;
@@ -74,11 +74,11 @@ namespace SortAlgorithm.Logics
 
                     while (tmp.CompareTo(array[pos]) == 0)
                     {
-                        base.Statics.AddCompareCount();
+                        base.Statistics.AddCompareCount();
                         pos++;
                     }
 
-                    base.Statics.AddCompareCount();
+                    base.Statistics.AddCompareCount();
                     if (tmp.CompareTo(array[pos]) != 0)
                     {
                         Swap(ref array[pos], ref tmp);

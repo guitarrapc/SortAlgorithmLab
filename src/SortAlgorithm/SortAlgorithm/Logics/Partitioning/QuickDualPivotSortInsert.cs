@@ -24,11 +24,11 @@ namespace SortAlgorithm.Logics
 
         public override T[] Sort(T[] array)
         {
-            base.Statics.Reset(array.Length, SortType, nameof(QuickDualPivotSortInsert<T>));
-            return Sort(array, 0, array.Length - 1);
+            base.Statistics.Reset(array.Length, SortType, nameof(QuickDualPivotSortInsert<T>));
+            return SortImpl(array, 0, array.Length - 1);
         }
 
-        private T[] Sort(T[] array, int left, int right)
+        private T[] SortImpl(T[] array, int left, int right)
         {
             if (right <= left) return array;
 
@@ -38,7 +38,7 @@ namespace SortAlgorithm.Logics
                 return insertSort.Sort(array, left, right + 1);
             }
 
-            base.Statics.AddCompareCount();
+            base.Statistics.AddCompareCount();
             // fase 0. Make sure left item is lower than right item
             if (array[left].CompareTo(array[right]) > 0)
             {
@@ -52,8 +52,8 @@ namespace SortAlgorithm.Logics
 
             while (k <= g)
             {
-                base.Statics.AddIndexAccess();
-                base.Statics.AddCompareCount();
+                base.Statistics.AddIndexAccess();
+                base.Statistics.AddCompareCount();
                 if (array[k].CompareTo(array[left]) < 0)
                 {
                     Swap(ref array[k], ref array[l]);
@@ -62,7 +62,7 @@ namespace SortAlgorithm.Logics
                 }
                 else if (array[right].CompareTo(array[k]) < 0)
                 {
-                    base.Statics.AddCompareCount();
+                    base.Statistics.AddCompareCount();
                     Swap(ref array[k], ref array[g]);
                     g--;
                 }
@@ -78,12 +78,12 @@ namespace SortAlgorithm.Logics
             Swap(ref array[right], ref array[g]);
 
             // fase 2. Sort Left, Mid and righ
-            Sort(array, left, l - 1);
+            SortImpl(array, left, l - 1);
             if (array[left].CompareTo(array[right]) < 0)
             {
-                Sort(array, l + 1, g - 1);
+                SortImpl(array, l + 1, g - 1);
             }
-            Sort(array, g + 1, right);
+            SortImpl(array, g + 1, right);
             return array;
         }
     }

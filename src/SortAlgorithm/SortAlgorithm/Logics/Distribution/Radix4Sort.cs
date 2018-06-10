@@ -23,7 +23,7 @@ namespace SortAlgorithm.Logics
 
         public int[] Sort(int[] array)
         {
-            base.Statics.Reset(array.Length, SortType, nameof(RadixLSD4Sort<T>));
+            base.Statistics.Reset(array.Length, SortType, nameof(RadixLSD4Sort<T>));
             if (array.Min() >= 0)
             {
                 return SortImplPositive(array);
@@ -44,7 +44,7 @@ namespace SortAlgorithm.Logics
                 // make bucket for possibly assigned number of int
                 for (var i = 0; i < array.Length; i++)
                 {
-                    base.Statics.AddIndexAccess();
+                    base.Statistics.AddIndexAccess();
                     // pick 256 radix d's digit number
                     var key = (array[i] >> logR) & 255;
                     if (bucket[key] == null) bucket[key] = new List<int>();
@@ -58,19 +58,19 @@ namespace SortAlgorithm.Logics
                     {
                         foreach (var item in bucket[j])
                         {
-                            base.Statics.AddIndexAccess();
+                            base.Statistics.AddIndexAccess();
                             array[i++] = item;
                         }
                     }
                     else
                     {
-                        base.Statics.AddIndexAccess();
+                        base.Statistics.AddIndexAccess();
                     }
                 }
 
                 for (var j = 0; j < bucket.Length; ++j)
                 {
-                    base.Statics.AddIndexAccess();
+                    base.Statistics.AddIndexAccess();
                     bucket[j] = null;
                 }
             }
@@ -90,10 +90,10 @@ namespace SortAlgorithm.Logics
                 // make bucket for possibly assigned number of int
                 for (var i = 0; i < array.Length; i++)
                 {
-                    base.Statics.AddCompareCount();
+                    base.Statistics.AddCompareCount();
                     if (array[i].CompareTo(0) >= 0)
                     {
-                        base.Statics.AddIndexAccess();
+                        base.Statistics.AddIndexAccess();
                         // pick 256 radix d's digit number
                         var key = (array[i] >> logR) & 255;
                         if (positiveBucket[key] == null) positiveBucket[key] = new List<int>();
@@ -102,7 +102,7 @@ namespace SortAlgorithm.Logics
                     }
                     else
                     {
-                        base.Statics.AddIndexAccess();
+                        base.Statistics.AddIndexAccess();
                         // pick 256 radix d's digit number
                         var key = (array[i] >> logR) & 255;
                         if (negativeBucket[key] == null) negativeBucket[key] = new List<int>();
@@ -118,13 +118,13 @@ namespace SortAlgorithm.Logics
                     {
                         foreach (var item in negativeBucket[j])
                         {
-                            base.Statics.AddIndexAccess();
+                            base.Statistics.AddIndexAccess();
                             array[i++] = item;
                         }
                     }
                     else
                     {
-                        base.Statics.AddIndexAccess();
+                        base.Statistics.AddIndexAccess();
                     }
                 }
                 // positive bucket
@@ -134,19 +134,19 @@ namespace SortAlgorithm.Logics
                     {
                         foreach (var item in positiveBucket[j])
                         {
-                            base.Statics.AddIndexAccess();
+                            base.Statistics.AddIndexAccess();
                             array[i++] = item;
                         }
                     }
                     else
                     {
-                        base.Statics.AddIndexAccess();
+                        base.Statistics.AddIndexAccess();
                     }
                 }
 
                 for (var j = 0; j < positiveBucket.Length; ++j)
                 {
-                    base.Statics.AddIndexAccess();
+                    base.Statistics.AddIndexAccess();
                     positiveBucket[j] = null;
                     negativeBucket[j] = null;
                 }

@@ -55,14 +55,14 @@ namespace SortAlgorithm.Logics
 
         public override T[] Sort(T[] array)
         {
-            base.Statics.Reset(array.Length, SortType, nameof(TimSort<T>));
+            base.Statistics.Reset(array.Length, SortType, nameof(TimSort<T>));
 
             // run
             Initialize(array);
             var result = SortImpl(array, 0, array.Length);
-            base.Statics.AddCompareCount(insertSort.Statics.CompareCount);
-            base.Statics.AddIndexAccess(insertSort.Statics.IndexAccessCount);
-            base.Statics.AddSwapCount(insertSort.Statics.SwapCount);
+            base.Statistics.AddCompareCount(insertSort.Statistics.CompareCount);
+            base.Statistics.AddIndexAccess(insertSort.Statistics.IndexAccessCount);
+            base.Statistics.AddSwapCount(insertSort.Statistics.SwapCount);
             return result;
         }
 

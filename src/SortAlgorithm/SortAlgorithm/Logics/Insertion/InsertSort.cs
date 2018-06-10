@@ -22,14 +22,14 @@ namespace SortAlgorithm.Logics
 
         public override T[] Sort(T[] array)
         {
-            base.Statics.Reset(array.Length, SortType, nameof(InsertSort<T>));
+            base.Statistics.Reset(array.Length, SortType, nameof(InsertSort<T>));
             for (var i = 1; i < array.Length; i++)
             {
                 var tmp = array[i];
                 for (var j = i; j >= 1 && array[j - 1].CompareTo(array[j]) > 0; --j)
                 {
-                    base.Statics.AddIndexAccess();
-                    base.Statics.AddCompareCount();
+                    base.Statistics.AddIndexAccess();
+                    base.Statistics.AddCompareCount();
                     //array.Dump($"{j - 1} : {array[j - 1]}, {j} : {array[j]}, {array[j - 1].CompareTo(array[j]) > 0}");
                     if (array[j - 1].CompareTo(array[j]) > 0)
                     {
@@ -42,13 +42,13 @@ namespace SortAlgorithm.Logics
 
         public T[] Sort(T[] array, int first, int last)
         {
-            base.Statics.Reset(array.Length, SortType, nameof(InsertSort<T>));
+            base.Statistics.Reset(array.Length, SortType, nameof(InsertSort<T>));
             for (var i = first + 1; i < last; i++)
             {
-                base.Statics.AddCompareCount();
+                base.Statistics.AddCompareCount();
                 for (var j = i; j > first && array[j - 1].CompareTo(array[j]) > 0; --j)
                 {
-                    base.Statics.AddIndexAccess();
+                    base.Statistics.AddIndexAccess();
                     Swap(ref array[j], ref array[j - 1]);
                 }
             }

@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
-namespace SortRunner
+namespace SortAlgorithm
 {
     public interface IOutput
     {
@@ -32,7 +32,7 @@ namespace SortRunner
         public ulong CompareCount { get; set; }
         public ulong SwapCount { get; set; }
 
-        public MarkdownOutput(IStatics statics, InputType inputType)
+        public MarkdownOutput(IStatistics statics, InputType inputType)
         {
             InputType = inputType;
             ArraySize = statics.ArraySize;
@@ -87,7 +87,7 @@ namespace SortRunner
         public ulong SwapCount { get; set; }
         public string SortResult { get; set; }
 
-        public ConsoleOutput(IStatics statics, string sortResult, InputType inputType)
+        public ConsoleOutput(IStatistics statics, string sortResult, InputType inputType)
         {
             InputType = inputType;
             ArraySize = statics.ArraySize;

@@ -28,14 +28,14 @@ namespace SortAlgorithm.Logics
 
         public override T[] Sort(T[] array)
         {
-            base.Statics.Reset(array.Length, SortType, nameof(IntroSortMedian9<T>));
+            base.Statistics.Reset(array.Length, SortType, nameof(IntroSortMedian9<T>));
             var result = Sort(array, 0, array.Length - 1, 2 * FloorLog(array.Length));
-            base.Statics.AddCompareCount(heapSort.Statics.CompareCount);
-            base.Statics.AddIndexAccess(heapSort.Statics.IndexAccessCount);
-            base.Statics.AddSwapCount(heapSort.Statics.SwapCount);
-            base.Statics.AddCompareCount(insertSort.Statics.CompareCount);
-            base.Statics.AddIndexAccess(insertSort.Statics.IndexAccessCount);
-            base.Statics.AddSwapCount(insertSort.Statics.SwapCount);
+            base.Statistics.AddCompareCount(heapSort.Statistics.CompareCount);
+            base.Statistics.AddIndexAccess(heapSort.Statistics.IndexAccessCount);
+            base.Statistics.AddSwapCount(heapSort.Statistics.SwapCount);
+            base.Statistics.AddCompareCount(insertSort.Statistics.CompareCount);
+            base.Statistics.AddIndexAccess(insertSort.Statistics.IndexAccessCount);
+            base.Statistics.AddSwapCount(insertSort.Statistics.SwapCount);
             return result;
         }
 
@@ -49,7 +49,7 @@ namespace SortAlgorithm.Logics
                     return array;
                 }
                 depthLimit--;
-                base.Statics.AddIndexAccess();
+                base.Statistics.AddIndexAccess();
                 var partition = Partition(array, left, right, Median9(array, left, right));
                 Sort(array, partition, right, depthLimit);
                 right = partition;
@@ -65,15 +65,15 @@ namespace SortAlgorithm.Logics
             {
                 while (array[l].CompareTo(pivot) < 0)
                 {
-                    base.Statics.AddIndexAccess();
-                    base.Statics.AddCompareCount();
+                    base.Statistics.AddIndexAccess();
+                    base.Statistics.AddCompareCount();
                     l++;
                 }
                 r--;
                 while (pivot.CompareTo(array[r]) < 0)
                 {
-                    base.Statics.AddIndexAccess();
-                    base.Statics.AddCompareCount();
+                    base.Statistics.AddIndexAccess();
+                    base.Statistics.AddCompareCount();
                     r--;
                 }
 
@@ -89,26 +89,26 @@ namespace SortAlgorithm.Logics
 
         private T Median3(T low, T mid, T high)
         {
-            base.Statics.AddCompareCount();
+            base.Statistics.AddCompareCount();
             if (low.CompareTo(mid) > 0)
             {
-                base.Statics.AddCompareCount();
+                base.Statistics.AddCompareCount();
                 if (mid.CompareTo(high) > 0)
                 {
                     return mid;
                 }
                 else
                 {
-                    base.Statics.AddCompareCount();
+                    base.Statistics.AddCompareCount();
                     return low.CompareTo(high) > 0 ? high : low;
                 }
             }
             else
             {
-                base.Statics.AddCompareCount();
+                base.Statistics.AddCompareCount();
                 if (mid.CompareTo(high) > 0)
                 {
-                    base.Statics.AddCompareCount();
+                    base.Statistics.AddCompareCount();
                     return low.CompareTo(high) > 0 ? low : high;
                 }
                 else
