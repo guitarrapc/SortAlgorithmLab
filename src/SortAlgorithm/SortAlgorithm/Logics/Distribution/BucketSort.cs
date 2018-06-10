@@ -22,8 +22,8 @@ namespace SortAlgorithm.Logics
     {
         public SortType SortType => SortType.Distributed;
 
-        public SortStatics Statics => statics;
-        protected SortStatics statics = new SortStatics();
+        public IStatics Statics => statics;
+        protected IStatics statics = new SortStatics();
 
         public T[] Sort(T[] array, Func<T, int> getKey)
         {

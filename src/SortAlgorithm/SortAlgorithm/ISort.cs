@@ -6,7 +6,7 @@ namespace SortAlgorithm
     {
         SortType SortType { get; }
 
-        SortStatics Statics { get; }
+        IStatics Statics { get; }
         T[] Sort(T[] array);
     }
 }

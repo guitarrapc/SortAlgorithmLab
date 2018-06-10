@@ -5,6 +5,7 @@ using System.Text;
 namespace SortAlgorithm.Logics
 {
     /// <summary>
+    /// Contains Bug on HeapSort.
     /// QuickSort + HeapSort + InsertSort によるQuickSortの最悪ケースでのO(n^2) を回避する実装。一定の深度以下になった場合にHeapSortにスイッチすることで最悪ケースを防ぎ、ほぼソート済み状況ではInsertSortで最速を狙う。
     /// </summary>
     /// <remarks>

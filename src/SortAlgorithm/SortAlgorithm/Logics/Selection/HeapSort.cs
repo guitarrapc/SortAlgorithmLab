@@ -42,15 +42,15 @@ namespace SortAlgorithm.Logics
             return array;
         }
 
-        public T[] Sort(T[] array, int first, int last)
+        public T[] Sort(T[] array, int low, int high)
         {
             base.Statics.Reset(array.Length, SortType, nameof(HeapSort<T>));
 
-            var n = last - first;
+            var n = high - low;
             // create heap node
             for (var i = n / 2; i >= 1; i--)
             {
-                DownHeap(array, i, n, first);
+                DownHeap(array, i, n, low);
             }
             // pick root and re-heap.
             for (var i = n; i > 1; i--)
@@ -58,7 +58,7 @@ namespace SortAlgorithm.Logics
                 // move Max Heap to sorted array
                 Swap(ref array[0], ref array[i]);
                 // re-heap
-                DownHeap(array, 1, i - 1, first);
+                DownHeap(array, 1, i - 1, low);
             }
             return array;
         }
@@ -112,27 +112,25 @@ namespace SortAlgorithm.Logics
             }
         }
 
-        private void DownHeap(T[] array, int current, int mid, int first)
+        private void DownHeap(T[] array, int i, int n, int low)
         {
-            var d = array[first + current - 1];
+            var d = array[low + i - 1];
             int child;
-            while (current <= mid / 2)
+            while (i <= n / 2)
             {
+                child = 2 * i;
                 base.Statics.AddIndexAccess();
-                child = 2 * current;
                 base.Statics.AddCompareCount();
-                if (child < mid && array[first + child - 1].CompareTo(array[first + child]) < 0)
+                if (child < n && array[low + child - 1].CompareTo(array[low + child]) < 0)
                 {
                     child++;
                 }
                 base.Statics.AddCompareCount();
-                if (array[first + child - 1].CompareTo(d) > 0)
-                {
-                    Swap(ref array[first + current - 1], ref array[first + child - 1]);
-                    current = child;
-                }
+                if (d.CompareTo(array[low + child - 1]) >= 0) break;
+                array[low + i - 1] = array[low + child - 1];
+                i = child;
             }
-            //array[first + current - 1] = mid;
+            array[low + i - 1] = d;
         }
     }
 }

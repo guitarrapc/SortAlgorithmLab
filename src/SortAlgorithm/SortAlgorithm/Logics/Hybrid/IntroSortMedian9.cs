@@ -5,7 +5,9 @@ using System.Text;
 namespace SortAlgorithm.Logics
 {
     /// <summary>
-    /// IntroSort のMEdian9バージョン
+    /// Contains Bug on HeapSort.
+    /// 配列から、常に最大の要素をルートにもつ2分木構造(ヒープ)を作る(この時点で不安定)。あとは、ルート要素をソート済み配列の末尾に詰めて、ヒープの末端をルートに持ってきて再度ヒープ構造を作る。これを繰り返すことでヒープの最大値は常にルート要素になり、これをソート済み配列につめていくことで自然とソートができる。
+    /// Median3 は山データでエッジケース問題があるため、Median9が望ましい
     /// </summary>
     /// <remarks>
     /// stable : no

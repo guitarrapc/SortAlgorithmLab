@@ -6,8 +6,8 @@ namespace SortAlgorithm
 {
     public class SortBase<T> : ISort<T> where T : IComparable<T>
     {
-        public SortStatics Statics => statics;
-        protected SortStatics statics = new SortStatics();
+        public IStatics Statics => statics;
+        protected IStatics statics = new SortStatics();
 
         public virtual SortType SortType => SortType.None;
 
