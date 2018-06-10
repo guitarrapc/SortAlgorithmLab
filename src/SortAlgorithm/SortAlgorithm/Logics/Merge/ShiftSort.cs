@@ -6,10 +6,10 @@ using System.Text;
 namespace SortAlgorithm.Logics
 {
     /// <summary>
-    /// Merge Sortの類似ですが、Swap回数が極度に少ない不安定な内部ソート。ベストケースでO(n)、平均でもマージソート同様にO(n log n)と高速に挙動する
+    /// Merge Sortの類似ですが、Swap回数が極度に少ない安定な内部ソート。ベストケースでO(n)、平均でもマージソート同様にO(n log n)と高速に挙動する
     /// </summary>
     /// <remarks>
-    /// stable : no
+    /// stable : yes
     /// inplace : yes
     /// Compare : n log2 n
     /// Swap : n log2 n
