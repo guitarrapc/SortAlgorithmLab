@@ -8,10 +8,10 @@ Suppose to work on following platform.
 Language | Platform | Remarks
 ---- | ---- | ----
 C# | .NETStandard 2.0 | Code can be use on NET 3.5 or higher.
-Go | not yet.
-PowerShell | not yet.
-Pythom | not yet.
-Swift | not yet.
+Go | ?? | not yet.
+PowerShell | PowerShell Core | Not yet.
+Pythom | 3.x | Not yet. 
+Swift | 4.x | not yet.
 
 ## TODO
 
