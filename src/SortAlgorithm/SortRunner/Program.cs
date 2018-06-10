@@ -73,6 +73,9 @@ namespace SortRunner
                 // Shell Sort
                 Runner.Run(new ShellSort<int>(), item);
 
+                // Binary Tree Sort
+                Runner.Run(new BinaryTreeSort<int>(), item);
+
                 // -- Partitionig -- //
 
                 // Quick Sort Median3
