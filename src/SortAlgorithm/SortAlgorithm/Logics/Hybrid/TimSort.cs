@@ -24,7 +24,6 @@ namespace SortAlgorithm.Logics
         private static readonly int defaultMinMerge = 32;
         private static readonly int defaultMinGallop = 7;
         private static readonly int defaultTmpStorageLength = 256;
-        private int minMerge = 32;
         private int minGallop = defaultMinGallop;
         private int tmpStorageLength = defaultTmpStorageLength;
         private double[] powerOfThen = new[] { 1e0, 1e1, 1e2, 1e3, 1e4, 1e5, 1e6, 1e7, 1e8, 1e9 };
@@ -64,7 +63,7 @@ namespace SortAlgorithm.Logics
             base.Statics.AddCompareCount(insertSort.Statics.CompareCount);
             base.Statics.AddIndexAccess(insertSort.Statics.IndexAccessCount);
             base.Statics.AddSwapCount(insertSort.Statics.SwapCount);
-            return result.Dump();
+            return result;
         }
 
         private T[] SortImpl(T[] array, int low, int high)
