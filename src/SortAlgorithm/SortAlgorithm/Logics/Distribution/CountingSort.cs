@@ -41,6 +41,7 @@ namespace SortAlgorithm.Logics
 
             for (var i = 1; i < array.Length; i++)
             {
+                base.Statics.AddIndexAccess();
                 if (array[i] < min)
                 {
                     min = array[i];
@@ -78,7 +79,6 @@ namespace SortAlgorithm.Logics
 
             return resultArray;
         }
-
         private int[] SortImplNegative(int[] array)
         {
             var max = -1;
