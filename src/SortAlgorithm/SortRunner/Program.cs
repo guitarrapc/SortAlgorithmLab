@@ -198,6 +198,9 @@ namespace SortRunner
 
                     // IntroSort Median9 (Quick + Heap + Insert)
                     RunSort(new IntroSortMedian9<int>(), item);
+
+                    // IntroSort Median9 (Insert + Merge)
+                    //RunSort(new TimSort<int>(), item);
                 }
 
                 // BucketSort<T>
