@@ -16,12 +16,17 @@ namespace SortAlgorithm
             throw new NotImplementedException();
         }
 
-        public void Swap(ref T a, ref T b)
+        protected void Swap(ref T a, ref T b)
         {
             Statics.AddSwapCount();
             var tmp = a;
             a = b;
             b = tmp;
+        }
+
+        protected int UnsignedRightShift(int number, int bits)
+        {
+            return (int)((uint)number >> bits);
         }
     }
 }
