@@ -111,6 +111,13 @@ namespace SortRunner
                     // Stooge Sort
                     RunSort(new StoogeSort<int>(), item);
 
+                    // Too slow....
+                    if (item.Samples.Length < 1000)
+                    {
+                        // Slow Sort
+                        RunSort(new SlowSort<int>(), item);
+                    }
+
                     // Gnome Sort
                     RunSort(new GnomeSort<int>(), item);
                     RunSort(new GnomeSort1<int>(), item);
