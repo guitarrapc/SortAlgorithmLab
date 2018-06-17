@@ -11,17 +11,19 @@ namespace SortTests
     {
         private ISort<int> sort;
         private string algorithm;
+        private SortType sortType;
 
         public BinaryTreeSortTests()
         {
             sort = new BinaryTreeSort<int>();
             algorithm = nameof(BinaryTreeSort<int>);
+            sortType = SortType.Insertion;
         }
 
         [Fact]
         public void SortTypeTest()
         {
-            sort.SortType.Is(SortType.Insertion);
+            sort.SortType.Is(sortType);
         }
 
         [Theory]

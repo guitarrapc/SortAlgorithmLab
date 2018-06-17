@@ -108,6 +108,9 @@ namespace SortRunner
                     // Cycle Sort
                     RunSort(new CycleSort<int>(), item);
 
+                    // Stooge Sort
+                    RunSort(new StoogeSort<int>(), item);
+
                     // Gnome Sort
                     RunSort(new GnomeSort<int>(), item);
                     RunSort(new GnomeSort1<int>(), item);

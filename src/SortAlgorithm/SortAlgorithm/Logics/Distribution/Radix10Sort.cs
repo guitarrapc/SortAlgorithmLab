@@ -11,7 +11,7 @@ namespace SortAlgorithm.Logics
     /// </summary>
     /// <remarks>
     /// stable : yes
-    /// inplace : no
+    /// inplace : no (n + 2^d)
     /// Compare : 2kn
     /// Swap : 0
     /// Order : O(kn)

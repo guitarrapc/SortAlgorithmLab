@@ -11,17 +11,19 @@ namespace SortTests
     {
         private ISort<int> sort;
         private string algorithm;
+        private SortType sortType;
 
         public IntroSortMedian9Tests()
         {
             sort = new IntroSortMedian9<int>();
             algorithm = nameof(IntroSortMedian9<int>);
+            sortType = SortType.Hybrid;
         }
 
         [Fact]
         public void SortTypeTest()
         {
-            sort.SortType.Is(SortType.Hybrid);
+            sort.SortType.Is(sortType);
         }
 
         [Theory]

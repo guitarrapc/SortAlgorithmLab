@@ -11,17 +11,19 @@ namespace SortTests
     {
         private ISort<int> sort;
         private string algorithm;
+        private SortType sortType;
 
         public SelectionSortTests()
         {
             sort = new SelectionSort<int>();
             algorithm = nameof(SelectionSort<int>);
+            sortType = SortType.Selection;
         }
 
         [Fact]
         public void SortTypeTest()
         {
-            sort.SortType.Is(SortType.Selection);
+            sort.SortType.Is(sortType);
         }
 
         [Theory]

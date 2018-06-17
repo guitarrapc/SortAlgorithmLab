@@ -9,7 +9,7 @@ namespace SortAlgorithm.Logics
     /// </summary>
     /// <remarks>
     /// stable : yes
-    /// inplace : no
+    /// inplace : no (n)
     /// Compare : n log n
     /// Swap :
     /// Order : O(n log n) (Better case : O(n log n)) (Worst case : O(n log n))

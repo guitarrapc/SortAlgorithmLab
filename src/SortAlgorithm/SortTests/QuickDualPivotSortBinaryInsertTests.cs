@@ -11,17 +11,19 @@ namespace SortTests
     {
         private ISort<int> sort;
         private string algorithm;
+        private SortType sortType;
 
         public QuickDualPivotSortBinaryInsertTests()
         {
             sort = new QuickDualPivotSortBinaryInsert<int>();
             algorithm = nameof(QuickDualPivotSortBinaryInsert<int>);
+            sortType = SortType.Partition;
         }
 
         [Fact]
         public void SortTypeTest()
         {
-            sort.SortType.Is(SortType.Partition);
+            sort.SortType.Is(sortType);
         }
 
         [Theory]

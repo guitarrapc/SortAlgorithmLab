@@ -11,17 +11,19 @@ namespace SortTests
     {
         private ISort<int> sort;
         private string algorithm;
+        private SortType sortType;
 
         public OddEvenSortTests()
         {
             sort = new OddEvenSort<int>();
             algorithm = nameof(OddEvenSort<int>);
+            sortType = SortType.Exchange;
         }
 
         [Fact]
         public void SortTypeTest()
         {
-            sort.SortType.Is(SortType.Exchange);
+            sort.SortType.Is(sortType);
         }
 
         [Theory]

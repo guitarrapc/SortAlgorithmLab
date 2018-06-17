@@ -11,17 +11,19 @@ namespace SortTests
     {
         private ISort<int> sort;
         private string algorithm;
+        private SortType sortType;
 
         public CombSortTests()
         {
             sort = new CombSort<int>();
             algorithm = nameof(CombSort<int>);
+            sortType = SortType.Exchange;
         }
 
         [Fact]
         public void SortTypeTest()
         {
-            sort.SortType.Is(SortType.Exchange);
+            sort.SortType.Is(sortType);
         }
 
         [Theory]

@@ -11,17 +11,19 @@ namespace SortTests
     {
         private ISort<int> sort;
         private string algorithm;
+        private SortType sortType;
 
         public QuickSortMedian3Tests()
         {
             sort = new QuickSortMedian3<int>();
             algorithm = nameof(QuickSortMedian3<int>);
+            sortType = SortType.Partition;
         }
 
         [Fact]
         public void SortTypeTest()
         {
-            sort.SortType.Is(SortType.Partition);
+            sort.SortType.Is(sortType);
         }
 
         [Theory]

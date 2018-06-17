@@ -11,17 +11,19 @@ namespace SortTests
     {
         private ISort<int> sort;
         private string algorithm;
+        private SortType sortType;
 
         public GnomeSort1Tests()
         {
             sort = new GnomeSort2<int>();
             algorithm = nameof(GnomeSort2<int>);
+            sortType = SortType.Exchange;
         }
 
         [Fact]
         public void SortTypeTest()
         {
-            sort.SortType.Is(SortType.Exchange);
+            sort.SortType.Is(sortType);
         }
 
         [Theory]

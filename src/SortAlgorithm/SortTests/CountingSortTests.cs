@@ -12,6 +12,7 @@ namespace SortTests
         private ISort<int> sort;
         private Func<int[], int[]> func;
         private string algorithm;
+        private SortType sortType;
 
         public CountingSortTests()
         {
@@ -19,12 +20,13 @@ namespace SortTests
             func = array => sort.Sort(array);
             this.sort = sort;
             algorithm = nameof(CountingSort<int>);
+            sortType = SortType.Distributed;
         }
 
         [Fact]
         public void SortTypeTest()
         {
-            sort.SortType.Is(SortType.Distributed);
+            sort.SortType.Is(sortType);
         }
 
         [Theory]

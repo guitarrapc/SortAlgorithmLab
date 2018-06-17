@@ -11,17 +11,19 @@ namespace SortTests
     {
         private ISort<int> sort;
         private string algorithm;
+        private SortType sortType;
 
         public MergeSort2Tests()
         {
             sort = new MergeSort2<int>();
             algorithm = nameof(MergeSort2<int>);
+            sortType = SortType.Merge;
         }
 
         [Fact]
         public void SortTypeTest()
         {
-            sort.SortType.Is(SortType.Merge);
+            sort.SortType.Is(sortType);
         }
 
         [Theory]

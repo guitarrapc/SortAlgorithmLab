@@ -10,7 +10,7 @@ namespace SortAlgorithm.Logics
     /// </summary>
     /// <remarks>
     /// stable : yes
-    /// inplace : no
+    /// inplace : no (n + r)
     /// Compare : 0
     /// Swap : 0
     /// Order : O(n + k) (k = helper array = counting + result)
