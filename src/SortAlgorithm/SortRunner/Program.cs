@@ -138,6 +138,9 @@ namespace SortRunner
                     // Heap Sort
                     RunSort(new HeapSort<int>(), item);
 
+                    // Smooth Sort
+                    RunSort(new SmoothSort<int>(), item);
+
                     // -- Insertion -- //
 
                     // Insert Sort

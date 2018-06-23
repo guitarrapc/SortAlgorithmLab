@@ -6,14 +6,14 @@ using System.Text;
 namespace SortAlgorithm.Logics
 {
     /// <summary>
-    /// 配列から、常に最大の要素をルートにもつ2分木構造(ヒープ)を作る(この時点で不安定)。あとは、ルート要素をソート済み配列の末尾に詰めて、ヒープの末端をルートに持ってきて再度ヒープ構造を作る。これを繰り返すことでヒープの最大値は常にルート要素になり、これをソート済み配列につめていくことで自然とソートができる。
+    /// 配列から、常に最大の要素をルートにもつ2分木構造(BinaruTree : ヒープ)を作る(この時点で不安定)。あとは、ルート要素をソート済み配列の末尾に詰めて、ヒープの末端をルートに持ってきて再度ヒープ構造を作る。これを繰り返すことでヒープの最大値は常にルート要素になり、これをソート済み配列につめていくことで自然とソートができる。
     /// </summary>
     /// <remarks>
     /// stable : no
     /// inplace : yes
     /// Compare : n log2 n
     /// Swap : n log2 2n
-    /// Order : O(n log n) (Worst case : O(n log n))
+    /// Order : O(n log n) (best case : n log n (n if all keys are distinct)) (Worst case : O(n log n))
     /// </remarks>
     /// <typeparam name="T"></typeparam>
 
