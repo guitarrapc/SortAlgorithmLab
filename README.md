@@ -34,6 +34,8 @@ Swift | 4.x | not yet.
             - [x] Normal
             - [x] Nearly Optimized
             - [x] Unefficient
+        - [x] StoogeSort
+        - [x] SlowSort
     - Selection Sort
         - [x] SelectionSort
         - [x] HeapSort
@@ -68,6 +70,8 @@ Swift | 4.x | not yet.
     - Hybrid Sort
         - [x] IntroSortMedian9 (Quick + Heap + Insert)
         - [ ] TimSort (Merge + Insert) : WIP
+    - Other Sort
+        - [x] PancakeSort
 * [ ] Benchmark : WIP
 * [x] Tests
 * [x] Data
