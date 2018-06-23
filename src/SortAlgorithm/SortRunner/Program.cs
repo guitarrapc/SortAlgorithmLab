@@ -114,7 +114,7 @@ namespace SortRunner
                     // Too slow....
                     if (item.Samples.Length < 100)
                     {
-                        // Slow Sort
+                        // Bogo Sort
                         RunSort(new BogoSort<int>(), item);
                     }
 
@@ -217,6 +217,11 @@ namespace SortRunner
 
                     // IntroSort Median9 (Insert + Merge)
                     //RunSort(new TimSort<int>(), item);
+
+                    // -- Other -- //
+
+                    // Pancake Sort
+                    RunSort(new PancakeSort<int>(), item);
                 }
 
                 // BucketSort<T>
