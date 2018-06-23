@@ -112,6 +112,12 @@ namespace SortRunner
                     RunSort(new StoogeSort<int>(), item);
 
                     // Too slow....
+                    if (item.Samples.Length < 100)
+                    {
+                        // Slow Sort
+                        RunSort(new BogoSort<int>(), item);
+                    }
+
                     if (item.Samples.Length < 1000)
                     {
                         // Slow Sort
