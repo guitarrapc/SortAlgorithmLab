@@ -16,7 +16,7 @@ namespace SortAlgorithm.Logics
     /// <typeparam name="T"></typeparam>
     public class CycleSort<T> : SortBase<T> where T : IComparable<T>
     {
-        public override SortType SortType => SortType.Exchange;
+        public override SortType SortType => SortType.Selection;
 
         public override T[] Sort(T[] array)
         {

@@ -17,7 +17,7 @@ namespace SortTests
         {
             sort = new CycleSort<int>();
             algorithm = nameof(CycleSort<int>);
-            sortType = SortType.Exchange;
+            sortType = SortType.Selection;
         }
 
         [Fact]
