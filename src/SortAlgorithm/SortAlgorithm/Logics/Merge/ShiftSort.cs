@@ -25,7 +25,11 @@ namespace SortAlgorithm.Logics
         public override T[] Sort(T[] array)
         {
             base.Statistics.Reset(array.Length, SortType, nameof(ShiftSort<T>));
+            return SortImpl(array);
+        }
 
+        private T[] SortImpl(T[] array)
+        {
             var zeroIndices = new int[(int)(array.Length / 2) + 2];
             zeroIndices[0] = array.Length;
 
