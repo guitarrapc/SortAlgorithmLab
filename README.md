@@ -60,6 +60,7 @@ Swift | 4.x | not yet.
             - [x] Optimized
             - [x] Normal
         - [x] ShiftSort
+        - [x] DropMergeSort
     - Distributed Sort
         - [x] BucketSort
             - [x] Int only
