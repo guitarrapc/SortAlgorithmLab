@@ -193,6 +193,9 @@ namespace SortRunner
                     // Shift Sort
                     RunSort(new ShiftSort<int>(), item);
 
+                    // DropMerge Sort
+                    RunSort(new DropMergeSort<int>(), item);
+
                     // -- Distribution -- //
 
                     // Bucket Sort
