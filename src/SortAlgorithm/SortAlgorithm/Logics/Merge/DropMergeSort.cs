@@ -27,6 +27,7 @@ namespace SortAlgorithm.Logics
         public override SortType SortType => SortType.Merge;
 
         private QuickSortMedian9BinaryInsert<T> quickSort = new QuickSortMedian9BinaryInsert<T>();
+        private QuickSortMedian9BinaryInsert<T> quickSort2 = new QuickSortMedian9BinaryInsert<T>();
 
         /// This speeds up well-ordered input by quite a lot.
         const bool DoubleComparisons = true;
@@ -52,6 +53,9 @@ namespace SortAlgorithm.Logics
             base.Statistics.AddIndexAccess(quickSort.Statistics.IndexAccessCount);
             base.Statistics.AddCompareCount(quickSort.Statistics.CompareCount);
             base.Statistics.AddSwapCount(quickSort.Statistics.SwapCount);
+            base.Statistics.AddIndexAccess(quickSort2.Statistics.IndexAccessCount);
+            base.Statistics.AddCompareCount(quickSort2.Statistics.CompareCount);
+            base.Statistics.AddSwapCount(quickSort2.Statistics.SwapCount);
             return a;
         }
 
@@ -179,7 +183,7 @@ namespace SortAlgorithm.Logics
             // Optimized for C# to not change size of array.
             // Drop the back-tracked elements:
             dropped = dropped.AsSpan(0, droppedIndex).ToArray();
-            dropped = quickSort.Sort(dropped);
+            dropped = quickSort2.Sort(dropped);
 
             var back = array.Length;
             while (dropped.Length > 0)
