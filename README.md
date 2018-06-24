@@ -18,64 +18,88 @@ Swift | 4.x | not yet.
 <details>
 <summary>CSharp Status</summary>
 
-* [x] Implementation
-    - Exchange Sort
-        - [x] BubbleSort
-        - [x] OddEvenSort
-        - [x] CocktailShakerSort
-            - [x] Optimized
-            - [x] Normal
-        - [x] CombSort
-        - [x] CycleSort
-        - [x] StoogeSort
-        - [x] SlowSort
-        - [x] GnomeSort
-            - [x] Optimized
-            - [x] Normal
-            - [x] Nearly Optimized
-            - [x] Unefficient
-        - [x] StoogeSort
-        - [x] SlowSort
-    - Selection Sort
-        - [x] SelectionSort
-        - [x] HeapSort
-    - Insertion Sort
-        - [x] InsertSort
-        - [x] BinaryInsertSort
-        - [x] ShellSort
-        - [x] BinaryTreeSort
-    - Partition Sort (+Exchange Sort)
-        - [x] QuickSort
-            - [x] Median3
-            - [x] Median9
-            - [x] DualPivot
-            - [x] Median3 + Insert
-            - [x] Median9 + Insert
-            - [x] DualPivot + Insert
-            - [x] Median3 + BinaryInsert
-            - [x] Median9 + BinaryInsert
-            - [x] DualPivot + BinaryInsert
-    - Merge Sort
-        - [x] MergeSort
-            - [x] Optimized
-            - [x] Normal
-        - [x] ShiftSort
-        - [x] DropMergeSort
-    - Distributed Sort
-        - [x] BucketSort
-            - [x] Int only
-            - [x] T
-        - [x] RadixLSD10Sort
-        - [x] RadixLSD4Sort
-        - [x] CountingSort
-    - Hybrid Sort
-        - [x] IntroSortMedian9 (Quick + Heap + Insert)
-        - [ ] TimSort (Merge + Insert) : WIP
-    - Other Sort
-        - [x] PancakeSort
+### Implementation
+
+#### Exchange Sort
+
+* [x] BubbleSort
+* [x] OddEvenSort
+* [x] CocktailShakerSort
+  * [x] Optimized
+  * [x] Normal
+* [x] CombSort
+* [x] StoogeSort
+* [x] SlowSort
+* [x] GnomeSort
+  * [x] Optimized
+  * [x] Normal
+  * [x] Nearly Optimized
+  * [x] Unefficient
+* [x] StoogeSort
+* [x] SlowSort
+
+#### Selection Sort
+
+* [x] SelectionSort
+* [x] HeapSort
+* [x] CycleSort
+
+#### Insertion Sort
+
+* [x] InsertSort
+* [x] BinaryInsertSort
+* [x] ShellSort
+* [x] BinaryTreeSort
+
+#### Partition Sort (+Exchange Sort)
+
+* [x] QuickSort Median3
+* [x] QuickSort Median9
+* [x] QuickSort DualPivot
+* [x] QuickSort Median3 + Insert
+* [x] QuickSort Median9 + Insert
+* [x] QuickSort DualPivot + Insert
+* [x] QuickSort Median3 + BinaryInsert
+* [x] QuickSort Median9 + BinaryInsert
+* [x] QuickSort DualPivot + BinaryInsert
+
+#### Merge Sort
+
+* [x] MergeSort
+  * [x] Optimized
+  * [x] Normal
+* [x] ShiftSort
+* [x] DropMergeSort
+
+#### Distributed Sort
+
+* [x] BucketSort
+  * [x] Int only
+  * [x] T
+* [x] RadixLSD10Sort
+* [x] RadixLSD4Sort
+* [x] CountingSort
+
+#### Hybrid Sort
+
+* [x] IntroSortMedian9 (Quick + Heap + Insert)
+* [ ] TimSort (Merge + Insert) : WIP
+
+#### Other Sort
+
+* [x] PancakeSort
+
+### Benchmark
+
 * [ ] Benchmark : WIP
-* [x] Tests
-* [x] Data
+
+### Tests
+
+* [x] UnitTest
+
+### Data
+
+* [x] CSV
 * [x] Chart
 
 </details>
