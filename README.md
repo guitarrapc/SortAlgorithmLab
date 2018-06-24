@@ -7,10 +7,10 @@ Suppose to work on following platform.
 
 Language | Platform | Remarks
 ---- | ---- | ----
-C# | .NETStandard 2.0 | Code can be use on NET 3.5 or higher.
+C# | .NETStandard 2.0 | Code can be use on NET 3.5 or higher, except Drop-Merge Sort, it use Span<T>.
 Go | ?? | not yet.
-PowerShell | PowerShell Core | Not yet.
-Pythom | 3.x | Not yet. 
+PowerShell | PowerShell Core | not yet.
+Pythom | 3.x | not yet.
 Swift | 4.x | not yet.
 
 ## TODO
