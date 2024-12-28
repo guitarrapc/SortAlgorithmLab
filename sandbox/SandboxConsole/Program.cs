@@ -6,13 +6,13 @@ using System.Linq;
 
 var runner = new Runner()
 {
-    Distribution = true,
-    Exchange = true,
-    Hybrid = true,
-    Insertion = true,
-    Merge = true,
-    Other = true,
-    Partition = true,
+    //Distribution = true,
+    //Exchange = true,
+    //Hybrid = true,
+    //Insertion = true,
+    //Merge = true,
+    //Other = true,
+    //Partition = true,
     Selection = true,
 };
 runner.Run(SampleData.RandomSamples);
