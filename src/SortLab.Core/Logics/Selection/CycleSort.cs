@@ -6,11 +6,11 @@ namespace SortLab.Core.Logics;
 /*
 Ref span ...
 
-| Method    | Number | Mean         | Error        | StdDev    | Min          | Max          | Allocated |
-|---------- |------- |-------------:|-------------:|----------:|-------------:|-------------:|----------:|
-| CycleSort | 100    |     151.3 us |     73.80 us |   4.05 us |     148.2 us |     155.9 us |     736 B |
-| CycleSort | 1000   |  12,790.0 us |  1,195.65 us |  65.54 us |  12,720.5 us |  12,850.7 us |     448 B |
-| CycleSort | 10000  | 218,218.1 us | 17,871.98 us | 979.62 us | 217,152.3 us | 219,079.2 us |     736 B |
+| Method    | Number | Mean         | Error       | StdDev      | Min          | Max          | Allocated |
+|---------- |------- |-------------:|------------:|------------:|-------------:|-------------:|----------:|
+| CycleSort | 100    |     108.3 us |    134.5 us |     7.37 us |     102.8 us |     116.7 us |     736 B |
+| CycleSort | 1000   |   9,077.7 us |  3,789.3 us |   207.70 us |   8,899.3 us |   9,305.7 us |     736 B |
+| CycleSort | 10000  | 106,599.4 us | 18,492.0 us | 1,013.61 us | 105,844.3 us | 107,751.4 us |     448 B |
 */
 
 /// <summary>

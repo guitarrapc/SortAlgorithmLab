@@ -6,7 +6,7 @@ namespace SortLab.Core;
 public abstract class SortBase<T> : ISort<T> where T : IComparable<T>
 {
     public IStatistics Statistics => statistics;
-    protected IStatistics statistics = new SortStatistics();
+    private IStatistics statistics = new SortStatistics();
 
     public virtual SortType SortType => SortType.None;
 
@@ -15,21 +15,27 @@ public abstract class SortBase<T> : ISort<T> where T : IComparable<T>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     protected int Compare(T x, T y)
     {
+#if DEBUG
         Statistics.AddCompareCount();
+#endif
         return x.CompareTo(y);
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     protected void Swap(ref T a, ref T b)
     {
+#if DEBUG
         Statistics.AddSwapCount();
+#endif
         (a, b) = (b, a);
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     protected ref T Index(ref Span<T> span, int pos)
     {
+#if DEBUG
         Statistics.AddIndexCount();
+#endif
         return ref span[pos];
     }
 
