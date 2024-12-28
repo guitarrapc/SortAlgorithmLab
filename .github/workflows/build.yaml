@@ -9,9 +9,6 @@ on:
     branches:
       - "main"
 
-env:
-  BUILD_CONFIG: Release
-
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -22,8 +19,9 @@ jobs:
         with:
           restore-wasm-workload: true
       - name: dotnet build
-        run: dotnet build -c "${{ env.BUILD_CONFIG }}"
+        run: dotnet build -c Release
+      # Should run with Debug. Statistics will be omit on Release build
       - name: dotnet test
-        run: dotnet test -c "${{ env.BUILD_CONFIG }}" --no-build
+        run: dotnet test -c Debug --no-build
       - name: dotnet publish
-        run: dotnet publish -c "${{ env.BUILD_CONFIG }}" --no-build
+        run: dotnet publish -c Release --no-build
