@@ -1,8 +1,7 @@
-﻿using System;
-using System.Collections;
+﻿using System.Collections;
 using System.Collections.Generic;
 
-namespace SortTests;
+namespace SortLab.Tests;
 
 public class MockReversedData : IEnumerable<object[]>
 {

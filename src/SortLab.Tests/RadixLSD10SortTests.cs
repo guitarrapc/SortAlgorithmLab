@@ -1,6 +1,4 @@
-using System;
-
-namespace SortTests;
+namespace SortLab.Tests;
 
 public class RadixLSD10SortTests
 {

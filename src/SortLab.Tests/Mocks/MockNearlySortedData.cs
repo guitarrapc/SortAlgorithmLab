@@ -1,7 +1,7 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 
-namespace SortTests;
+namespace SortLab.Tests;
 
 public class MockNearlySortedData : IEnumerable<object[]>
 {

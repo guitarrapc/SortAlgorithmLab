@@ -1,4 +1,4 @@
-namespace SortTests;
+namespace SortLab.Tests;
 
 public class PancakeSortTests
 {

@@ -1,4 +1,4 @@
-namespace SortTests;
+namespace SortLab.Tests;
 
 public class IntroSortMedian9Tests
 {
