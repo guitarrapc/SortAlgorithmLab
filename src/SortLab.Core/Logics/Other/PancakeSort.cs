@@ -43,7 +43,7 @@ public class PancakeSort<T> : SortBase<T> where T : IComparable<T>
         var max = 0;
         for (int i = 0; i < n; i++)
         {
-            Statistics.AddIndexAccess();
+            Statistics.AddIndexCount();
             if (Compare(array[i], array[max]) > 0)
             {
                 max = i;

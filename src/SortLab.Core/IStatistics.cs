@@ -40,9 +40,9 @@ public class SortStatistics : IStatistics
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public void AddIndexAccess() => Interlocked.Increment(ref _indexAccessCount);
+    public void AddIndexCount() => Interlocked.Increment(ref _indexAccessCount);
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public void AddIndexAccess(ulong count) => Interlocked.Add(ref _indexAccessCount, count);
+    public void AddIndexCount(ulong count) => Interlocked.Add(ref _indexAccessCount, count);
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public void AddCompareCount() => Interlocked.Increment(ref _compareCount);
@@ -69,8 +69,8 @@ public interface IStatistics
 
     void Reset(int arraySize, SortType sortType, string algorithm);
 
-    void AddIndexAccess();
-    void AddIndexAccess(ulong count);
+    void AddIndexCount();
+    void AddIndexCount(ulong count);
     void AddCompareCount();
     void AddCompareCount(ulong count);
     void AddSwapCount();

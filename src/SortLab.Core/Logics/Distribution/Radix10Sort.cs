@@ -44,7 +44,7 @@ public class RadixLSD10Sort<T> : SortBase<int> where T : IComparable<T>
             // make bucket for possibly assigned number of int
             for (var i = 0; i < array.Length; i++)
             {
-                Statistics.AddIndexAccess();
+                Statistics.AddIndexCount();
                 var key = (array[i] / r) % 10;
                 if (bucket[key] == null) bucket[key] = [];
                 bucket[key].Add(array[i]);
@@ -57,19 +57,19 @@ public class RadixLSD10Sort<T> : SortBase<int> where T : IComparable<T>
                 {
                     foreach (var item in bucket[j])
                     {
-                        Statistics.AddIndexAccess();
+                        Statistics.AddIndexCount();
                         array[i++] = item;
                     }
                 }
                 else
                 {
-                    Statistics.AddIndexAccess();
+                    Statistics.AddIndexCount();
                 }
             }
 
             for (var j = 0; j < bucket.Length; ++j)
             {
-                Statistics.AddIndexAccess();
+                Statistics.AddIndexCount();
                 bucket[j] = null;
             }
         }
@@ -85,7 +85,7 @@ public class RadixLSD10Sort<T> : SortBase<int> where T : IComparable<T>
         int digit = 0;
         for (var i = 0; i < array.Length; i++)
         {
-            Statistics.AddIndexAccess();
+            Statistics.AddIndexCount();
             digit = GetDigit(array[i]);
             if (digit > max)
             {
@@ -97,7 +97,7 @@ public class RadixLSD10Sort<T> : SortBase<int> where T : IComparable<T>
         {
             for (var i = 0; i < array.Length; i++)
             {
-                Statistics.AddIndexAccess();
+                Statistics.AddIndexCount();
                 var tmp = array[i];
                 var radix = tmp < 0
                     ? -(int)(Math.Abs(tmp) / Math.Pow(10, r - 1)) % 10
@@ -113,19 +113,19 @@ public class RadixLSD10Sort<T> : SortBase<int> where T : IComparable<T>
                 {
                     foreach (var item in bucket[j])
                     {
-                        Statistics.AddIndexAccess();
+                        Statistics.AddIndexCount();
                         array[i++] = item;
                     }
                 }
                 else
                 {
-                    Statistics.AddIndexAccess();
+                    Statistics.AddIndexCount();
                 }
             }
 
             for (var j = 0; j < bucket.Length; ++j)
             {
-                Statistics.AddIndexAccess();
+                Statistics.AddIndexCount();
                 bucket[j] = null;
             }
         }

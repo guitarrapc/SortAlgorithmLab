@@ -30,7 +30,7 @@ public class OddEvenSort<T> : SortBase<T> where T : IComparable<T>
             // odd-even ({1,2},{3,4}) sort
             for (var i = 0; i < array.Length - 1; i += 2)
             {
-                Statistics.AddIndexAccess();
+                Statistics.AddIndexCount();
                 if (Compare(array[i], array[i + 1]) > 0)
                 {
                     Swap(ref array[i], ref array[i + 1]);
@@ -41,7 +41,7 @@ public class OddEvenSort<T> : SortBase<T> where T : IComparable<T>
             // even-odd ({2,3},{4,5}) sort
             for (var i = 1; i < array.Length - 1; i += 2)
             {
-                Statistics.AddIndexAccess();
+                Statistics.AddIndexCount();
                 if (Compare(array[i], array[i + 1]) > 0)
                 {
                     Swap(ref array[i], ref array[i + 1]);

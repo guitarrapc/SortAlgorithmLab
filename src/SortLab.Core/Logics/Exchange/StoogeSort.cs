@@ -24,7 +24,7 @@ public class StoogeSort<T> : SortBase<T> where T : IComparable<T>
         {
             for (var j = array.Length - 1; j > i; j--)
             {
-                Statistics.AddIndexAccess();
+                Statistics.AddIndexCount();
                 //array.Dump($"{j} : {array[j]}, {j - 1} : {array[j - 1]}, {array[j - 1].CompareTo(array[j]) > 0}");
                 if (Compare(array[j], array[j - 1]) < 0)
                 {

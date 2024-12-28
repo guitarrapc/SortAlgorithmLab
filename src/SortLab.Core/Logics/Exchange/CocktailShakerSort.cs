@@ -31,7 +31,7 @@ public class CocktailShakerSort<T> : SortBase<T> where T : IComparable<T>
             var lastSwapIndex = min;
             for (var i = min; i < max; i++)
             {
-                Statistics.AddIndexAccess();
+                Statistics.AddIndexCount();
                 if (Compare(array[i], array[i + 1]) > 0)
                 {
                     //array.Dump($"min -> {i} : {array[i]}, {i + 1} : {array[i+1]}");
@@ -47,7 +47,7 @@ public class CocktailShakerSort<T> : SortBase<T> where T : IComparable<T>
             lastSwapIndex = max;
             for (var i = max; i > min; i--)
             {
-                Statistics.AddIndexAccess();
+                Statistics.AddIndexCount();
                 if (Compare(array[i], array[i - 1]) < 0)
                 {
                     //array.Dump($"max -> {i} : {array[i]}, {i + 1} : {array[i + 1]}");
@@ -89,7 +89,7 @@ public class CocktailShakerSort2<T> : SortBase<T> where T : IComparable<T>
             // Bubble Sort (To Min)
             for (int j = i; j < array.Length - i - 1; j++)
             {
-                Statistics.AddIndexAccess();
+                Statistics.AddIndexCount();
                 if (Compare(array[j], array[j + 1]) > 0)
                 {
                     //array.Dump($"min -> {j} : {array[j]}, {j + 1} : {array[j + 1]}");
@@ -101,7 +101,7 @@ public class CocktailShakerSort2<T> : SortBase<T> where T : IComparable<T>
             // Bubble Sort (To Max)
             for (int j = array.Length - 2 - i; j > i; j--)
             {
-                Statistics.AddIndexAccess();
+                Statistics.AddIndexCount();
                 if (Compare(array[j], array[j - 1]) < 0)
                 {
                     //array.Dump($"max -> {j} : {array[j]}, {j - 1} : {array[j-1]}");

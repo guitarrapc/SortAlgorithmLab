@@ -40,7 +40,7 @@ public class BucketSort<T>(Func<T, int> getKey) : SortBase<T> where T : ICompara
 
         foreach (var item in array)
         {
-            Statistics.AddIndexAccess();
+            Statistics.AddIndexCount();
             var key = getKey(item) + offset;
             if (bucket[key] == null)
             {
@@ -55,13 +55,13 @@ public class BucketSort<T>(Func<T, int> getKey) : SortBase<T> where T : ICompara
             {
                 foreach (var item in bucket[j])
                 {
-                    Statistics.AddIndexAccess();
+                    Statistics.AddIndexCount();
                     array[i++] = item;
                 }
             }
             else
             {
-                Statistics.AddIndexAccess();
+                Statistics.AddIndexCount();
             }
         }
 
@@ -99,7 +99,7 @@ public class BucketSortInt<T> : SortBase<int>
         var bucket = new int[size + 1];
         for (var i = 0; i < array.Length; i++)
         {
-            Statistics.AddIndexAccess();
+            Statistics.AddIndexCount();
             bucket[array[i] + offset]++;
         }
 
@@ -108,7 +108,7 @@ public class BucketSortInt<T> : SortBase<int>
         {
             for (var k = bucket[j]; k != 0; --k, ++i)
             {
-                Statistics.AddIndexAccess();
+                Statistics.AddIndexCount();
                 array[i] = j - offset;
             }
         }

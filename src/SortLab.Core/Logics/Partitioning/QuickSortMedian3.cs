@@ -36,14 +36,14 @@ public class QuickSortMedian3<T> : SortBase<T> where T : IComparable<T>
         {
             while (l < right && Compare(array[l], pivot) < 0)
             {
-                Statistics.AddIndexAccess();
+                Statistics.AddIndexCount();
                 Statistics.AddCompareCount();
                 l++;
             }
 
             while (r > left && Compare(array[r], pivot) > 0)
             {
-                Statistics.AddIndexAccess();
+                Statistics.AddIndexCount();
                 Statistics.AddCompareCount();
                 r--;
             }

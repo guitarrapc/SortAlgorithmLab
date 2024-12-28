@@ -59,7 +59,7 @@ public class TimSort<T> : SortBase<T> where T : IComparable<T>
         Initialize(array);
         var result = SortImpl(array, 0, array.Length);
         Statistics.AddCompareCount(insertSort.Statistics.CompareCount);
-        Statistics.AddIndexAccess(insertSort.Statistics.IndexAccessCount);
+        Statistics.AddIndexCount(insertSort.Statistics.IndexAccessCount);
         Statistics.AddSwapCount(insertSort.Statistics.SwapCount);
         return result;
     }

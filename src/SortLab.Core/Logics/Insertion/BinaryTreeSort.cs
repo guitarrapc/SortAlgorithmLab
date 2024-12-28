@@ -27,7 +27,7 @@ public class BinaryTreeSort<T> : SortBase<T> where T : IComparable<T>
     {
         for (var i = 0; i < array.Length; i++)
         {
-            Statistics.AddIndexAccess();
+            Statistics.AddIndexCount();
             Insert(array[i]);
         }
 

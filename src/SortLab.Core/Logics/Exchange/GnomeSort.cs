@@ -22,7 +22,7 @@ public class GnomeSort<T> : SortBase<T> where T : IComparable<T>
         Statistics.Reset(array.Length, SortType, nameof(GnomeSort<T>));
         for (var i = 0; i < array.Length; i++)
         {
-            Statistics.AddIndexAccess();
+            Statistics.AddIndexCount();
             while (i > 0 && Compare(array[i - 1], array[i]) > 0)
             {
                 Swap(ref array[i - 1], ref array[i]);
@@ -54,7 +54,7 @@ public class GnomeSort1<T> : SortBase<T> where T : IComparable<T>
         Statistics.Reset(array.Length, SortType, nameof(GnomeSort1<T>));
         for (var i = 1; i < array.Length;)
         {
-            Statistics.AddIndexAccess();
+            Statistics.AddIndexCount();
             if (Compare(array[i - 1], array[i]) <= 0)
             {
                 i++;
@@ -89,7 +89,7 @@ public class GnomeSort2<T> : SortBase<T> where T : IComparable<T>
                 Swap(ref array[i], ref array[i + 1]);
                 for (var j = i; j > 0; j--)
                 {
-                    Statistics.AddIndexAccess();
+                    Statistics.AddIndexCount();
                     if (Compare(array[j - 1], array[j]) <= 0) break;
 
                     Swap(ref array[j - 1], ref array[j]);
@@ -97,7 +97,7 @@ public class GnomeSort2<T> : SortBase<T> where T : IComparable<T>
             }
             else
             {
-                Statistics.AddIndexAccess();
+                Statistics.AddIndexCount();
             }
         }
         return array;
@@ -119,7 +119,7 @@ public class GnomeSort3<T> : SortBase<T> where T : IComparable<T>
         var i = 0;
         while (i < array.Length)
         {
-            Statistics.AddIndexAccess();
+            Statistics.AddIndexCount();
             if (i == 0 || Compare(array[i - 1], array[i]) <= 0)
             {
                 i++;

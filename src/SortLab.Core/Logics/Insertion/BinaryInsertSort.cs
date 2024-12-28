@@ -52,7 +52,7 @@ public class BinaryInsertSort<T> : SortBase<T> where T : IComparable<T>
         // Handmade BinarySearch + Swap
         for (var i = first + 1; i < last; i++)
         {
-            Statistics.AddIndexAccess();
+            Statistics.AddIndexCount();
             var tmp = array[i];
 
             // BinarySearch
@@ -61,7 +61,7 @@ public class BinaryInsertSort<T> : SortBase<T> where T : IComparable<T>
             // Stable Sort
             for (var j = left; j <= i; j++)
             {
-                Statistics.AddIndexAccess();
+                Statistics.AddIndexCount();
                 Swap(ref array[j], ref tmp);
             }
         }
@@ -77,7 +77,7 @@ public class BinaryInsertSort<T> : SortBase<T> where T : IComparable<T>
 
         for (; start < last; start++)
         {
-            Statistics.AddIndexAccess();
+            Statistics.AddIndexCount();
             var tmp = array[start];
 
             // BinarySearch
@@ -86,11 +86,11 @@ public class BinaryInsertSort<T> : SortBase<T> where T : IComparable<T>
             // Stable Sort
             for (var n = start - left; n > 0; n--)
             {
-                Statistics.AddIndexAccess();
+                Statistics.AddIndexCount();
                 Swap(ref array[left + n], ref array[left + n - 1]);
             }
 
-            Statistics.AddIndexAccess();
+            Statistics.AddIndexCount();
             Swap(ref array[left], ref tmp);
         }
         return array;
@@ -102,7 +102,7 @@ public class BinaryInsertSort<T> : SortBase<T> where T : IComparable<T>
         var right = index;
         while (left < right)
         {
-            Statistics.AddIndexAccess();
+            Statistics.AddIndexCount();
             var mid = (left + right) / 2;
             if (Compare(array[mid], tmp) <= 0)
             {

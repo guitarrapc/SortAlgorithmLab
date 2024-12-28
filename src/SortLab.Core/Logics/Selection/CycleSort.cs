@@ -36,7 +36,7 @@ public class CycleSort<T> : SortBase<T> where T : IComparable<T>
         {
             // Compare value
             var tmp = span[start];
-            Statistics.AddIndexAccess();
+            Statistics.AddIndexCount();
 
             // Find position to swap, start base point to find lower element on right side.
             var pos = FindPosition(span, tmp, start);

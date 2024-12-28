@@ -32,7 +32,7 @@ public class MergeSort<T> : SortBase<T> where T : IComparable<T>
     {
         var mid = (left + right) / 2;
         if (left == right) return array;
-        Statistics.AddIndexAccess();
+        Statistics.AddIndexCount();
 
         // left : merge + sort
         Sort(array, left, mid, work);
@@ -50,7 +50,7 @@ public class MergeSort<T> : SortBase<T> where T : IComparable<T>
         // if array[2] = x,y. set work[0] = x
         for (var i = left; i <= mid; i++)
         {
-            Statistics.AddIndexAccess();
+            Statistics.AddIndexCount();
             work[i - left] = array[i];
 
             // max assign
@@ -76,7 +76,7 @@ public class MergeSort<T> : SortBase<T> where T : IComparable<T>
             {
                 while (l <= mid)
                 {
-                    Statistics.AddIndexAccess();
+                    Statistics.AddIndexCount();
                     k = l + r - (mid + 1);
                     Swap(ref array[k], ref work[l - left]);
 
@@ -128,7 +128,7 @@ public class MergeSort2<T> : SortBase<T> where T : IComparable<T>
     {
         if (array.Length <= 1) return array;
 
-        Statistics.AddIndexAccess();
+        Statistics.AddIndexCount();
 
         int mid = array.Length / 2;
         var left = array.Take(mid).ToArray();
@@ -147,7 +147,7 @@ public class MergeSort2<T> : SortBase<T> where T : IComparable<T>
         var current = 0;
         while (i < left.Length || j < right.Length)
         {
-            Statistics.AddIndexAccess();
+            Statistics.AddIndexCount();
             if (i < left.Length && j < right.Length)
             {
                 if (Compare(left[i], right[j]) <= 0)

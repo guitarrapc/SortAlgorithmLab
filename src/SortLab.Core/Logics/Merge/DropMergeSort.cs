@@ -48,10 +48,10 @@ public class DropMergeSort<T> : SortBase<T> where T : IComparable<T>
     {
         Statistics.Reset(array.Length, SortType, nameof(DropMergeSort<T>));
         var a = SortImpl(array);
-        Statistics.AddIndexAccess(quickSort.Statistics.IndexAccessCount);
+        Statistics.AddIndexCount(quickSort.Statistics.IndexAccessCount);
         Statistics.AddCompareCount(quickSort.Statistics.CompareCount);
         Statistics.AddSwapCount(quickSort.Statistics.SwapCount);
-        Statistics.AddIndexAccess(quickSort2.Statistics.IndexAccessCount);
+        Statistics.AddIndexCount(quickSort2.Statistics.IndexAccessCount);
         Statistics.AddCompareCount(quickSort2.Statistics.CompareCount);
         Statistics.AddSwapCount(quickSort2.Statistics.SwapCount);
         return a;
@@ -67,7 +67,7 @@ public class DropMergeSort<T> : SortBase<T> where T : IComparable<T>
 
         while (read < array.Length)
         {
-            Statistics.AddIndexAccess();
+            Statistics.AddIndexCount();
 
             // fallback to QuickSort
             if (EarlyOut

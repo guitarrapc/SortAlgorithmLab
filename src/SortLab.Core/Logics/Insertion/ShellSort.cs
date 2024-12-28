@@ -35,7 +35,7 @@ public class ShellSort<T> : SortBase<T> where T : IComparable<T>
             {
                 for (int j = i; j >= h && Compare(array[j - h], array[j]) > 0; j -= h)
                 {
-                    Statistics.AddIndexAccess();
+                    Statistics.AddIndexCount();
                     Swap(ref array[j], ref array[j - h]);
                 }
             }

@@ -26,7 +26,7 @@ public class InsertSort<T> : SortBase<T> where T : IComparable<T>
             var tmp = array[i];
             for (var j = i; j >= 1 && Compare(array[j - 1], array[j]) > 0; --j)
             {
-                Statistics.AddIndexAccess();
+                Statistics.AddIndexCount();
                 //array.Dump($"{j - 1} : {array[j - 1]}, {j} : {array[j]}, {array[j - 1].CompareTo(array[j]) > 0}");
                 if (Compare(array[j - 1], array[j]) > 0)
                 {
@@ -44,7 +44,7 @@ public class InsertSort<T> : SortBase<T> where T : IComparable<T>
         {
             for (var j = i; j > first && Compare(array[j - 1], array[j]) > 0; --j)
             {
-                Statistics.AddIndexAccess();
+                Statistics.AddIndexCount();
                 Swap(ref array[j], ref array[j - 1]);
             }
         }

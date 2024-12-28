@@ -33,7 +33,7 @@ public class BogoSort<T> : SortBase<T> where T : IComparable<T>
     {
         for (var i = 0; i <= array.Length - 1; i++)
         {
-            Statistics.AddIndexAccess();
+            Statistics.AddIndexCount();
             Swap(ref array[i], ref array[random.Next(0, array.Length - 1)]);
         }
     }
@@ -42,7 +42,7 @@ public class BogoSort<T> : SortBase<T> where T : IComparable<T>
     {
         for (var i = 0; i < array.Length - 1; i++)
         {
-            Statistics.AddIndexAccess();
+            Statistics.AddIndexCount();
             if (Compare(array[i], array[i + 1]) > 0)
             {
                 return false;

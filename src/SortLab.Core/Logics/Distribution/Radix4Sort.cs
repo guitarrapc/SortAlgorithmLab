@@ -43,7 +43,7 @@ public class RadixLSD4Sort<T> : SortBase<int> where T : IComparable<T>
             // make bucket for possibly assigned number of int
             for (var i = 0; i < array.Length; i++)
             {
-                Statistics.AddIndexAccess();
+                Statistics.AddIndexCount();
                 // pick 256 radix d's digit number
                 var key = (array[i] >> logR) & 255;
                 if (bucket[key] == null) bucket[key] = new List<int>();
@@ -57,19 +57,19 @@ public class RadixLSD4Sort<T> : SortBase<int> where T : IComparable<T>
                 {
                     foreach (var item in bucket[j])
                     {
-                        Statistics.AddIndexAccess();
+                        Statistics.AddIndexCount();
                         array[i++] = item;
                     }
                 }
                 else
                 {
-                    Statistics.AddIndexAccess();
+                    Statistics.AddIndexCount();
                 }
             }
 
             for (var j = 0; j < bucket.Length; ++j)
             {
-                Statistics.AddIndexAccess();
+                Statistics.AddIndexCount();
                 bucket[j] = null;
             }
         }
@@ -91,7 +91,7 @@ public class RadixLSD4Sort<T> : SortBase<int> where T : IComparable<T>
             {
                 if (Compare(array[i], 0) >= 0)
                 {
-                    Statistics.AddIndexAccess();
+                    Statistics.AddIndexCount();
                     // pick 256 radix d's digit number
                     var key = (array[i] >> logR) & 255;
                     if (positiveBucket[key] == null) positiveBucket[key] = new List<int>();
@@ -100,7 +100,7 @@ public class RadixLSD4Sort<T> : SortBase<int> where T : IComparable<T>
                 }
                 else
                 {
-                    Statistics.AddIndexAccess();
+                    Statistics.AddIndexCount();
                     // pick 256 radix d's digit number
                     var key = (array[i] >> logR) & 255;
                     if (negativeBucket[key] == null) negativeBucket[key] = new List<int>();
@@ -116,13 +116,13 @@ public class RadixLSD4Sort<T> : SortBase<int> where T : IComparable<T>
                 {
                     foreach (var item in negativeBucket[j])
                     {
-                        Statistics.AddIndexAccess();
+                        Statistics.AddIndexCount();
                         array[i++] = item;
                     }
                 }
                 else
                 {
-                    Statistics.AddIndexAccess();
+                    Statistics.AddIndexCount();
                 }
             }
             // positive bucket
@@ -132,19 +132,19 @@ public class RadixLSD4Sort<T> : SortBase<int> where T : IComparable<T>
                 {
                     foreach (var item in positiveBucket[j])
                     {
-                        Statistics.AddIndexAccess();
+                        Statistics.AddIndexCount();
                         array[i++] = item;
                     }
                 }
                 else
                 {
-                    Statistics.AddIndexAccess();
+                    Statistics.AddIndexCount();
                 }
             }
 
             for (var j = 0; j < positiveBucket.Length; ++j)
             {
-                Statistics.AddIndexAccess();
+                Statistics.AddIndexCount();
                 positiveBucket[j] = null;
                 negativeBucket[j] = null;
             }

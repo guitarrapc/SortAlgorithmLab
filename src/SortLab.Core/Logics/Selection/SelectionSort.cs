@@ -26,7 +26,7 @@ public class SelectionSort<T> : SortBase<T> where T : IComparable<T>
             var min = i;
             for (var j = i + 1; j < array.Length; j++)
             {
-                Statistics.AddIndexAccess();
+                Statistics.AddIndexCount();
                 //array.Dump($"{min} : {array[min]}, {j} : {array[j]}, {array[min].CompareTo(array[j]) > 0}");
                 if (Compare(array[min], array[j]) > 0)
                 {

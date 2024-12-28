@@ -30,7 +30,7 @@ public class CombSort<T> : SortBase<T> where T : IComparable<T>
             var swapped = false;
             for (var i = 0; i + h < array.Length; i++)
             {
-                Statistics.AddIndexAccess();
+                Statistics.AddIndexCount();
                 if (Compare(array[i], array[i + h]) > 0)
                 {
                     Swap(ref array[i], ref array[i + h]);

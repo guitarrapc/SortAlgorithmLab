@@ -121,7 +121,7 @@ public class SmoothSort<T> : SortBase<T> where T : IComparable<T>
         while (b1 >= 3)
         {
             var r2 = r1 - b1 + c1;
-            Statistics.AddIndexAccess();
+            Statistics.AddIndexCount();
             if (Compare(array[r1 - 1], array[r2]) > 0)
             {
                 r2 = r1 - 1;
@@ -165,7 +165,7 @@ public class SmoothSort<T> : SortBase<T> where T : IComparable<T>
 
             var r3 = r1 - b1;
 
-            Statistics.AddIndexAccess();
+            Statistics.AddIndexCount();
             if ((p1 == 1) || Compare(array[r3], t) <= 0)
             {
                 p1 = 0;

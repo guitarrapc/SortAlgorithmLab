@@ -49,7 +49,7 @@ public class QuickSortDualPivotWithBinaryInsert<T> : SortBase<T> where T : IComp
 
         while (k <= g)
         {
-            Statistics.AddIndexAccess();
+            Statistics.AddIndexCount();
             if (Compare(array[k], array[left]) < 0)
             {
                 Swap(ref array[k], ref array[l]);

@@ -26,7 +26,7 @@ public class QuickSortMedian9WithBinaryInsert<T> : SortBase<T> where T : ICompar
         Statistics.Reset(array.Length, SortType, nameof(QuickSortMedian9WithBinaryInsert<T>));
         var result = SortImpl(array, 0, array.Length - 1);
         Statistics.AddCompareCount(insertSort.Statistics.CompareCount);
-        Statistics.AddIndexAccess(insertSort.Statistics.IndexAccessCount);
+        Statistics.AddIndexCount(insertSort.Statistics.IndexAccessCount);
         Statistics.AddSwapCount(insertSort.Statistics.SwapCount);
         return result;
     }
@@ -42,7 +42,7 @@ public class QuickSortMedian9WithBinaryInsert<T> : SortBase<T> where T : ICompar
         }
 
         // fase 1. decide pivot
-        Statistics.AddIndexAccess();
+        Statistics.AddIndexCount();
         var pivot = Median9(array, left, right);
         var l = left;
         var r = right;
@@ -51,13 +51,13 @@ public class QuickSortMedian9WithBinaryInsert<T> : SortBase<T> where T : ICompar
         {
             while (l < right && Compare(array[l], pivot) < 0)
             {
-                Statistics.AddIndexAccess();
+                Statistics.AddIndexCount();
                 l++;
             }
 
             while (r > left && Compare(array[r], pivot) > 0)
             {
-                Statistics.AddIndexAccess();
+                Statistics.AddIndexCount();
                 r--;
             }
 

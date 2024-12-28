@@ -31,7 +31,7 @@ public class SlowSort<T> : SortBase<T> where T : IComparable<T>
         SortImpl(array, start, m);
         SortImpl(array, m + 1, end);
 
-        Statistics.AddIndexAccess();
+        Statistics.AddIndexCount();
         if (Compare(array[end], array[m]) < 0)
         {
             Swap(ref array[end], ref array[m]);

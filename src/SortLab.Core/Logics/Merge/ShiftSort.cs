@@ -35,10 +35,10 @@ public class ShiftSort<T> : SortBase<T> where T : IComparable<T>
         // check 3items where decrease order like "array[x -2] < array[x - 1] < array[x]"
         for (var x = array.Length - 1; x >= 1; x--)
         {
-            Statistics.AddIndexAccess();
+            Statistics.AddIndexCount();
             if (Compare(array[x], array[x - 1]) < 0)
             {
-                Statistics.AddIndexAccess();
+                Statistics.AddIndexCount();
                 if (x > 1 && Compare(array[x - 1], array[x - 2]) < 0)
                 {
                     // change to increase order
@@ -46,10 +46,10 @@ public class ShiftSort<T> : SortBase<T> where T : IComparable<T>
 
                     if (x != array.Length - 1)
                     {
-                        Statistics.AddIndexAccess();
+                        Statistics.AddIndexCount();
                         if (Compare(array[x + 1], array[x]) < 0)
                         {
-                            Statistics.AddIndexAccess();
+                            Statistics.AddIndexCount();
                             zeroIndices[endTracker] = x + 1;
                             endTracker++;
                         }
@@ -77,7 +77,7 @@ public class ShiftSort<T> : SortBase<T> where T : IComparable<T>
         // i == j -2
         if ((j - i) == 2)
         {
-            Statistics.AddIndexAccess();
+            Statistics.AddIndexCount();
             Merge(array, zeroIndices[j], zeroIndices[j - 1], zeroIndices[i]);
             return;
         }
@@ -110,7 +110,7 @@ public class ShiftSort<T> : SortBase<T> where T : IComparable<T>
             var counter = 0;
             for (var y = second; y < third; y++)
             {
-                Statistics.AddIndexAccess();
+                Statistics.AddIndexCount();
                 tmp2nd[counter] = array[y];
                 counter++;
             }
@@ -120,7 +120,7 @@ public class ShiftSort<T> : SortBase<T> where T : IComparable<T>
             var left = second - 1;
             while (secondCounter > 0)
             {
-                Statistics.AddIndexAccess();
+                Statistics.AddIndexCount();
                 if (left >= first && Compare(array[left], tmp2nd[secondCounter - 1]) >= 0)
                 {
                     array[left + secondCounter] = array[left];
@@ -140,7 +140,7 @@ public class ShiftSort<T> : SortBase<T> where T : IComparable<T>
             var counter = 0;
             for (var y = first; y < second; y++)
             {
-                Statistics.AddIndexAccess();
+                Statistics.AddIndexCount();
                 tmp1st[counter] = array[y];
                 counter++;
             }
@@ -151,7 +151,7 @@ public class ShiftSort<T> : SortBase<T> where T : IComparable<T>
             var right = second;
             while (firstCounter < tmp1st.Length)
             {
-                Statistics.AddIndexAccess();
+                Statistics.AddIndexCount();
                 if (right < third && Compare(array[right], tmp1st[firstCounter]) < 0)
                 {
                     array[right - tmpLength] = array[right];
