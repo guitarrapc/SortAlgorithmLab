@@ -109,13 +109,13 @@ public class InsertSortTests
 
     [Theory]
     [ClassData(typeof(MockSortedData))]
-    public void StatisticsNoSwapCountTest(IInputSample<int> inputSample)
+    public void StatisticsSortedTest(IInputSample<int> inputSample)
     {
         sort.Sort(inputSample.Samples);
         sort.Statistics.Algorithm.Should().Be(algorithm);
         sort.Statistics.ArraySize.Should().Be(inputSample.Samples.Length);
         sort.Statistics.IndexAccessCount.Should().Be(0);
-        sort.Statistics.CompareCount.Should().Be(0);
+        sort.Statistics.CompareCount.Should().Be((ulong)inputSample.Samples.Length - 1);
         sort.Statistics.SwapCount.Should().Be(0);
     }
 
