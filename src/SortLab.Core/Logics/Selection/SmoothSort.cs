@@ -2,6 +2,18 @@ using System;
 
 namespace SortLab.Core.Logics;
 
+/*
+
+ref Span ...
+
+| Method        | Number | Mean         | Error         | StdDev     | Median       | Min          | Max          | Allocated |
+|-------------- |------- |-------------:|--------------:|-----------:|-------------:|-------------:|-------------:|----------:|
+| SmoothSort    | 100    |     17.60 us |     14.595 us |   0.800 us |     17.60 us |     16.80 us |     18.40 us |     448 B |
+| SmoothSort    | 1000   |    691.87 us | 12,061.896 us | 661.153 us |    311.00 us |    309.30 us |  1,455.30 us |     448 B |
+| SmoothSort    | 10000  |  3,522.83 us |    301.172 us |  16.508 us |  3,526.50 us |  3,504.80 us |  3,537.20 us |     448 B |
+
+ */
+
 /// <summary>
 /// ヒープソートの亜種。HeapSortのBinaryTree手法ではなく、Leonardo Sequenceで並べる。あとは、大きい数値をツリーから拾って順に並べる。レオナルド数列の特性から、順番に並んでいる要素をなるべく移動しないようにソートできるため、順番に並んでいるほど計算時間が少なくなる。(完全に並んでいればO(n))
 /// </summary>
@@ -22,8 +34,7 @@ public class SmoothSort<T> : SortBase<T> where T : IComparable<T>
     public override T[] Sort(T[] array)
     {
         Statistics.Reset(array.Length, SortType, nameof(SmoothSort<T>));
-        var span = array.AsSpan();
-        SortCore(span);
+        SortCore(array.AsSpan());
 
         return array;
     }
@@ -113,25 +124,24 @@ public class SmoothSort<T> : SortBase<T> where T : IComparable<T>
     private void Shift(Span<T> span, ref int r1, ref int b1, ref int c1)
     {
         var r0 = r1;
-        var t = span[r0];
+        var t = Index(ref span, r0);
 
         while (b1 >= 3)
         {
             var r2 = r1 - b1 + c1;
-            Statistics.AddIndexCount();
-            if (Compare(span[r1 - 1], span[r2]) > 0)
+            if (Compare(Index(ref span, r1 - 1), Index(ref span, r2)) > 0)
             {
                 r2 = r1 - 1;
                 Down(ref b1, ref c1);
             }
 
-            if (Compare(span[r2], t) <= 0)
+            if (Compare(Index(ref span, r2), t) <= 0)
             {
                 b1 = 1;
             }
             else
             {
-                span[r1] = span[r2];
+                span[r1] = Index(ref span, r2);
                 r1 = r2;
                 Down(ref b1, ref c1);
             }
@@ -150,7 +160,7 @@ public class SmoothSort<T> : SortBase<T> where T : IComparable<T>
         b1 = b;
         c1 = c;
         r0 = r1;
-        var t = span[r0];
+        var t = Index(ref span, r0);
 
         while (p1 > 0)
         {
@@ -162,8 +172,7 @@ public class SmoothSort<T> : SortBase<T> where T : IComparable<T>
 
             var r3 = r1 - b1;
 
-            Statistics.AddIndexCount();
-            if ((p1 == 1) || Compare(span[r3], t) <= 0)
+            if ((p1 == 1) || Compare(Index(ref span, r3), t) <= 0)
             {
                 p1 = 0;
             }
@@ -172,7 +181,7 @@ public class SmoothSort<T> : SortBase<T> where T : IComparable<T>
                 p1--;
                 if (b1 == 1)
                 {
-                    span[r1] = span[r3];
+                    span[r1] = Index(ref span, r3);
                     r1 = r3;
                 }
                 else
@@ -180,21 +189,21 @@ public class SmoothSort<T> : SortBase<T> where T : IComparable<T>
                     if (b1 >= 3)
                     {
                         var r2 = r1 - b1 + c1;
-                        if (Compare(span[r1 - 1], span[r2]) > 0)
+                        if (Compare(Index(ref span, r1 - 1), Index(ref span, r2)) > 0)
                         {
                             r2 = r1 - 1;
                             Down(ref b1, ref c1);
                             p1 <<= 1;
                         }
 
-                        if (Compare(span[r2], span[r3]) <= 0)
+                        if (Compare(Index(ref span, r2), Index(ref span, r3)) <= 0)
                         {
-                            span[r1] = span[r3];
+                            span[r1] = Index(ref span, r3);
                             r1 = r3;
                         }
                         else
                         {
-                            span[r1] = span[r2];
+                            span[r1] = Index(ref span, r2);
                             r1 = r2;
                             Down(ref b1, ref c1);
                             p1 = 0;
@@ -215,16 +224,18 @@ public class SmoothSort<T> : SortBase<T> where T : IComparable<T>
     private void SemiTrinkle(Span<T> span, ref int p, ref int b1, ref int b, ref int c1, ref int c, ref int r1, ref int r)
     {
         r1 = r - c;
-        if (Compare(span[r1], span[r]) > 0)
+        if (Compare(Index(ref span, r1), Index(ref span, r)) > 0)
         {
-            Swap(ref span[r], ref span[r1]);
+            Swap(ref Index(ref span, r), ref Index(ref span, r1));
             Trinkle(span, ref p, ref b1, ref b, ref c1, ref c, ref r1);
         }
     }
 
     private void Up(ref int a, ref int b)
     {
+#if DEBUG
         Statistics.AddSwapCount();
+#endif
         var temp = a;
         a += b + 1;
         b = temp;
@@ -232,7 +243,9 @@ public class SmoothSort<T> : SortBase<T> where T : IComparable<T>
 
     private void Down(ref int a, ref int b)
     {
+#if DEBUG
         Statistics.AddSwapCount();
+#endif
         var temp = b;
         b = a - b - 1;
         a = temp;
