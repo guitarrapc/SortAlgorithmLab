@@ -16,11 +16,11 @@ namespace SortLab.Core.Logics;
 /// Order : O(kn)
 /// </remarks>
 /// <typeparam name="T"></typeparam>
-public class RadixLSD10Sort<T> : SortBase<T> where T : IComparable<T>
+public class RadixLSD10Sort<T> : SortBase<int> where T : IComparable<T>
 {
     public override SortType SortType => SortType.Distributed;
 
-    public int[] Sort(int[] array)
+    public override int[] Sort(int[] array)
     {
         Statistics.Reset(array.Length, SortType, nameof(RadixLSD10Sort<T>));
         if (array.Min() >= 0)
@@ -45,9 +45,8 @@ public class RadixLSD10Sort<T> : SortBase<T> where T : IComparable<T>
             for (var i = 0; i < array.Length; i++)
             {
                 Statistics.AddIndexAccess();
-                Statistics.AddCompareCount();
                 var key = (array[i] / r) % 10;
-                if (bucket[key] == null) bucket[key] = new List<int>();
+                if (bucket[key] == null) bucket[key] = [];
                 bucket[key].Add(array[i]);
             }
 

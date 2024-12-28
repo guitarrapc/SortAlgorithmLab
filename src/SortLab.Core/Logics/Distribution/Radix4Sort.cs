@@ -16,11 +16,11 @@ namespace SortLab.Core.Logics;
 /// Order : O(kn)
 /// </remarks>
 /// <typeparam name="T"></typeparam>
-public class RadixLSD4Sort<T> : SortBase<T> where T : IComparable<T>
+public class RadixLSD4Sort<T> : SortBase<int> where T : IComparable<T>
 {
     public override SortType SortType => SortType.Distributed;
 
-    public int[] Sort(int[] array)
+    public override int[] Sort(int[] array)
     {
         Statistics.Reset(array.Length, SortType, nameof(RadixLSD4Sort<T>));
         if (array.Min() >= 0)
@@ -89,8 +89,7 @@ public class RadixLSD4Sort<T> : SortBase<T> where T : IComparable<T>
             // make bucket for possibly assigned number of int
             for (var i = 0; i < array.Length; i++)
             {
-                Statistics.AddCompareCount();
-                if (array[i].CompareTo(0) >= 0)
+                if (Compare(array[i], 0) >= 0)
                 {
                     Statistics.AddIndexAccess();
                     // pick 256 radix d's digit number

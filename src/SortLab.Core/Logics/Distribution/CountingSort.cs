@@ -15,11 +15,11 @@ namespace SortLab.Core.Logics;
 /// </remarks>
 /// <typeparam name="T"></typeparam>
 
-public class CountingSort<T> : SortBase<T> where T : IComparable<T>
+public class CountingSort<T> : SortBase<int> where T : IComparable<T>
 {
     public override SortType SortType => SortType.Distributed;
 
-    public int[] Sort(int[] array)
+    public override int[] Sort(int[] array)
     {
         Statistics.Reset(array.Length, SortType, nameof(CountingSort<T>));
         if (array.Min() >= 0)

@@ -9,10 +9,10 @@ public class BucketSortTests
 
     public BucketSortTests()
     {
-        var sort = new BucketSort<int>();
+        var sort = new BucketSortInt<int>();
         func = array => sort.Sort(array);
         this.sort = sort;
-        algorithm = nameof(BucketSort<int>);
+        algorithm = nameof(BucketSortInt<int>);
         sortType = SortType.Distributed;
     }
 
