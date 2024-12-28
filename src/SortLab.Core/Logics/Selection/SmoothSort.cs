@@ -18,23 +18,19 @@ public class SmoothSort<T> : SortBase<T> where T : IComparable<T>
 {
     // refer : https://www.slideshare.net/habib_786/smooth-sort
     public override SortType SortType => SortType.Selection;
-    private static int q, r, p, b, c, r1, b1, c1;
 
     public override T[] Sort(T[] array)
     {
         Statistics.Reset(array.Length, SortType, nameof(SmoothSort<T>));
-        return SortImpl(array);
+        return SortCore(array);
     }
 
-    private T[] SortImpl(T[] array)
+    private T[] SortCore(T[] array)
     {
         var span = array.AsSpan();
 
-        q = 1;
-        r = 0;
-        p = 1;
-        b = 1;
-        c = 1;
+        int q = 1, r = 0, p = 1, b = 1, c = 1;
+        int r1 = 0, b1 = 0, c1 = 0;
 
         while (q < span.Length)
         {
@@ -43,7 +39,7 @@ public class SmoothSort<T> : SortBase<T> where T : IComparable<T>
             {
                 b1 = b;
                 c1 = c;
-                Shift(span);
+                Shift(span, ref r1, ref b1, ref c1);
                 p = (p + 1) >> 2;
                 Up(ref b, ref c);
                 Up(ref b, ref c);
@@ -54,11 +50,11 @@ public class SmoothSort<T> : SortBase<T> where T : IComparable<T>
                 {
                     b1 = b;
                     c1 = c;
-                    Shift(span);
+                    Shift(span, ref r1, ref b1, ref c1);
                 }
                 else
                 {
-                    Trinkle(span);
+                    Trinkle(span, ref p, ref b1, ref b, ref c1, ref c, ref r1);
                 }
 
                 Down(ref b, ref c);
@@ -76,7 +72,7 @@ public class SmoothSort<T> : SortBase<T> where T : IComparable<T>
         }
 
         r1 = r;
-        Trinkle(span);
+        Trinkle(span, ref p, ref b1, ref b, ref c1, ref c, ref r1);
 
         while (q > 1)
         {
@@ -99,13 +95,13 @@ public class SmoothSort<T> : SortBase<T> where T : IComparable<T>
                     r = r - b + c;
                     if (p > 0)
                     {
-                        SemiTrinkle(span);
+                        SemiTrinkle(span, ref p, ref b1, ref b, ref c1, ref c, ref r1, ref r);
                     }
 
                     Down(ref b, ref c);
                     p = (p << 1) + 1;
                     r = r + c;
-                    SemiTrinkle(span);
+                    SemiTrinkle(span, ref p, ref b1, ref b, ref c1, ref c, ref r1, ref r);
                     Down(ref b, ref c);
                     p = (p << 1) + 1;
                 }
@@ -115,7 +111,7 @@ public class SmoothSort<T> : SortBase<T> where T : IComparable<T>
         return array;
     }
 
-    private void Shift(Span<T> span)
+    private void Shift(Span<T> span, ref int r1, ref int b1, ref int c1)
     {
         var r0 = r1;
         var t = span[r0];
@@ -148,7 +144,7 @@ public class SmoothSort<T> : SortBase<T> where T : IComparable<T>
         }
     }
 
-    private void Trinkle(Span<T> span)
+    private void Trinkle(Span<T> span, ref int p, ref int b1, ref int b, ref int c1, ref int c, ref int r1)
     {
         int p1, r0 = 0;
         p1 = p;
@@ -214,16 +210,16 @@ public class SmoothSort<T> : SortBase<T> where T : IComparable<T>
             span[r1] = t;
         }
 
-        Shift(span);
+        Shift(span, ref r1, ref b1, ref c1);
     }
 
-    private void SemiTrinkle(Span<T> span)
+    private void SemiTrinkle(Span<T> span, ref int p, ref int b1, ref int b, ref int c1, ref int c, ref int r1, ref int r)
     {
         r1 = r - c;
         if (Compare(span[r1], span[r]) > 0)
         {
             Swap(ref span[r], ref span[r1]);
-            Trinkle(span);
+            Trinkle(span, ref p, ref b1, ref b, ref c1, ref c, ref r1);
         }
     }
 

@@ -17,6 +17,8 @@ public class SelectionBenchmark
     private HeapSort<int> _heapSort = default!;
     private int[] _selectionArray = default!;
     private SelectionSort<int> _selectionSort = default!;
+    private int[] _smoothArray = default!;
+    private SmoothSort<int> _smoothSort = default!;
 
     [IterationSetup]
     public void Setup()
@@ -29,6 +31,9 @@ public class SelectionBenchmark
 
         _selectionArray = _cycleArray.ToArray();
         _selectionSort = new();
+
+        _smoothArray = _cycleArray.ToArray();
+        _smoothSort = new();
     }
 
     [Benchmark]
@@ -47,5 +52,11 @@ public class SelectionBenchmark
     public void SelectionSort()
     {
         _selectionSort.Sort(_selectionArray);
+    }
+
+    [Benchmark]
+    public void SmoothSort()
+    {
+        _smoothSort.Sort(_smoothArray);
     }
 }
