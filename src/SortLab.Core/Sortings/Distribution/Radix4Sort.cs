@@ -15,10 +15,11 @@
 public class RadixLSD4Sort<T> : SortBase<int> where T : IComparable<T>
 {
     public override SortType SortType => SortType.Distributed;
+    protected override string Name => nameof(RadixLSD4Sort<T>);
 
     public override int[] Sort(int[] array)
     {
-        Statistics.Reset(array.Length, SortType, nameof(RadixLSD4Sort<T>));
+        Statistics.Reset(array.Length, SortType, Name);
         if (array.Min() >= 0)
         {
             return SortImplPositive(array);

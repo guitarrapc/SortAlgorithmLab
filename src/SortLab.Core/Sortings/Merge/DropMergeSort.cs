@@ -20,6 +20,7 @@ public class DropMergeSort<T> : SortBase<T> where T : IComparable<T>
 {
     // refer: https://github.com/JamesQuintero/ShiftSort
     public override SortType SortType => SortType.Merge;
+    protected override string Name => nameof(DropMergeSort<T>);
 
     private QuickSortMedian9WithBinaryInsert<T> quickSort = new QuickSortMedian9WithBinaryInsert<T>();
     private QuickSortMedian9WithBinaryInsert<T> quickSort2 = new QuickSortMedian9WithBinaryInsert<T>();
@@ -43,7 +44,7 @@ public class DropMergeSort<T> : SortBase<T> where T : IComparable<T>
 
     public override T[] Sort(T[] array)
     {
-        Statistics.Reset(array.Length, SortType, nameof(DropMergeSort<T>));
+        Statistics.Reset(array.Length, SortType, Name);
         var a = SortImpl(array);
         Statistics.AddIndexCount(quickSort.Statistics.IndexAccessCount);
         Statistics.AddCompareCount(quickSort.Statistics.CompareCount);

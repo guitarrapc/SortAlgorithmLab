@@ -25,12 +25,25 @@ Ref span ...
 public class SelectionSort<T> : SortBase<T> where T : IComparable<T>
 {
     public override SortType SortType => SortType.Selection;
+    protected override string Name => nameof(SelectionSort<T>);
 
     public override T[] Sort(T[] array)
     {
-        Statistics.Reset(array.Length, SortType, nameof(SelectionSort<T>));
+        Statistics.Reset(array.Length, SortType, Name);
         var span = array.AsSpan();
+        SortCore(span);
 
+        return array;
+    }
+
+    public void Sort(Span<T> span)
+    {
+        Statistics.Reset(span.Length, SortType, nameof(SelectionSort<T>));
+        SortCore(span);
+    }
+
+    private void SortCore(Span<T> span)
+    {
         for (var i = 0; i < span.Length - 1; i++)
         {
             var min = i;
@@ -50,6 +63,5 @@ public class SelectionSort<T> : SortBase<T> where T : IComparable<T>
                 Swap(ref Index(ref span, min), ref Index(ref span, i));
             }
         }
-        return array;
     }
 }

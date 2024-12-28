@@ -5,7 +5,8 @@ public abstract class SortBase<T> : ISort<T> where T : IComparable<T>
     public IStatistics Statistics => statistics;
     private IStatistics statistics = new SortStatistics();
 
-    public virtual SortType SortType => SortType.None;
+    public abstract SortType SortType { get; }
+    protected abstract string Name { get; }
 
     public abstract T[] Sort(T[] array);
 

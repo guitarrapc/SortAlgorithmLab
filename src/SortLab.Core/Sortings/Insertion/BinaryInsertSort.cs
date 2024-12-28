@@ -15,24 +15,25 @@
 public class BinaryInsertSort<T> : SortBase<T> where T : IComparable<T>
 {
     public override SortType SortType => SortType.Insertion;
+    protected override string Name => nameof(BinaryInsertSort<T>);
 
     public override T[] Sort(T[] array)
     {
-        Statistics.Reset(array.Length, SortType, nameof(BinaryInsertSort<T>));
+        Statistics.Reset(array.Length, SortType, Name);
         SortImpl(array, 0, array.Length);
         return array;
     }
 
     public T[] Sort(T[] array, int first, int last)
     {
-        Statistics.Reset(array.Length, SortType, nameof(BinaryInsertSort<T>));
+        Statistics.Reset(array.Length, SortType, Name);
         SortImpl(array, first, last);
         return array;
     }
 
     public T[] Sort(T[] array, int first, int last, int start)
     {
-        Statistics.Reset(array.Length, SortType, nameof(BinaryInsertSort<T>));
+        Statistics.Reset(array.Length, SortType, Name);
         SortImpl(array, first, last, start);
         return array;
     }

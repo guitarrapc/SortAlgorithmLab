@@ -41,11 +41,25 @@ Ref span ...
 public class HeapSort<T> : SortBase<T> where T : IComparable<T>
 {
     public override SortType SortType => SortType.Selection;
+    protected override string Name => nameof(HeapSort<T>);
 
     public override T[] Sort(T[] array)
     {
-        Statistics.Reset(array.Length, SortType, nameof(HeapSort<T>));
+        Statistics.Reset(array.Length, SortType, Name);
         var span = array.AsSpan();
+        SortCore(span);
+
+        return array;
+    }
+
+    public void Sort(Span<T> span)
+    {
+        Statistics.Reset(span.Length, SortType, Name);
+        SortCore(span);
+    }
+
+    private void SortCore(Span<T> span)
+    {
         var n = span.Length;
 
         // Build heap
@@ -62,7 +76,6 @@ public class HeapSort<T> : SortBase<T> where T : IComparable<T>
             // Re-heapify the reduced heap
             DownHeap(span, 0, i);
         }
-        return array;
     }
 
     /// <summary>
@@ -80,7 +93,7 @@ public class HeapSort<T> : SortBase<T> where T : IComparable<T>
             throw new ArgumentOutOfRangeException(nameof(low), "Invalid range for sorting.");
         }
 
-        Statistics.Reset(array.Length, SortType, nameof(HeapSort<T>));
+        Statistics.Reset(array.Length, SortType, Name);
 
         var n = high - low;
 

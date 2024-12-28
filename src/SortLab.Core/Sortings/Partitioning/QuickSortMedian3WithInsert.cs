@@ -14,6 +14,7 @@
 public class QuickSortMedian3WithInsert<T> : SortBase<T> where T : IComparable<T>
 {
     public override SortType SortType => SortType.Partition;
+    protected override string Name => nameof(QuickSortMedian3WithInsert<T>);
 
     // ref : https://github.com/nlfiedler/burstsort4j/blob/master/src/org/burstsort4j/Introsort.java
     private const int InsertThreshold = 16;
@@ -21,7 +22,7 @@ public class QuickSortMedian3WithInsert<T> : SortBase<T> where T : IComparable<T
 
     public override T[] Sort(T[] array)
     {
-        Statistics.Reset(array.Length, SortType, nameof(QuickSortMedian3WithInsert<T>));
+        Statistics.Reset(array.Length, SortType, Name);
         var result = SortImpl(array, 0, array.Length - 1);
         Statistics.AddCompareCount(insertSort.Statistics.CompareCount);
         Statistics.AddIndexCount(insertSort.Statistics.IndexAccessCount);

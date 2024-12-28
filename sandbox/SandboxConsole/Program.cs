@@ -96,9 +96,9 @@ public record Runner
 
                     // Gnome Sort
                     RunSort(new GnomeSort<int>(), item);
-                    RunSort(new GnomeSort1<int>(), item);
-                    RunSort(new GnomeSort2<int>(), item);
-                    RunSort(new GnomeSort3<int>(), item);
+                    RunSort(new GnomeSortWithSwap<int>(), item);
+                    RunSort(new GnomeSortNoOptimization<int>(), item);
+                    RunSort(new GnomeSortSimple<int>(), item);
 
                     // OddEven Sort
                     RunSort(new OddEvenSort<int>(), item);

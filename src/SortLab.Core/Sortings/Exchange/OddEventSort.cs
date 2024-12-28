@@ -15,10 +15,11 @@
 public class OddEvenSort<T> : SortBase<T> where T : IComparable<T>
 {
     public override SortType SortType => SortType.Exchange;
+    protected override string Name => nameof(OddEvenSort<T>);
 
     public override T[] Sort(T[] array)
     {
-        Statistics.Reset(array.Length, SortType, nameof(OddEvenSort<T>));
+        Statistics.Reset(array.Length, SortType, Name);
 
         var sorted = false;
         while (!sorted)

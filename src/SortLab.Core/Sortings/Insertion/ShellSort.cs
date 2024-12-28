@@ -14,10 +14,11 @@
 public class ShellSort<T> : SortBase<T> where T : IComparable<T>
 {
     public override SortType SortType => SortType.Insertion;
+    protected override string Name => nameof(ShellSort<T>);
 
     public override T[] Sort(T[] array)
     {
-        Statistics.Reset(array.Length, SortType, nameof(ShellSort<T>));
+        Statistics.Reset(array.Length, SortType, Name);
 
         // calculate h
         // most efficient h will be : h(i + 1) = 3h(i) + 1

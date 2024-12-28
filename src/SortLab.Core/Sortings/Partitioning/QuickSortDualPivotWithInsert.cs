@@ -14,13 +14,14 @@
 public class QuickSortDualPivotWithInsert<T> : SortBase<T> where T : IComparable<T>
 {
     public override SortType SortType => SortType.Partition;
+    protected override string Name => nameof(QuickSortDualPivotWithInsert<T>);
 
     private const int InsertThreshold = 16;
     private InsertSort<T> insertSort = new InsertSort<T>();
 
     public override T[] Sort(T[] array)
     {
-        Statistics.Reset(array.Length, SortType, nameof(QuickSortDualPivotWithInsert<T>));
+        Statistics.Reset(array.Length, SortType, Name);
         return SortImpl(array, 0, array.Length - 1);
     }
 

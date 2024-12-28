@@ -14,10 +14,11 @@
 public class PancakeSort<T> : SortBase<T> where T : IComparable<T>
 {
     public override SortType SortType => SortType.Other;
+    protected override string Name => nameof(PancakeSort<T>);
 
     public override T[] Sort(T[] array)
     {
-        Statistics.Reset(array.Length, SortType, nameof(PancakeSort<T>));
+        Statistics.Reset(array.Length, SortType, Name);
         return SortImpl(array);
     }
 

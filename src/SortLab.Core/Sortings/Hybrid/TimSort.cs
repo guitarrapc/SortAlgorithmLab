@@ -15,6 +15,8 @@
 public class TimSort<T> : SortBase<T> where T : IComparable<T>
 {
     public override SortType SortType => SortType.Hybrid;
+    protected override string Name => nameof(TimSort<T>);
+
     private BinaryInsertSort<T> insertSort = new BinaryInsertSort<T>();
 
     private static readonly int defaultMinMerge = 32;
@@ -51,7 +53,7 @@ public class TimSort<T> : SortBase<T> where T : IComparable<T>
 
     public override T[] Sort(T[] array)
     {
-        Statistics.Reset(array.Length, SortType, nameof(TimSort<T>));
+        Statistics.Reset(array.Length, SortType, Name);
 
         // run
         Initialize(array);

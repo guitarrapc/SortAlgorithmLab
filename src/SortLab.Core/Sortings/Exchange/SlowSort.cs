@@ -14,10 +14,11 @@
 public class SlowSort<T> : SortBase<T> where T : IComparable<T>
 {
     public override SortType SortType => SortType.Exchange;
+    protected override string Name => nameof(SlowSort<T>);
 
     public override T[] Sort(T[] array)
     {
-        Statistics.Reset(array.Length, SortType, nameof(SlowSort<T>));
+        Statistics.Reset(array.Length, SortType, Name);
         return SortImpl(array, 0, array.Length - 1);
     }
 

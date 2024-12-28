@@ -15,11 +15,11 @@
 public class BogoSort<T> : SortBase<T> where T : IComparable<T>
 {
     public override SortType SortType => SortType.Exchange;
-    private Random random = new Random();
+    protected override string Name => nameof(BogoSort<T>);
 
     public override T[] Sort(T[] array)
     {
-        Statistics.Reset(array.Length, SortType, nameof(BogoSort<T>));
+        Statistics.Reset(array.Length, SortType, Name);
         while (!IsSorted(array))
         {
             Shuffle(array);
@@ -32,7 +32,7 @@ public class BogoSort<T> : SortBase<T> where T : IComparable<T>
         for (var i = 0; i <= array.Length - 1; i++)
         {
             Statistics.AddIndexCount();
-            Swap(ref array[i], ref array[random.Next(0, array.Length - 1)]);
+            Swap(ref array[i], ref array[Random.Shared.Next(0, array.Length - 1)]);
         }
     }
 

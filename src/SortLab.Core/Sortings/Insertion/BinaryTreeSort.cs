@@ -14,11 +14,13 @@
 public class BinaryTreeSort<T> : SortBase<T> where T : IComparable<T>
 {
     public override SortType SortType => SortType.Insertion;
+    protected override string Name => nameof(BinaryTreeSort<T>);
+
     private Node root = null;
 
     public override T[] Sort(T[] array)
     {
-        Statistics.Reset(array.Length, SortType, nameof(BinaryTreeSort<T>));
+        Statistics.Reset(array.Length, SortType, Name);
         return SortImpl(array);
     }
     private T[] SortImpl(T[] array)

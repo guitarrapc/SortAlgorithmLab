@@ -1,15 +1,15 @@
 namespace SortLab.Tests;
 
-public class GnomeSort2Tests
+public class GnomeSortNoOptimizationTests
 {
     private ISort<int> sort;
     private string algorithm;
     private SortType sortType;
 
-    public GnomeSort2Tests()
+    public GnomeSortNoOptimizationTests()
     {
-        sort = new GnomeSort3<int>();
-        algorithm = nameof(GnomeSort3<int>);
+        sort = new GnomeSortNoOptimization<int>();
+        algorithm = nameof(GnomeSortNoOptimization<int>);
         sortType = SortType.Exchange;
     }
 

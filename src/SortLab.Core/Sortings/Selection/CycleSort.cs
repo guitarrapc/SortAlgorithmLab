@@ -23,12 +23,25 @@ Ref span ...
 public class CycleSort<T> : SortBase<T> where T : IComparable<T>
 {
     public override SortType SortType => SortType.Selection;
+    protected override string Name => nameof(CycleSort<T>);
 
     public override T[] Sort(T[] array)
     {
-        Statistics.Reset(array.Length, SortType, nameof(CycleSort<T>));
+        Statistics.Reset(array.Length, SortType, Name);
         var span = array.AsSpan();
+        SortCore(span);
 
+        return array;
+    }
+
+    public void Sort(Span<T> span)
+    {
+        Statistics.Reset(span.Length, SortType, Name);
+        SortCore(span);
+    }
+
+    private void SortCore(Span<T> span)
+    {
         for (var start = 0; start <= span.Length - 2; start++)
         {
             // Compare value
@@ -54,7 +67,6 @@ public class CycleSort<T> : SortBase<T> where T : IComparable<T>
                 Swap(ref Index(ref span, pos), ref tmp);
             }
         }
-        return array;
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]

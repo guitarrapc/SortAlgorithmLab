@@ -15,6 +15,7 @@
 public class IntroSortMedian3<T> : SortBase<T> where T : IComparable<T>
 {
     public override SortType SortType => SortType.Hybrid;
+    protected override string Name => nameof(IntroSortMedian3<T>);
 
     // ref : https://www.cs.waikato.ac.nz/~bernhard/317/source/IntroSort.java
     private const int IntroThreshold = 16;
@@ -23,7 +24,7 @@ public class IntroSortMedian3<T> : SortBase<T> where T : IComparable<T>
 
     public override T[] Sort(T[] array)
     {
-        Statistics.Reset(array.Length, SortType, nameof(IntroSortMedian3<T>));
+        Statistics.Reset(array.Length, SortType, Name);
         var result = Sort(array, 0, array.Length - 1, 2 * FloorLog(array.Length));
         Statistics.AddCompareCount(heapSort.Statistics.CompareCount);
         Statistics.AddIndexCount(heapSort.Statistics.IndexAccessCount);

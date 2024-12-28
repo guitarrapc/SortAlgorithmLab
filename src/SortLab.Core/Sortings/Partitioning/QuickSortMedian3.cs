@@ -14,10 +14,11 @@
 public class QuickSortMedian3<T> : SortBase<T> where T : IComparable<T>
 {
     public override SortType SortType => SortType.Partition;
+    protected override string Name => nameof(QuickSortMedian3<T>);
 
     public override T[] Sort(T[] array)
     {
-        Statistics.Reset(array.Length, SortType, nameof(QuickSortMedian3<T>));
+        Statistics.Reset(array.Length, SortType, Name);
         return SortImpl(array, 0, array.Length - 1);
     }
 

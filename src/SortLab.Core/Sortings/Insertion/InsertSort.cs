@@ -15,10 +15,11 @@
 public class InsertSort<T> : SortBase<T> where T : IComparable<T>
 {
     public override SortType SortType => SortType.Insertion;
+    protected override string Name => nameof(InsertSort<T>);
 
     public override T[] Sort(T[] array)
     {
-        Statistics.Reset(array.Length, SortType, nameof(InsertSort<T>));
+        Statistics.Reset(array.Length, SortType, Name);
         for (var i = 1; i < array.Length; i++)
         {
             var tmp = array[i];
@@ -37,7 +38,7 @@ public class InsertSort<T> : SortBase<T> where T : IComparable<T>
 
     public T[] Sort(T[] array, int first, int last)
     {
-        Statistics.Reset(array.Length, SortType, nameof(InsertSort<T>));
+        Statistics.Reset(array.Length, SortType, Name);
         for (var i = first + 1; i < last; i++)
         {
             for (var j = i; j > first && Compare(array[j - 1], array[j]) > 0; --j)

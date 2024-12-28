@@ -15,9 +15,12 @@ namespace SortLab.Core.Sortings;
 
 public class BucketSort<T>(Func<T, int> getKey) : SortBase<T> where T : IComparable<T>
 {
+    public override SortType SortType => SortType.Distributed;
+    protected override string Name => nameof(BucketSort<T>);
+
     public override T[] Sort(T[] array)
     {
-        Statistics.Reset(array.Length, SortType, nameof(BucketSort<T>));
+        Statistics.Reset(array.Length, SortType, Name);
         var size = array.Select(x => getKey(x)).Max() + 1;
 
         // 0 position
@@ -74,10 +77,11 @@ public class BucketSort<T>(Func<T, int> getKey) : SortBase<T> where T : ICompara
 public class BucketSortInt<T> : SortBase<int>
 {
     public override SortType SortType => SortType.Distributed;
+    protected override string Name => nameof(BucketSortInt<T>);
 
     public override int[] Sort(int[] array)
     {
-        Statistics.Reset(array.Length, SortType, nameof(BucketSortInt<T>));
+        Statistics.Reset(array.Length, SortType, Name);
         var size = array.Max();
 
         // 0 position
