@@ -30,9 +30,9 @@ public class SortStatistics : IStatistics
 
     public void Reset(int arraySize, SortType sortType, string algorithm)
     {
+        ArraySize = arraySize;
         SortType = sortType;
         Algorithm = algorithm;
-        ArraySize = arraySize;
         IsSorted = false;
         _indexAccessCount = 0;
         _compareCount = 0;

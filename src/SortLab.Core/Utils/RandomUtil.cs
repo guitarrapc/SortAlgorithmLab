@@ -26,11 +26,7 @@ public static class RandomUtil
     {
         get
         {
-            if (random == null)
-            {
-                random = RandomFactory();
-            }
-
+            random ??= RandomFactory();
             return random;
         }
     }
