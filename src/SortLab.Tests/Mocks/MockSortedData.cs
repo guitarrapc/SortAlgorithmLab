@@ -9,9 +9,9 @@ public class MockSortedData : IEnumerable<object[]>
 
     public MockSortedData()
     {
-        testData.Add(new object[] { new InputSample<int>() { InputType = InputType.Sorted, Samples = Enumerable.Range(0, 100).ToArray() } });
-        testData.Add(new object[] { new InputSample<int>() { InputType = InputType.Sorted, Samples = Enumerable.Range(0, 1000).ToArray() } });
-        testData.Add(new object[] { new InputSample<int>() { InputType = InputType.Sorted, Samples = Enumerable.Range(0, 10000).ToArray() } });
+        testData.Add([new InputSample<int>() { InputType = InputType.Sorted, Samples = Enumerable.Range(0, 100).ToArray() }]);
+        testData.Add([new InputSample<int>() { InputType = InputType.Sorted, Samples = Enumerable.Range(0, 1000).ToArray() }]);
+        testData.Add([new InputSample<int>() { InputType = InputType.Sorted, Samples = Enumerable.Range(0, 10000).ToArray() }]);
     }
 
     public IEnumerator<object[]> GetEnumerator() => testData.GetEnumerator();

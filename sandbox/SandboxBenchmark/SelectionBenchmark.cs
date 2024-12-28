@@ -1,7 +1,4 @@
-﻿using SortLab.Core;
-using SortLab.Core.Sortings;
-
-namespace SandboxBenchmark;
+﻿namespace SandboxBenchmark;
 
 [ShortRunJob]
 [MemoryDiagnoser]

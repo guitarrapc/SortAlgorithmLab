@@ -1,6 +1,4 @@
-﻿using System.Runtime.CompilerServices;
-
-namespace SortLab.Core.Sortings;
+﻿namespace SortLab.Core.Sortings;
 
 public abstract class SortBase<T> : ISort<T> where T : IComparable<T>
 {

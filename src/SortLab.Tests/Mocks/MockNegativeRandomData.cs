@@ -9,9 +9,9 @@ public class MockNegativeRandomData : IEnumerable<object[]>
 
     public MockNegativeRandomData()
     {
-        testData.Add(new object[] { new InputSample<int>() { InputType = InputType.NegativeRandom, Samples = Enumerable.Range(-100, 100).Sample(100).ToArray() } });
-        testData.Add(new object[] { new InputSample<int>() { InputType = InputType.NegativeRandom, Samples = Enumerable.Range(-1000, 1000).Sample(1000).ToArray() } });
-        testData.Add(new object[] { new InputSample<int>() { InputType = InputType.NegativeRandom, Samples = Enumerable.Range(-10000, 10000).Sample(10000).ToArray() } });
+        testData.Add([new InputSample<int>() { InputType = InputType.NegativeRandom, Samples = Enumerable.Range(-100, 100).Sample(100).ToArray() }]);
+        testData.Add([new InputSample<int>() { InputType = InputType.NegativeRandom, Samples = Enumerable.Range(-1000, 1000).Sample(1000).ToArray() }]);
+        testData.Add([new InputSample<int>() { InputType = InputType.NegativeRandom, Samples = Enumerable.Range(-10000, 10000).Sample(10000).ToArray() }]);
     }
 
     public IEnumerator<object[]> GetEnumerator() => testData.GetEnumerator();
