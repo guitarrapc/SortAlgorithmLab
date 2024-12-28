@@ -1,15 +1,15 @@
 namespace SortLab.Tests;
 
-public class QuickSortMedian9InsertTests
+public class QuickSortDualPivotWithBinaryInsertTests
 {
     private ISort<int> sort;
     private string algorithm;
     private SortType sortType;
 
-    public QuickSortMedian9InsertTests()
+    public QuickSortDualPivotWithBinaryInsertTests()
     {
-        sort = new QuickSortMedian9WithInsert<int>();
-        algorithm = nameof(QuickSortMedian9WithInsert<int>);
+        sort = new QuickSortDualPivotWithBinaryInsert<int>();
+        algorithm = nameof(QuickSortDualPivotWithBinaryInsert<int>);
         sortType = SortType.Partition;
     }
 

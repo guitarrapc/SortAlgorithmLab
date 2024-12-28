@@ -187,7 +187,7 @@ public record Runner
                     RunSort(new QuickSortMedian3WithBinaryInsert<int>(), item);
 
                     // QuickSort Median3 (Quick + Insert)
-                    RunSort(new QuickSortMedian3Insert<int>(), item);
+                    RunSort(new QuickSortMedian3WithInsert<int>(), item);
 
                     // Quick Sort Median9
                     RunSort(new QuickSortMedian9<int>(), item);

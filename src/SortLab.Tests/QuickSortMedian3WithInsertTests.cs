@@ -1,15 +1,15 @@
 namespace SortLab.Tests;
 
-public class QuickSortMedian3BinaryInsertTests
+public class QuickSortMedian3WithInsertTests
 {
     private ISort<int> sort;
     private string algorithm;
     private SortType sortType;
 
-    public QuickSortMedian3BinaryInsertTests()
+    public QuickSortMedian3WithInsertTests()
     {
-        sort = new QuickSortMedian3WithBinaryInsert<int>();
-        algorithm = nameof(QuickSortMedian3WithBinaryInsert<int>);
+        sort = new QuickSortMedian3WithInsert<int>();
+        algorithm = nameof(QuickSortMedian3WithInsert<int>);
         sortType = SortType.Partition;
     }
 
