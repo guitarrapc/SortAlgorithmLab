@@ -1,9 +1,9 @@
-﻿using System;
+using System;
 
 namespace SortLab.Core.Logics;
 
 /// <summary>
-/// ヒープソートの亜種。HeapSortのBinaryTree手法ではなく、Leonardo Sequenceで並べる。あとは、大きい数値をツリーから拾って順に並べる。レオナルド数列の特性から、順番に並んでいる要素をなるべく移動しないようにソー0とできるため、順番に並んでいるほど計算時間が少なくなる。(完全に並んでいればO(n))
+/// ヒープソートの亜種。HeapSortのBinaryTree手法ではなく、Leonardo Sequenceで並べる。あとは、大きい数値をツリーから拾って順に並べる。レオナルド数列の特性から、順番に並んでいる要素をなるべく移動しないようにソートできるため、順番に並んでいるほど計算時間が少なくなる。(完全に並んでいればO(n))
 /// </summary>
 /// <remarks>
 /// stable : no
@@ -28,35 +28,37 @@ public class SmoothSort<T> : SortBase<T> where T : IComparable<T>
 
     private T[] SortImpl(T[] array)
     {
+        var span = array.AsSpan();
+
         q = 1;
         r = 0;
         p = 1;
         b = 1;
         c = 1;
 
-        while (q < array.Length)
+        while (q < span.Length)
         {
             r1 = r;
             if ((p & 7) == 3)
             {
                 b1 = b;
                 c1 = c;
-                Shift(array);
+                Shift(span);
                 p = (p + 1) >> 2;
                 Up(ref b, ref c);
                 Up(ref b, ref c);
             }
             else if ((p & 3) == 1)
             {
-                if (q + c < array.Length)
+                if (q + c < span.Length)
                 {
                     b1 = b;
                     c1 = c;
-                    Shift(array);
+                    Shift(span);
                 }
                 else
                 {
-                    Trinkle(array);
+                    Trinkle(span);
                 }
 
                 Down(ref b, ref c);
@@ -74,7 +76,7 @@ public class SmoothSort<T> : SortBase<T> where T : IComparable<T>
         }
 
         r1 = r;
-        Trinkle(array);
+        Trinkle(span);
 
         while (q > 1)
         {
@@ -97,13 +99,13 @@ public class SmoothSort<T> : SortBase<T> where T : IComparable<T>
                     r = r - b + c;
                     if (p > 0)
                     {
-                        SemiTrinkle(array);
+                        SemiTrinkle(span);
                     }
 
                     Down(ref b, ref c);
                     p = (p << 1) + 1;
                     r = r + c;
-                    SemiTrinkle(array);
+                    SemiTrinkle(span);
                     Down(ref b, ref c);
                     p = (p << 1) + 1;
                 }
@@ -113,28 +115,28 @@ public class SmoothSort<T> : SortBase<T> where T : IComparable<T>
         return array;
     }
 
-    private void Shift(T[] array)
+    private void Shift(Span<T> span)
     {
         var r0 = r1;
-        var t = array[r0];
+        var t = span[r0];
 
         while (b1 >= 3)
         {
             var r2 = r1 - b1 + c1;
             Statistics.AddIndexCount();
-            if (Compare(array[r1 - 1], array[r2]) > 0)
+            if (Compare(span[r1 - 1], span[r2]) > 0)
             {
                 r2 = r1 - 1;
                 Down(ref b1, ref c1);
             }
 
-            if (Compare(array[r2], t) <= 0)
+            if (Compare(span[r2], t) <= 0)
             {
                 b1 = 1;
             }
             else
             {
-                array[r1] = array[r2];
+                span[r1] = span[r2];
                 r1 = r2;
                 Down(ref b1, ref c1);
             }
@@ -142,18 +144,18 @@ public class SmoothSort<T> : SortBase<T> where T : IComparable<T>
 
         if (r1 - r0 != 0)
         {
-            array[r1] = t;
+            span[r1] = t;
         }
     }
 
-    private void Trinkle(T[] array)
+    private void Trinkle(Span<T> span)
     {
         int p1, r0 = 0;
         p1 = p;
         b1 = b;
         c1 = c;
         r0 = r1;
-        var t = array[r0];
+        var t = span[r0];
 
         while (p1 > 0)
         {
@@ -166,7 +168,7 @@ public class SmoothSort<T> : SortBase<T> where T : IComparable<T>
             var r3 = r1 - b1;
 
             Statistics.AddIndexCount();
-            if ((p1 == 1) || Compare(array[r3], t) <= 0)
+            if ((p1 == 1) || Compare(span[r3], t) <= 0)
             {
                 p1 = 0;
             }
@@ -175,7 +177,7 @@ public class SmoothSort<T> : SortBase<T> where T : IComparable<T>
                 p1--;
                 if (b1 == 1)
                 {
-                    array[r1] = array[r3];
+                    span[r1] = span[r3];
                     r1 = r3;
                 }
                 else
@@ -183,21 +185,21 @@ public class SmoothSort<T> : SortBase<T> where T : IComparable<T>
                     if (b1 >= 3)
                     {
                         var r2 = r1 - b1 + c1;
-                        if (Compare(array[r1 - 1], array[r2]) > 0)
+                        if (Compare(span[r1 - 1], span[r2]) > 0)
                         {
                             r2 = r1 - 1;
                             Down(ref b1, ref c1);
                             p1 <<= 1;
                         }
 
-                        if (Compare(array[r2], array[r3]) <= 0)
+                        if (Compare(span[r2], span[r3]) <= 0)
                         {
-                            array[r1] = array[r3];
+                            span[r1] = span[r3];
                             r1 = r3;
                         }
                         else
                         {
-                            array[r1] = array[r2];
+                            span[r1] = span[r2];
                             r1 = r2;
                             Down(ref b1, ref c1);
                             p1 = 0;
@@ -209,19 +211,19 @@ public class SmoothSort<T> : SortBase<T> where T : IComparable<T>
 
         if (r1 - r0 != 0)
         {
-            array[r1] = t;
+            span[r1] = t;
         }
 
-        Shift(array);
+        Shift(span);
     }
 
-    private void SemiTrinkle(T[] array)
+    private void SemiTrinkle(Span<T> span)
     {
         r1 = r - c;
-        if (Compare(array[r1], array[r]) > 0)
+        if (Compare(span[r1], span[r]) > 0)
         {
-            Swap(ref array[r], ref array[r1]);
-            Trinkle(array);
+            Swap(ref span[r], ref span[r1]);
+            Trinkle(span);
         }
     }
 
