@@ -14,6 +14,11 @@ public static class StringExtensions
     /// <returns></returns>
     public static string ToJoinedString<T>(this IEnumerable<T> source, string separator = "")
     {
-        return String.Join(separator, source);
+        return string.Join(separator, source);
+    }
+
+    public static string ToMarkdownString<T>(this IEnumerable<T> source, string separator = " | ")
+    {
+        return $"| {string.Join(separator, source)} |";
     }
 }

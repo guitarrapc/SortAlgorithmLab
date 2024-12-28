@@ -8,8 +8,8 @@ public class QuickDualPivotSortBinaryInsertTests
 
     public QuickDualPivotSortBinaryInsertTests()
     {
-        sort = new QuickDualPivotSortBinaryInsert<int>();
-        algorithm = nameof(QuickDualPivotSortBinaryInsert<int>);
+        sort = new QuickSortDualPivotWithBinaryInsert<int>();
+        algorithm = nameof(QuickSortDualPivotWithBinaryInsert<int>);
         sortType = SortType.Partition;
     }
 

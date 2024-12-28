@@ -4,25 +4,44 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
-var runner = new Runner();
+var runner = new Runner()
+{
+    Distribution = true,
+    Exchange = true,
+    Hybrid = true,
+    Insertion = true,
+    Merge = true,
+    Other = true,
+    Partition = true,
+    Selection = true,
+};
 runner.Run(SampleData.RandomSamples);
 runner.Run(SampleData.NegativePositiveRandomSamples);
-runner.Run(SampleData.NegativeRandomSamplese);
+runner.Run(SampleData.NegativeRandomSamples);
 runner.Run(SampleData.ReversedSamples);
 runner.Run(SampleData.MountainSamples);
 runner.Run(SampleData.NearlySortedSamples);
 runner.Run(SampleData.SortedSamples);
 runner.Run(SampleData.SameValuesSamples);
-//runner.Run(SampleData.DictionarySamples);
+runner.Run(SampleData.DictionarySamples);
 
-Console.WriteLine(runner.MarkDownOutputList.First().Header);
+Console.WriteLine(runner.MarkDownOutputList[0].Header);
 foreach (var item in runner.MarkDownOutputList.Select(x => x.Item))
 {
     Console.WriteLine(item);
 }
 
-public class Runner
+public record Runner
 {
+    public bool Distribution { get; init; }
+    public bool Exchange { get; init; }
+    public bool Hybrid { get; init; }
+    public bool Insertion { get; init; }
+    public bool Merge { get; init; }
+    public bool Other { get; init; }
+    public bool Partition { get; init; }
+    public bool Selection { get; init; }
+
     private static int[] validateArray;
     private static CustomKeyValuePair<int, string>[] validateDic;
     public List<IOutput> MarkDownOutputList = [];
@@ -35,144 +54,167 @@ public class Runner
             {
                 Init(item.Samples);
 
-                // -- Exchange -- //
-
-                // Bubble Sort
-                RunSort(new BubbleSort<int>(), item);
-
-                // OddEven Sort
-                RunSort(new OddEvenSort<int>(), item);
-
-                // Cocktail Shaker Sort
-                RunSort(new CocktailShakerSort<int>(), item);
-                RunSort(new CocktailShakerSort2<int>(), item);
-
-                // Comb Sort
-                RunSort(new CombSort<int>(), item);
-
-                // Cycle Sort
-                RunSort(new CycleSort<int>(), item);
-
-                // Stooge Sort
-                RunSort(new StoogeSort<int>(), item);
-
-                // Too slow....
-                if (item.Samples.Length < 100)
+                if (Distribution)
                 {
-                    // Bogo Sort
-                    RunSort(new BogoSort<int>(), item);
+                    // -- Distribution -- //
+
+                    // Bucket Sort
+                    var bucketSort = new BucketSortInt<int>();
+                    RunSort(bucketSort, array => bucketSort.Sort(array), item);
+
+                    // Radix Sort(LSD)
+                    var radix10Sort = new RadixLSD10Sort<int>();
+                    RunSort(radix10Sort, array => radix10Sort.Sort(array), item);
+
+                    var radix4Sort = new RadixLSD4Sort<int>();
+                    RunSort(radix4Sort, array => radix4Sort.Sort(array), item);
+
+                    // Counting Sort
+                    var countingSort = new CountingSort<int>();
+                    RunSort(countingSort, array => countingSort.Sort(array), item);
                 }
 
-                if (item.Samples.Length < 1000)
+                if (Exchange)
                 {
-                    // Slow Sort
-                    RunSort(new SlowSort<int>(), item);
+                    // -- Exchange -- //
+
+                    if (item.Samples.Length < 100)
+                    {
+                        // Bogo Sort (Too slow....)
+                        RunSort(new BogoSort<int>(), item);
+                    }
+
+                    // Bubble Sort
+                    RunSort(new BubbleSort<int>(), item);
+
+                    // Cocktail Shaker Sort
+                    RunSort(new CocktailShakerSort<int>(), item);
+                    RunSort(new CocktailShakerSort2<int>(), item);
+
+                    // Comb Sort
+                    RunSort(new CombSort<int>(), item);
+
+                    // Gnome Sort
+                    RunSort(new GnomeSort<int>(), item);
+                    RunSort(new GnomeSort1<int>(), item);
+                    RunSort(new GnomeSort2<int>(), item);
+                    RunSort(new GnomeSort3<int>(), item);
+
+                    // OddEven Sort
+                    RunSort(new OddEvenSort<int>(), item);
+
+                    if (item.Samples.Length < 1000)
+                    {
+                        // Slow Sort (Too slow....)
+                        RunSort(new SlowSort<int>(), item);
+                    }
+
+                    // Stooge Sort
+                    RunSort(new StoogeSort<int>(), item);
                 }
 
-                // Gnome Sort
-                RunSort(new GnomeSort<int>(), item);
-                RunSort(new GnomeSort1<int>(), item);
-                RunSort(new GnomeSort2<int>(), item);
-                RunSort(new GnomeSort3<int>(), item);
+                if (Hybrid)
+                {
+                    // -- Hybrid -- //
 
-                // -- Selection -- //
+                    // IntroSort Median3 (Quick + Heap + Insert)
+                    //RunSort(new IntroSortMedian3<int>(), item);
 
-                // Selection Sort
-                RunSort(new SelectionSort<int>(), item);
+                    // IntroSort Median9 (Quick + Heap + Insert)
+                    RunSort(new IntroSortMedian9<int>(), item);
 
-                // Heap Sort
-                RunSort(new HeapSort<int>(), item);
+                    // IntroSort Median9 (Insert + Merge)
+                    //RunSort(new TimSort<int>(), item);
+                }
 
-                // Smooth Sort
-                RunSort(new SmoothSort<int>(), item);
+                if (Insertion)
+                {
+                    // -- Insertion -- //
 
-                // -- Insertion -- //
+                    // Binary Insert Sort
+                    RunSort(new BinaryInsertSort<int>(), item);
 
-                // Insert Sort
-                RunSort(new InsertSort<int>(), item);
+                    // Binary Tree Sort
+                    RunSort(new BinaryTreeSort<int>(), item);
 
-                // Binary Insert Sort
-                RunSort(new BinaryInsertSort<int>(), item);
+                    // Insert Sort
+                    RunSort(new InsertSort<int>(), item);
 
-                // Shell Sort
-                RunSort(new ShellSort<int>(), item);
+                    // Shell Sort
+                    RunSort(new ShellSort<int>(), item);
+                }
 
-                // Binary Tree Sort
-                RunSort(new BinaryTreeSort<int>(), item);
+                if (Merge)
+                {
+                    // -- Merge -- //
 
-                // -- Partitionig -- //
+                    // DropMerge Sort
+                    RunSort(new DropMergeSort<int>(), item);
 
-                // Quick Sort Median3
-                RunSort(new QuickSortMedian3<int>(), item);
+                    // Merge Sort
+                    RunSort(new MergeSort<int>(), item);
+                    RunSort(new MergeSort2<int>(), item);
 
-                // Quick Sort Median9
-                RunSort(new QuickSortMedian9<int>(), item);
+                    // Shift Sort
+                    RunSort(new ShiftSort<int>(), item);
+                }
 
-                // Dual Pivot QuickSort
-                RunSort(new QuickDualPivotSort<int>(), item);
+                if (Other)
+                {
+                    // -- Other -- //
 
-                // QuickSort Median3 (Quick + Insert)
-                RunSort(new QuickSortMedian3Insert<int>(), item);
+                    // Pancake Sort
+                    RunSort(new PancakeSort<int>(), item);
+                }
 
-                // QuickSort Median9 (Quick + Insert)
-                RunSort(new QuickSortMedian9Insert<int>(), item);
+                if (Partition)
+                {
+                    // -- Partitionig -- //
 
-                // Dual Pivot Quick Sort (Quick + Insert)
-                RunSort(new QuickDualPivotSortInsert<int>(), item);
+                    // QuickSort Dual Pivot
+                    RunSort(new QuickSortDualPivot<int>(), item);
 
-                // QuickSort Median3 (Quick + BinaryInsert)
-                RunSort(new QuickSortMedian3BinaryInsert<int>(), item);
+                    // Quick Sort Dual Pivot (Quick + BinaryInsert)
+                    RunSort(new QuickSortDualPivotWithBinaryInsert<int>(), item);
 
-                // QuickSort Median9 (Quick + BinaryInsert)
-                RunSort(new QuickSortMedian9BinaryInsert<int>(), item);
+                    // Quick Sort Dual Pivot(Quick + Insert)
+                    RunSort(new QuickSortDualPivotWithInsert<int>(), item);
 
-                // Dual Pivot Quick Sort (Quick + BinaryInsert)
-                RunSort(new QuickDualPivotSortBinaryInsert<int>(), item);
+                    // Quick Sort Median3
+                    RunSort(new QuickSortMedian3<int>(), item);
 
-                // -- Merge -- //
+                    // QuickSort Median3 (Quick + BinaryInsert)
+                    RunSort(new QuickSortMedian3WithBinaryInsert<int>(), item);
 
-                // Merge Sort
-                RunSort(new MergeSort<int>(), item);
-                RunSort(new MergeSort2<int>(), item);
+                    // QuickSort Median3 (Quick + Insert)
+                    RunSort(new QuickSortMedian3Insert<int>(), item);
 
-                // Shift Sort
-                RunSort(new ShiftSort<int>(), item);
+                    // Quick Sort Median9
+                    RunSort(new QuickSortMedian9<int>(), item);
 
-                // DropMerge Sort
-                RunSort(new DropMergeSort<int>(), item);
+                    // QuickSort Median9 (Quick + BinaryInsert)
+                    RunSort(new QuickSortMedian9WithBinaryInsert<int>(), item);
 
-                // -- Distribution -- //
+                    // QuickSort Median9 (Quick + Insert)
+                    RunSort(new QuickSortMedian9WithInsert<int>(), item);
+                }
 
-                // Bucket Sort
-                var bucketSort = new BucketSortInt<int>();
-                RunSort(bucketSort, array => bucketSort.Sort(array), item);
+                if (Selection)
+                {
+                    // -- Selection -- //
 
-                // Radix Sort(LSD)
-                var radix10Sort = new RadixLSD10Sort<int>();
-                RunSort(radix10Sort, array => radix10Sort.Sort(array), item);
+                    // Cycle Sort
+                    RunSort(new CycleSort<int>(), item);
 
-                var radix4Sort = new RadixLSD4Sort<int>();
-                RunSort(radix4Sort, array => radix4Sort.Sort(array), item);
+                    // Heap Sort
+                    RunSort(new HeapSort<int>(), item);
 
-                // Counting Sort
-                var countingSort = new CountingSort<int>();
-                RunSort(countingSort, array => countingSort.Sort(array), item);
+                    // Selection Sort
+                    RunSort(new SelectionSort<int>(), item);
 
-                // -- Hybrid -- //
-
-                // IntroSort Median3 (Quick + Heap + Insert)
-                //RunSort(new IntroSortMedian3<int>(), item);
-
-                // IntroSort Median9 (Quick + Heap + Insert)
-                RunSort(new IntroSortMedian9<int>(), item);
-
-                // IntroSort Median9 (Insert + Merge)
-                //RunSort(new TimSort<int>(), item);
-
-                // -- Other -- //
-
-                // Pancake Sort
-                RunSort(new PancakeSort<int>(), item);
+                    // Smooth Sort
+                    RunSort(new SmoothSort<int>(), item);
+                }
             }
             else
             {
@@ -180,10 +222,13 @@ public class Runner
                 {
                     Init(item.DictionarySamples);
 
-                    // -- Distribution -- //
+                    if (Distribution)
+                    {
+                        // -- Distribution -- //
 
-                    // BucketSort<T>
-                    RunBucketTSort(new BucketSort<CustomKeyValuePair<int, string>>(x => x.Key), item.DictionarySamples.Max(x => x.Key), item);
+                        // BucketSort<T>
+                        RunBucketTSort(new BucketSort<CustomKeyValuePair<int, string>>(x => x.Key), item.DictionarySamples.Max(x => x.Key), item);
+                    }
                 }
             }
         }
@@ -217,9 +262,10 @@ public class Runner
         MarkDownOutputList.Add(new MarkdownOutput(sort.Statistics, input.InputType));
 
         // Console Output
-        var sortResult = sort.Statistics.IsSorted ? "Correct" : $@"
-Before : {keep.ToJoinedString(" ")}
-After  : {after.ToJoinedString(" ")}";
+        var sortResult = sort.Statistics.IsSorted ? "Correct" : $"""
+        Before : {keep.ToJoinedString(" ")}
+        After  : {after.ToJoinedString(" ")}
+        """;
         var console = new ConsoleOutput(sort.Statistics, sortResult, input.InputType);
         Console.WriteLine(console.ToString());
 
@@ -245,9 +291,10 @@ After  : {after.ToJoinedString(" ")}";
         MarkDownOutputList.Add(new MarkdownOutput(sort.Statistics, input.InputType));
 
         // Console Output
-        var sortResult = sort.Statistics.IsSorted ? "Correct" : $@"
-Before : {keep.ToJoinedString(" ")}
-After  : {after.ToJoinedString(" ")}";
+        var sortResult = sort.Statistics.IsSorted ? "Correct" : $"""
+        Before : {keep.ToJoinedString(" ")}
+        After  : {after.ToJoinedString(" ")}
+        """;
         var console = new ConsoleOutput(sort.Statistics, sortResult, input.InputType);
         Console.WriteLine(console.ToString());
 
@@ -273,9 +320,10 @@ After  : {after.ToJoinedString(" ")}";
         MarkDownOutputList.Add(new MarkdownOutput(sort.Statistics, input.InputType));
 
         // Console Output
-        var sortResult = sort.Statistics.IsSorted ? "Correct" : $@"
-Before : {keep.ToJoinedString(" ")}
-After  : {after.ToJoinedString(" ")}";
+        var sortResult = sort.Statistics.IsSorted ? "Correct" : $"""
+        Before : {keep.ToJoinedString(" ")}
+        After  : {after.ToJoinedString(" ")}
+        """;
         var console = new ConsoleOutput(sort.Statistics, sortResult, input.InputType);
         Console.WriteLine(console.ToString());
 
@@ -340,7 +388,7 @@ public static class SampleData
 
         RandomSamples = [random, random2, random3];
         NegativePositiveRandomSamples = [negativePositive, negativePositive2, negativePositive3];
-        NegativeRandomSamplese = [negative, negative2, negative3];
+        NegativeRandomSamples = [negative, negative2, negative3];
         ReversedSamples = [reversed, reversed2, reversed3];
         MountainSamples = [mountain, mountain2, mountain3];
         NearlySortedSamples = [nearlySorted, nearlySorted2, nearlySorted3];
@@ -350,7 +398,7 @@ public static class SampleData
     }
     public static IInputSample<int>[] RandomSamples { get; }
     public static IInputSample<int>[] NegativePositiveRandomSamples { get; }
-    public static IInputSample<int>[] NegativeRandomSamplese { get; }
+    public static IInputSample<int>[] NegativeRandomSamples { get; }
     public static IInputSample<int>[] ReversedSamples { get; }
     public static IInputSample<int>[] MountainSamples { get; }
     public static IInputSample<int>[] NearlySortedSamples { get; }

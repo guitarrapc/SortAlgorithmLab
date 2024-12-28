@@ -3,7 +3,7 @@
 namespace SortLab.Core.Logics;
 
 /// <summary>
-/// QuickSort + InsertSortによる Quick Searchでだいたいソート済みになった時に最速を目指す。Median9バージョン
+/// QuickSort + BinaryInsertSortによる Quick Searchでだいたいソート済みになった時に最速を目指す。Median9バージョン
 /// </summary>
 /// <remarks>
 /// stable : no
@@ -13,17 +13,17 @@ namespace SortLab.Core.Logics;
 /// Order : O(n log n) (Worst case : O(n nlog n))
 /// </remarks>
 /// <typeparam name="T"></typeparam>
-public class QuickSortMedian9Insert<T> : SortBase<T> where T : IComparable<T>
+public class QuickSortMedian9WithBinaryInsert<T> : SortBase<T> where T : IComparable<T>
 {
     public override SortType SortType => SortType.Partition;
 
     // ref : https://github.com/nlfiedler/burstsort4j/blob/master/src/org/burstsort4j/Introsort.java
     private const int InsertThreshold = 16;
-    private InsertSort<T> insertSort = new InsertSort<T>();
+    private BinaryInsertSort<T> insertSort = new BinaryInsertSort<T>();
 
     public override T[] Sort(T[] array)
     {
-        Statistics.Reset(array.Length, SortType, nameof(QuickSortMedian9Insert<T>));
+        Statistics.Reset(array.Length, SortType, nameof(QuickSortMedian9WithBinaryInsert<T>));
         var result = SortImpl(array, 0, array.Length - 1);
         Statistics.AddCompareCount(insertSort.Statistics.CompareCount);
         Statistics.AddIndexAccess(insertSort.Statistics.IndexAccessCount);

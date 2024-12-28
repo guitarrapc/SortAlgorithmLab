@@ -24,8 +24,8 @@ public class DropMergeSort<T> : SortBase<T> where T : IComparable<T>
     // refer: https://github.com/JamesQuintero/ShiftSort
     public override SortType SortType => SortType.Merge;
 
-    private QuickSortMedian9BinaryInsert<T> quickSort = new QuickSortMedian9BinaryInsert<T>();
-    private QuickSortMedian9BinaryInsert<T> quickSort2 = new QuickSortMedian9BinaryInsert<T>();
+    private QuickSortMedian9WithBinaryInsert<T> quickSort = new QuickSortMedian9WithBinaryInsert<T>();
+    private QuickSortMedian9WithBinaryInsert<T> quickSort2 = new QuickSortMedian9WithBinaryInsert<T>();
 
     /// This speeds up well-ordered input by quite a lot.
     const bool DoubleComparisons = true;

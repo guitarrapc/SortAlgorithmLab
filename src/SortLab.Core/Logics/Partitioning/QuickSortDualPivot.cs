@@ -3,7 +3,7 @@
 namespace SortLab.Core.Logics;
 
 /// <summary>
-/// Dual-Pivot QuickSort に BinaryInsertSortを組み合わせて最速を狙う
+/// ピボットを2つにすることで再帰の深さを浅くすることで、QuickSortを高速化する。
 /// </summary>
 /// <remarks>
 /// stable : no
@@ -13,28 +13,19 @@ namespace SortLab.Core.Logics;
 /// Order : O(n log n) (Worst case : O(nlog^2n))
 /// </remarks>
 /// <typeparam name="T"></typeparam>
-public class QuickDualPivotSortBinaryInsert<T> : SortBase<T> where T : IComparable<T>
+public class QuickSortDualPivot<T> : SortBase<T> where T : IComparable<T>
 {
     public override SortType SortType => SortType.Partition;
 
-    private const int InsertThreshold = 16;
-    private BinaryInsertSort<T> insertSort = new BinaryInsertSort<T>();
-
     public override T[] Sort(T[] array)
     {
-        Statistics.Reset(array.Length, SortType, nameof(QuickDualPivotSortBinaryInsert<T>));
+        Statistics.Reset(array.Length, SortType, nameof(QuickSortDualPivot<T>));
         return SortImpl(array, 0, array.Length - 1);
     }
 
     private T[] SortImpl(T[] array, int left, int right)
     {
         if (right <= left) return array;
-
-        // switch to insert sort
-        if (right - left < InsertThreshold)
-        {
-            return insertSort.Sort(array, left, right + 1);
-        }
 
         // fase 0. Make sure left item is lower than right item
         if (Compare(array[left], array[right]) > 0)

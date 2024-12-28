@@ -8,8 +8,8 @@ public class QuickDualPivotSortInsertTests
 
     public QuickDualPivotSortInsertTests()
     {
-        sort = new QuickDualPivotSortInsert<int>();
-        algorithm = nameof(QuickDualPivotSortInsert<int>);
+        sort = new QuickSortDualPivotWithInsert<int>();
+        algorithm = nameof(QuickSortDualPivotWithInsert<int>);
         sortType = SortType.Partition;
     }
 

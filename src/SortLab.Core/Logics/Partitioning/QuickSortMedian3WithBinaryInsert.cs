@@ -13,7 +13,7 @@ namespace SortLab.Core.Logics;
 /// Order : O(n log n) (Worst case : O(n nlog n))
 /// </remarks>
 /// <typeparam name="T"></typeparam>
-public class QuickSortMedian3BinaryInsert<T> : SortBase<T> where T : IComparable<T>
+public class QuickSortMedian3WithBinaryInsert<T> : SortBase<T> where T : IComparable<T>
 {
     public override SortType SortType => SortType.Partition;
 
@@ -23,7 +23,7 @@ public class QuickSortMedian3BinaryInsert<T> : SortBase<T> where T : IComparable
 
     public override T[] Sort(T[] array)
     {
-        Statistics.Reset(array.Length, SortType, nameof(QuickSortMedian3BinaryInsert<T>));
+        Statistics.Reset(array.Length, SortType, nameof(QuickSortMedian3WithBinaryInsert<T>));
         var result = SortImpl(array, 0, array.Length - 1);
         Statistics.AddCompareCount(insertSort.Statistics.CompareCount);
         Statistics.AddIndexAccess(insertSort.Statistics.IndexAccessCount);

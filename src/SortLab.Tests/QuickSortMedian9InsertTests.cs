@@ -8,8 +8,8 @@ public class QuickSortMedian9InsertTests
 
     public QuickSortMedian9InsertTests()
     {
-        sort = new QuickSortMedian9Insert<int>();
-        algorithm = nameof(QuickSortMedian9Insert<int>);
+        sort = new QuickSortMedian9WithInsert<int>();
+        algorithm = nameof(QuickSortMedian9WithInsert<int>);
         sortType = SortType.Partition;
     }
 

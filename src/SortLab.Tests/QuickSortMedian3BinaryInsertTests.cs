@@ -8,8 +8,8 @@ public class QuickSortMedian3BinaryInsertTests
 
     public QuickSortMedian3BinaryInsertTests()
     {
-        sort = new QuickSortMedian3BinaryInsert<int>();
-        algorithm = nameof(QuickSortMedian3BinaryInsert<int>);
+        sort = new QuickSortMedian3WithBinaryInsert<int>();
+        algorithm = nameof(QuickSortMedian3WithBinaryInsert<int>);
         sortType = SortType.Partition;
     }
 

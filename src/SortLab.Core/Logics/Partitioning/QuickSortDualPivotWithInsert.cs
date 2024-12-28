@@ -13,7 +13,7 @@ namespace SortLab.Core.Logics;
 /// Order : O(n log n) (Worst case : O(nlog^2n))
 /// </remarks>
 /// <typeparam name="T"></typeparam>
-public class QuickDualPivotSortInsert<T> : SortBase<T> where T : IComparable<T>
+public class QuickSortDualPivotWithInsert<T> : SortBase<T> where T : IComparable<T>
 {
     public override SortType SortType => SortType.Partition;
 
@@ -22,7 +22,7 @@ public class QuickDualPivotSortInsert<T> : SortBase<T> where T : IComparable<T>
 
     public override T[] Sort(T[] array)
     {
-        Statistics.Reset(array.Length, SortType, nameof(QuickDualPivotSortInsert<T>));
+        Statistics.Reset(array.Length, SortType, nameof(QuickSortDualPivotWithInsert<T>));
         return SortImpl(array, 0, array.Length - 1);
     }
 
