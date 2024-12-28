@@ -2,8 +2,4 @@
   <PropertyGroup>
     <TargetFramework>net9.0</TargetFramework>
   </PropertyGroup>
-	
-  <ItemGroup>
-    <PackageReference Include="System.Memory" />
-  </ItemGroup>
 </Project>
