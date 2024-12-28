@@ -6,26 +6,45 @@ namespace SortLab.Core;
 
 public static class EnumerableExtensions
 {
+    /// <summary>
+    /// Returns a random sample of elements from the input sequence.
+    /// </summary>
+    /// <typeparam name="T"></typeparam>
+    /// <param name="source"></param>
+    /// <param name="sampleCount"></param>
+    /// <returns></returns>
+    /// <exception cref="ArgumentNullException"></exception>
+    /// <exception cref="ArgumentOutOfRangeException"></exception>
     public static IEnumerable<T> Sample<T>(this IEnumerable<T> source, int sampleCount)
     {
-        if (source == null) throw new ArgumentNullException(nameof(source));
-        if (sampleCount <= 0) throw new ArgumentOutOfRangeException(nameof(sampleCount));
+        ArgumentNullException.ThrowIfNull(source);
+        ArgumentOutOfRangeException.ThrowIfNegativeOrZero(sampleCount);
 
         return SampleCore(source, sampleCount, RandomUtil.ThreadRandom);
     }
 
+    /// <summary>
+    /// Returns a random sample of elements from the input sequence.
+    /// </summary>
+    /// <typeparam name="T"></typeparam>
+    /// <param name="source"></param>
+    /// <param name="sampleCount"></param>
+    /// <param name="random"></param>
+    /// <returns></returns>
+    /// <exception cref="ArgumentNullException"></exception>
+    /// <exception cref="ArgumentOutOfRangeException"></exception>
     public static IEnumerable<T> Sample<T>(this IEnumerable<T> source, int sampleCount, Random random)
     {
-        if (source == null) throw new ArgumentNullException(nameof(source));
-        if (sampleCount <= 0) throw new ArgumentOutOfRangeException(nameof(sampleCount));
-        if (random == null) throw new ArgumentNullException(nameof(random));
+        ArgumentNullException.ThrowIfNull(source);
+        ArgumentOutOfRangeException.ThrowIfNegativeOrZero(sampleCount);
+        ArgumentNullException.ThrowIfNull(random);
 
         return SampleCore(source, sampleCount, random);
     }
 
-    static IEnumerable<T> SampleCore<T>(this IEnumerable<T> source, int sampleCount, Random random)
+    private static IEnumerable<T> SampleCore<T>(this IEnumerable<T> source, int sampleCount, Random random)
     {
-        if (!(source is IList<T> list))
+        if (source is not IList<T> list)
         {
             list = source.ToList();
         }
@@ -40,17 +59,30 @@ public static class EnumerableExtensions
         }
     }
 
+    /// <summary>
+    /// Returns a single random sample of elements from the input sequence.
+    /// </summary>
+    /// <typeparam name="T"></typeparam>
+    /// <param name="source"></param>
+    /// <returns></returns>
     public static T SampleOne<T>(this IEnumerable<T> source)
     {
-        if (source == null) throw new ArgumentNullException(nameof(source));
+        ArgumentNullException.ThrowIfNull(source);
 
         return source.Sample(1).FirstOrDefault();
     }
 
+    /// <summary>
+    /// Returns a single random sample of elements from the input sequence.
+    /// </summary>
+    /// <typeparam name="T"></typeparam>
+    /// <param name="source"></param>
+    /// <param name="random"></param>
+    /// <returns></returns>
     public static T SampleOne<T>(this IEnumerable<T> source, Random random)
     {
-        if (source == null) throw new ArgumentNullException(nameof(source));
-        if (random == null) throw new ArgumentNullException(nameof(random));
+        ArgumentNullException.ThrowIfNull(source);
+        ArgumentNullException.ThrowIfNull(random);
 
         return source.Sample(1, random).FirstOrDefault();
     }

@@ -16,13 +16,4 @@ public static class StringExtensions
     {
         return String.Join(separator, source);
     }
-
-    public static string[] SplitEx(this string input, string separator)
-    {
-#if NETCOREAPP2_0
-        return input.Split(separator, StringSplitOptions.RemoveEmptyEntries);
-#else
-        return input.Split(new[] { separator }, StringSplitOptions.RemoveEmptyEntries);
-#endif
-    }
 }
