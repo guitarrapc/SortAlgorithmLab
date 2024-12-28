@@ -6,7 +6,7 @@ namespace SandboxBenchmark;
 [ShortRunJob]
 [MemoryDiagnoser]
 [MinColumn, MaxColumn]
-public class SelectionSortBenchmark
+public class CycleSortBenchmark
 {
     [Params(100, 1000, 10000)]
     public int Number { get; set; }
@@ -14,11 +14,10 @@ public class SelectionSortBenchmark
     private int[] _array = default!;
     private CycleSort<int> _cycleSort = default!;
 
-    [GlobalSetup]
+    [IterationSetup]
     public void Setup()
     {
         _array = Enumerable.Range(0, Number).Sample(Number).ToArray();
-
         _cycleSort = new();
     }
 
