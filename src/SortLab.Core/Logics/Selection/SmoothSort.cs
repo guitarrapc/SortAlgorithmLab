@@ -22,13 +22,14 @@ public class SmoothSort<T> : SortBase<T> where T : IComparable<T>
     public override T[] Sort(T[] array)
     {
         Statistics.Reset(array.Length, SortType, nameof(SmoothSort<T>));
-        return SortCore(array);
+        var span = array.AsSpan();
+        SortCore(span);
+
+        return array;
     }
 
-    private T[] SortCore(T[] array)
+    private void SortCore(Span<T> span)
     {
-        var span = array.AsSpan();
-
         int q = 1, r = 0, p = 1, b = 1, c = 1;
         int r1 = 0, b1 = 0, c1 = 0;
 
@@ -107,8 +108,6 @@ public class SmoothSort<T> : SortBase<T> where T : IComparable<T>
                 }
             }
         }
-
-        return array;
     }
 
     private void Shift(Span<T> span, ref int r1, ref int b1, ref int c1)
