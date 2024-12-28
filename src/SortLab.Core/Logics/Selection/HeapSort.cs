@@ -5,11 +5,17 @@ namespace SortLab.Core.Logics;
 /*
 Array ...
 
-| Method   | Number | Mean        | Error      | StdDev    | Min         | Max         | Allocated |
-|--------- |------- |------------:|-----------:|----------:|------------:|------------:|----------:|
-| HeapSort | 100    |    18.27 us |   9.182 us |  0.503 us |    17.80 us |    18.80 us |     448 B |
-| HeapSort | 1000   |   222.13 us |  16.554 us |  0.907 us |   221.30 us |   223.10 us |     448 B |
-| HeapSort | 10000  | 2,782.00 us | 318.388 us | 17.452 us | 2,770.70 us | 2,802.10 us |     736 B |
+| Method   | Number | Mean        | Error       | StdDev    | Min         | Max         | Allocated |
+|--------- |------- |------------:|------------:|----------:|------------:|------------:|----------:|
+| HeapSort | 100    |    16.60 us |    10.16 us |  0.557 us |    16.10 us |    17.20 us |     448 B |
+| HeapSort | 1000   |   226.70 us |    42.08 us |  2.307 us |   224.50 us |   229.10 us |     736 B |
+| HeapSort | 10000  | 3,028.70 us | 1,625.10 us | 89.077 us | 2,960.20 us | 3,129.40 us |     736 B |
+
+| Method   | Number | Mean        | Error        | StdDev    | Min         | Max         | Allocated |
+|--------- |------- |------------:|-------------:|----------:|------------:|------------:|----------:|
+| HeapSort | 100    |    16.97 us |     3.798 us |  0.208 us |    16.80 us |    17.20 us |     736 B |
+| HeapSort | 1000   |   296.73 us |   789.423 us | 43.271 us |   262.60 us |   345.40 us |     448 B |
+| HeapSort | 10000  | 3,422.10 us | 1,023.567 us | 56.105 us | 3,383.10 us | 3,486.40 us |     736 B |
 */
 
 /// <summary>
@@ -31,21 +37,22 @@ public class HeapSort<T> : SortBase<T> where T : IComparable<T>
     public override T[] Sort(T[] array)
     {
         Statistics.Reset(array.Length, SortType, nameof(HeapSort<T>));
-        var n = array.Length;
+        var span = array.AsSpan();
+        var n = span.Length;
 
         // Build heap
         for (var i = n / 2 - 1; i >= 0; i--)
         {
-            DownHeap(array, i, n);
+            DownHeap(span, i, n);
         }
 
         // Extract elements from heap
         for (var i = n - 1; i > 0; i--)
         {
             // Move current root to end
-            Swap(ref array[0], ref array[i]);
+            Swap(ref span[0], ref span[i]);
             // Re-heapify the reduced heap
-            DownHeap(array, 0, i);
+            DownHeap(span, 0, i);
         }
         return array;
     }
@@ -87,20 +94,20 @@ public class HeapSort<T> : SortBase<T> where T : IComparable<T>
         return array;
     }
 
-    private void DownHeap(T[] array, int root, int size)
+    private void DownHeap(Span<T> span, int root, int size)
     {
         var largest = root;  // Initialize largest as root
         var left = 2 * root + 1;  // Left child
         var right = 2 * root + 2;  // Right child
 
         // If left child is larger than root
-        if (left < size && Compare(array[left], array[largest]) > 0)
+        if (left < size && Compare(span[left], span[largest]) > 0)
         {
             largest = left;
         }
 
         // If right child is larger than largest so far
-        if (right < size && Compare(array[right], array[largest]) > 0)
+        if (right < size && Compare(span[right], span[largest]) > 0)
         {
             largest = right;
         }
@@ -108,9 +115,9 @@ public class HeapSort<T> : SortBase<T> where T : IComparable<T>
         // If largest is not root
         if (largest != root)
         {
-            Swap(ref array[root], ref array[largest]);
+            Swap(ref span[root], ref span[largest]);
             // Recursively heapify the affected sub-tree
-            DownHeap(array, largest, size);
+            DownHeap(span, largest, size);
         }
     }
 
