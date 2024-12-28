@@ -88,7 +88,7 @@ public class SlowSortTests
     {
         if (inputSample.Samples.Length < 1000)
         {
-            sort.Sort(inputSample.Samples).Should().AllBeEquivalentTo(inputSample.Samples.OrderBy(x => x));
+            sort.Sort(inputSample.Samples).Should().BeEquivalentTo(inputSample.Samples.OrderBy(x => x));
         }
     }
 

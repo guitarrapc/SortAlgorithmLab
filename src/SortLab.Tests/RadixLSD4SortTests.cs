@@ -91,7 +91,7 @@ public class RadixLSD4SortTests
     [ClassData(typeof(MockSameValuesData))]
     public void SortResultOrderTest(IInputSample<int> inputSample)
     {
-        func(inputSample.Samples).Should().AllBeEquivalentTo(inputSample.Samples.OrderBy(x => x));
+        func(inputSample.Samples).Should().BeEquivalentTo(inputSample.Samples.OrderBy(x => x));
     }
 
     [Theory]

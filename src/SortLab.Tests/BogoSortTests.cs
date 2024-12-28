@@ -88,7 +88,7 @@ public class BogoSortTests
     {
         if (inputSample.Samples.Length < 100)
         {
-            sort.Sort(inputSample.Samples).Should().AllBeEquivalentTo(inputSample.Samples.OrderBy(x => x));
+            sort.Sort(inputSample.Samples).Should().BeEquivalentTo(inputSample.Samples.OrderBy(x => x));
         }
     }
 
