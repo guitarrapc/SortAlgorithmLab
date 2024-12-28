@@ -20,14 +20,14 @@ public class BinaryTreeSort<T> : SortBase<T> where T : IComparable<T>
 
     public override T[] Sort(T[] array)
     {
-        base.Statistics.Reset(array.Length, SortType, nameof(BinaryTreeSort<T>));
+        Statistics.Reset(array.Length, SortType, nameof(BinaryTreeSort<T>));
         return SortImpl(array);
     }
     private T[] SortImpl(T[] array)
     {
         for (var i = 0; i < array.Length; i++)
         {
-            base.Statistics.AddIndexAccess();
+            Statistics.AddIndexAccess();
             Insert(array[i]);
         }
 
@@ -57,9 +57,8 @@ public class BinaryTreeSort<T> : SortBase<T> where T : IComparable<T>
             Node parent;
             while (true)
             {
-                base.Statistics.AddCompareCount();
                 parent = current;
-                if (id.CompareTo(current.item) < 0)
+                if (Compare(id, current.item) < 0)
                 {
                     current = current.left;
                     if (current == null)

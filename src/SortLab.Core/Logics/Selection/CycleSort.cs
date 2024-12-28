@@ -18,13 +18,12 @@ public class CycleSort<T> : SortBase<T> where T : IComparable<T>
 
     public override T[] Sort(T[] array)
     {
-        base.Statistics.Reset(array.Length, SortType, nameof(CycleSort<T>));
-        var writes = 0;
+        Statistics.Reset(array.Length, SortType, nameof(CycleSort<T>));
 
         for (var start = 0; start <= array.Length - 2; start++)
         {
             // compare value
-            base.Statistics.AddIndexAccess();
+            Statistics.AddIndexAccess();
             var tmp = array[start];
 
             // Find position to swap.
@@ -32,9 +31,8 @@ public class CycleSort<T> : SortBase<T> where T : IComparable<T>
             var pos = start;
             for (var i = start + 1; i < array.Length; i++)
             {
-                base.Statistics.AddIndexAccess();
-                base.Statistics.AddCompareCount();
-                if (array[i].CompareTo(tmp) < 0)
+                Statistics.AddIndexAccess();
+                if (Compare(array[i], tmp) < 0)
                 {
                     pos++;
                 }
@@ -44,17 +42,12 @@ public class CycleSort<T> : SortBase<T> where T : IComparable<T>
             if (pos == start) continue;
 
             // ignore duplicate
-            while (tmp.CompareTo(array[pos]) == 0)
+            while (Compare(tmp, array[pos]) == 0)
             {
-                base.Statistics.AddCompareCount();
                 pos++;
             }
 
-            if (pos != start)
-            {
-                Swap(ref array[pos], ref tmp);
-                writes++;
-            }
+            Swap(ref array[pos], ref tmp);
 
             // rest of the cycle.
             while (pos != start)
@@ -62,25 +55,23 @@ public class CycleSort<T> : SortBase<T> where T : IComparable<T>
                 pos = start;
                 for (var i = start + 1; i < array.Length; i++)
                 {
-                    base.Statistics.AddIndexAccess();
-                    base.Statistics.AddCompareCount();
-                    if (array[i].CompareTo(tmp) < 0)
+                    Statistics.AddIndexAccess();
+                    if (Compare(array[i], tmp) < 0)
                     {
                         pos++;
                     }
                 }
 
-                while (tmp.CompareTo(array[pos]) == 0)
+                Statistics.AddIndexAccess();
+                while (Compare(tmp, array[pos]) == 0)
                 {
-                    base.Statistics.AddCompareCount();
                     pos++;
                 }
 
-                base.Statistics.AddCompareCount();
-                if (tmp.CompareTo(array[pos]) != 0)
+                Statistics.AddIndexAccess();
+                if (Compare(tmp, array[pos]) != 0)
                 {
                     Swap(ref array[pos], ref tmp);
-                    writes++;
                 }
             }
         }

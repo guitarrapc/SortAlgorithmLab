@@ -21,7 +21,7 @@ public class BogoSort<T> : SortBase<T> where T : IComparable<T>
 
     public override T[] Sort(T[] array)
     {
-        base.Statistics.Reset(array.Length, SortType, nameof(BogoSort<T>));
+        Statistics.Reset(array.Length, SortType, nameof(BogoSort<T>));
         while (!IsSorted(array))
         {
             Shuffle(array);
@@ -33,7 +33,7 @@ public class BogoSort<T> : SortBase<T> where T : IComparable<T>
     {
         for (var i = 0; i <= array.Length - 1; i++)
         {
-            base.Statistics.AddIndexAccess();
+            Statistics.AddIndexAccess();
             Swap(ref array[i], ref array[random.Next(0, array.Length - 1)]);
         }
     }
@@ -42,9 +42,8 @@ public class BogoSort<T> : SortBase<T> where T : IComparable<T>
     {
         for (var i = 0; i < array.Length - 1; i++)
         {
-            base.Statistics.AddIndexAccess();
-            base.Statistics.AddCompareCount();
-            if (array[i].CompareTo(array[i + 1]) > 0)
+            Statistics.AddIndexAccess();
+            if (Compare(array[i], array[i + 1]) > 0)
             {
                 return false;
             }

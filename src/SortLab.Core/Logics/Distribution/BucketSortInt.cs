@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -17,16 +17,11 @@ namespace SortLab.Core.Logics;
 /// </remarks>
 /// <typeparam name="T"></typeparam>
 
-public class BucketSortT<T>
+public class BucketSort<T>(Func<T, int> getKey) : SortBase<T> where T : IComparable<T>
 {
-    public SortType SortType => SortType.Distributed;
-
-    public IStatistics Statics => statics;
-    protected IStatistics statics = new SortStatistics();
-
-    public T[] Sort(T[] array, Func<T, int> getKey)
+    public override T[] Sort(T[] array)
     {
-        Statics.Reset(array.Length, SortType, nameof(BucketSortT<T>));
+        Statistics.Reset(array.Length, SortType, nameof(BucketSort<T>));
         var size = array.Select(x => getKey(x)).Max() + 1;
 
         // 0 position
@@ -45,8 +40,7 @@ public class BucketSortT<T>
 
         foreach (var item in array)
         {
-            statics.AddIndexAccess();
-            statics.AddCompareCount();
+            Statistics.AddIndexAccess();
             var key = getKey(item) + offset;
             if (bucket[key] == null)
             {
@@ -61,13 +55,13 @@ public class BucketSortT<T>
             {
                 foreach (var item in bucket[j])
                 {
-                    statics.AddIndexAccess();
+                    Statistics.AddIndexAccess();
                     array[i++] = item;
                 }
             }
             else
             {
-                statics.AddIndexAccess();
+                Statistics.AddIndexAccess();
             }
         }
 
@@ -81,14 +75,13 @@ public class BucketSortT<T>
 /// <remarks>
 /// </remarks>
 /// <typeparam name="T"></typeparam>
-public class BucketSort<T> : SortBase<T> where T : IComparable<T>
+public class BucketSortInt<T> : SortBase<int>
 {
     public override SortType SortType => SortType.Distributed;
 
-
-    public int[] Sort(int[] array)
+    public override int[] Sort(int[] array)
     {
-        base.Statistics.Reset(array.Length, SortType, nameof(BucketSort<T>));
+        Statistics.Reset(array.Length, SortType, nameof(BucketSortInt<T>));
         var size = array.Max();
 
         // 0 position
@@ -106,8 +99,7 @@ public class BucketSort<T> : SortBase<T> where T : IComparable<T>
         var bucket = new int[size + 1];
         for (var i = 0; i < array.Length; i++)
         {
-            base.Statistics.AddIndexAccess();
-            base.Statistics.AddCompareCount();
+            Statistics.AddIndexAccess();
             bucket[array[i] + offset]++;
         }
 
@@ -116,7 +108,7 @@ public class BucketSort<T> : SortBase<T> where T : IComparable<T>
         {
             for (var k = bucket[j]; k != 0; --k, ++i)
             {
-                base.Statistics.AddIndexAccess();
+                Statistics.AddIndexAccess();
                 array[i] = j - offset;
             }
         }

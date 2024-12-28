@@ -19,7 +19,7 @@ public class PancakeSort<T> : SortBase<T> where T : IComparable<T>
 
     public override T[] Sort(T[] array)
     {
-        base.Statistics.Reset(array.Length, SortType, nameof(PancakeSort<T>));
+        Statistics.Reset(array.Length, SortType, nameof(PancakeSort<T>));
         return SortImpl(array);
     }
 
@@ -43,9 +43,8 @@ public class PancakeSort<T> : SortBase<T> where T : IComparable<T>
         var max = 0;
         for (int i = 0; i < n; i++)
         {
-            base.Statistics.AddIndexAccess();
-            base.Statistics.AddCompareCount();
-            if (array[i].CompareTo(array[max]) > 0)
+            Statistics.AddIndexAccess();
+            if (Compare(array[i], array[max]) > 0)
             {
                 max = i;
             }

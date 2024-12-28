@@ -9,10 +9,10 @@ public class BucketSortTests
 
     public BucketSortTests()
     {
-        var sort = new BucketSort<int>();
+        var sort = new BucketSortInt<int>();
         func = array => sort.Sort(array);
         this.sort = sort;
-        algorithm = nameof(BucketSort<int>);
+        algorithm = nameof(BucketSortInt<int>);
         sortType = SortType.Distributed;
     }
 
@@ -106,19 +106,19 @@ public class BucketSortTests
         sort.Statistics.Algorithm.Should().Be(algorithm);
         sort.Statistics.ArraySize.Should().Be(inputSample.Samples.Length);
         sort.Statistics.IndexAccessCount.Should().NotBe(0);
-        sort.Statistics.CompareCount.Should().NotBe(0);
+        sort.Statistics.CompareCount.Should().Be(0);
         sort.Statistics.SwapCount.Should().Be(0);
     }
 
     [Theory]
     [ClassData(typeof(MockSortedData))]
-    public void StatisticsNoSwapCountTest(IInputSample<int> inputSample)
+    public void StatisticsSortedTest(IInputSample<int> inputSample)
     {
         func(inputSample.Samples);
         sort.Statistics.Algorithm.Should().Be(algorithm);
         sort.Statistics.ArraySize.Should().Be(inputSample.Samples.Length);
         sort.Statistics.IndexAccessCount.Should().NotBe(0);
-        sort.Statistics.CompareCount.Should().NotBe(0);
+        sort.Statistics.CompareCount.Should().Be(0);
         sort.Statistics.SwapCount.Should().Be(0);
     }
 

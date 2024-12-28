@@ -13,7 +13,7 @@ runner.Run(SampleData.MountainSamples);
 runner.Run(SampleData.NearlySortedSamples);
 runner.Run(SampleData.SortedSamples);
 runner.Run(SampleData.SameValuesSamples);
-runner.Run(SampleData.DictionarySamples);
+//runner.Run(SampleData.DictionarySamples);
 
 Console.WriteLine(runner.MarkDownOutputList.First().Header);
 foreach (var item in runner.MarkDownOutputList.Select(x => x.Item))
@@ -24,7 +24,7 @@ foreach (var item in runner.MarkDownOutputList.Select(x => x.Item))
 public class Runner
 {
     private static int[] validateArray;
-    private static KeyValuePair<int, string>[] validateDic;
+    private static CustomKeyValuePair<int, string>[] validateDic;
     public List<IOutput> MarkDownOutputList = [];
 
     public void Run(IInputSample<int>[] items)
@@ -144,7 +144,7 @@ public class Runner
                 // -- Distribution -- //
 
                 // Bucket Sort
-                var bucketSort = new BucketSort<int>();
+                var bucketSort = new BucketSortInt<int>();
                 RunSort(bucketSort, array => bucketSort.Sort(array), item);
 
                 // Radix Sort(LSD)
@@ -174,15 +174,17 @@ public class Runner
                 // Pancake Sort
                 RunSort(new PancakeSort<int>(), item);
             }
-
-            // BucketSort<T>
-            if (item.Samples == null && item.DictionarySamples != null)
+            else
             {
-                Init(item.DictionarySamples);
+                if (item.DictionarySamples != null)
+                {
+                    Init(item.DictionarySamples);
 
-                // -- Distribution -- //
+                    // -- Distribution -- //
 
-                RunBucketTSort(new BucketSortT<KeyValuePair<int, string>>(), x => x.Key, item.DictionarySamples.Max(x => x.Key), item);
+                    // BucketSort<T>
+                    RunBucketTSort(new BucketSort<CustomKeyValuePair<int, string>>(x => x.Key), item.DictionarySamples.Max(x => x.Key), item);
+                }
             }
         }
     }
@@ -192,7 +194,7 @@ public class Runner
         validateArray = input.OrderBy(x => x).ToArray();
     }
 
-    private void Init(KeyValuePair<int, string>[] array)
+    private void Init(CustomKeyValuePair<int, string>[] array)
     {
         validateDic = array.OrderBy(x => x.Key).ToArray();
     }
@@ -253,28 +255,28 @@ After  : {after.ToJoinedString(" ")}";
         ResetArray(ref keep, ref array);
     }
 
-    private void RunBucketTSort(BucketSortT<KeyValuePair<int, string>> sort, Func<KeyValuePair<int, string>, int> func, int max, IInputSample<int> input)
+    private void RunBucketTSort(BucketSort<CustomKeyValuePair<int, string>> sort, int max, IInputSample<int> input)
     {
         var array = input.DictionarySamples;
 
         // prerequites
-        var keep = new KeyValuePair<int, string>[array.Length];
+        var keep = new CustomKeyValuePair<int, string>[array.Length];
         ResetArray(ref array, ref keep);
 
         // run sort
-        var after = sort.Sort(array, func);
+        var after = sort.Sort(array);
 
         // validate
-        sort.Statics.IsSorted = after.SequenceEqual(validateDic);
+        sort.Statistics.IsSorted = after.SequenceEqual(validateDic);
 
         // result
-        MarkDownOutputList.Add(new MarkdownOutput(sort.Statics, input.InputType));
+        MarkDownOutputList.Add(new MarkdownOutput(sort.Statistics, input.InputType));
 
         // Console Output
-        var sortResult = sort.Statics.IsSorted ? "Correct" : $@"
+        var sortResult = sort.Statistics.IsSorted ? "Correct" : $@"
 Before : {keep.ToJoinedString(" ")}
 After  : {after.ToJoinedString(" ")}";
-        var console = new ConsoleOutput(sort.Statics, sortResult, input.InputType);
+        var console = new ConsoleOutput(sort.Statistics, sortResult, input.InputType);
         Console.WriteLine(console.ToString());
 
         // reset
@@ -286,7 +288,7 @@ After  : {after.ToJoinedString(" ")}";
         source.CopyTo(target, 0);
     }
 
-    private void ResetArray<TKey, TValue>(ref KeyValuePair<TKey, TValue>[] source, ref KeyValuePair<TKey, TValue>[] target)
+    private void ResetArray<TKey, TValue>(ref CustomKeyValuePair<TKey, TValue>[] source, ref CustomKeyValuePair<TKey, TValue>[] target) where TKey : IComparable
     {
         source.CopyTo(target, 0);
     }
@@ -294,53 +296,66 @@ After  : {after.ToJoinedString(" ")}";
 
 public static class SampleData
 {
-    public static IInputSample<int>[] RandomSamples { get; } = [random, random2, random3];
-    public static IInputSample<int>[] NegativePositiveRandomSamples { get; } = [negativePositive, negativePositive2, negativePositive3];
-    public static IInputSample<int>[] NegativeRandomSamplese { get; } = [negative, negative2, negative3];
-    public static IInputSample<int>[] ReversedSamples { get; } = [reversed, reversed2, reversed3];
-    public static IInputSample<int>[] MountainSamples { get; } = [mountain, mountain2, mountain3];
-    public static IInputSample<int>[] NearlySortedSamples { get; } = [nearlySorted, nearlySorted2, nearlySorted3];
-    public static IInputSample<int>[] SortedSamples { get; } = [sorted, sorted2, sorted3];
-    public static IInputSample<int>[] SameValuesSamples { get; } = [sameValues, sameValues2, sameValues3];
-    public static IInputSample<int>[] DictionarySamples { get; } = [dictionary, dictionary2, dictionary3];
+    static SampleData()
+    {
+        var random = new InputSample<int>() { InputType = InputType.Random, Samples = Enumerable.Range(0, 100).Sample(100).ToArray() };
+        var random2 = new InputSample<int>() { InputType = InputType.Random, Samples = Enumerable.Range(0, 1000).Sample(1000).ToArray() };
+        var random3 = new InputSample<int>() { InputType = InputType.Random, Samples = Enumerable.Range(0, 10000).Sample(10000).ToArray() };
 
-    private static readonly IInputSample<int> random = new InputSample<int>() { InputType = InputType.Random, Samples = Enumerable.Range(0, 100).Sample(100).ToArray() };
-    private static readonly IInputSample<int> random2 = new InputSample<int>() { InputType = InputType.Random, Samples = Enumerable.Range(0, 1000).Sample(1000).ToArray() };
-    private static readonly IInputSample<int> random3 = new InputSample<int>() { InputType = InputType.Random, Samples = Enumerable.Range(0, 10000).Sample(10000).ToArray() };
+        var negativePositive = new InputSample<int>() { InputType = InputType.MixRandom, Samples = Enumerable.Range(-50, 100).Sample(100).ToArray() };
+        var negativePositive2 = new InputSample<int>() { InputType = InputType.MixRandom, Samples = Enumerable.Range(-500, 1000).Sample(1000).ToArray() };
+        var negativePositive3 = new InputSample<int>() { InputType = InputType.MixRandom, Samples = Enumerable.Range(-5000, 10000).Sample(10000).ToArray() };
 
-    private static readonly IInputSample<int> negativePositive = new InputSample<int>() { InputType = InputType.MixRandom, Samples = Enumerable.Range(-50, 100).Sample(100).ToArray() };
-    private static readonly IInputSample<int> negativePositive2 = new InputSample<int>() { InputType = InputType.MixRandom, Samples = Enumerable.Range(-500, 1000).Sample(1000).ToArray() };
-    private static readonly IInputSample<int> negativePositive3 = new InputSample<int>() { InputType = InputType.MixRandom, Samples = Enumerable.Range(-5000, 10000).Sample(10000).ToArray() };
+        var negative = new InputSample<int>() { InputType = InputType.NegativeRandom, Samples = Enumerable.Range(-100, 100).Sample(100).ToArray() };
+        var negative2 = new InputSample<int>() { InputType = InputType.NegativeRandom, Samples = Enumerable.Range(-1000, 1000).Sample(1000).ToArray() };
+        var negative3 = new InputSample<int>() { InputType = InputType.NegativeRandom, Samples = Enumerable.Range(-10000, 10000).Sample(10000).ToArray() };
 
-    private static readonly IInputSample<int> negative = new InputSample<int>() { InputType = InputType.NegativeRandom, Samples = Enumerable.Range(-100, 100).Sample(100).ToArray() };
-    private static readonly IInputSample<int> negative2 = new InputSample<int>() { InputType = InputType.NegativeRandom, Samples = Enumerable.Range(-1000, 1000).Sample(1000).ToArray() };
-    private static readonly IInputSample<int> negative3 = new InputSample<int>() { InputType = InputType.NegativeRandom, Samples = Enumerable.Range(-10000, 10000).Sample(10000).ToArray() };
+        var reversed = new InputSample<int>() { InputType = InputType.Reversed, Samples = Enumerable.Range(0, 100).Reverse().ToArray() };
+        var reversed2 = new InputSample<int>() { InputType = InputType.Reversed, Samples = Enumerable.Range(0, 1000).Reverse().ToArray() };
+        var reversed3 = new InputSample<int>() { InputType = InputType.Reversed, Samples = Enumerable.Range(0, 10000).Reverse().ToArray() };
 
-    private static readonly IInputSample<int> reversed = new InputSample<int>() { InputType = InputType.Reversed, Samples = Enumerable.Range(0, 100).Reverse().ToArray() };
-    private static readonly IInputSample<int> reversed2 = new InputSample<int>() { InputType = InputType.Reversed, Samples = Enumerable.Range(0, 1000).Reverse().ToArray() };
-    private static readonly IInputSample<int> reversed3 = new InputSample<int>() { InputType = InputType.Reversed, Samples = Enumerable.Range(0, 10000).Reverse().ToArray() };
+        var mountain = new InputSample<int>() { InputType = InputType.Mountain, Samples = Enumerable.Range(0, 50).Concat(Enumerable.Range(0, 50).Reverse()).ToArray() };
+        var mountain2 = new InputSample<int>() { InputType = InputType.Mountain, Samples = Enumerable.Range(0, 500).Concat(Enumerable.Range(0, 500).Reverse()).ToArray() };
+        var mountain3 = new InputSample<int>() { InputType = InputType.Mountain, Samples = Enumerable.Range(0, 5000).Concat(Enumerable.Range(0, 5000).Reverse()).ToArray() };
 
-    private static readonly IInputSample<int> mountain = new InputSample<int>() { InputType = InputType.Mountain, Samples = Enumerable.Range(0, 50).Concat(Enumerable.Range(0, 50).Reverse()).ToArray() };
-    private static readonly IInputSample<int> mountain2 = new InputSample<int>() { InputType = InputType.Mountain, Samples = Enumerable.Range(0, 500).Concat(Enumerable.Range(0, 500).Reverse()).ToArray() };
-    private static readonly IInputSample<int> mountain3 = new InputSample<int>() { InputType = InputType.Mountain, Samples = Enumerable.Range(0, 5000).Concat(Enumerable.Range(0, 5000).Reverse()).ToArray() };
+        var nearlySorted = new InputSample<int>() { InputType = InputType.NearlySorted, Samples = Enumerable.Range(0, 90).Concat(Enumerable.Range(0, 100).Sample(10)).ToArray() };
+        var nearlySorted2 = new InputSample<int>() { InputType = InputType.NearlySorted, Samples = Enumerable.Range(0, 990).Concat(Enumerable.Range(0, 1000).Sample(10)).ToArray() };
+        var nearlySorted3 = new InputSample<int>() { InputType = InputType.NearlySorted, Samples = Enumerable.Range(0, 9990).Concat(Enumerable.Range(0, 10000).Sample(10)).ToArray() };
 
-    private static readonly IInputSample<int> nearlySorted = new InputSample<int>() { InputType = InputType.NearlySorted, Samples = Enumerable.Range(0, 90).Concat(Enumerable.Range(0, 100).Sample(10)).ToArray() };
-    private static readonly IInputSample<int> nearlySorted2 = new InputSample<int>() { InputType = InputType.NearlySorted, Samples = Enumerable.Range(0, 990).Concat(Enumerable.Range(0, 1000).Sample(10)).ToArray() };
-    private static readonly IInputSample<int> nearlySorted3 = new InputSample<int>() { InputType = InputType.NearlySorted, Samples = Enumerable.Range(0, 9990).Concat(Enumerable.Range(0, 10000).Sample(10)).ToArray() };
+        var sorted = new InputSample<int>() { InputType = InputType.Sorted, Samples = Enumerable.Range(0, 100).ToArray() };
+        var sorted2 = new InputSample<int>() { InputType = InputType.Sorted, Samples = Enumerable.Range(0, 1000).ToArray() };
+        var sorted3 = new InputSample<int>() { InputType = InputType.Sorted, Samples = Enumerable.Range(0, 10000).ToArray() };
 
-    private static readonly IInputSample<int> sorted = new InputSample<int>() { InputType = InputType.Sorted, Samples = Enumerable.Range(0, 100).ToArray() };
-    private static readonly IInputSample<int> sorted2 = new InputSample<int>() { InputType = InputType.Sorted, Samples = Enumerable.Range(0, 1000).ToArray() };
-    private static readonly IInputSample<int> sorted3 = new InputSample<int>() { InputType = InputType.Sorted, Samples = Enumerable.Range(0, 10000).ToArray() };
+        var randomeSample = Enumerable.Range(0, 100).Sample(10).ToArray();
+        var randomeSample2 = Enumerable.Range(0, 1000).Sample(10).ToArray();
+        var randomeSample3 = Enumerable.Range(0, 10000).Sample(10).ToArray();
+        var sameValues = new InputSample<int>() { InputType = InputType.SameValues, Samples = randomeSample.SelectMany(x => Enumerable.Repeat(x, 10)).Sample(100).ToArray() };
+        var sameValues2 = new InputSample<int>() { InputType = InputType.SameValues, Samples = randomeSample2.SelectMany(x => Enumerable.Repeat(x, 100)).Sample(1000).ToArray() };
+        var sameValues3 = new InputSample<int>() { InputType = InputType.SameValues, Samples = randomeSample3.SelectMany(x => Enumerable.Repeat(x, 1000)).Sample(10000).ToArray() };
 
-    private static readonly int[] randomeSample = Enumerable.Range(0, 100).Sample(10).ToArray();
-    private static readonly int[] randomeSample2 = Enumerable.Range(0, 1000).Sample(10).ToArray();
-    private static readonly int[] randomeSample3 = Enumerable.Range(0, 10000).Sample(10).ToArray();
-    private static readonly IInputSample<int> sameValues = new InputSample<int>() { InputType = InputType.SameValues, Samples = randomeSample.SelectMany(x => Enumerable.Repeat(x, 10)).Sample(100).ToArray() };
-    private static readonly IInputSample<int> sameValues2 = new InputSample<int>() { InputType = InputType.SameValues, Samples = randomeSample2.SelectMany(x => Enumerable.Repeat(x, 100)).Sample(1000).ToArray() };
-    private static readonly IInputSample<int> sameValues3 = new InputSample<int>() { InputType = InputType.SameValues, Samples = randomeSample3.SelectMany(x => Enumerable.Repeat(x, 1000)).Sample(10000).ToArray() };
+        var i = 0;
+        var dictionary = new InputSample<int>() { InputType = InputType.DictionaryRamdom, DictionarySamples = random.Samples.Select(x => new CustomKeyValuePair<int, string>(x, $"{x / 25}{((char)(65 + (x % 26)))}{i++}")).ToArray() };
+        var dictionary2 = new InputSample<int>() { InputType = InputType.DictionaryRamdom, DictionarySamples = random2.Samples.Select(x => new CustomKeyValuePair<int, string>(x, $"{x / 25}{((char)(65 + (x % 26)))}{i++}")).ToArray() };
+        var dictionary3 = new InputSample<int>() { InputType = InputType.DictionaryRamdom, DictionarySamples = random3.Samples.Select(x => new CustomKeyValuePair<int, string>(x, $"{x / 25}{((char)(65 + (x % 26)))}{i++}")).ToArray() };
 
-    private static int i = 0;
-    private static readonly IInputSample<int> dictionary = new InputSample<int>() { InputType = InputType.DictionaryRamdom, DictionarySamples = random.Samples.Select(x => new KeyValuePair<int, string>(x, $"{x / 25}{((char)(65 + (x % 26)))}{i++}")).ToArray() };
-    private static readonly IInputSample<int> dictionary2 = new InputSample<int>() { InputType = InputType.DictionaryRamdom, DictionarySamples = random2.Samples.Select(x => new KeyValuePair<int, string>(x, $"{x / 25}{((char)(65 + (x % 26)))}{i++}")).ToArray() };
-    private static readonly IInputSample<int> dictionary3 = new InputSample<int>() { InputType = InputType.DictionaryRamdom, DictionarySamples = random3.Samples.Select(x => new KeyValuePair<int, string>(x, $"{x / 25}{((char)(65 + (x % 26)))}{i++}")).ToArray() };
+        RandomSamples = [random, random2, random3];
+        NegativePositiveRandomSamples = [negativePositive, negativePositive2, negativePositive3];
+        NegativeRandomSamplese = [negative, negative2, negative3];
+        ReversedSamples = [reversed, reversed2, reversed3];
+        MountainSamples = [mountain, mountain2, mountain3];
+        NearlySortedSamples = [nearlySorted, nearlySorted2, nearlySorted3];
+        SortedSamples = [sorted, sorted2, sorted3];
+        SameValuesSamples = [sameValues, sameValues2, sameValues3];
+        DictionarySamples = [dictionary, dictionary2, dictionary3];
+    }
+    public static IInputSample<int>[] RandomSamples { get; }
+    public static IInputSample<int>[] NegativePositiveRandomSamples { get; }
+    public static IInputSample<int>[] NegativeRandomSamplese { get; }
+    public static IInputSample<int>[] ReversedSamples { get; }
+    public static IInputSample<int>[] MountainSamples { get; }
+    public static IInputSample<int>[] NearlySortedSamples { get; }
+    public static IInputSample<int>[] SortedSamples { get; }
+    public static IInputSample<int>[] SameValuesSamples { get; }
+    public static IInputSample<int>[] DictionarySamples { get; }
+
 }

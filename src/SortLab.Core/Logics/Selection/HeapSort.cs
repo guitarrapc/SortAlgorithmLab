@@ -20,7 +20,7 @@ public class HeapSort<T> : SortBase<T> where T : IComparable<T>
 
     public override T[] Sort(T[] array)
     {
-        base.Statistics.Reset(array.Length, SortType, nameof(HeapSort<T>));
+        Statistics.Reset(array.Length, SortType, nameof(HeapSort<T>));
 
         var i = 0;
         // create heap node
@@ -41,7 +41,7 @@ public class HeapSort<T> : SortBase<T> where T : IComparable<T>
 
     public T[] Sort(T[] array, int low, int high)
     {
-        base.Statistics.Reset(array.Length, SortType, nameof(HeapSort<T>));
+        Statistics.Reset(array.Length, SortType, nameof(HeapSort<T>));
 
         var n = high - low;
         // create heap node
@@ -65,11 +65,10 @@ public class HeapSort<T> : SortBase<T> where T : IComparable<T>
     {
         while (current != 0)
         {
-            base.Statistics.AddIndexAccess();
+            Statistics.AddIndexAccess();
             var parent = (current - 1) / 2;
 
-            base.Statistics.AddCompareCount();
-            if (array[current].CompareTo(array[parent]) > 0)
+            if (Compare(array[current], array[parent]) > 0)
             {
                 Swap(ref array[current], ref array[parent]);
                 current = parent;
@@ -88,16 +87,14 @@ public class HeapSort<T> : SortBase<T> where T : IComparable<T>
         var parent = 0;
         while (true)
         {
-            base.Statistics.AddIndexAccess();
+            Statistics.AddIndexAccess();
             var child = 2 * parent + 1;
             if (child > current) break;
-            base.Statistics.AddCompareCount();
-            if (child < current && array[child].CompareTo(array[child + 1]) < 0)
+            if (child < current && Compare(array[child], array[child + 1]) < 0)
             {
                 child++;
             }
-            base.Statistics.AddCompareCount();
-            if (array[parent].CompareTo(array[child]) < 0)
+            if (Compare(array[parent], array[child]) < 0)
             {
                 Swap(ref array[parent], ref array[child]);
                 parent = child;
@@ -116,14 +113,12 @@ public class HeapSort<T> : SortBase<T> where T : IComparable<T>
         while (i <= n / 2)
         {
             child = 2 * i;
-            base.Statistics.AddIndexAccess();
-            base.Statistics.AddCompareCount();
-            if (child < n && array[low + child - 1].CompareTo(array[low + child]) < 0)
+            Statistics.AddIndexAccess();
+            if (child < n && Compare(array[low + child - 1], array[low + child]) < 0)
             {
                 child++;
             }
-            base.Statistics.AddCompareCount();
-            if (d.CompareTo(array[low + child - 1]) >= 0) break;
+            if (Compare(d, array[low + child - 1]) >= 0) break;
             array[low + i - 1] = array[low + child - 1];
             i = child;
         }

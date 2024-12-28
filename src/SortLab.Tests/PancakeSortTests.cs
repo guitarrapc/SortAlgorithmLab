@@ -109,7 +109,7 @@ public class PancakeSortTests
 
     [Theory]
     [ClassData(typeof(MockSortedData))]
-    public void StatisticsNoSwapCountTest(IInputSample<int> inputSample)
+    public void StatisticsSortedTest(IInputSample<int> inputSample)
     {
         sort.Sort(inputSample.Samples);
         sort.Statistics.Algorithm.Should().Be(algorithm);

@@ -112,7 +112,7 @@ public class CountingSortTests
 
     [Theory]
     [ClassData(typeof(MockSortedData))]
-    public void StatisticsNoSwapCountTest(IInputSample<int> inputSample)
+    public void StatisticsSortedTest(IInputSample<int> inputSample)
     {
         func(inputSample.Samples);
         sort.Statistics.Algorithm.Should().Be(algorithm);

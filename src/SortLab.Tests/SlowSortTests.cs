@@ -115,7 +115,7 @@ public class SlowSortTests
 
     [Theory]
     [ClassData(typeof(MockSortedData))]
-    public void StatisticsNoSwapCountTest(IInputSample<int> inputSample)
+    public void StatisticsSortedTest(IInputSample<int> inputSample)
     {
         if (inputSample.Samples.Length < 1000)
         {

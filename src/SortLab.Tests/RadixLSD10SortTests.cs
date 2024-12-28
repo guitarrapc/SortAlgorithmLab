@@ -105,7 +105,7 @@ public class RadixLSD10SortTests
         sort.Statistics.Algorithm.Should().Be(algorithm);
         sort.Statistics.ArraySize.Should().Be(inputSample.Samples.Length);
         sort.Statistics.IndexAccessCount.Should().NotBe(0);
-        sort.Statistics.CompareCount.Should().NotBe(0);
+        sort.Statistics.CompareCount.Should().Be(0);
         sort.Statistics.SwapCount.Should().Be(0);
     }
 
@@ -124,13 +124,13 @@ public class RadixLSD10SortTests
 
     [Theory]
     [ClassData(typeof(MockSortedData))]
-    public void StatisticsNoSwapCountTest(IInputSample<int> inputSample)
+    public void StatisticsSortedTest(IInputSample<int> inputSample)
     {
         func(inputSample.Samples);
         sort.Statistics.Algorithm.Should().Be(algorithm);
         sort.Statistics.ArraySize.Should().Be(inputSample.Samples.Length);
         sort.Statistics.IndexAccessCount.Should().NotBe(0);
-        sort.Statistics.CompareCount.Should().NotBe(0);
+        sort.Statistics.CompareCount.Should().Be(0);
         sort.Statistics.SwapCount.Should().Be(0);
     }
 

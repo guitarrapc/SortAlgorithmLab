@@ -16,20 +16,19 @@ namespace SortLab.Core.Logics;
 /// <typeparam name="T"></typeparam>
 public class SelectionSort<T> : SortBase<T> where T : IComparable<T>
 {
-public override SortType SortType => SortType.Selection;
+    public override SortType SortType => SortType.Selection;
 
     public override T[] Sort(T[] array)
     {
-        base.Statistics.Reset(array.Length, SortType, nameof(SelectionSort<T>));
+        Statistics.Reset(array.Length, SortType, nameof(SelectionSort<T>));
         for (var i = 0; i < array.Length; i++)
         {
             var min = i;
             for (var j = i + 1; j < array.Length; j++)
             {
-                base.Statistics.AddIndexAccess();
-                base.Statistics.AddCompareCount();
+                Statistics.AddIndexAccess();
                 //array.Dump($"{min} : {array[min]}, {j} : {array[j]}, {array[min].CompareTo(array[j]) > 0}");
-                if (array[min].CompareTo(array[j]) > 0)
+                if (Compare(array[min], array[j]) > 0)
                 {
                     min = j;
                 }

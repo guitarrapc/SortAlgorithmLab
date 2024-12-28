@@ -22,7 +22,7 @@ public class QuickDualPivotSortBinaryInsert<T> : SortBase<T> where T : IComparab
 
     public override T[] Sort(T[] array)
     {
-        base.Statistics.Reset(array.Length, SortType, nameof(QuickDualPivotSortBinaryInsert<T>));
+        Statistics.Reset(array.Length, SortType, nameof(QuickDualPivotSortBinaryInsert<T>));
         return SortImpl(array, 0, array.Length - 1);
     }
 
@@ -36,9 +36,8 @@ public class QuickDualPivotSortBinaryInsert<T> : SortBase<T> where T : IComparab
             return insertSort.Sort(array, left, right + 1);
         }
 
-        base.Statistics.AddCompareCount();
         // fase 0. Make sure left item is lower than right item
-        if (array[left].CompareTo(array[right]) > 0)
+        if (Compare(array[left], array[right]) > 0)
         {
             Swap(ref array[left], ref array[right]);
         }
@@ -50,17 +49,15 @@ public class QuickDualPivotSortBinaryInsert<T> : SortBase<T> where T : IComparab
 
         while (k <= g)
         {
-            base.Statistics.AddIndexAccess();
-            base.Statistics.AddCompareCount();
-            if (array[k].CompareTo(array[left]) < 0)
+            Statistics.AddIndexAccess();
+            if (Compare(array[k], array[left]) < 0)
             {
                 Swap(ref array[k], ref array[l]);
                 k++;
                 l++;
             }
-            else if (array[right].CompareTo(array[k]) < 0)
+            else if (Compare(array[right], array[k]) < 0)
             {
-                base.Statistics.AddCompareCount();
                 Swap(ref array[k], ref array[g]);
                 g--;
             }
@@ -77,7 +74,7 @@ public class QuickDualPivotSortBinaryInsert<T> : SortBase<T> where T : IComparab
 
         // fase 2. Sort Left, Mid and righ
         SortImpl(array, left, l - 1);
-        if (array[left].CompareTo(array[right]) < 0)
+        if (Compare(array[left], array[right]) < 0)
         {
             SortImpl(array, l + 1, g - 1);
         }
