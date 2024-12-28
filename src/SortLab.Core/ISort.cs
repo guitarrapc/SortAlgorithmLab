@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace SortLab.Core;
+﻿namespace SortLab.Core;
 
 public interface ISort<T> where T : IComparable<T>
 {

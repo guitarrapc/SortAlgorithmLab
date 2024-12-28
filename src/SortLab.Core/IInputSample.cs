@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace SortLab.Core;
+﻿namespace SortLab.Core;
 
 public enum InputType
 {

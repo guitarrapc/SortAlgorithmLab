@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-
-namespace SortLab.Core;
+﻿namespace SortLab.Core;
 
 public static class EnumerableExtensions
 {

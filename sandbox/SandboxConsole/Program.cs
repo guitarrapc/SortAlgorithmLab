@@ -1,5 +1,5 @@
 ﻿using SortLab.Core;
-using SortLab.Core.Logics;
+using SortLab.Core.Sortings;
 using System;
 using System.Collections.Generic;
 using System.Linq;
