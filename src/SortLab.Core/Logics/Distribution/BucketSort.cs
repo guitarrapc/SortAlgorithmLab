@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -85,10 +85,9 @@ public class BucketSort<T> : SortBase<T> where T : IComparable<T>
 {
     public override SortType SortType => SortType.Distributed;
 
-
     public int[] Sort(int[] array)
     {
-        base.Statistics.Reset(array.Length, SortType, nameof(BucketSort<T>));
+        Statistics.Reset(array.Length, SortType, nameof(BucketSort<T>));
         var size = array.Max();
 
         // 0 position
@@ -106,8 +105,8 @@ public class BucketSort<T> : SortBase<T> where T : IComparable<T>
         var bucket = new int[size + 1];
         for (var i = 0; i < array.Length; i++)
         {
-            base.Statistics.AddIndexAccess();
-            base.Statistics.AddCompareCount();
+            Statistics.AddIndexAccess();
+            Statistics.AddCompareCount();
             bucket[array[i] + offset]++;
         }
 
@@ -116,7 +115,7 @@ public class BucketSort<T> : SortBase<T> where T : IComparable<T>
         {
             for (var k = bucket[j]; k != 0; --k, ++i)
             {
-                base.Statistics.AddIndexAccess();
+                Statistics.AddIndexAccess();
                 array[i] = j - offset;
             }
         }

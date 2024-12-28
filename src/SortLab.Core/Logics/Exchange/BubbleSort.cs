@@ -20,15 +20,14 @@ public class BubbleSort<T> : SortBase<T> where T : IComparable<T>
 
     public override T[] Sort(T[] array)
     {
-        base.Statistics.Reset(array.Length, SortType, nameof(BubbleSort<T>));
+        Statistics.Reset(array.Length, SortType, nameof(BubbleSort<T>));
         for (var i = 0; i < array.Length; i++)
         {
             for (var j = array.Length - 1; j > i; j--)
             {
-                base.Statistics.AddIndexAccess();
-                base.Statistics.AddCompareCount();
+                Statistics.AddIndexAccess();
                 //array.Dump($"{j} : {array[j]}, {j - 1} : {array[j - 1]}, {array[j - 1].CompareTo(array[j]) > 0}");
-                if (array[j].CompareTo(array[j - 1]) < 0)
+                if (Compare(array[j], array[j - 1]) < 0)
                 {
                     Swap(ref array[j], ref array[j - 1]);
                 }

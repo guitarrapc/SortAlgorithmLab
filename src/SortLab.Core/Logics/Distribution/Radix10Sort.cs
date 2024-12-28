@@ -22,7 +22,7 @@ public class RadixLSD10Sort<T> : SortBase<T> where T : IComparable<T>
 
     public int[] Sort(int[] array)
     {
-        base.Statistics.Reset(array.Length, SortType, nameof(RadixLSD10Sort<T>));
+        Statistics.Reset(array.Length, SortType, nameof(RadixLSD10Sort<T>));
         if (array.Min() >= 0)
         {
             return SortImplPositive(array);
@@ -44,8 +44,8 @@ public class RadixLSD10Sort<T> : SortBase<T> where T : IComparable<T>
             // make bucket for possibly assigned number of int
             for (var i = 0; i < array.Length; i++)
             {
-                base.Statistics.AddIndexAccess();
-                base.Statistics.AddCompareCount();
+                Statistics.AddIndexAccess();
+                Statistics.AddCompareCount();
                 var key = (array[i] / r) % 10;
                 if (bucket[key] == null) bucket[key] = new List<int>();
                 bucket[key].Add(array[i]);
@@ -58,19 +58,19 @@ public class RadixLSD10Sort<T> : SortBase<T> where T : IComparable<T>
                 {
                     foreach (var item in bucket[j])
                     {
-                        base.Statistics.AddIndexAccess();
+                        Statistics.AddIndexAccess();
                         array[i++] = item;
                     }
                 }
                 else
                 {
-                    base.Statistics.AddIndexAccess();
+                    Statistics.AddIndexAccess();
                 }
             }
 
             for (var j = 0; j < bucket.Length; ++j)
             {
-                base.Statistics.AddIndexAccess();
+                Statistics.AddIndexAccess();
                 bucket[j] = null;
             }
         }
@@ -86,7 +86,7 @@ public class RadixLSD10Sort<T> : SortBase<T> where T : IComparable<T>
         int digit = 0;
         for (var i = 0; i < array.Length; i++)
         {
-            base.Statistics.AddIndexAccess();
+            Statistics.AddIndexAccess();
             digit = GetDigit(array[i]);
             if (digit > max)
             {
@@ -98,7 +98,7 @@ public class RadixLSD10Sort<T> : SortBase<T> where T : IComparable<T>
         {
             for (var i = 0; i < array.Length; i++)
             {
-                base.Statistics.AddIndexAccess();
+                Statistics.AddIndexAccess();
                 var tmp = array[i];
                 var radix = tmp < 0
                     ? -(int)(Math.Abs(tmp) / Math.Pow(10, r - 1)) % 10
@@ -114,19 +114,19 @@ public class RadixLSD10Sort<T> : SortBase<T> where T : IComparable<T>
                 {
                     foreach (var item in bucket[j])
                     {
-                        base.Statistics.AddIndexAccess();
+                        Statistics.AddIndexAccess();
                         array[i++] = item;
                     }
                 }
                 else
                 {
-                    base.Statistics.AddIndexAccess();
+                    Statistics.AddIndexAccess();
                 }
             }
 
             for (var j = 0; j < bucket.Length; ++j)
             {
-                base.Statistics.AddIndexAccess();
+                Statistics.AddIndexAccess();
                 bucket[j] = null;
             }
         }

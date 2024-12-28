@@ -20,21 +20,21 @@ public class BinaryInsertSort<T> : SortBase<T> where T : IComparable<T>
 
     public override T[] Sort(T[] array)
     {
-        base.Statistics.Reset(array.Length, SortType, nameof(BinaryInsertSort<T>));
+        Statistics.Reset(array.Length, SortType, nameof(BinaryInsertSort<T>));
         SortImpl(array, 0, array.Length);
         return array;
     }
 
     public T[] Sort(T[] array, int first, int last)
     {
-        base.Statistics.Reset(array.Length, SortType, nameof(BinaryInsertSort<T>));
+        Statistics.Reset(array.Length, SortType, nameof(BinaryInsertSort<T>));
         SortImpl(array, first, last);
         return array;
     }
 
     public T[] Sort(T[] array, int first, int last, int start)
     {
-        base.Statistics.Reset(array.Length, SortType, nameof(BinaryInsertSort<T>));
+        Statistics.Reset(array.Length, SortType, nameof(BinaryInsertSort<T>));
         SortImpl(array, first, last, start);
         return array;
     }
@@ -52,7 +52,7 @@ public class BinaryInsertSort<T> : SortBase<T> where T : IComparable<T>
         // Handmade BinarySearch + Swap
         for (var i = first + 1; i < last; i++)
         {
-            base.Statistics.AddIndexAccess();
+            Statistics.AddIndexAccess();
             var tmp = array[i];
 
             // BinarySearch
@@ -61,7 +61,7 @@ public class BinaryInsertSort<T> : SortBase<T> where T : IComparable<T>
             // Stable Sort
             for (var j = left; j <= i; j++)
             {
-                base.Statistics.AddIndexAccess();
+                Statistics.AddIndexAccess();
                 Swap(ref array[j], ref tmp);
             }
         }
@@ -77,7 +77,7 @@ public class BinaryInsertSort<T> : SortBase<T> where T : IComparable<T>
 
         for (; start < last; start++)
         {
-            base.Statistics.AddIndexAccess();
+            Statistics.AddIndexAccess();
             var tmp = array[start];
 
             // BinarySearch
@@ -86,11 +86,11 @@ public class BinaryInsertSort<T> : SortBase<T> where T : IComparable<T>
             // Stable Sort
             for (var n = start - left; n > 0; n--)
             {
-                base.Statistics.AddIndexAccess();
+                Statistics.AddIndexAccess();
                 Swap(ref array[left + n], ref array[left + n - 1]);
             }
 
-            base.Statistics.AddIndexAccess();
+            Statistics.AddIndexAccess();
             Swap(ref array[left], ref tmp);
         }
         return array;
@@ -102,10 +102,9 @@ public class BinaryInsertSort<T> : SortBase<T> where T : IComparable<T>
         var right = index;
         while (left < right)
         {
-            base.Statistics.AddIndexAccess();
-            base.Statistics.AddCompareCount();
+            Statistics.AddIndexAccess();
             var mid = (left + right) / 2;
-            if (array[mid].CompareTo(tmp) <= 0)
+            if (Compare(array[mid], tmp) <= 0)
             {
                 left = mid + 1;
             }

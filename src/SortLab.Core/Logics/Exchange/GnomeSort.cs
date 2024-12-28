@@ -19,13 +19,12 @@ public class GnomeSort<T> : SortBase<T> where T : IComparable<T>
 
     public override T[] Sort(T[] array)
     {
-        base.Statistics.Reset(array.Length, SortType, nameof(GnomeSort<T>));
+        Statistics.Reset(array.Length, SortType, nameof(GnomeSort<T>));
         for (var i = 0; i < array.Length; i++)
         {
-            base.Statistics.AddIndexAccess();
-            while (i > 0 && array[i - 1].CompareTo(array[i]) > 0)
+            Statistics.AddIndexAccess();
+            while (i > 0 && Compare(array[i - 1], array[i]) > 0)
             {
-                base.Statistics.AddCompareCount();
                 Swap(ref array[i - 1], ref array[i]);
                 i--;
             }
@@ -52,12 +51,11 @@ public class GnomeSort1<T> : SortBase<T> where T : IComparable<T>
 
     public override T[] Sort(T[] array)
     {
-        base.Statistics.Reset(array.Length, SortType, nameof(GnomeSort1<T>));
+        Statistics.Reset(array.Length, SortType, nameof(GnomeSort1<T>));
         for (var i = 1; i < array.Length;)
         {
-            base.Statistics.AddIndexAccess();
-            base.Statistics.AddCompareCount();
-            if (array[i - 1].CompareTo(array[i]) <= 0)
+            Statistics.AddIndexAccess();
+            if (Compare(array[i - 1], array[i]) <= 0)
             {
                 i++;
             }
@@ -83,25 +81,23 @@ public class GnomeSort2<T> : SortBase<T> where T : IComparable<T>
 
     public override T[] Sort(T[] array)
     {
-        base.Statistics.Reset(array.Length, SortType, nameof(GnomeSort2<T>));
+        Statistics.Reset(array.Length, SortType, nameof(GnomeSort2<T>));
         for (var i = 0; i < array.Length - 1; i++)
         {
-            base.Statistics.AddCompareCount();
-            if (array[i].CompareTo(array[i + 1]) > 0)
+            if (Compare(array[i], array[i + 1]) > 0)
             {
                 Swap(ref array[i], ref array[i + 1]);
                 for (var j = i; j > 0; j--)
                 {
-                    base.Statistics.AddIndexAccess();
-                    base.Statistics.AddCompareCount();
-                    if (array[j - 1].CompareTo(array[j]) <= 0) break;
+                    Statistics.AddIndexAccess();
+                    if (Compare(array[j - 1], array[j]) <= 0) break;
 
                     Swap(ref array[j - 1], ref array[j]);
                 }
             }
             else
             {
-                base.Statistics.AddIndexAccess();
+                Statistics.AddIndexAccess();
             }
         }
         return array;
@@ -118,14 +114,13 @@ public class GnomeSort3<T> : SortBase<T> where T : IComparable<T>
 
     public override T[] Sort(T[] array)
     {
-        base.Statistics.Reset(array.Length, SortType, nameof(GnomeSort3<T>));
+        Statistics.Reset(array.Length, SortType, nameof(GnomeSort3<T>));
 
         var i = 0;
         while (i < array.Length)
         {
-            base.Statistics.AddIndexAccess();
-            base.Statistics.AddCompareCount();
-            if (i == 0 || array[i - 1].CompareTo(array[i]) <= 0)
+            Statistics.AddIndexAccess();
+            if (i == 0 || Compare(array[i - 1], array[i]) <= 0)
             {
                 i++;
             }

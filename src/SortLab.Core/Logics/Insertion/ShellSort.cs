@@ -19,7 +19,7 @@ public class ShellSort<T> : SortBase<T> where T : IComparable<T>
 
     public override T[] Sort(T[] array)
     {
-        base.Statistics.Reset(array.Length, SortType, nameof(ShellSort<T>));
+        Statistics.Reset(array.Length, SortType, nameof(ShellSort<T>));
 
         // calculate h
         // most efficient h will be : h(i + 1) = 3h(i) + 1
@@ -33,10 +33,9 @@ public class ShellSort<T> : SortBase<T> where T : IComparable<T>
             // Same as InsertSort (1 will be h)
             for (var i = h; i < array.Length; i++)
             {
-                base.Statistics.AddCompareCount();
-                for (int j = i; j >= h && array[j - h].CompareTo(array[j]) > 0; j -= h)
+                for (int j = i; j >= h && Compare(array[j - h], array[j]) > 0; j -= h)
                 {
-                    base.Statistics.AddIndexAccess();
+                    Statistics.AddIndexAccess();
                     Swap(ref array[j], ref array[j - h]);
                 }
             }

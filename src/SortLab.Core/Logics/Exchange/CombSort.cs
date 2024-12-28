@@ -19,7 +19,7 @@ public class CombSort<T> : SortBase<T> where T : IComparable<T>
 
     public override T[] Sort(T[] array)
     {
-        base.Statistics.Reset(array.Length, SortType, nameof(CombSort<T>));
+        Statistics.Reset(array.Length, SortType, nameof(CombSort<T>));
 
         // same logic as ShellSort, but CombSort use divide by 1.3.
         // divide by 1.3
@@ -30,9 +30,8 @@ public class CombSort<T> : SortBase<T> where T : IComparable<T>
             var swapped = false;
             for (var i = 0; i + h < array.Length; i++)
             {
-                base.Statistics.AddIndexAccess();
-                base.Statistics.AddCompareCount();
-                if (array[i].CompareTo(array[i + h]) > 0)
+                Statistics.AddIndexAccess();
+                if (Compare(array[i], array[i + h]) > 0)
                 {
                     Swap(ref array[i], ref array[i + h]);
                     swapped = true;

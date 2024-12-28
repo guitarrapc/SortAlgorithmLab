@@ -20,16 +20,15 @@ public class InsertSort<T> : SortBase<T> where T : IComparable<T>
 
     public override T[] Sort(T[] array)
     {
-        base.Statistics.Reset(array.Length, SortType, nameof(InsertSort<T>));
+        Statistics.Reset(array.Length, SortType, nameof(InsertSort<T>));
         for (var i = 1; i < array.Length; i++)
         {
             var tmp = array[i];
-            for (var j = i; j >= 1 && array[j - 1].CompareTo(array[j]) > 0; --j)
+            for (var j = i; j >= 1 && Compare(array[j - 1], array[j]) > 0; --j)
             {
-                base.Statistics.AddIndexAccess();
-                base.Statistics.AddCompareCount();
+                Statistics.AddIndexAccess();
                 //array.Dump($"{j - 1} : {array[j - 1]}, {j} : {array[j]}, {array[j - 1].CompareTo(array[j]) > 0}");
-                if (array[j - 1].CompareTo(array[j]) > 0)
+                if (Compare(array[j - 1], array[j]) > 0)
                 {
                     Swap(ref array[j], ref array[j - 1]);
                 }
@@ -40,13 +39,12 @@ public class InsertSort<T> : SortBase<T> where T : IComparable<T>
 
     public T[] Sort(T[] array, int first, int last)
     {
-        base.Statistics.Reset(array.Length, SortType, nameof(InsertSort<T>));
+        Statistics.Reset(array.Length, SortType, nameof(InsertSort<T>));
         for (var i = first + 1; i < last; i++)
         {
-            base.Statistics.AddCompareCount();
-            for (var j = i; j > first && array[j - 1].CompareTo(array[j]) > 0; --j)
+            for (var j = i; j > first && Compare(array[j - 1], array[j]) > 0; --j)
             {
-                base.Statistics.AddIndexAccess();
+                Statistics.AddIndexAccess();
                 Swap(ref array[j], ref array[j - 1]);
             }
         }

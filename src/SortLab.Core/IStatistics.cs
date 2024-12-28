@@ -1,23 +1,31 @@
-﻿namespace SortLab.Core;
+﻿using System.Runtime.CompilerServices;
+using System.Threading;
+
+namespace SortLab.Core;
 
 public class SortStatistics : IStatistics
 {
     public SortType SortType { get; set; }
     public string Algorithm { get; set; }
     public int ArraySize { get; set; }
-    public ulong IndexAccessCount { get; set; }
-    public ulong CompareCount { get; set; }
-    public ulong SwapCount { get; set; }
+    public ulong IndexAccessCount => _indexAccessCount;
+    public ulong CompareCount => _compareCount;
+    public ulong SwapCount => _swapCount;
     public bool IsSorted { get; set; }
+
+    private ulong _indexAccessCount;
+    private ulong _compareCount;
+    private ulong _swapCount;
 
     public void Reset()
     {
         SortType = SortType.None;
         Algorithm = "";
-        IndexAccessCount = 0;
-        CompareCount = 0;
-        SwapCount = 0;
+        ArraySize = 0;
         IsSorted = false;
+        _indexAccessCount = 0;
+        _compareCount = 0;
+        _swapCount = 0;
     }
 
     public void Reset(int arraySize, SortType sortType, string algorithm)
@@ -25,36 +33,26 @@ public class SortStatistics : IStatistics
         SortType = sortType;
         Algorithm = algorithm;
         ArraySize = arraySize;
-        IndexAccessCount = 0;
-        CompareCount = 0;
-        SwapCount = 0;
         IsSorted = false;
+        _indexAccessCount = 0;
+        _compareCount = 0;
+        _swapCount = 0;
     }
 
-    public void AddIndexAccess()
-    {
-        IndexAccessCount++;
-    }
-    public void AddIndexAccess(ulong count)
-    {
-        IndexAccessCount += count;
-    }
-    public void AddCompareCount()
-    {
-        CompareCount++;
-    }
-    public void AddCompareCount(ulong count)
-    {
-        CompareCount += count;
-    }
-    public void AddSwapCount()
-    {
-        SwapCount++;
-    }
-    public void AddSwapCount(ulong count)
-    {
-        SwapCount += count;
-    }
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public void AddIndexAccess() => Interlocked.Increment(ref _indexAccessCount);
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public void AddIndexAccess(ulong count) => Interlocked.Add(ref _indexAccessCount, count);
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public void AddCompareCount() => Interlocked.Increment(ref _compareCount);
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public void AddCompareCount(ulong count) => Interlocked.Add(ref _compareCount, count);
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public void AddSwapCount() => Interlocked.Increment(ref _swapCount);
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public void AddSwapCount(ulong count) => Interlocked.Add(ref _swapCount, count);
 }
 
 public interface IStatistics
@@ -62,9 +60,9 @@ public interface IStatistics
     SortType SortType { get; set; }
     string Algorithm { get; set; }
     int ArraySize { get; set; }
-    ulong IndexAccessCount { get; set; }
-    ulong CompareCount { get; set; }
-    ulong SwapCount { get; set; }
+    ulong IndexAccessCount { get; }
+    ulong CompareCount { get; }
+    ulong SwapCount { get; }
     bool IsSorted { get; set; }
 
     void Reset();

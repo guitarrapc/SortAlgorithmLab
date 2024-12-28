@@ -53,14 +53,14 @@ public class TimSort<T> : SortBase<T> where T : IComparable<T>
 
     public override T[] Sort(T[] array)
     {
-        base.Statistics.Reset(array.Length, SortType, nameof(TimSort<T>));
+        Statistics.Reset(array.Length, SortType, nameof(TimSort<T>));
 
         // run
         Initialize(array);
         var result = SortImpl(array, 0, array.Length);
-        base.Statistics.AddCompareCount(insertSort.Statistics.CompareCount);
-        base.Statistics.AddIndexAccess(insertSort.Statistics.IndexAccessCount);
-        base.Statistics.AddSwapCount(insertSort.Statistics.SwapCount);
+        Statistics.AddCompareCount(insertSort.Statistics.CompareCount);
+        Statistics.AddIndexAccess(insertSort.Statistics.IndexAccessCount);
+        Statistics.AddSwapCount(insertSort.Statistics.SwapCount);
         return result;
     }
 
@@ -228,7 +228,7 @@ public class TimSort<T> : SortBase<T> where T : IComparable<T>
 
             do
             {
-                if (array[cursor2].CompareTo(tmp[cursor1]) < 0)
+                if (Compare(array[cursor2], tmp[cursor1]) < 0)
                 {
                     array[dest++] = array[cursor2++];
                     count2++;
@@ -403,7 +403,7 @@ public class TimSort<T> : SortBase<T> where T : IComparable<T>
 
             do
             {
-                if (tmp[cursor2].CompareTo(array[cursor1]) < 0)
+                if (Compare(tmp[cursor2], array[cursor1]) < 0)
                 {
                     array[dest--] = array[cursor1--];
                     count1++;
@@ -544,10 +544,10 @@ public class TimSort<T> : SortBase<T> where T : IComparable<T>
         var runHigh = low + 1;
         if (runHigh == high) return 1;
 
-        if (array[runHigh++].CompareTo(array[low]) < 0)
+        if (Compare(array[runHigh++], array[low]) < 0)
         {
             // decending
-            while (runHigh < high && array[runHigh].CompareTo(array[runHigh - 1]) < 0)
+            while (runHigh < high && Compare(array[runHigh], array[runHigh - 1]) < 0)
             {
                 runHigh++;
             }
@@ -556,7 +556,7 @@ public class TimSort<T> : SortBase<T> where T : IComparable<T>
         else
         {
             // ascending
-            while (runHigh < high && array[runHigh].CompareTo(array[runHigh - 1]) >= 0)
+            while (runHigh < high && Compare(array[runHigh], array[runHigh - 1]) >= 0)
             {
                 runHigh++;
             }
@@ -583,11 +583,11 @@ public class TimSort<T> : SortBase<T> where T : IComparable<T>
         var maxOffset = 0;
         var offset = 1;
 
-        if (value.CompareTo(array[start + hint]) < 0)
+        if (Compare(value, array[start + hint]) < 0)
         {
             maxOffset = hint + 1;
 
-            while (offset < maxOffset && value.CompareTo(array[start + hint - offset]) < 0)
+            while (offset < maxOffset && Compare(value, array[start + hint - offset]) < 0)
             {
                 lastOffset = offset;
                 offset = (offset << 1) + 1;
@@ -611,7 +611,7 @@ public class TimSort<T> : SortBase<T> where T : IComparable<T>
         else
         {
             maxOffset = length - hint;
-            while (offset < maxOffset && value.CompareTo(array[start + hint + offset]) >= 0)
+            while (offset < maxOffset && Compare(value, array[start + hint + offset]) >= 0)
             {
                 lastOffset = offset;
                 offset = (offset << 1) + 1;
@@ -639,7 +639,7 @@ public class TimSort<T> : SortBase<T> where T : IComparable<T>
         while (lastOffset < offset)
         {
             var m = lastOffset + (UnsignedRightShift((offset - lastOffset), 1));
-            if (value.CompareTo(array[start + m]) < 0)
+            if (Compare(value, array[start + m]) < 0)
             {
                 offset = m;
             }
@@ -657,11 +657,11 @@ public class TimSort<T> : SortBase<T> where T : IComparable<T>
         var maxOffset = 0;
         var offset = 1;
 
-        if (value.CompareTo(array[start + hint]) > 0)
+        if (Compare(value, array[start + hint]) > 0)
         {
             maxOffset = length - hint;
 
-            while (offset < maxOffset && value.CompareTo(array[start + hint + offset]) > 0)
+            while (offset < maxOffset && Compare(value, array[start + hint + offset]) > 0)
             {
                 lastOffset = offset;
                 offset = (offset << 1) + 1;
@@ -684,7 +684,7 @@ public class TimSort<T> : SortBase<T> where T : IComparable<T>
         else
         {
             maxOffset = hint + 1;
-            while (offset < maxOffset && value.CompareTo(array[start + hint - offset]) <= 0)
+            while (offset < maxOffset && Compare(value, array[start + hint - offset]) <= 0)
             {
                 lastOffset = offset;
                 offset = (offset << 1) + 1;
@@ -713,7 +713,7 @@ public class TimSort<T> : SortBase<T> where T : IComparable<T>
         while (lastOffset < offset)
         {
             var m = lastOffset + (UnsignedRightShift((offset - lastOffset), 1));
-            if (value.CompareTo(array[start + m]) > 0)
+            if (Compare(value, array[start + m]) > 0)
             {
                 lastOffset = m + 1;
             }

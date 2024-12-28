@@ -21,7 +21,7 @@ public class CountingSort<T> : SortBase<T> where T : IComparable<T>
 
     public int[] Sort(int[] array)
     {
-        base.Statistics.Reset(array.Length, SortType, nameof(CountingSort<T>));
+        Statistics.Reset(array.Length, SortType, nameof(CountingSort<T>));
         if (array.Min() >= 0)
         {
             return SortImplPositive(array);
@@ -39,7 +39,7 @@ public class CountingSort<T> : SortBase<T> where T : IComparable<T>
 
         for (var i = 1; i < array.Length; i++)
         {
-            base.Statistics.AddIndexAccess();
+            Statistics.AddIndexAccess();
             if (array[i] < min)
             {
                 min = array[i];
@@ -56,21 +56,21 @@ public class CountingSort<T> : SortBase<T> where T : IComparable<T>
         // count up each number of element to countArray
         for (var i = 0; i < array.Length; i++)
         {
-            base.Statistics.AddIndexAccess();
+            Statistics.AddIndexAccess();
             ++countArray[array[i]];
         }
 
         // change current index element counter by adding previous index counter.
         for (var i = 1; i < countArray.Length; i++)
         {
-            base.Statistics.AddIndexAccess();
+            Statistics.AddIndexAccess();
             countArray[i] += countArray[i - 1];
         }
 
         // set countArrayed index element into resultArray, then decrement countArray.
         for (var i = 0; i < array.Length; i++)
         {
-            base.Statistics.AddIndexAccess();
+            Statistics.AddIndexAccess();
             resultArray[countArray[array[i]] - 1] = array[i];
             --countArray[array[i]];
         }
@@ -82,10 +82,10 @@ public class CountingSort<T> : SortBase<T> where T : IComparable<T>
         var max = -1;
         for (var i = 0; i < array.Length; i++)
         {
-            base.Statistics.AddIndexAccess();
+            Statistics.AddIndexAccess();
             if (Math.Abs(array[i]) > max)
             {
-                base.Statistics.AddIndexAccess();
+                Statistics.AddIndexAccess();
                 max = Math.Abs(array[i]);
             }
         }
@@ -93,7 +93,7 @@ public class CountingSort<T> : SortBase<T> where T : IComparable<T>
 
         for (var i = 0; i < array.Length; i++)
         {
-            base.Statistics.AddIndexAccess();
+            Statistics.AddIndexAccess();
             stack[array[i] + max]++;
         }
 
@@ -101,10 +101,10 @@ public class CountingSort<T> : SortBase<T> where T : IComparable<T>
         var k = array.Length - 1;
         while (k >= 0)
         {
-            base.Statistics.AddIndexAccess();
+            Statistics.AddIndexAccess();
             if (stack[j] > 0)
             {
-                base.Statistics.AddIndexAccess();
+                Statistics.AddIndexAccess();
                 stack[j]--;
                 array[k] = j - max;
                 k--;

@@ -26,14 +26,14 @@ public class IntroSortMedian9<T> : SortBase<T> where T : IComparable<T>
 
     public override T[] Sort(T[] array)
     {
-        base.Statistics.Reset(array.Length, SortType, nameof(IntroSortMedian9<T>));
+        Statistics.Reset(array.Length, SortType, nameof(IntroSortMedian9<T>));
         var result = Sort(array, 0, array.Length - 1, 2 * FloorLog(array.Length));
-        base.Statistics.AddCompareCount(heapSort.Statistics.CompareCount);
-        base.Statistics.AddIndexAccess(heapSort.Statistics.IndexAccessCount);
-        base.Statistics.AddSwapCount(heapSort.Statistics.SwapCount);
-        base.Statistics.AddCompareCount(insertSort.Statistics.CompareCount);
-        base.Statistics.AddIndexAccess(insertSort.Statistics.IndexAccessCount);
-        base.Statistics.AddSwapCount(insertSort.Statistics.SwapCount);
+        Statistics.AddCompareCount(heapSort.Statistics.CompareCount);
+        Statistics.AddIndexAccess(heapSort.Statistics.IndexAccessCount);
+        Statistics.AddSwapCount(heapSort.Statistics.SwapCount);
+        Statistics.AddCompareCount(insertSort.Statistics.CompareCount);
+        Statistics.AddIndexAccess(insertSort.Statistics.IndexAccessCount);
+        Statistics.AddSwapCount(insertSort.Statistics.SwapCount);
         return result;
     }
 
@@ -47,7 +47,7 @@ public class IntroSortMedian9<T> : SortBase<T> where T : IComparable<T>
                 return array;
             }
             depthLimit--;
-            base.Statistics.AddIndexAccess();
+            Statistics.AddIndexAccess();
             var partition = Partition(array, left, right, Median9(array, left, right));
             Sort(array, partition, right, depthLimit);
             right = partition;
@@ -61,17 +61,15 @@ public class IntroSortMedian9<T> : SortBase<T> where T : IComparable<T>
         var r = right;
         while (true)
         {
-            while (array[l].CompareTo(pivot) < 0)
+            while (Compare(array[l], pivot) < 0)
             {
-                base.Statistics.AddIndexAccess();
-                base.Statistics.AddCompareCount();
+                Statistics.AddIndexAccess();
                 l++;
             }
             r--;
-            while (pivot.CompareTo(array[r]) < 0)
+            while (Compare(pivot, array[r]) < 0)
             {
-                base.Statistics.AddIndexAccess();
-                base.Statistics.AddCompareCount();
+                Statistics.AddIndexAccess();
                 r--;
             }
 
@@ -87,27 +85,22 @@ public class IntroSortMedian9<T> : SortBase<T> where T : IComparable<T>
 
     private T Median3(T low, T mid, T high)
     {
-        base.Statistics.AddCompareCount();
-        if (low.CompareTo(mid) > 0)
+        if (Compare(low, mid) > 0)
         {
-            base.Statistics.AddCompareCount();
-            if (mid.CompareTo(high) > 0)
+            if (Compare(mid, high) > 0)
             {
                 return mid;
             }
             else
             {
-                base.Statistics.AddCompareCount();
-                return low.CompareTo(high) > 0 ? high : low;
+                return Compare(low, high) > 0 ? high : low;
             }
         }
         else
         {
-            base.Statistics.AddCompareCount();
-            if (mid.CompareTo(high) > 0)
+            if (Compare(mid, high) > 0)
             {
-                base.Statistics.AddCompareCount();
-                return low.CompareTo(high) > 0 ? low : high;
+                return Compare(low, high) > 0 ? low : high;
             }
             else
             {

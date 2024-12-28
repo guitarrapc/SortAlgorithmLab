@@ -22,7 +22,7 @@ public class SmoothSort<T> : SortBase<T> where T : IComparable<T>
 
     public override T[] Sort(T[] array)
     {
-        base.Statistics.Reset(array.Length, SortType, nameof(SmoothSort<T>));
+        Statistics.Reset(array.Length, SortType, nameof(SmoothSort<T>));
         return SortImpl(array);
     }
 
@@ -121,16 +121,14 @@ public class SmoothSort<T> : SortBase<T> where T : IComparable<T>
         while (b1 >= 3)
         {
             var r2 = r1 - b1 + c1;
-            base.Statistics.AddIndexAccess();
-            base.Statistics.AddCompareCount();
-            if (array[r1 - 1].CompareTo(array[r2]) > 0)
+            Statistics.AddIndexAccess();
+            if (Compare(array[r1 - 1], array[r2]) > 0)
             {
                 r2 = r1 - 1;
                 Down(ref b1, ref c1);
             }
 
-            base.Statistics.AddCompareCount();
-            if (array[r2].CompareTo(t) <= 0)
+            if (Compare(array[r2], t) <= 0)
             {
                 b1 = 1;
             }
@@ -167,9 +165,8 @@ public class SmoothSort<T> : SortBase<T> where T : IComparable<T>
 
             var r3 = r1 - b1;
 
-            base.Statistics.AddIndexAccess();
-            base.Statistics.AddCompareCount();
-            if ((p1 == 1) || array[r3].CompareTo(t) <= 0)
+            Statistics.AddIndexAccess();
+            if ((p1 == 1) || Compare(array[r3], t) <= 0)
             {
                 p1 = 0;
             }
@@ -185,17 +182,15 @@ public class SmoothSort<T> : SortBase<T> where T : IComparable<T>
                 {
                     if (b1 >= 3)
                     {
-                        base.Statistics.AddCompareCount();
                         var r2 = r1 - b1 + c1;
-                        if (array[r1 - 1].CompareTo(array[r2]) > 0)
+                        if (Compare(array[r1 - 1], array[r2]) > 0)
                         {
                             r2 = r1 - 1;
                             Down(ref b1, ref c1);
                             p1 <<= 1;
                         }
 
-                        base.Statistics.AddCompareCount();
-                        if (array[r2].CompareTo(array[r3]) <= 0)
+                        if (Compare(array[r2], array[r3]) <= 0)
                         {
                             array[r1] = array[r3];
                             r1 = r3;
@@ -223,8 +218,7 @@ public class SmoothSort<T> : SortBase<T> where T : IComparable<T>
     private void SemiTrinkle(T[] array)
     {
         r1 = r - c;
-        base.Statistics.AddCompareCount();
-        if (array[r1].CompareTo(array[r]) > 0)
+        if (Compare(array[r1], array[r]) > 0)
         {
             Swap(ref array[r], ref array[r1]);
             Trinkle(array);
@@ -233,7 +227,7 @@ public class SmoothSort<T> : SortBase<T> where T : IComparable<T>
 
     private void Up(ref int a, ref int b)
     {
-        base.Statistics.AddSwapCount();
+        Statistics.AddSwapCount();
         var temp = a;
         a += b + 1;
         b = temp;
@@ -241,7 +235,7 @@ public class SmoothSort<T> : SortBase<T> where T : IComparable<T>
 
     private void Down(ref int a, ref int b)
     {
-        base.Statistics.AddSwapCount();
+        Statistics.AddSwapCount();
         var temp = b;
         b = a - b - 1;
         a = temp;

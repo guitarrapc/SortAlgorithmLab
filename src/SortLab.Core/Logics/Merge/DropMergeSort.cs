@@ -46,14 +46,14 @@ public class DropMergeSort<T> : SortBase<T> where T : IComparable<T>
 
     public override T[] Sort(T[] array)
     {
-        base.Statistics.Reset(array.Length, SortType, nameof(DropMergeSort<T>));
+        Statistics.Reset(array.Length, SortType, nameof(DropMergeSort<T>));
         var a = SortImpl(array);
-        base.Statistics.AddIndexAccess(quickSort.Statistics.IndexAccessCount);
-        base.Statistics.AddCompareCount(quickSort.Statistics.CompareCount);
-        base.Statistics.AddSwapCount(quickSort.Statistics.SwapCount);
-        base.Statistics.AddIndexAccess(quickSort2.Statistics.IndexAccessCount);
-        base.Statistics.AddCompareCount(quickSort2.Statistics.CompareCount);
-        base.Statistics.AddSwapCount(quickSort2.Statistics.SwapCount);
+        Statistics.AddIndexAccess(quickSort.Statistics.IndexAccessCount);
+        Statistics.AddCompareCount(quickSort.Statistics.CompareCount);
+        Statistics.AddSwapCount(quickSort.Statistics.SwapCount);
+        Statistics.AddIndexAccess(quickSort2.Statistics.IndexAccessCount);
+        Statistics.AddCompareCount(quickSort2.Statistics.CompareCount);
+        Statistics.AddSwapCount(quickSort2.Statistics.SwapCount);
         return a;
     }
 
@@ -67,7 +67,7 @@ public class DropMergeSort<T> : SortBase<T> where T : IComparable<T>
 
         while (read < array.Length)
         {
-            base.Statistics.AddIndexAccess();
+            Statistics.AddIndexAccess();
 
             // fallback to QuickSort
             if (EarlyOut
@@ -81,9 +81,8 @@ public class DropMergeSort<T> : SortBase<T> where T : IComparable<T>
                 return quickSort.Sort(array);
             }
 
-            if (write == 0 || array[read].CompareTo(array[write - 1]) >= 0)
+            if (write == 0 || Compare(array[read], array[write - 1]) >= 0)
             {
-                base.Statistics.AddCompareCount();
                 // The element is order - keep it:
                 array[write] = array[read];
                 read++;
@@ -107,10 +106,9 @@ public class DropMergeSort<T> : SortBase<T> where T : IComparable<T>
                 if (DoubleComparisons
                     && droppedInRow == 0
                     && 2 <= write
-                    && array[read].CompareTo(array[write - 2]) >= 0)
+                    && Compare(array[read], array[write - 2]) >= 0)
                 {
-                    base.Statistics.AddCompareCount();
-                    base.Statistics.AddSwapCount();
+                    Statistics.AddSwapCount();
                     // Quick undo: drop previously accepted element, and overwrite with new one:
                     dropped[droppedIndex++] = array[write - 1];
                     //dropped.push(prev);
@@ -160,7 +158,7 @@ public class DropMergeSort<T> : SortBase<T> where T : IComparable<T>
                         // Back-track until we can accept at least one of the recently dropped elements:
                         var maxOfDropped = array.AsSpan(read, read + droppedInRow + 1).ToArray().Max();
                         // while (1 <= write && max_of_dropped < array[write - 1]) {
-                        while (1 <= write && maxOfDropped.CompareTo(array[write - 1]) < 0)
+                        while (1 <= write && Compare(maxOfDropped, array[write - 1]) < 0)
                         {
                             backTracked++;
                             write--;
@@ -191,10 +189,9 @@ public class DropMergeSort<T> : SortBase<T> where T : IComparable<T>
             dropped = dropped.AsSpan(0, dropped.Length - 1).ToArray();
             // let last_dropped = dropped.pop();
 
-            while (0 < write && lastDropped.CompareTo(array[write - 1]) < 0)
+            while (0 < write && Compare(lastDropped, array[write - 1]) < 0)
             {
-                base.Statistics.AddCompareCount();
-                base.Statistics.AddSwapCount();
+                Statistics.AddSwapCount();
                 array[back - 1] = array[write - 1];
                 back--;
                 write--;

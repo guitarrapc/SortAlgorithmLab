@@ -21,7 +21,7 @@ public class CocktailShakerSort<T> : SortBase<T> where T : IComparable<T>
 
     public override T[] Sort(T[] array)
     {
-        base.Statistics.Reset(array.Length, SortType, nameof(CocktailShakerSort<T>));
+        Statistics.Reset(array.Length, SortType, nameof(CocktailShakerSort<T>));
         var min = 0;
         var max = array.Length - 1;
 
@@ -31,9 +31,8 @@ public class CocktailShakerSort<T> : SortBase<T> where T : IComparable<T>
             var lastSwapIndex = min;
             for (var i = min; i < max; i++)
             {
-                base.Statistics.AddIndexAccess();
-                base.Statistics.AddCompareCount();
-                if (array[i].CompareTo(array[i + 1]) > 0)
+                Statistics.AddIndexAccess();
+                if (Compare(array[i], array[i + 1]) > 0)
                 {
                     //array.Dump($"min -> {i} : {array[i]}, {i + 1} : {array[i+1]}");
                     Swap(ref array[i], ref array[i + 1]);
@@ -48,9 +47,8 @@ public class CocktailShakerSort<T> : SortBase<T> where T : IComparable<T>
             lastSwapIndex = max;
             for (var i = max; i > min; i--)
             {
-                base.Statistics.AddIndexAccess();
-                base.Statistics.AddCompareCount();
-                if (array[i].CompareTo(array[i - 1]) < 0)
+                Statistics.AddIndexAccess();
+                if (Compare(array[i], array[i - 1]) < 0)
                 {
                     //array.Dump($"max -> {i} : {array[i]}, {i + 1} : {array[i + 1]}");
                     Swap(ref array[i], ref array[i - 1]);
@@ -81,7 +79,7 @@ public class CocktailShakerSort2<T> : SortBase<T> where T : IComparable<T>
 
     public override T[] Sort(T[] array)
     {
-        base.Statistics.Reset(array.Length, SortType, nameof(CocktailShakerSort2<T>));
+        Statistics.Reset(array.Length, SortType, nameof(CocktailShakerSort2<T>));
 
         // half calculation
         for (int i = 0; i < array.Length / 2; i++)
@@ -91,9 +89,8 @@ public class CocktailShakerSort2<T> : SortBase<T> where T : IComparable<T>
             // Bubble Sort (To Min)
             for (int j = i; j < array.Length - i - 1; j++)
             {
-                base.Statistics.AddIndexAccess();
-                base.Statistics.AddCompareCount();
-                if (array[j].CompareTo(array[j + 1]) > 0)
+                Statistics.AddIndexAccess();
+                if (Compare(array[j], array[j + 1]) > 0)
                 {
                     //array.Dump($"min -> {j} : {array[j]}, {j + 1} : {array[j + 1]}");
                     Swap(ref array[j], ref array[j + 1]);
@@ -104,9 +101,8 @@ public class CocktailShakerSort2<T> : SortBase<T> where T : IComparable<T>
             // Bubble Sort (To Max)
             for (int j = array.Length - 2 - i; j > i; j--)
             {
-                base.Statistics.AddIndexAccess();
-                base.Statistics.AddCompareCount();
-                if (array[j].CompareTo(array[j - 1]) < 0)
+                Statistics.AddIndexAccess();
+                if (Compare(array[j], array[j - 1]) < 0)
                 {
                     //array.Dump($"max -> {j} : {array[j]}, {j - 1} : {array[j-1]}");
                     Swap(ref array[j], ref array[j - 1]);

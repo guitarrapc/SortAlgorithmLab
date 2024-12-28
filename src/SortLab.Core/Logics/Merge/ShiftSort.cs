@@ -21,7 +21,7 @@ public class ShiftSort<T> : SortBase<T> where T : IComparable<T>
 
     public override T[] Sort(T[] array)
     {
-        base.Statistics.Reset(array.Length, SortType, nameof(ShiftSort<T>));
+        Statistics.Reset(array.Length, SortType, nameof(ShiftSort<T>));
         return SortImpl(array);
     }
 
@@ -35,24 +35,21 @@ public class ShiftSort<T> : SortBase<T> where T : IComparable<T>
         // check 3items where decrease order like "array[x -2] < array[x - 1] < array[x]"
         for (var x = array.Length - 1; x >= 1; x--)
         {
-            base.Statistics.AddIndexAccess();
-            base.Statistics.AddCompareCount();
-            if (array[x].CompareTo(array[x - 1]) < 0)
+            Statistics.AddIndexAccess();
+            if (Compare(array[x], array[x - 1]) < 0)
             {
-                base.Statistics.AddIndexAccess();
-                base.Statistics.AddCompareCount();
-                if (x > 1 && array[x - 1].CompareTo(array[x - 2]) < 0)
+                Statistics.AddIndexAccess();
+                if (x > 1 && Compare(array[x - 1], array[x - 2]) < 0)
                 {
                     // change to increase order
                     Swap(ref array[x], ref array[x - 2]);
 
                     if (x != array.Length - 1)
                     {
-                        base.Statistics.AddIndexAccess();
-                        base.Statistics.AddCompareCount();
-                        if (array[x + 1].CompareTo(array[x]) < 0)
+                        Statistics.AddIndexAccess();
+                        if (Compare(array[x + 1], array[x]) < 0)
                         {
-                            base.Statistics.AddIndexAccess();
+                            Statistics.AddIndexAccess();
                             zeroIndices[endTracker] = x + 1;
                             endTracker++;
                         }
@@ -80,7 +77,7 @@ public class ShiftSort<T> : SortBase<T> where T : IComparable<T>
         // i == j -2
         if ((j - i) == 2)
         {
-            base.Statistics.AddIndexAccess();
+            Statistics.AddIndexAccess();
             Merge(array, zeroIndices[j], zeroIndices[j - 1], zeroIndices[i]);
             return;
         }
@@ -113,7 +110,7 @@ public class ShiftSort<T> : SortBase<T> where T : IComparable<T>
             var counter = 0;
             for (var y = second; y < third; y++)
             {
-                base.Statistics.AddIndexAccess();
+                Statistics.AddIndexAccess();
                 tmp2nd[counter] = array[y];
                 counter++;
             }
@@ -123,9 +120,8 @@ public class ShiftSort<T> : SortBase<T> where T : IComparable<T>
             var left = second - 1;
             while (secondCounter > 0)
             {
-                base.Statistics.AddIndexAccess();
-                base.Statistics.AddCompareCount();
-                if (left >= first && array[left].CompareTo(tmp2nd[secondCounter - 1]) >= 0)
+                Statistics.AddIndexAccess();
+                if (left >= first && Compare(array[left], tmp2nd[secondCounter - 1]) >= 0)
                 {
                     array[left + secondCounter] = array[left];
                     left--;
@@ -144,7 +140,7 @@ public class ShiftSort<T> : SortBase<T> where T : IComparable<T>
             var counter = 0;
             for (var y = first; y < second; y++)
             {
-                base.Statistics.AddIndexAccess();
+                Statistics.AddIndexAccess();
                 tmp1st[counter] = array[y];
                 counter++;
             }
@@ -155,9 +151,8 @@ public class ShiftSort<T> : SortBase<T> where T : IComparable<T>
             var right = second;
             while (firstCounter < tmp1st.Length)
             {
-                base.Statistics.AddIndexAccess();
-                base.Statistics.AddCompareCount();
-                if (right < third && array[right].CompareTo(tmp1st[firstCounter]) < 0)
+                Statistics.AddIndexAccess();
+                if (right < third && Compare(array[right], tmp1st[firstCounter]) < 0)
                 {
                     array[right - tmpLength] = array[right];
                     right++;

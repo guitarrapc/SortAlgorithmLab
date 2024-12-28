@@ -19,7 +19,7 @@ public class QuickSortMedian3<T> : SortBase<T> where T : IComparable<T>
 
     public override T[] Sort(T[] array)
     {
-        base.Statistics.Reset(array.Length, SortType, nameof(QuickSortMedian3<T>));
+        Statistics.Reset(array.Length, SortType, nameof(QuickSortMedian3<T>));
         return SortImpl(array, 0, array.Length - 1);
     }
 
@@ -34,17 +34,17 @@ public class QuickSortMedian3<T> : SortBase<T> where T : IComparable<T>
 
         while (l <= r)
         {
-            while (l < right && array[l].CompareTo(pivot) < 0)
+            while (l < right && Compare(array[l], pivot) < 0)
             {
-                base.Statistics.AddIndexAccess();
-                base.Statistics.AddCompareCount();
+                Statistics.AddIndexAccess();
+                Statistics.AddCompareCount();
                 l++;
             }
 
-            while (r > left && array[r].CompareTo(pivot) > 0)
+            while (r > left && Compare(array[r], pivot) > 0)
             {
-                base.Statistics.AddIndexAccess();
-                base.Statistics.AddCompareCount();
+                Statistics.AddIndexAccess();
+                Statistics.AddCompareCount();
                 r--;
             }
 
@@ -63,22 +63,16 @@ public class QuickSortMedian3<T> : SortBase<T> where T : IComparable<T>
     // less efficient compatison
     //    private T Median3(T low, T mid, T high)
     //    {
-    //        base.Statics.AddCompareCount();
-    //        if (low.CompareTo(mid) > 0)
+    //        if (Compare(low, mid) > 0)
     //        {
-    //            base.Statics.AddCompareCount();
     //            Swap(ref low, ref mid);
     //        }
-    //        base.Statics.AddCompareCount();
-    //        if (low.CompareTo(high) > 0)
+    //        if (Compare(low, high) > 0)
     //        {
-    //            base.Statics.AddCompareCount();
     //            Swap(ref low, ref high);
     //        }
-    //        base.Statics.AddCompareCount();
-    //        if (mid.CompareTo(high) > 0)
+    //        if (Compare(mid, high) > 0)
     //        {
-    //            base.Statics.AddCompareCount();
     //            Swap(ref mid, ref high);
     //        }
     //        return mid;
@@ -87,27 +81,22 @@ public class QuickSortMedian3<T> : SortBase<T> where T : IComparable<T>
     // much more efficient comparison
     private T Median3(T low, T mid, T high)
     {
-        base.Statistics.AddCompareCount();
-        if (low.CompareTo(mid) > 0)
+        if (Compare(low, mid) > 0)
         {
-            base.Statistics.AddCompareCount();
-            if (mid.CompareTo(high) > 0)
+            if (Compare(mid, high) > 0)
             {
                 return mid;
             }
             else
             {
-                base.Statistics.AddCompareCount();
-                return low.CompareTo(high) > 0 ? high : low;
+                return Compare(low, high) > 0 ? high : low;
             }
         }
         else
         {
-            base.Statistics.AddCompareCount();
-            if (mid.CompareTo(high) > 0)
+            if (Compare(mid, high) > 0)
             {
-                base.Statistics.AddCompareCount();
-                return low.CompareTo(high) > 0 ? low : high;
+                return Compare(low, high) > 0 ? low : high;
             }
             else
             {

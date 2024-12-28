@@ -19,7 +19,7 @@ public class SlowSort<T> : SortBase<T> where T : IComparable<T>
 
     public override T[] Sort(T[] array)
     {
-        base.Statistics.Reset(array.Length, SortType, nameof(SlowSort<T>));
+        Statistics.Reset(array.Length, SortType, nameof(SlowSort<T>));
         return SortImpl(array, 0, array.Length - 1);
     }
 
@@ -31,9 +31,8 @@ public class SlowSort<T> : SortBase<T> where T : IComparable<T>
         SortImpl(array, start, m);
         SortImpl(array, m + 1, end);
 
-        base.Statistics.AddIndexAccess();
-        base.Statistics.AddCompareCount();
-        if (array[end].CompareTo(array[m]) < 0)
+        Statistics.AddIndexAccess();
+        if (Compare(array[end], array[m]) < 0)
         {
             Swap(ref array[end], ref array[m]);
         }
