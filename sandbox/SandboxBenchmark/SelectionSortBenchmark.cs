@@ -8,7 +8,7 @@ namespace SandboxBenchmark;
 [MinColumn, MaxColumn]
 public class SelectionSortBenchmark
 {
-    [Params(100, 1000)]
+    [Params(100, 1000, 10000)]
     public int Number { get; set; }
 
     private int[] _array = default!;

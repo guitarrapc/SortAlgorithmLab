@@ -27,6 +27,12 @@ public abstract class SortBase<T> : ISort<T> where T : IComparable<T>
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    protected ref T Index(ref Span<T> span, int pos)
+    {
+        return ref span[pos];
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     protected int UnsignedRightShift(int number, int bits)
     {
         return (int)((uint)number >> bits);
