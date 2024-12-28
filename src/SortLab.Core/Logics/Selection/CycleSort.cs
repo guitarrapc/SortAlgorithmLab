@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Runtime.CompilerServices;
 
 namespace SortLab.Core.Logics;
 
@@ -22,59 +23,58 @@ public class CycleSort<T> : SortBase<T> where T : IComparable<T>
 
         for (var start = 0; start <= array.Length - 2; start++)
         {
-            // compare value
-            Statistics.AddIndexAccess();
+            // Compare value
             var tmp = array[start];
+            Statistics.AddIndexAccess();
 
-            // Find position to swap.
-            // start base point to find lower element on right side.
-            var pos = start;
-            for (var i = start + 1; i < array.Length; i++)
-            {
-                Statistics.AddIndexAccess();
-                if (Compare(array[i], tmp) < 0)
-                {
-                    pos++;
-                }
-            }
+            // Find position to swap, start base point to find lower element on right side.
+            var pos = FindPosition(array, tmp, start);
 
-            // fix position. not found lower element on the right, go next index.
+            // If no swap needed, continue to the next cycle
             if (pos == start) continue;
 
-            // ignore duplicate
-            while (Compare(tmp, array[pos]) == 0)
-            {
-                pos++;
-            }
+            // Ignore duplicate
+            pos = SkipDuplicates(array, tmp, pos);
 
+            // Perform the initial swap
             Swap(ref array[pos], ref tmp);
+            Statistics.AddIndexAccess();
 
-            // rest of the cycle.
+            // Complete the cycle
             while (pos != start)
             {
-                pos = start;
-                for (var i = start + 1; i < array.Length; i++)
-                {
-                    Statistics.AddIndexAccess();
-                    if (Compare(array[i], tmp) < 0)
-                    {
-                        pos++;
-                    }
-                }
-
+                pos = FindPosition(array, tmp, start);
+                pos = SkipDuplicates(array, tmp, pos);
+                Swap(ref array[pos], ref tmp);
                 Statistics.AddIndexAccess();
-                while (Compare(tmp, array[pos]) == 0)
-                {
-                    pos++;
-                }
-
-                Statistics.AddIndexAccess();
-                if (Compare(tmp, array[pos]) != 0)
-                {
-                    Swap(ref array[pos], ref tmp);
-                }
             }
         }
         return array;
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private int FindPosition(T[] array, T value, int start)
+    {
+        var pos = start;
+        for (var i = start + 1; i < array.Length; i++)
+        {
+            Statistics.AddIndexAccess();
+            if (Compare(array[i], value) < 0)
+            {
+                pos++;
+            }
+        }
+        return pos;
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private int SkipDuplicates(T[] array, T value, int pos)
+    {
+        while (Compare(value, array[pos]) == 0)
+        {
+            Statistics.AddIndexAccess();
+            pos++;
+        }
+        return pos;
     }
 }
