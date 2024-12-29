@@ -113,18 +113,18 @@ public class BinaryInsertSort<T> : SortBase<T> where T : IComparable<T>
             start++;
         }
 
-        for (; start < last; start++)
+        for (var i = start; i < last; i++)
         {
-            var tmp = Index(ref span, start);
+            var tmp = Index(ref span, i);
 
             // Find the insertion position using a custom binary search
-            var pos = BinarySearch(ref span, tmp, start);
+            var pos = BinarySearch(ref span, tmp, i);
 
             // shift [pod.. start-1] -> [pod+1.. start]
-            int length = start - pos;
+            int length = i - pos;
             if (length > 0)
             {
-                for (var j = start - 1; j >= pos; j--)
+                for (var j = i - 1; j >= pos; j--)
                 {
                     Index(ref span, j + 1) = Index(ref span, j);
                 }
