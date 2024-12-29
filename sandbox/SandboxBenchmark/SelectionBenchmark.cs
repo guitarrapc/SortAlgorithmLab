@@ -20,16 +20,16 @@ public class SelectionBenchmark
     [IterationSetup]
     public void Setup()
     {
-        _cycleArray = Enumerable.Range(0, Number).Sample(Number).ToArray();
+        _cycleArray = BenchmarkData.GenIntArray(Number);
         _cycleSort = new();
 
-        _heapArray = _cycleArray.ToArray();
+        _heapArray = BenchmarkData.GenIntArray(Number);
         _heapSort = new();
 
-        _selectionArray = _cycleArray.ToArray();
+        _selectionArray = BenchmarkData.GenIntArray(Number);
         _selectionSort = new();
 
-        _smoothArray = _cycleArray.ToArray();
+        _smoothArray = BenchmarkData.GenIntArray(Number);
         _smoothSort = new();
     }
 
