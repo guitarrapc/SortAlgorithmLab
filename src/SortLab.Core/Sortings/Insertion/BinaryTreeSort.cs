@@ -21,7 +21,7 @@ Ref span (Recursive) ...
 */
 
 /// <summary>
-/// バイナリツリーを作成して、Leftは現ノードより小さく。Rightは大きいことを保証する。これで、ツリーによって並び替えが保証されるので、ツリー作成結果を配列に割り当て直す。高速な安定の外部ソート。
+/// バイナリツリーを作成した二本木ソート。バイナリツリーはLeftは現ノードより小さく。Rightは大きいことを保証する。これで、ツリーによって並び替えが保証されるので、ツリー作成結果を配列に割り当て直す。高速な安定の外部ソート。
 /// </summary>
 /// <remarks>
 /// stable : yes
@@ -51,7 +51,7 @@ public class BinaryTreeSort<T> : SortBase<T> where T : IComparable<T>
 
         for (var i = 0; i < span.Length; i++)
         {
-            Insert(ref root, Index(ref span, i));
+            InsertIterative(ref root, Index(ref span, i));
             //InsertResursive(ref root, Index(ref span, i));
         }
 
@@ -65,7 +65,7 @@ public class BinaryTreeSort<T> : SortBase<T> where T : IComparable<T>
     /// </summary>
     /// <param name="node"></param>
     /// <param name="value"></param>
-    private void Insert(ref Node? node, T value)
+    private void InsertIterative(ref Node? node, T value)
     {
         // If the tree is empty, create a new root and return.
         if (node is null)
@@ -121,11 +121,11 @@ public class BinaryTreeSort<T> : SortBase<T> where T : IComparable<T>
 
         if (Compare(value, node.Item) < 0)
         {
-            Insert(ref node.Left, value);
+            InsertIterative(ref node.Left, value);
         }
         else
         {
-            Insert(ref node.Right, value);
+            InsertIterative(ref node.Right, value);
         }
     }
 

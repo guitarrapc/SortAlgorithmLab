@@ -131,6 +131,9 @@ public record Runner
                 {
                     // -- Insertion -- //
 
+                    // Balanced Tree Sort
+                    RunSort(new BalancedTreeSort<int>(), item);
+
                     // Binary Insert Sort
                     RunSort(new BinaryInsertSort<int>(), item);
 
