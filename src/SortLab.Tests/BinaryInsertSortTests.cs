@@ -116,7 +116,7 @@ public class BinaryInsertSortTests
         sort.Statistics.ArraySize.Should().Be(inputSample.Samples.Length);
         sort.Statistics.IndexAccessCount.Should().NotBe(0);
         sort.Statistics.CompareCount.Should().NotBe(0);
-        sort.Statistics.SwapCount.Should().NotBe(0);
+        sort.Statistics.SwapCount.Should().Be(0);
     }
 
     [Theory]
