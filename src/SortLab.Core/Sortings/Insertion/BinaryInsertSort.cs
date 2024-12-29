@@ -3,13 +3,21 @@
 /*
 Ref span ...
 
-| Method           | Number | Mean       | Error      | StdDev    | Median      | Min         | Max        | Allocated |
-|----------------- |------- |-----------:|-----------:|----------:|------------:|------------:|-----------:|----------:|
-| BinaryInsertSort | 100    |   119.4 us | 3,272.1 us | 179.35 us |    16.00 us |    15.70 us |   326.5 us |     736 B |
-| BinaryInsertSort | 1000   |   118.0 us |   152.1 us |   8.33 us |   114.90 us |   111.60 us |   127.4 us |     448 B |
-| BinaryInsertSort | 10000  | 7,034.7 us |   666.4 us |  36.53 us | 7,042.80 us | 6,994.80 us | 7,066.5 us |     736 B |
+| Method           | Number | Mean       | Error       | StdDev    | Median      | Min         | Max        | Allocated |
+|----------------- |------- |-----------:|------------:|----------:|------------:|------------:|-----------:|----------:|
+| BinaryInsertSort | 100    |   112.1 us | 2,820.79 us | 154.62 us |    31.50 us |    14.50 us |   290.4 us |     736 B |
+| BinaryInsertSort | 1000   |   112.4 us |    55.38 us |   3.04 us |   112.90 us |   109.10 us |   115.1 us |     736 B |
+| BinaryInsertSort | 10000  | 6,902.2 us |   897.73 us |  49.21 us | 6,929.30 us | 6,845.40 us | 6,931.9 us |     736 B |
 
- */
+Ref span (start) ...
+
+| Method           | Number | Mean       | Error       | StdDev    | Median      | Min         | Max        | Allocated |
+|----------------- |------- |-----------:|------------:|----------:|------------:|------------:|-----------:|----------:|
+| BinaryInsertSort | 100    |   122.6 us | 3,383.21 us | 185.45 us |    15.70 us |    15.30 us |   336.7 us |     448 B |
+| BinaryInsertSort | 1000   |   121.1 us |    55.55 us |   3.04 us |   121.70 us |   117.80 us |   123.8 us |     448 B |
+| BinaryInsertSort | 10000  | 8,673.2 us | 4,841.61 us | 265.38 us | 8,720.50 us | 8,387.30 us | 8,911.7 us |     736 B |
+
+*/
 
 /// <summary>
 /// 通常のリニアサーチと異なり、挿入位置を2分探索して決定するため比較範囲、回数を改善できる。安定ソート
@@ -110,16 +118,20 @@ public class BinaryInsertSort<T> : SortBase<T> where T : IComparable<T>
             var tmp = Index(ref span, start);
 
             // Find the insertion position using a custom binary search
-            var pod = BinarySearch(ref span, tmp, start);
+            var pos = BinarySearch(ref span, tmp, start);
 
-            // Perform multiple swaps to move 'tmp' to index 'left' in a stable fashion
-            for (var n = start - pod; n > 0; n--)
+            // shift [pod.. start-1] -> [pod+1.. start]
+            int length = start - pos;
+            if (length > 0)
             {
-                Swap(ref Index(ref span, pod + n), ref Index(ref span, pod + n - 1));
+                for (var j = start - 1; j >= pos; j--)
+                {
+                    Index(ref span, j + 1) = Index(ref span, j);
+                }
             }
 
             // Finally, swap 'tmp' into the 'pos' position
-            Swap(ref Index(ref span, pod), ref tmp);
+            Index(ref span, pos) = tmp;
         }
     }
 
