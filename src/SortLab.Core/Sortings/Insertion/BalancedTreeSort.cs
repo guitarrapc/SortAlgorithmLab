@@ -6,9 +6,9 @@ Ref span (Iterative) ...
 
 | Method           | Number | Mean         | Error        | StdDev      | Median       | Min          | Max          | Allocated |
 |----------------- |------- |-------------:|-------------:|------------:|-------------:|-------------:|-------------:|----------:|
-| BalancedTreeSort | 100    |    49.400 us |   134.547 us |   7.3750 us |    45.600 us |    44.700 us |    57.900 us |   31416 B |
-| BalancedTreeSort | 1000   |   665.033 us |   502.694 us |  27.5544 us |   650.700 us |   647.600 us |   696.800 us |  538992 B |
-| BalancedTreeSort | 10000  | 8,387.333 us | 2,469.304 us | 135.3509 us | 8,333.600 us | 8,287.100 us | 8,541.300 us | 5884472 B |
+| BalancedTreeSort | 100    |    37.700 us |   274.936 us |  15.0702 us |    29.200 us |    28.800 us |    55.100 us |   21344 B |
+| BalancedTreeSort | 1000   |   433.533 us |    93.762 us |   5.1394 us |   436.400 us |   427.600 us |   436.600 us |  342080 B |
+| BalancedTreeSort | 10000  | 5,281.433 us | 3,870.582 us | 212.1597 us | 5,187.100 us | 5,132.800 us | 5,524.400 us | 3654352 B |
 
 Ref span (Recursive) ...
 
@@ -74,14 +74,13 @@ public class BalancedTreeSort<T> : SortBase<T> where T : IComparable<T>
         }
 
         // We'll track the path in a stack so we can rebalance on the way back up.
-        // Stack items: (node, direction) where direction=-1 for left, +1 for right, 0 for "node itself"
-        var stack = new Stack<(Node node, int dir)>();
+        var stack = new Stack<Node>();
         Node current = root;
 
         while (true)
         {
-            // push the current node and direction to the stack
-            stack.Push((current, 0));
+            // push the current node to the stack
+            stack.Push(current);
 
             // Go left
             if (Compare(value, current.Item) < 0)
@@ -90,7 +89,7 @@ public class BalancedTreeSort<T> : SortBase<T> where T : IComparable<T>
                 {
                     current.Left = new Node(value);
                     // Inserted a new node, so we need to rebalance on the way back up.
-                    stack.Push((current.Left, 0));
+                    stack.Push(current.Left);
                     break;
                 }
                 current = current.Left;
@@ -101,7 +100,7 @@ public class BalancedTreeSort<T> : SortBase<T> where T : IComparable<T>
                 if (current.Right is null)
                 {
                     current.Right = new Node(value);
-                    stack.Push((current.Right, 0));
+                    stack.Push(current.Right);
                     break;
                 }
                 current = current.Right;
@@ -112,11 +111,11 @@ public class BalancedTreeSort<T> : SortBase<T> where T : IComparable<T>
         Node? newRoot = root;
 
         // pop the last node from the stack
-        var (childNode, _) = stack.Pop();
+        var childNode = stack.Pop();
 
         while (stack.Count > 0)
         {
-            var (parent, _) = stack.Pop();
+            var parent = stack.Pop();
 
             UpdateHeight(parent);
             var balanced = Balance(parent);
@@ -126,7 +125,7 @@ public class BalancedTreeSort<T> : SortBase<T> where T : IComparable<T>
             if (stack.Count > 0)
             {
                 // There is a parent node, update its child
-                var (upper, _) = stack.Pop();
+                var upper = stack.Pop();
                 if (ReferenceEquals(upper.Left, parent))
                 {
                     upper.Left = balanced;
@@ -136,7 +135,7 @@ public class BalancedTreeSort<T> : SortBase<T> where T : IComparable<T>
                     upper.Right = balanced;
                 }
 
-                stack.Push((upper, 0));
+                stack.Push(upper);
             }
             else
             {
