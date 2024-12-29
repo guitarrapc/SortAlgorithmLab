@@ -6,9 +6,9 @@ Ref span (Iterative) ...
 
 | Method           | Number | Mean         | Error        | StdDev      | Median       | Min          | Max          | Allocated |
 |----------------- |------- |-------------:|-------------:|------------:|-------------:|-------------:|-------------:|----------:|
-| BalancedTreeSort | 100    |    50.567 us |   121.459 us |   6.6576 us |    50.200 us |    44.100 us |    57.400 us |   31688 B |
-| BalancedTreeSort | 1000   |   645.367 us |   245.080 us |  13.4337 us |   639.000 us |   636.300 us |   660.800 us |  541816 B |
-| BalancedTreeSort | 10000  | 8,448.633 us | 2,596.190 us | 142.3059 us | 8,494.300 us | 8,289.100 us | 8,562.500 us | 5874912 B |
+| BalancedTreeSort | 100    |    49.400 us |   134.547 us |   7.3750 us |    45.600 us |    44.700 us |    57.900 us |   31416 B |
+| BalancedTreeSort | 1000   |   665.033 us |   502.694 us |  27.5544 us |   650.700 us |   647.600 us |   696.800 us |  538992 B |
+| BalancedTreeSort | 10000  | 8,387.333 us | 2,469.304 us | 135.3509 us | 8,333.600 us | 8,287.100 us | 8,541.300 us | 5884472 B |
 
 Ref span (Recursive) ...
 
@@ -118,17 +118,6 @@ public class BalancedTreeSort<T> : SortBase<T> where T : IComparable<T>
         {
             var (parent, _) = stack.Pop();
 
-            // determine the direction of the parent node before updating child's height and rotation
-            int dir;
-            if (object.ReferenceEquals(parent.Left, childNode))
-            {
-                dir = -1; // left
-            }
-            else
-            {
-                dir = 1;  // right
-            }
-
             UpdateHeight(parent);
             var balanced = Balance(parent);
 
@@ -138,7 +127,7 @@ public class BalancedTreeSort<T> : SortBase<T> where T : IComparable<T>
             {
                 // There is a parent node, update its child
                 var (upper, _) = stack.Pop();
-                if (object.ReferenceEquals(upper.Left, parent))
+                if (ReferenceEquals(upper.Left, parent))
                 {
                     upper.Left = balanced;
                 }
@@ -157,6 +146,8 @@ public class BalancedTreeSort<T> : SortBase<T> where T : IComparable<T>
             // This balanced node is now the 'child' in the upper level
             childNode = balanced;
         }
+
+        stack.Clear();
 
         return newRoot;
     }
