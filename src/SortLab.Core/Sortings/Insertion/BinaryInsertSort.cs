@@ -72,6 +72,12 @@ public class BinaryInsertSort<T> : SortBase<T> where T : IComparable<T>
         return array;
     }
 
+    /// <summary>
+    /// binary insertion sort with swap
+    /// </summary>
+    /// <param name="span"></param>
+    /// <param name="first"></param>
+    /// <param name="last"></param>
     private void SortCore(Span<T> span, int first, int last)
     {
         // The following commented-out code shows an example of using the built-in
@@ -93,18 +99,25 @@ public class BinaryInsertSort<T> : SortBase<T> where T : IComparable<T>
             var tmp = Index(ref span, i);
 
             // Find the insertion position using a custom binary search
-            var ois = BinarySearch(ref span, tmp, i);
+            var pos = BinarySearch(ref span, tmp, i);
 
             // Rotate 'tmp' into the correct place by swapping from 'left' up to 'i'.
             // This ensures elements between [left..i) move one position right
             // and 'tmp' takes the 'left' position in a stable manner.
-            for (var j = ois; j <= i; j++)
+            for (var j = pos; j <= i; j++)
             {
                 Swap(ref Index(ref span, j), ref tmp);
             }
         }
     }
 
+    /// <summary>
+    /// binary insertion sort with shift
+    /// </summary>
+    /// <param name="span"></param>
+    /// <param name="first"></param>
+    /// <param name="last"></param>
+    /// <param name="start"></param>
     private void SortCore(Span<T> span, int first, int last, int start)
     {
         // If 'start' equals 'first', move it forward to begin insertion from the next element
