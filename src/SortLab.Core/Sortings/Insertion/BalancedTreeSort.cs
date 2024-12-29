@@ -146,8 +146,6 @@ public class BalancedTreeSort<T> : SortBase<T> where T : IComparable<T>
             childNode = balanced;
         }
 
-        stack.Clear();
-
         return newRoot;
     }
 
