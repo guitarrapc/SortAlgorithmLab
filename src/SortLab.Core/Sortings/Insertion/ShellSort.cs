@@ -29,14 +29,25 @@ Ref span (Sedgewick) ...
  */
 
 /// <summary>
-/// hi+1 = 3hi + 1となるhで配列を分割し、分割された細かい配列ごとに挿入ソート<see cref="InsertionSort{T}"/>を行う(A)。次のhを/3で求めて、Aを繰り返しh=1まで行う。hごとにでソート済みとなっているため、最後の1は通常の挿入ソートと同じだが、挿入ソートが持つソート済み配列で高速に動作する性質から高速な並び替えが可能になる。選択ソートを使っているので不安定ソート。<see cref="BubbleSort{T}"/>に同様の概念を適用したのが<see cref="CombSort{T}"/>である。
+/// h_{i+1} = 3h_i + 1 となる h で配列を分割し、分割された各部分配列ごとに挿入ソート<see cref="InsertionSort{T}"/>を行う。
+/// 次の h を /3 で求め、h が 1 になるまでこの操作を繰り返す。各 h ごとに部分配列がソートされているため、最後の h=1 のときは通常の挿入ソートと同じだが、既に部分的にソートされているため高速に動作する。
+/// ギャップ付き挿入ソートを使用するため不安定なソートである。（ギャップを使って要素を大きく飛ばしながらソートするため、同値要素の相対順序が保たれない）
+/// <see cref="BubbleSort{T}"/> に同様の概念を適用したものが <see cref="CombSort{T}"/> である。
+/// <br/>
+/// Shell sort algorithm that uses a gap sequence defined by h_{i+1} = 3*h_i + 1.
+/// The array is logically divided according to the gap 'h', and each sub-array is sorted　using insertion-sort-like steps (<see cref="InsertionSort{T}"/>). Then we reduce 'h' by dividing by 3 and repeat this process until h=1. By the time h=1, the data is already partially sorted, so the final pass (which is effectively an insertion sort) is very efficient.
+/// This approach is a "gap-based insertion sort," so it is inherently unstable.
+/// <see cref="CombSort{T}"/> is a similar concept applied to bubble-sort.
 /// </summary>
 /// <remarks>
-/// stable : no
+/// stable  : no (because gap-based insertion sorting does not preserve the order of equal elements)
 /// inplace : yes
-/// Compare : O(nlogn) * O(n) (O(n^0.25)～O(n^0.5) * O(n) = O(n^1.25))
-/// Swap :
-/// Order : O(n^1.25) (Better case : O(n)) (Worst case : O(nlog^2n))
+/// Compare : Depends on gap sequence (often around O(n^(1.3)) ~ O(n^(1.5)) on average.)
+/// Swap    : In swap-based implementation, potentially multiple swaps per insertion
+/// Order   : Typically sub-quadratic.
+///         * average:                   O(n^1.3 ~ n^1.5)
+///         * best case (nearly sorted): O(n)
+///         * worst case can approach:   O(n^2)
 /// </remarks>
 /// <typeparam name="T"></typeparam>
 public class ShellSort<T> : SortBase<T> where T : IComparable<T>
