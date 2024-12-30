@@ -3,24 +3,25 @@
 /*
 Ref span ...
 
-| Method        | Number | Mean          | Error          | StdDev        | Median        | Min          | Max           | Allocated |
-|-------------- |------- |--------------:|---------------:|--------------:|--------------:|-------------:|--------------:|----------:|
-| SelectionSort | 100    |      16.27 us |      10.690 us |      0.586 us |      16.50 us |     15.60 us |      16.70 us |     736 B |
-| SelectionSort | 1000   |     267.27 us |      46.952 us |      2.574 us |     268.60 us |    264.30 us |     268.90 us |     448 B |
-| SelectionSort | 10000  |  20,349.98 us |   1,341.729 us |     73.545 us |  20,340.15 us | 20,281.85 us |  20,427.95 us |     736 B |
+| Method        | Number | Mean          | Error          | StdDev        | Median       | Min          | Max           | Allocated |
+|-------------- |------- |--------------:|---------------:|--------------:|-------------:|-------------:|--------------:|----------:|
+| SelectionSort | 100    |      15.83 us |      12.147 us |      0.666 us |     16.00 us |     15.10 us |      16.40 us |     736 B |
+| SelectionSort | 1000   |     260.53 us |      28.400 us |      1.557 us |    260.70 us |    258.90 us |     262.00 us |     736 B |
+| SelectionSort | 10000  |  19,651.13 us |   1,740.622 us |     95.409 us | 19,596.70 us | 19,595.40 us |  19,761.30 us |     448 B |
 
  */
 
 /// <summary>
-/// 配列にアクセスして、常に最小を末尾まで走査。最小を現在のインデックスであるn番目の要素（ソート済みの要素の末尾）と交換を続ける。値をインデックスベースで入れ替えてしまうため不安定ソート。
-/// 交換回数が一定して少ないので、比較が軽くて交換が重い場合に有効
+/// 配列の各位置に対して、未ソート部分から最小の要素を見つけて現在の位置と交換することでソートを行います。値をインデックスベースで交換するため、不安定なソートアルゴリズムです。
+/// <br/>
+/// Iterates through each position in the array, finding the minimum element in the unsorted portion and swapping it with the current position. Swapping elements based on indices makes Selection Sort an unstable sorting algorithm.
 /// </summary>
 /// <remarks>
 /// stable : no
 /// inplace : yes
-/// Compare : n(n-1) / 2
-/// Swap : n-1
-/// Order : O(n^2)
+/// Compare : O(n^2)  (Performs approximately n(n-1)/2 comparisons) 
+/// Swap : O(n)    (Performs n-1 swaps)
+/// Order : O(n^2)  (Best, average, and worst-case time complexity)
 /// </remarks>
 /// <typeparam name="T"></typeparam>
 public class SelectionSort<T> : SortBase<T> where T : IComparable<T>
@@ -31,26 +32,38 @@ public class SelectionSort<T> : SortBase<T> where T : IComparable<T>
     public override T[] Sort(T[] array)
     {
         Statistics.Reset(array.Length, Method, Name);
-        var span = array.AsSpan();
-        SortCore(span);
+        SortCore(array.AsSpan(), 0, array.Length);
 
         return array;
     }
 
-    public void Sort(Span<T> span)
+    public T[] Sort(T[] array, int first, int last)
     {
-        Statistics.Reset(span.Length, Method, nameof(SelectionSort<T>));
-        SortCore(span);
+        Statistics.Reset(array.Length, Method, Name);
+        SortCore(array.AsSpan(), first, last);
+
+        return array;
     }
 
-    private void SortCore(Span<T> span)
+    /// <summary>
+    /// Sort the subrange [first..last).
+    /// </summary>
+    /// <param name="span"></param>
+    /// <param name="first"></param>
+    /// <param name="last"></param>
+    private void SortCore(Span<T> span, int first, int last)
     {
-        for (var i = 0; i < span.Length - 1; i++)
+        if (first < 0 || last > span.Length || first >= last)
+        {
+            throw new ArgumentOutOfRangeException(nameof(first), "Invalid range for sorting.");
+        }
+
+        for (var i = first; i < last - 1; i++)
         {
             var min = i;
 
             // Find the index of the minimum element
-            for (var j = i + 1; j < span.Length; j++)
+            for (var j = i + 1; j < last; j++)
             {
                 if (Compare(Index(ref span, j), Index(ref span, min)) < 0)
                 {
