@@ -37,8 +37,11 @@ public class ShellSort<T> : SortBase<T> where T : IComparable<T>
 
     private void SortCore(Span<T> span)
     {
+        if (span.Length <= 1)
+            return;
+
         // calculate h
-        // most efficient h will be : h(i + 1) = 3h(i) + 1
+        // most efficient h will be calculated by Knuth interval `h(i + 1) = 3h(i) + 1` (1, 4, 13, 40, 121, 364, 1093, ...)
         var h = 0;
         for (h = 1; h < span.Length / 9; h = h * 3 + 1) ;
 
