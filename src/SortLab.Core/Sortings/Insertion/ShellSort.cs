@@ -31,27 +31,39 @@ public class ShellSort<T> : SortBase<T> where T : IComparable<T>
     public override T[] Sort(T[] array)
     {
         Statistics.Reset(array.Length, SortType, Name);
-        SortCore(array.AsSpan());
+        SortCore(array.AsSpan(), 0, array.Length);
         return array;
     }
 
-    private void SortCore(Span<T> span)
+    public T[] Sort(T[] array, int first, int last)
     {
-        if (span.Length <= 1)
+        Statistics.Reset(array.Length, SortType, Name);
+        SortCore(array.AsSpan(), first, last);
+        return array;
+    }
+
+    private void SortCore(Span<T> span, int first, int last)
+    {
+        var length = last - first;
+        // Only 1 or 0 elements
+        if (length < 2)
             return;
 
-        // calculate h
-        // most efficient h will be calculated by Knuth interval `h(i + 1) = 3h(i) + 1` (1, 4, 13, 40, 121, 364, 1093, ...)
+        // Knuth gap sequence `h(i + 1) = 3h(i) + 1`: 1, 4, 13, 40, 121, 364, 1093, ...
         var h = 0;
-        for (h = 1; h < span.Length / 9; h = h * 3 + 1) ;
+        while (h < length / 9) // 目安で h を大きくする
+        {
+            h = h * 3 + 1;
+        }
 
-        // try next h with / 3....
+        // make gap h smaller from large, try next h with / 3....
         for (; h > 0; h /= 3)
         {
             //h.Dump(array.Length.ToString());
             // Same as InsertSort (1 will be h)
-            for (var i = h; i < span.Length; i++)
+            for (var i = first + h; i < last; i++)
             {
+                // As like InsertSort, compare and swap
                 for (int j = i; j >= h && Compare(Index(ref span, j - h), Index(ref span, j)) > 0; j -= h)
                 {
                     Swap(ref Index(ref span, j), ref Index(ref span, j - h));
