@@ -1,4 +1,4 @@
-﻿namespace SortLab.Core.Sortings;
+namespace SortLab.Core.Sortings;
 
 /*
 Array ...
@@ -17,25 +17,38 @@ Span ...
 | HeapSort | 1000   |   254.60 us |  59.145 us |  3.242 us |   251.70 us |   258.10 us |     736 B |
 | HeapSort | 10000  | 3,375.50 us | 330.347 us | 18.107 us | 3,357.70 us | 3,393.90 us |     736 B |
 
+Ref span (Recursive heapify) ...
+
+| Method        | Number | Mean          | Error          | StdDev        | Median        | Min          | Max           | Allocated |
+|-------------- |------- |--------------:|---------------:|--------------:|--------------:|-------------:|--------------:|----------:|
+| HeapSort      | 100    |      13.57 us |       4.213 us |      0.231 us |      13.70 us |     13.30 us |      13.70 us |     736 B |
+| HeapSort      | 1000   |     195.50 us |      11.393 us |      0.624 us |     195.30 us |    195.00 us |     196.20 us |     736 B |
+| HeapSort      | 10000  |   2,571.93 us |      83.948 us |      4.601 us |   2,571.80 us |  2,567.40 us |   2,576.60 us |     448 B |
+
 Ref span ...
 
 | Method        | Number | Mean          | Error          | StdDev        | Median        | Min          | Max           | Allocated |
 |-------------- |------- |--------------:|---------------:|--------------:|--------------:|-------------:|--------------:|----------:|
-| HeapSort      | 100    |      12.90 us |       7.952 us |      0.436 us |      12.70 us |     12.60 us |      13.40 us |     736 B |
-| HeapSort      | 1000   |     183.47 us |       9.362 us |      0.513 us |     183.60 us |    182.90 us |     183.90 us |     736 B |
-| HeapSort      | 10000  |   2,434.78 us |     343.769 us |     18.843 us |   2,430.65 us |  2,418.35 us |   2,455.35 us |     736 B |
+| HeapSort      | 100    |      14.13 us |       3.798 us |      0.208 us |      14.20 us |     13.90 us |      14.30 us |     736 B |
+| HeapSort      | 1000   |     252.43 us |      18.989 us |      1.041 us |     252.10 us |    251.60 us |     253.60 us |     736 B |
+| HeapSort      | 10000  |     649.33 us |     843.733 us |     46.248 us |     653.60 us |    601.10 us |     693.30 us |     736 B |
 
 */
 
 /// <summary>
-/// 配列から、常に最大の要素をルートにもつ2分木構造(BinaryTree : ヒープ)を作る(この時点で不安定)。あとは、ルート要素をソート済み配列の末尾に詰めて、ヒープの末端をルートに持ってきて再度ヒープ構造を作る。これを繰り返すことでヒープの最大値は常にルート要素になり、これをソート済み配列につめていくことで自然とソートができる。
+/// 配列から、常に最大の要素をルートにもつヒープ（二分ヒープ）を作成します（この時点で不安定）。
+/// その後、ルート要素をソート済み配列の末尾に移動し、ヒープの末端をルートに持ってきて再度ヒープ構造を維持します。これを繰り返すことで、ヒープの最大値が常にルートに保たれ、ソート済み配列に追加されることで自然とソートが行われます。
+/// <br/>
+/// Builds a heap (binary heap) from the array where the root always contains the maximum element (which is inherently unstable).
+/// Then, the root element is moved to the end of the sorted array, the last element is moved to the root, and the heap structure is re-established. Repeating this process ensures that the maximum value in the heap is always at the root, allowing elements to be naturally sorted as they are moved to the sorted array.
 /// </summary>
 /// <remarks>
 /// stable : no
 /// inplace : yes
-/// Compare : n log2 n
-/// Swap : n log2 2n
-/// Order : O(n log n) (best case : n log n (n if all keys are distinct)) (Worst case : O(n log n))
+/// Compare : O(n log n)  
+/// Swap    : O(n log n)  
+/// Index   : O(n log n) (Each element is accessed O(log n) times during heap operations)  
+/// Order   : O(n log n) (best, average, and worst cases)
 /// </remarks>
 /// <typeparam name="T"></typeparam>
 
@@ -47,123 +60,90 @@ public class HeapSort<T> : SortBase<T> where T : IComparable<T>
     public override T[] Sort(T[] array)
     {
         Statistics.Reset(array.Length, SortType, Name);
-        var span = array.AsSpan();
-        SortCore(span);
+        SortCore(array.AsSpan(), 0, array.Length);
 
         return array;
-    }
-
-    public void Sort(Span<T> span)
-    {
-        Statistics.Reset(span.Length, SortType, Name);
-        SortCore(span);
-    }
-
-    private void SortCore(Span<T> span)
-    {
-        var n = span.Length;
-
-        // Build heap
-        for (var i = n / 2 - 1; i >= 0; i--)
-        {
-            DownHeap(span, i, n);
-        }
-
-        // Extract elements from heap
-        for (var i = n - 1; i > 0; i--)
-        {
-            // Move current root to end
-            Swap(ref Index(ref span, 0), ref Index(ref span, i));
-            // Re-heapify the reduced heap
-            DownHeap(span, 0, i);
-        }
     }
 
     /// <summary>
     /// 指定した範囲の配列をヒープソートする
     /// </summary>
     /// <param name="array"></param>
-    /// <param name="low"></param>
-    /// <param name="high"></param>
+    /// <param name="first"></param>
+    /// <param name="last"></param>
     /// <returns></returns>
     /// <exception cref="ArgumentOutOfRangeException"></exception>
-    public T[] Sort(T[] array, int low, int high)
+    public T[] Sort(T[] array, int first, int last)
     {
-        if (low < 0 || high > array.Length || low >= high)
-        {
-            throw new ArgumentOutOfRangeException(nameof(low), "Invalid range for sorting.");
-        }
-
         Statistics.Reset(array.Length, SortType, Name);
-
-        var n = high - low;
-
-        // Build heap
-        for (var i = n / 2 - 1; i >= 0; i--)
-        {
-            DownHeap(array, i, n, low);
-        }
-
-        // Extract elements from heap
-        for (var i = n - 1; i > 0; i--)
-        {
-            // Move current root to end
-            Swap(ref array[low], ref array[low + i]);
-            // Re-heapify the reduced heap
-            DownHeap(array, 0, i, low);
-        }
+        SortCore(array.AsSpan(), first, last);
 
         return array;
     }
 
-    private void DownHeap(Span<T> span, int root, int size)
+    private void SortCore(Span<T> span, int first, int last)
     {
-        var largest = root;  // Initialize largest as root
-        var left = 2 * root + 1;  // Left child
-        var right = 2 * root + 2;  // Right child
-
-        // If left child is larger than root
-        if (left < size && Compare(Index(ref span, left), Index(ref span, largest)) > 0)
+        if (first < 0 || last > span.Length || first >= last)
         {
-            largest = left;
+            throw new ArgumentOutOfRangeException(nameof(first), "Invalid range for sorting.");
         }
 
-        // If right child is larger than largest so far
-        if (right < size && Compare(Index(ref span, right), Index(ref span, largest)) > 0)
+        var n = last - first;
+
+        // Build heap
+        for (var i = first + n / 2 - 1; i >= first; i--)
         {
-            largest = right;
+            Heapify(span, i, n, first);
         }
 
-        // If largest is not root
-        if (largest != root)
+        // Extract elements from heap
+        for (var i = last - 1; i > first; i--)
         {
-            Swap(ref Index(ref span, root), ref Index(ref span, largest));
-            // Recursively heapify the affected sub-tree
-            DownHeap(span, largest, size);
+            // Move current root to end
+            Swap(ref Index(ref span, first), ref Index(ref span, i));
+
+            // Re-heapify the reduced heap
+            Heapify(span, first, i - first, first);
         }
     }
 
-    private void DownHeap(T[] array, int root, int size, int low)
+    /// <summary>
+    /// To heapify a subtree rooted with node i which is an index in span[]. n is size of heap.
+    /// </summary>
+    /// <param name="span"></param>
+    /// <param name="root"></param>
+    /// <param name="size"></param>
+    /// <param name="offset"></param>
+    private void Heapify(Span<T> span, int root, int size, int offset)
     {
-        var largest = root;
-        var left = 2 * root + 1;
-        var right = 2 * root + 2;
-
-        // Adjust indices by adding "low"
-        if (left < size && Compare(array[low + left], array[low + largest]) > 0)
+        while (true)
         {
-            largest = left;
-        }
+            var largest = root;
+            var left = 2 * (root - offset) + 1 + offset;
+            var right = 2 * (root - offset) + 2 + offset;
 
-        if (right < size && Compare(array[low + right], array[low + largest]) > 0)
-        {
-            largest = right;
-        }
+            // If left child is larger than root
+            if (left < offset + size && Compare(Index(ref span, left), Index(ref span, largest)) > 0)
+            {
+                largest = left;
+            }
 
-        if (largest != root)
-        {
-            Swap(ref array[low + root], ref array[low + largest]);
-            DownHeap(array, largest, size, low);
+            // If right child is larger than largest so far
+            if (right < offset + size && Compare(Index(ref span, right), Index(ref span, largest)) > 0)
+            {
+                largest = right;
+            }
+
+            // If largest is not root, swap and heapify the affected sub-tree
+            if (largest != root)
+            {
+                Swap(ref Index(ref span, root), ref Index(ref span, largest));
+                root = largest;
+            }
+            else
+            {
+                break;
+            }
         }
     }
 }
