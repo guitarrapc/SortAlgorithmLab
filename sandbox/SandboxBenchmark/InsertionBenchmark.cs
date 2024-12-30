@@ -20,6 +20,9 @@ public class InsertionBenchmark
     private int[] _insertionArray = default!;
     private InsertionSort<int> _insertionSort = default!;
 
+    private int[] _shellArray = default!;
+    private ShellSort<int> _shellSort = default!;
+
     [IterationSetup]
     public void Setup()
     {
@@ -34,6 +37,9 @@ public class InsertionBenchmark
 
         _insertionArray = BenchmarkData.GenIntArray(Number);
         _insertionSort = new();
+
+        _shellArray = BenchmarkData.GenIntArray(Number);
+        _shellSort = new();
     }
 
     [Benchmark]
@@ -58,5 +64,11 @@ public class InsertionBenchmark
     public void InsertionSort()
     {
         _insertionSort.Sort(_insertionArray);
+    }
+
+    [Benchmark]
+    public void ShellSort()
+    {
+        _shellSort.Sort(_shellArray);
     }
 }
