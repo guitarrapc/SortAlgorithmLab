@@ -12,6 +12,8 @@ public class SelectionBenchmark
     private CycleSort<int> _cycleSort = default!;
     private int[] _heapArray = default!;
     private HeapSort<int> _heapSort = default!;
+    private int[] _pancakeArray = default!;
+    private PancakeSort<int> _pancakeSort = default!;
     private int[] _selectionArray = default!;
     private SelectionSort<int> _selectionSort = default!;
     private int[] _smoothArray = default!;
@@ -25,6 +27,9 @@ public class SelectionBenchmark
 
         _heapArray = BenchmarkData.GenIntArray(Number);
         _heapSort = new();
+
+        _pancakeArray = BenchmarkData.GenIntArray(Number);
+        _pancakeSort = new();
 
         _selectionArray = BenchmarkData.GenIntArray(Number);
         _selectionSort = new();
@@ -43,6 +48,12 @@ public class SelectionBenchmark
     public void HeapSort()
     {
         _heapSort.Sort(_heapArray);
+    }
+
+    [Benchmark]
+    public void PancakeSort()
+    {
+        _pancakeSort.Sort(_pancakeArray);
     }
 
     [Benchmark]
