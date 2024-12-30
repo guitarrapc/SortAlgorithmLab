@@ -21,14 +21,19 @@ Ref span (Recursive) ...
 */
 
 /// <summary>
-/// バイナリツリーを作成した二本木ソート。バイナリツリーはLeftは現ノードより小さく。Rightは大きいことを保証する。これで、ツリーによって並び替えが保証されるので、ツリー作成結果を配列に割り当て直す。高速な安定の外部ソート。
+/// バイナリ検索木(Binary Search Tree, BST)を使用したソートアルゴリズム、二分木ソートとも呼ばれる。バイナリ検索木では、左の子ノードは親ノードより小さく、右の子ノードは親ノードより大きいことが保証される。この特性により、木の中間順序走査 (in-order traversal) を行うことで配列がソートされる。外部ソートとしても利用可能であり、高速なソートが可能となる。
+/// <br/>
+/// A sorting algorithm that uses a binary search tree. In a binary search tree, the left child node is guaranteed to be smaller than the parent node, and the right child node is guaranteed to be larger. This property ensures that performing an in-order traversal of the tree results in a sorted array. It can also be used as an external sort, enabling fast sorting.
 /// </summary>
 /// <remarks>
-/// stable : yes
-/// inplace : no (n)
-/// Compare : n log n
-/// Swap : 0
-/// Order : O(n log n) (Better case : O(n log n)) (Worst case : O(n log n))
+/// stable  : no  (Typically, Binary Tree Sort is not stable unless additional mechanisms are used.)
+/// inplace : no (Requires additional memory for the tree structure)
+/// Compare : O(n log n) on average
+/// Swap    : 0 (Swaps are not used; instead, tree node assignments)
+/// Index   : O(n) (Accesses each element once during in-order traversal)
+/// Order   : O(n log n)
+///         * average:     O(n log n)
+///         * worst case: O(n^2) (if the tree becomes unbalanced)
 /// </remarks>
 /// <typeparam name="T"></typeparam>
 public class BinaryTreeSort<T> : SortBase<T> where T : IComparable<T>

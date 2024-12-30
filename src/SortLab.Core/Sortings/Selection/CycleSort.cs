@@ -13,12 +13,19 @@ Ref span ...
 
 /// <summary>
 /// 現在の要素より後ろに、より小さな要素がないか確認しその個数から現在の要素を差し込むインデックスを算出して入れ替え。これを繰り返す。交換回数は常に少ないが、比較回数が莫大になる。
+/// <br/>
+/// Checks for elements smaller than the current element further in the array, calculates the insertion index based on the number of such elements, and swaps. This process is repeated. The number of swaps is always minimal, but the number of comparisons becomes enormous.
 /// </summary>
 /// <remarks>
-/// stable : no
+/// stable  : no 
 /// inplace : yes
 /// Compare : O(n^2)
-/// Swap : O(n^2)
+/// Swap    : O(n)
+/// Index   : O(n^2) (Each element may be accessed multiple times during comparisons)  
+/// Order   : O(n^2)  
+///         * average:                   O(n^2)  
+///         * best case (nearly sorted): O(n)  
+///         * worst case can approach:   O(n^2) 
 /// </remarks>
 /// <typeparam name="T"></typeparam>
 public class CycleSort<T> : SortBase<T> where T : IComparable<T>

@@ -37,17 +37,18 @@ Ref span (Sedgewick) ...
 /// Shell sort algorithm that uses a gap sequence defined by h_{i+1} = 3*h_i + 1.
 /// The array is logically divided according to the gap 'h', and each sub-array is sorted　using insertion-sort-like steps (<see cref="InsertionSort{T}"/>). Then we reduce 'h' by dividing by 3 and repeat this process until h=1. By the time h=1, the data is already partially sorted, so the final pass (which is effectively an insertion sort) is very efficient.
 /// This approach is a "gap-based insertion sort," so it is inherently unstable.
-/// <see cref="CombSort{T}"/> is a similar concept applied to bubble-sort.
+/// <see cref="CombSort{T}"/> is a similar concept applied to <see cref="BubbleSort{T}"/>.
 /// </summary>
 /// <remarks>
 /// stable  : no (because gap-based insertion sorting does not preserve the order of equal elements)
 /// inplace : yes
 /// Compare : Depends on gap sequence (often around O(n^(1.3)) ~ O(n^(1.5)) on average.)
 /// Swap    : In swap-based implementation, potentially multiple swaps per insertion
-/// Order   : Typically sub-quadratic.
+/// Index   : O(n^2) (Each element may be accessed multiple times during swaps) 
+/// Order   : Typically sub-quadratic
 ///         * average:                   O(n^1.3 ~ n^1.5)
 ///         * best case (nearly sorted): O(n)
-///         * worst case can approach:   O(n^2)
+///         * worst case can approach  : O(n^2)
 /// </remarks>
 /// <typeparam name="T"></typeparam>
 public class ShellSort<T> : SortBase<T> where T : IComparable<T>

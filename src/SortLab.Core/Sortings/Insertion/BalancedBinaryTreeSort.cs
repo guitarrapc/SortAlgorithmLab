@@ -21,20 +21,26 @@ Ref span (Recursive) ...
 */
 
 /// <summary>
-/// 平衡二分木を用いた二本木ソート。挿入時に回転を行って常に高さが O(log n) に保たれ、木を中順巡回することで配列に要素を昇順で再割り当てします。二本木ソートに比べて、平均および最悪ケースでも O(n log n) のソートが期待できます。
-/// 平衡二分木（AVL 木）= 左の子ノードは現ノードより小さく、右の子ノードは大きいという性質を持ちます。
+/// 平衡二分木を用いた二分木ソート。挿入時に回転を行って常に高さが O(log n) に保たれ、木を中順巡回することで配列に要素を昇順で再割り当てします。二分木ソートに比べて、平均および最悪ケースでも O(n log n) のソートが期待できます。
+/// 平衡二分木（AVL木）は、左の子ノードが親ノードより小さく、右の子ノードが大きいという性質を持ちます。  
+/// <br/>
+/// Balanced binary tree sort algorithm. During insertion, rotations are performed to maintain a height of O(log n), and an in-order traversal of the tree reassigns the array elements in ascending order. Compared to binary tree sort, it can achieve O(n log n) sorting in both average and worst cases.
+/// Balanced binary trees (AVL trees) have the property that the left child node is smaller than the parent node and the right child node is larger.
 /// </summary>
 /// <remarks>
-/// stable : no  
-/// inplace : no (ノードを生成するため追加メモリを使用)  
-/// Compare : n log n  
-/// Swap : 0 (配列自体でのスワップは行わない)  
-/// Order : O(n log n) (平均・最悪ケースともにO(n log n))  
+/// stable  : no  (Binary Tree Sort is not stable as it does not preserve the relative order of equal elements)  
+/// inplace : no 
+/// Compare : O(n log n) on average  
+/// Swap    : 0  (No swaps are performed in the array itself)  
+/// Index   : O(n) (Each element is accessed once during in-order traversal)  
+/// Order   : O(n log n)
+///         * average:                 O(n log n)
+///         * worst case can approach: O(n log n) 
 /// <typeparam name="T"></typeparam>
-public class BalancedTreeSort<T> : SortBase<T> where T : IComparable<T>
+public class BalancedBinaryTreeSort<T> : SortBase<T> where T : IComparable<T>
 {
     public override SortType SortType => SortType.Insertion;
-    protected override string Name => nameof(BalancedTreeSort<T>);
+    protected override string Name => nameof(BalancedBinaryTreeSort<T>);
 
     public override T[] Sort(T[] array)
     {

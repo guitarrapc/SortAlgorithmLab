@@ -13,15 +13,24 @@ Ref span ...
 */
 
 /// <summary>
-/// ソート済みとなる先頭に並ぶ配列がある。ソート済み配列の末尾から未ソートの配列の後ろに進み、各要素と比較して値が小さい限りソート済み配列と入れ替える。(つまり新しい要素の値が小さい限り前にいく)。ICompatibleの性質から、n > n-1 = -1 となり、> 0 で元順序を保証しているので安定ソート。
-/// ソート済み配列には早いが、Reverse配列には遅い
+/// ソート済みとなる先頭に並ぶ部分を維持します。ソート済み部分の末尾から配列の末尾に向かって進み、各要素と比較し、値が小さい限りソート済み部分と交換します。(つまり、新しい要素の値が小さい限り前方に移動します。) 
+/// <see cref="IComparable"/> の性質により、x.CompareTo(y) > 0 の場合は元の順序が保持されるため、安定ソートです。
+/// すでにソートされた配列では高速に動作しますが、逆順の配列では遅くなります。  
+/// <br/>
+/// Maintains a sorted portion of the array at the beginning. Progresses from the end of the sorted portion towards the end of the array, Compares each element and swaps it with the sorted portion as long as it is smaller. (In other words, new elements are moved forward as long as their value is smaller.)
+/// Due to the properties of <see cref="IComparable"/>, where x.CompareTo(y) > 0 ensures the original order is preserved, this is a stable sort.
+/// Performs well on already sorted arrays but is slow on reverse-sorted arrays.
 /// </summary>
 /// <remarks>
-/// stable : yes
+/// stable  : yes
 /// inplace : yes
-/// Compare : n(n-1) / 2
-/// Swap : n^2/2
-/// Order : O(n^2) (Better case : O(n)) (Worst case : O(n^2))
+/// Compare : O(n^2), strictly n(n-1) / 2
+/// Swap    : O(n^2), strictly n^2/2
+/// Index   : O(n^2) (Each element may be accessed multiple times during swaps)
+/// Order   : O(n^2)
+///         * average:                   O(n^2) 
+///         * best case (nearly sorted): O(n)
+///         * worst case can approach  : O(n^2)
 /// </remarks>
 /// <typeparam name="T"></typeparam>
 public class InsertionSort<T> : SortBase<T> where T : IComparable<T>

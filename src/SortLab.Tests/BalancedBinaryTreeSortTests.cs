@@ -1,15 +1,15 @@
 namespace SortLab.Tests;
 
-public class BalancedTreeSortTests
+public class BalancedBinaryTreeSortTests
 {
     private ISort<int> sort;
     private string algorithm;
     private SortType sortType;
 
-    public BalancedTreeSortTests()
+    public BalancedBinaryTreeSortTests()
     {
-        sort = new BalancedTreeSort<int>();
-        algorithm = nameof(BalancedTreeSort<int>);
+        sort = new BalancedBinaryTreeSort<int>();
+        algorithm = nameof(BalancedBinaryTreeSort<int>);
         sortType = SortType.Insertion;
     }
 

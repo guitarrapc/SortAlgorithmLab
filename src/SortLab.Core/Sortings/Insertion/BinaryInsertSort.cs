@@ -20,15 +20,22 @@ Ref span (start) ...
 */
 
 /// <summary>
-/// 通常のリニアサーチと異なり、挿入位置を2分探索して決定するため比較範囲、回数を改善できる。安定ソート
-/// ソート済み配列には早いが、Reverse配列には遅い
+/// 通常のリニアサーチと異なり、挿入位置を二分探索して決定するため比較範囲、回数を改善できる。
+/// ソート済み配列では高速に動作しますが、逆順の配列では遅くなります。
+/// <br/>
+/// Unlike the traditional linear search, it uses binary search to determine the insertion position, thereby improving the comparison range and the number of comparisons. Stable sort.
+/// Performs efficiently on already sorted arrays but is slow on reverse-sorted arrays.
 /// </summary>
 /// <remarks>
-/// stable : yes
+/// stable  : yes
 /// inplace : yes
-/// Compare : log n
-/// Swap : n^2/2
-/// Order : O(n^2) (Better case : O(n)) (Worst case : O(n^2))
+/// Compare : O(n log n) on average (Each insertion performs a binary search) 
+/// Swap    : O(n^2/2) (Each insertion may require shifting elements) 
+/// Index   : O(n^2) (Each element may be accessed multiple times during shifts)
+/// Order   : O(n log n)
+///         * average:                   O(n log n) for comparisons and O(n^2) for shifts  
+///         * best case (nearly sorted): O(n)  
+///         * worst case can approach:   O(n^2) 
 /// </remarks>
 /// <typeparam name="T"></typeparam>
 public class BinaryInsertSort<T> : SortBase<T> where T : IComparable<T>
