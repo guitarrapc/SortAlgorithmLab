@@ -6,9 +6,9 @@ Ref span ...
 
 | Method           | Number | Mean          | Error        | StdDev      | Median        | Min           | Max           | Allocated |
 |----------------- |------- |--------------:|-------------:|------------:|--------------:|--------------:|--------------:|----------:|
-| InsertSort       | 100    |    143.700 us | 3,371.833 us | 184.8215 us |     48.700 us |     25.700 us |    356.700 us |     736 B |
-| InsertSort       | 1000   |    227.000 us |    60.727 us |   3.3287 us |    225.600 us |    224.600 us |    230.800 us |     736 B |
-| InsertSort       | 10000  | 19,341.567 us |   917.448 us |  50.2884 us | 19,330.700 us | 19,297.600 us | 19,396.400 us |     448 B |
+| InsertSort       | 100    |    113.133 us | 2,569.345 us | 140.8345 us |     41.300 us |     22.700 us |    275.400 us |     448 B |
+| InsertSort       | 1000   |    187.400 us |    17.594 us |   0.9644 us |    187.800 us |    186.300 us |    188.100 us |     736 B |
+| InsertSort       | 10000  | 16,535.367 us | 2,879.932 us | 157.8588 us | 16,513.800 us | 16,389.400 us | 16,702.900 us |     448 B |
  
 */
 /// <summary>
@@ -31,7 +31,7 @@ public class InsertSort<T> : SortBase<T> where T : IComparable<T>
     public override T[] Sort(T[] array)
     {
         Statistics.Reset(array.Length, SortType, Name);
-        SortCore(array.AsSpan());
+        SortCore(array.AsSpan(), 0, array.Length);
         return array;
     }
 
@@ -42,29 +42,12 @@ public class InsertSort<T> : SortBase<T> where T : IComparable<T>
         return array;
     }
 
-    private void SortCore(Span<T> span)
-    {
-        for (var i = 1; i < span.Length; i++)
-        {
-            var tmp = span[i];
-            for (var j = i; j >= 1 && Compare(Index(ref span, j - 1), Index(ref span, j)) > 0; --j)
-            {
-                //array.Dump($"{j - 1} : {array[j - 1]}, {j} : {array[j]}, {array[j - 1].CompareTo(array[j]) > 0}");
-                if (Compare(Index(ref span, j - 1), Index(ref span, j)) > 0)
-                {
-                    Swap(ref Index(ref span, j), ref Index(ref span, j - 1));
-                }
-            }
-        }
-    }
-
     private void SortCore(Span<T> span, int first, int last)
     {
         for (var i = first + 1; i < last; i++)
         {
             for (var j = i; j > first && Compare(Index(ref span, j - 1), Index(ref span, j)) > 0; --j)
             {
-                Statistics.AddIndexCount();
                 Swap(ref Index(ref span, j), ref Index(ref span, j - 1));
             }
         }
