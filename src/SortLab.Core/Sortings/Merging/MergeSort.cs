@@ -15,12 +15,12 @@
 
 public class MergeSort<T> : SortBase<T> where T : IComparable<T>
 {
-    public override SortType SortType => SortType.Merge;
+    public override SortMethod Method => SortMethod.Merging;
     protected override string Name => nameof(MergeSort<T>);
 
     public override T[] Sort(T[] array)
     {
-        Statistics.Reset(array.Length, SortType, Name);
+        Statistics.Reset(array.Length, Method, Name);
         var work = new T[(array.Length) / 2];
         Sort(array, 0, array.Length - 1, work);
         return array;
@@ -114,12 +114,12 @@ public class MergeSort<T> : SortBase<T> where T : IComparable<T>
 /// <typeparam name="T"></typeparam>
 public class MergeSort2<T> : SortBase<T> where T : IComparable<T>
 {
-    public override SortType SortType => SortType.Merge;
+    public override SortMethod Method => SortMethod.Merging;
     protected override string Name => nameof(MergeSort2<T>);
 
     public override T[] Sort(T[] array)
     {
-        Statistics.Reset(array.Length, SortType, Name);
+        Statistics.Reset(array.Length, Method, Name);
         return SortImpl(array);
     }
 

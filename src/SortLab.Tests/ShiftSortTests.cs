@@ -4,19 +4,19 @@ public class ShiftSortTests
 {
     private ISort<int> sort;
     private string algorithm;
-    private SortType sortType;
+    private SortMethod sortType;
 
     public ShiftSortTests()
     {
         sort = new ShiftSort<int>();
         algorithm = nameof(ShiftSort<int>);
-        sortType = SortType.Merge;
+        sortType = SortMethod.Merging;
     }
 
     [Fact]
     public void SortTypeTest()
     {
-        sort.SortType.Should().Be(sortType);
+        sort.Method.Should().Be(sortType);
     }
 
     [Theory]

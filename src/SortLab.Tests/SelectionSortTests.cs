@@ -4,19 +4,19 @@ public class SelectionSortTests
 {
     private ISort<int> sort;
     private string algorithm;
-    private SortType sortType;
+    private SortMethod sortType;
 
     public SelectionSortTests()
     {
         sort = new SelectionSort<int>();
         algorithm = nameof(SelectionSort<int>);
-        sortType = SortType.Selection;
+        sortType = SortMethod.Selection;
     }
 
     [Fact]
     public void SortTypeTest()
     {
-        sort.SortType.Should().Be(sortType);
+        sort.Method.Should().Be(sortType);
     }
 
     [Theory]

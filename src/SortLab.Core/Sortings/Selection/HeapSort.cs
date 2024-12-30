@@ -54,12 +54,12 @@ Ref span ...
 
 public class HeapSort<T> : SortBase<T> where T : IComparable<T>
 {
-    public override SortType SortType => SortType.Selection;
+    public override SortMethod Method => SortMethod.Selection;
     protected override string Name => nameof(HeapSort<T>);
 
     public override T[] Sort(T[] array)
     {
-        Statistics.Reset(array.Length, SortType, Name);
+        Statistics.Reset(array.Length, Method, Name);
         SortCore(array.AsSpan(), 0, array.Length);
 
         return array;
@@ -75,7 +75,7 @@ public class HeapSort<T> : SortBase<T> where T : IComparable<T>
     /// <exception cref="ArgumentOutOfRangeException"></exception>
     public T[] Sort(T[] array, int first, int last)
     {
-        Statistics.Reset(array.Length, SortType, Name);
+        Statistics.Reset(array.Length, Method, Name);
         SortCore(array.AsSpan(), first, last);
 
         return array;

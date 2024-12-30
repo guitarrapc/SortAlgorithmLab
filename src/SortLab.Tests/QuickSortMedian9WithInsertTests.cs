@@ -4,19 +4,19 @@ public class QuickSortMedian9WithInsertTests
 {
     private ISort<int> sort;
     private string algorithm;
-    private SortType sortType;
+    private SortMethod sortType;
 
     public QuickSortMedian9WithInsertTests()
     {
         sort = new QuickSortMedian9WithInsert<int>();
         algorithm = nameof(QuickSortMedian9WithInsert<int>);
-        sortType = SortType.Partition;
+        sortType = SortMethod.Partitioning;
     }
 
     [Fact]
     public void SortTypeTest()
     {
-        sort.SortType.Should().Be(sortType);
+        sort.Method.Should().Be(sortType);
     }
 
     [Theory]

@@ -14,12 +14,12 @@
 /// <typeparam name="T"></typeparam>
 public class RadixLSD10Sort<T> : SortBase<int> where T : IComparable<T>
 {
-    public override SortType SortType => SortType.Distributed;
+    public override SortMethod Method => SortMethod.Distributed;
     protected override string Name => nameof(RadixLSD10Sort<T>);
 
     public override int[] Sort(int[] array)
     {
-        Statistics.Reset(array.Length, SortType, Name);
+        Statistics.Reset(array.Length, Method, Name);
         if (array.Min() >= 0)
         {
             return SortImplPositive(array);

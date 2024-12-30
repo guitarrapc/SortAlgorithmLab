@@ -15,12 +15,12 @@
 /// <typeparam name="T"></typeparam>
 public class CocktailShakerSort<T> : SortBase<T> where T : IComparable<T>
 {
-    public override SortType SortType => SortType.Exchange;
+    public override SortMethod Method => SortMethod.Exchange;
     protected override string Name => nameof(CocktailShakerSort<T>);
 
     public override T[] Sort(T[] array)
     {
-        Statistics.Reset(array.Length, SortType, Name);
+        Statistics.Reset(array.Length, Method, Name);
         var min = 0;
         var max = array.Length - 1;
 
@@ -74,12 +74,12 @@ public class CocktailShakerSort<T> : SortBase<T> where T : IComparable<T>
 /// <typeparam name="T"></typeparam>
 public class CocktailShakerSort2<T> : SortBase<T> where T : IComparable<T>
 {
-    public override SortType SortType => SortType.Exchange;
+    public override SortMethod Method => SortMethod.Exchange;
     protected override string Name => nameof(CocktailShakerSort2<T>);
 
     public override T[] Sort(T[] array)
     {
-        Statistics.Reset(array.Length, SortType, Name);
+        Statistics.Reset(array.Length, Method, Name);
 
         // half calculation
         for (int i = 0; i < array.Length / 2; i++)

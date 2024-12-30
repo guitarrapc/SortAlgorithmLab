@@ -13,12 +13,12 @@
 /// <typeparam name="T"></typeparam>
 public class SlowSort<T> : SortBase<T> where T : IComparable<T>
 {
-    public override SortType SortType => SortType.Exchange;
+    public override SortMethod Method => SortMethod.Exchange;
     protected override string Name => nameof(SlowSort<T>);
 
     public override T[] Sort(T[] array)
     {
-        Statistics.Reset(array.Length, SortType, Name);
+        Statistics.Reset(array.Length, Method, Name);
         return SortImpl(array, 0, array.Length - 1);
     }
 

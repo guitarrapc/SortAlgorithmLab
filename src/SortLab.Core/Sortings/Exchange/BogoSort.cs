@@ -14,12 +14,12 @@
 /// <typeparam name="T"></typeparam>
 public class BogoSort<T> : SortBase<T> where T : IComparable<T>
 {
-    public override SortType SortType => SortType.Exchange;
+    public override SortMethod Method => SortMethod.Exchange;
     protected override string Name => nameof(BogoSort<T>);
 
     public override T[] Sort(T[] array)
     {
-        Statistics.Reset(array.Length, SortType, Name);
+        Statistics.Reset(array.Length, Method, Name);
         while (!IsSorted(array))
         {
             Shuffle(array);

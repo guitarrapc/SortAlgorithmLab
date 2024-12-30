@@ -13,12 +13,12 @@
 /// <typeparam name="T"></typeparam>
 public class GnomeSort<T> : SortBase<T> where T : IComparable<T>
 {
-    public override SortType SortType => SortType.Exchange;
+    public override SortMethod Method => SortMethod.Exchange;
     protected override string Name => nameof(GnomeSort<T>);
 
     public override T[] Sort(T[] array)
     {
-        Statistics.Reset(array.Length, SortType, Name);
+        Statistics.Reset(array.Length, Method, Name);
         for (var i = 0; i < array.Length; i++)
         {
             Statistics.AddIndexCount();
@@ -46,12 +46,12 @@ public class GnomeSort<T> : SortBase<T> where T : IComparable<T>
 /// <typeparam name="T"></typeparam>
 public class GnomeSortWithSwap<T> : SortBase<T> where T : IComparable<T>
 {
-    public override SortType SortType => SortType.Exchange;
+    public override SortMethod Method => SortMethod.Exchange;
     protected override string Name => nameof(GnomeSortWithSwap<T>);
 
     public override T[] Sort(T[] array)
     {
-        Statistics.Reset(array.Length, SortType, Name);
+        Statistics.Reset(array.Length, Method, Name);
         for (var i = 1; i < array.Length;)
         {
             Statistics.AddIndexCount();
@@ -77,12 +77,12 @@ public class GnomeSortWithSwap<T> : SortBase<T> where T : IComparable<T>
 /// <typeparam name="T"></typeparam>
 public class GnomeSortNoOptimization<T> : SortBase<T> where T : IComparable<T>
 {
-    public override SortType SortType => SortType.Exchange;
+    public override SortMethod Method => SortMethod.Exchange;
     protected override string Name => nameof(GnomeSortNoOptimization<T>);
 
     public override T[] Sort(T[] array)
     {
-        Statistics.Reset(array.Length, SortType, Name);
+        Statistics.Reset(array.Length, Method, Name);
         for (var i = 0; i < array.Length - 1; i++)
         {
             if (Compare(array[i], array[i + 1]) > 0)
@@ -111,12 +111,12 @@ public class GnomeSortNoOptimization<T> : SortBase<T> where T : IComparable<T>
 /// <typeparam name="T"></typeparam>
 public class GnomeSortSimple<T> : SortBase<T> where T : IComparable<T>
 {
-    public override SortType SortType => SortType.Exchange;
+    public override SortMethod Method => SortMethod.Exchange;
     protected override string Name => nameof(GnomeSortSimple<T>);
 
     public override T[] Sort(T[] array)
     {
-        Statistics.Reset(array.Length, SortType, Name);
+        Statistics.Reset(array.Length, Method, Name);
 
         var i = 0;
         while (i < array.Length)

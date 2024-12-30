@@ -25,12 +25,12 @@ Ref span ...
 /// <typeparam name="T"></typeparam>
 public class SelectionSort<T> : SortBase<T> where T : IComparable<T>
 {
-    public override SortType SortType => SortType.Selection;
+    public override SortMethod Method => SortMethod.Selection;
     protected override string Name => nameof(SelectionSort<T>);
 
     public override T[] Sort(T[] array)
     {
-        Statistics.Reset(array.Length, SortType, Name);
+        Statistics.Reset(array.Length, Method, Name);
         var span = array.AsSpan();
         SortCore(span);
 
@@ -39,7 +39,7 @@ public class SelectionSort<T> : SortBase<T> where T : IComparable<T>
 
     public void Sort(Span<T> span)
     {
-        Statistics.Reset(span.Length, SortType, nameof(SelectionSort<T>));
+        Statistics.Reset(span.Length, Method, nameof(SelectionSort<T>));
         SortCore(span);
     }
 

@@ -15,12 +15,12 @@
 public class ShiftSort<T> : SortBase<T> where T : IComparable<T>
 {
     // refer: https://github.com/JamesQuintero/ShiftSort
-    public override SortType SortType => SortType.Merge;
+    public override SortMethod Method => SortMethod.Merging;
     protected override string Name => nameof(ShiftSort<T>);
 
     public override T[] Sort(T[] array)
     {
-        Statistics.Reset(array.Length, SortType, Name);
+        Statistics.Reset(array.Length, Method, Name);
         return SortImpl(array);
     }
 

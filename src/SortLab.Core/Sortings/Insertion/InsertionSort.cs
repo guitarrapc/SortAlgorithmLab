@@ -35,19 +35,19 @@ Ref span ...
 /// <typeparam name="T"></typeparam>
 public class InsertionSort<T> : SortBase<T> where T : IComparable<T>
 {
-    public override SortType SortType => SortType.Insertion;
+    public override SortMethod Method => SortMethod.Insertion;
     protected override string Name => nameof(InsertionSort<T>);
 
     public override T[] Sort(T[] array)
     {
-        Statistics.Reset(array.Length, SortType, Name);
+        Statistics.Reset(array.Length, Method, Name);
         SortCore(array.AsSpan(), 0, array.Length);
         return array;
     }
 
     public T[] Sort(T[] array, int first, int last)
     {
-        Statistics.Reset(array.Length, SortType, Name);
+        Statistics.Reset(array.Length, Method, Name);
         SortCore(array.AsSpan(), first, last);
         return array;
     }

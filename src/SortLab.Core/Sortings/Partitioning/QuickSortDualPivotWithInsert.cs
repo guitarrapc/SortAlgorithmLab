@@ -13,7 +13,7 @@
 /// <typeparam name="T"></typeparam>
 public class QuickSortDualPivotWithInsert<T> : SortBase<T> where T : IComparable<T>
 {
-    public override SortType SortType => SortType.Partition;
+    public override SortMethod Method => SortMethod.Partitioning;
     protected override string Name => nameof(QuickSortDualPivotWithInsert<T>);
 
     private const int InsertThreshold = 16;
@@ -21,7 +21,7 @@ public class QuickSortDualPivotWithInsert<T> : SortBase<T> where T : IComparable
 
     public override T[] Sort(T[] array)
     {
-        Statistics.Reset(array.Length, SortType, Name);
+        Statistics.Reset(array.Length, Method, Name);
         return SortImpl(array, 0, array.Length - 1);
     }
 

@@ -4,19 +4,19 @@ public class ShellSortTests
 {
     private ISort<int> sort;
     private string algorithm;
-    private SortType sortType;
+    private SortMethod sortType;
 
     public ShellSortTests()
     {
         sort = new ShellSort<int>();
         algorithm = nameof(ShellSort<int>);
-        sortType = SortType.Insertion;
+        sortType = SortMethod.Insertion;
     }
 
     [Fact]
     public void SortTypeTest()
     {
-        sort.SortType.Should().Be(sortType);
+        sort.Method.Should().Be(sortType);
     }
 
     [Theory]

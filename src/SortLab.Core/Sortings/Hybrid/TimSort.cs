@@ -14,7 +14,7 @@
 // refer : https://github.com/WaqasAhmed16B116SE/TimSort/blob/master/Program.cs
 public class TimSort<T> : SortBase<T> where T : IComparable<T>
 {
-    public override SortType SortType => SortType.Hybrid;
+    public override SortMethod Method => SortMethod.Hybrid;
     protected override string Name => nameof(TimSort<T>);
 
     private BinaryInsertSort<T> insertSort = new BinaryInsertSort<T>();
@@ -53,7 +53,7 @@ public class TimSort<T> : SortBase<T> where T : IComparable<T>
 
     public override T[] Sort(T[] array)
     {
-        Statistics.Reset(array.Length, SortType, Name);
+        Statistics.Reset(array.Length, Method, Name);
 
         // run
         Initialize(array);

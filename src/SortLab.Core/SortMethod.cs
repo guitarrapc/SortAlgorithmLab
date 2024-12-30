@@ -1,13 +1,13 @@
 ﻿namespace SortLab.Core;
 
-public enum SortType
+public enum SortMethod
 {
     None,
     Exchange,
-    Partition,
+    Partitioning,
     Selection,
     Insertion,
-    Merge,
+    Merging,
     Distributed,
     Concurrent,
     Hybrid,

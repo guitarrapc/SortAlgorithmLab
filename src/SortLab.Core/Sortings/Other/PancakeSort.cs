@@ -13,12 +13,12 @@
 /// <typeparam name="T"></typeparam>
 public class PancakeSort<T> : SortBase<T> where T : IComparable<T>
 {
-    public override SortType SortType => SortType.Other;
+    public override SortMethod Method => SortMethod.Other;
     protected override string Name => nameof(PancakeSort<T>);
 
     public override T[] Sort(T[] array)
     {
-        Statistics.Reset(array.Length, SortType, Name);
+        Statistics.Reset(array.Length, Method, Name);
         return SortImpl(array);
     }
 

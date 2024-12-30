@@ -4,19 +4,19 @@ public class DropMergeSortTests
 {
     private ISort<int> sort;
     private string algorithm;
-    private SortType sortType;
+    private SortMethod sortType;
 
     public DropMergeSortTests()
     {
         sort = new DropMergeSort<int>();
         algorithm = nameof(DropMergeSort<int>);
-        sortType = SortType.Merge;
+        sortType = SortMethod.Merging;
     }
 
     [Fact]
     public void SortTypeTest()
     {
-        sort.SortType.Should().Be(sortType);
+        sort.Method.Should().Be(sortType);
     }
 
     [Theory]

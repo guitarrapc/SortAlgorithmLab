@@ -4,19 +4,19 @@ public class QuickSortMedian3WithBinaryInsertTests
 {
     private ISort<int> sort;
     private string algorithm;
-    private SortType sortType;
+    private SortMethod sortType;
 
     public QuickSortMedian3WithBinaryInsertTests()
     {
         sort = new QuickSortMedian3WithBinaryInsert<int>();
         algorithm = nameof(QuickSortMedian3WithBinaryInsert<int>);
-        sortType = SortType.Partition;
+        sortType = SortMethod.Partitioning;
     }
 
     [Fact]
     public void SortTypeTest()
     {
-        sort.SortType.Should().Be(sortType);
+        sort.Method.Should().Be(sortType);
     }
 
     [Theory]

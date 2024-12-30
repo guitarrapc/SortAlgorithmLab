@@ -4,7 +4,7 @@ namespace SortLab.Core;
 
 public class SortStatistics : IStatistics
 {
-    public SortType SortType { get; set; }
+    public SortMethod SortType { get; set; }
     public string Algorithm { get; set; }
     public int ArraySize { get; set; }
     public ulong IndexAccessCount => _indexAccessCount;
@@ -18,7 +18,7 @@ public class SortStatistics : IStatistics
 
     public void Reset()
     {
-        SortType = SortType.None;
+        SortType = SortMethod.None;
         Algorithm = "";
         ArraySize = 0;
         IsSorted = false;
@@ -27,7 +27,7 @@ public class SortStatistics : IStatistics
         _swapCount = 0;
     }
 
-    public void Reset(int arraySize, SortType sortType, string algorithm)
+    public void Reset(int arraySize, SortMethod sortType, string algorithm)
     {
         ArraySize = arraySize;
         SortType = sortType;
@@ -56,7 +56,7 @@ public class SortStatistics : IStatistics
 
 public interface IStatistics
 {
-    SortType SortType { get; set; }
+    SortMethod SortType { get; set; }
     string Algorithm { get; set; }
     int ArraySize { get; set; }
     ulong IndexAccessCount { get; }
@@ -66,7 +66,7 @@ public interface IStatistics
 
     void Reset();
 
-    void Reset(int arraySize, SortType sortType, string algorithm);
+    void Reset(int arraySize, SortMethod sortType, string algorithm);
 
     void AddIndexCount();
     void AddIndexCount(ulong count);

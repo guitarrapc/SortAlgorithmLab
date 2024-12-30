@@ -13,12 +13,12 @@
 /// <typeparam name="T"></typeparam>
 public class CombSort<T> : SortBase<T> where T : IComparable<T>
 {
-    public override SortType SortType => SortType.Exchange;
+    public override SortMethod Method => SortMethod.Exchange;
     protected override string Name => nameof(CombSort<T>);
 
     public override T[] Sort(T[] array)
     {
-        Statistics.Reset(array.Length, SortType, Name);
+        Statistics.Reset(array.Length, Method, Name);
 
         // same logic as ShellSort, but CombSort use divide by 1.3.
         // divide by 1.3

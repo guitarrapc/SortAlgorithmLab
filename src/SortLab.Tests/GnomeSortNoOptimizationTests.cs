@@ -4,19 +4,19 @@ public class GnomeSortNoOptimizationTests
 {
     private ISort<int> sort;
     private string algorithm;
-    private SortType sortType;
+    private SortMethod sortType;
 
     public GnomeSortNoOptimizationTests()
     {
         sort = new GnomeSortNoOptimization<int>();
         algorithm = nameof(GnomeSortNoOptimization<int>);
-        sortType = SortType.Exchange;
+        sortType = SortMethod.Exchange;
     }
 
     [Fact]
     public void SortTypeTest()
     {
-        sort.SortType.Should().Be(sortType);
+        sort.Method.Should().Be(sortType);
     }
 
     [Theory]

@@ -4,19 +4,19 @@ public class CocktailShakerSort2Tests
 {
     private ISort<int> sort;
     private string algorithm;
-    private SortType sortType;
+    private SortMethod sortType;
 
     public CocktailShakerSort2Tests()
     {
         sort = new CocktailShakerSort2<int>();
         algorithm = nameof(CocktailShakerSort2<int>);
-        sortType = SortType.Exchange;
+        sortType = SortMethod.Exchange;
     }
 
     [Fact]
     public void SortTypeTest()
     {
-        sort.SortType.Should().Be(sortType);
+        sort.Method.Should().Be(sortType);
     }
 
     [Theory]

@@ -4,19 +4,19 @@ public class PancakeSortTests
 {
     private ISort<int> sort;
     private string algorithm;
-    private SortType sortType;
+    private SortMethod sortType;
 
     public PancakeSortTests()
     {
         sort = new PancakeSort<int>();
         algorithm = nameof(PancakeSort<int>);
-        sortType = SortType.Other;
+        sortType = SortMethod.Other;
     }
 
     [Fact]
     public void SortTypeTest()
     {
-        sort.SortType.Should().Be(sortType);
+        sort.Method.Should().Be(sortType);
     }
 
     [Theory]

@@ -19,7 +19,7 @@ public class MarkdownOutput : IOutput
 
     public InputType InputType { get; set; }
     public int ArraySize { get; set; }
-    public SortType SortType { get; set; }
+    public SortMethod SortType { get; set; }
     public string Algorithm { get; set; }
     public bool IsSorted { get; set; }
     public ulong IndexAccessCount { get; set; }
@@ -74,7 +74,7 @@ public class ConsoleOutput : IOutput
     public InputType InputType { get; set; }
     public int ArraySize { get; set; }
     public string Algorithm { get; set; }
-    public SortType SortType { get; set; }
+    public SortMethod SortType { get; set; }
     public bool IsSorted { get; set; }
     public ulong IndexAccessCount { get; set; }
     public ulong CompareCount { get; set; }

@@ -2,7 +2,7 @@
 
 public interface ISort<T> where T : IComparable<T>
 {
-    SortType SortType { get; }
+    SortMethod Method { get; }
 
     IStatistics Statistics { get; }
     T[] Sort(T[] array);

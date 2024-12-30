@@ -5,7 +5,7 @@ public class RadixLSD4SortTests
     private ISort<int> sort;
     private Func<int[], int[]> func;
     private string algorithm;
-    private SortType sortType;
+    private SortMethod sortType;
 
     public RadixLSD4SortTests()
     {
@@ -13,13 +13,13 @@ public class RadixLSD4SortTests
         func = array => sort.Sort(array);
         this.sort = sort;
         algorithm = nameof(RadixLSD4Sort<int>);
-        sortType = SortType.Distributed;
+        sortType = SortMethod.Distributed;
     }
 
     [Fact]
     public void SortTypeTest()
     {
-        sort.SortType.Should().Be(sortType);
+        sort.Method.Should().Be(sortType);
     }
 
     [Theory]
