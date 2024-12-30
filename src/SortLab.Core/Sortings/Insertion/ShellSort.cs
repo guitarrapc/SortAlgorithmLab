@@ -2,7 +2,7 @@
 
 /*
 
-Ref span ...
+Ref span (Knuth) ...
 
 | Method           | Number | Mean          | Error        | StdDev      | Median        | Min           | Max           | Allocated |
 |----------------- |------- |--------------:|-------------:|------------:|--------------:|--------------:|--------------:|----------:|
@@ -10,7 +10,23 @@ Ref span ...
 | ShellSort        | 1000   |     42.933 us |     4.591 us |   0.2517 us |     42.900 us |     42.700 us |     43.200 us |     736 B |
 | ShellSort        | 10000  |    502.667 us |   142.001 us |   7.7835 us |    503.500 us |    494.500 us |    510.000 us |     736 B |
 
-*/
+Ref span (Tokuda) ...
+
+| Method           | Number | Mean          | Error        | StdDev      | Median        | Min           | Max          | Allocated |
+|----------------- |------- |--------------:|-------------:|------------:|--------------:|--------------:|-------------:|----------:|
+| ShellSort        | 100    |      9.950 us |    15.800 us |   0.8660 us |     10.450 us |      8.950 us |     10.45 us |     448 B |
+| ShellSort        | 1000   |     50.400 us |   143.779 us |   7.8810 us |     45.900 us |     45.800 us |     59.50 us |     448 B |
+| ShellSort        | 10000  |    564.900 us |    33.441 us |   1.8330 us |    565.300 us |    562.900 us |    566.50 us |     736 B |
+
+Ref span (Sedgewick) ...
+
+| Method           | Number | Mean          | Error        | StdDev      | Median        | Min           | Max           | Allocated |
+|----------------- |------- |--------------:|-------------:|------------:|--------------:|--------------:|--------------:|----------:|
+| ShellSort        | 100    |     10.333 us |     1.053 us |   0.0577 us |     10.300 us |     10.300 us |     10.400 us |     448 B |
+| ShellSort        | 1000   |     46.200 us |    71.151 us |   3.9000 us |     44.100 us |     43.800 us |     50.700 us |     400 B |
+| ShellSort        | 10000  |    554.200 us |   179.040 us |   9.8138 us |    553.600 us |    544.700 us |    564.300 us |     736 B |
+
+ */
 
 /// <summary>
 /// hi+1 = 3hi + 1となるhで配列を分割し、分割された細かい配列ごとに挿入ソート<see cref="InsertionSort{T}"/>を行う(A)。次のhを/3で求めて、Aを繰り返しh=1まで行う。hごとにでソート済みとなっているため、最後の1は通常の挿入ソートと同じだが、挿入ソートが持つソート済み配列で高速に動作する性質から高速な並び替えが可能になる。選択ソートを使っているので不安定ソート。<see cref="BubbleSort{T}"/>に同様の概念を適用したのが<see cref="CombSort{T}"/>である。
@@ -31,44 +47,211 @@ public class ShellSort<T> : SortBase<T> where T : IComparable<T>
     public override T[] Sort(T[] array)
     {
         Statistics.Reset(array.Length, SortType, Name);
-        SortCore(array.AsSpan(), 0, array.Length);
+        SortCore(array.AsSpan(), 0, array.Length, GapType.Knuth);
         return array;
     }
 
     public T[] Sort(T[] array, int first, int last)
     {
         Statistics.Reset(array.Length, SortType, Name);
-        SortCore(array.AsSpan(), first, last);
+        SortCore(array.AsSpan(), first, last, GapType.Knuth);
         return array;
     }
 
-    private void SortCore(Span<T> span, int first, int last)
+    /// <summary>
+    /// Main entry to switch gap sequences (Knuth, Tokuda, Sedgewick)
+    /// </summary>
+    /// <param name="span"></param>
+    /// <param name="first"></param>
+    /// <param name="last"></param>
+    /// <param name="gapType"></param>
+    /// <exception cref="NotImplementedException"></exception>
+    private void SortCore(Span<T> span, int first, int last, GapType gapType)
+    {
+        switch (gapType)
+        {
+            case GapType.Knuth:
+                {
+                    SortCoreKnuth(span, first, last);
+                    break;
+                }
+            case GapType.Tokuda:
+                {
+                    SortCoreTokuda(span, first, last);
+                    break;
+                }
+            case GapType.Sedgewick:
+                {
+                    SortCoreSedgewick(span, first, last);
+                    break;
+                }
+            default:
+                throw new NotImplementedException(gapType.ToString());
+        };
+    }
+
+    /// <summary>
+    /// Shell sort using the Knuth sequence: h = 3*h + 1 (e.g. 1, 4, 13, 40, 121, ...).
+    /// In this example, we use 'length / 9' as an initial limit for h, which is common but not mandatory.
+    /// </summary>
+    /// <param name="span"></param>
+    /// <param name="first"></param>
+    /// <param name="last"></param>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private void SortCoreKnuth(Span<T> span, int first, int last)
     {
         var length = last - first;
         // Only 1 or 0 elements
         if (length < 2)
             return;
 
-        // Knuth gap sequence `h(i + 1) = 3h(i) + 1`: 1, 4, 13, 40, 121, 364, 1093, ...
+        // Calculate the initial gap (Knuth sequence).
+        // We stop when h >= length/9. This is just one approach.
+        // 1, 4, 13, 40, 121, 364, 1093, ...
         var h = 0;
-        while (h < length / 9) // 目安で h を大きくする
+        while (h < length / 9)
         {
             h = h * 3 + 1;
         }
 
-        // make gap h smaller from large, try next h with / 3....
+        // Decrease h by dividing by 3 each iteration until h == 0.
         for (; h > 0; h /= 3)
         {
-            //h.Dump(array.Length.ToString());
-            // Same as InsertSort (1 will be h)
+            // Swap based Insertion sort with gap h.
             for (var i = first + h; i < last; i++)
             {
-                // As like InsertSort, compare and swap
-                for (int j = i; j >= h && Compare(Index(ref span, j - h), Index(ref span, j)) > 0; j -= h)
+                // Ensure j >= first + h to stay within the subrange.
+                for (int j = i; j >= first + h && Compare(Index(ref span, j - h), Index(ref span, j)) > 0; j -= h)
                 {
                     Swap(ref Index(ref span, j), ref Index(ref span, j - h));
                 }
             }
         }
+    }
+
+    /// <summary>
+    /// Shell sort using the Tokuda sequence: h_{n+1} = floor((9*h_n + 1)/4).
+    /// We also shrink h by (4*h - 1)/9 in the loop.
+    /// </summary>
+    /// <param name="span"></param>
+    /// <param name="first"></param>
+    /// <param name="last"></param>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private void SortCoreTokuda(Span<T> span, int first, int last)
+    {
+        var length = last - first;
+        // Only 1 or 0 elements
+        if (length < 2)
+            return;
+
+        // Initial gap for Tokuda sequence.
+        int h = 1;
+        while (h < length / 5)
+        {
+            h = (9 * h + 1) / 4;
+        }
+
+        // Decrease gap until it goes to 0.
+        while (h > 0)
+        {
+            // Swap based Insertion sort with gap h.
+            for (int i = first + h; i < last; i++)
+            {
+                // Ensure j >= first + h to stay within the subrange.
+                for (int j = i; j >= first + h && Compare(Index(ref span, j - h), Index(ref span, j)) > 0; j -= h)
+                {
+                    Swap(ref Index(ref span, j), ref Index(ref span, j - h));
+                }
+            }
+
+            // Decrease h via (4*h - 1)/9. Make sure it doesn't go negative.
+            h = (4 * h - 1) / 9;
+            if (h < 1)
+                h = 0;
+        }
+    }
+
+    /// <summary>
+    /// Shell sort using a typical Sedgewick sequence (h = 4^k + 3*2^(k-1) + 1).
+    /// Note that Sedgewick also has various formula-based sequences; 1, 5, 19, 41, 109, 209, 505, 929, ... is a commonly used subset.
+    /// </summary>
+    /// <param name="span"></param>
+    /// <param name="first"></param>
+    /// <param name="last"></param>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private void SortCoreSedgewick(Span<T> span, int first, int last)
+    {
+        var length = last - first;
+        // Only 1 or 0 elements
+        if (length < 2)
+            return;
+
+        // A partial Sedgewick sequence. Different references may show slightly different numbers.
+        Span<int> sedgewickSequence = [1, 5, 19, 41, 109, 209, 505, 929, 2161, 3905];
+
+        // Find the largest gap <= (length/2)
+        var h = 1;
+        for (int i = 0; i < sedgewickSequence.Length; i++)
+        {
+            if (sedgewickSequence[i] > length / 2)
+                break;
+            h = sedgewickSequence[i];
+        }
+
+        // Decrease gap by going to the previous step in the Sedgewick array.
+        for (; h > 0; h = GetPreviousSedgewickGap(h))
+        {
+            // Swap based Insertion sort with gap h.
+            for (var i = first + h; i < last; i++)
+            {
+                // Ensure j >= first + h to stay within the subrange.
+                for (var j = i; j >= first + h && Compare(Index(ref span, j - h), Index(ref span, j)) > 0; j -= h)
+                {
+                    Swap(ref Index(ref span, j), ref Index(ref span, j - h));
+                }
+            }
+        }
+    }
+
+    /// <summary>
+    /// Finds the next smaller gap in the Sedgewick sequence by searching backward.
+    /// If 'current' is not found in the array, we simply return 0 as a fallback.
+    /// </summary>
+    private static int GetPreviousSedgewickGap(int current)
+    {
+        // A partial Sedgewick sequence. Different references may show slightly different numbers. (Should be same as SortCoreSedgewick)
+        Span<int> sedgewickSequence = [1, 5, 19, 41, 109, 209, 505, 929, 2161, 3905];
+
+        // If current is not in array, return 0
+        int prev = 0;
+        for (int i = 0; i < sedgewickSequence.Length; i++)
+        {
+            if (sedgewickSequence[i] == current)
+            {
+                // i-1 exists
+                if (i > 0)
+                {
+                    prev = sedgewickSequence[i - 1];
+                }
+                break;
+            }
+            else if (sedgewickSequence[i] > current)
+            {
+                // 'current' might be outside this sequence subset.
+                break;
+            }
+            else
+            {
+                prev = sedgewickSequence[i];
+            }
+        }
+        return prev;
+    }
+
+    private enum GapType
+    {
+        Knuth,
+        Tokuda,
+        Sedgewick,
     }
 }
