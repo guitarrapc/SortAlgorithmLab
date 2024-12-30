@@ -8,8 +8,8 @@ public class InsertSortTests
 
     public InsertSortTests()
     {
-        sort = new InsertSort<int>();
-        algorithm = nameof(InsertSort<int>);
+        sort = new InsertionSort<int>();
+        algorithm = nameof(InsertionSort<int>);
         sortType = SortType.Insertion;
     }
 

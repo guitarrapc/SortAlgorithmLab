@@ -18,7 +18,7 @@ public class QuickSortMedian9WithInsert<T> : SortBase<T> where T : IComparable<T
 
     // ref : https://github.com/nlfiedler/burstsort4j/blob/master/src/org/burstsort4j/Introsort.java
     private const int InsertThreshold = 16;
-    private InsertSort<T> insertSort = new InsertSort<T>();
+    private InsertionSort<T> insertSort = new InsertionSort<T>();
 
     public override T[] Sort(T[] array)
     {

@@ -17,7 +17,7 @@ public class QuickSortDualPivotWithInsert<T> : SortBase<T> where T : IComparable
     protected override string Name => nameof(QuickSortDualPivotWithInsert<T>);
 
     private const int InsertThreshold = 16;
-    private InsertSort<T> insertSort = new InsertSort<T>();
+    private InsertionSort<T> insertSort = new InsertionSort<T>();
 
     public override T[] Sort(T[] array)
     {

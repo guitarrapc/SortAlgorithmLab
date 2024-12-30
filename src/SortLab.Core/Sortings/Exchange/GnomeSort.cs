@@ -1,7 +1,7 @@
 ﻿namespace SortLab.Core.Sortings;
 
 /// <summary>
-/// リストの先頭に戻る前に、前回の位置を覚えておくことで<see cref="GnomeSortWithSwap{T}"/>を最適化している。これにより、<see cref="InsertSort{T}"/>と同程度の計算量になる。
+/// リストの先頭に戻る前に、前回の位置を覚えておくことで<see cref="GnomeSortWithSwap{T}"/>を最適化している。これにより、<see cref="InsertionSort{T}"/>と同程度の計算量になる。
 /// </summary>
 /// <remarks>
 /// stable : yes
@@ -33,7 +33,7 @@ public class GnomeSort<T> : SortBase<T> where T : IComparable<T>
 }
 
 /// <summary>
-/// 目の前の要素が現在の要素より小さければ前に、大きければ入れ替えて後ろに進む。一番後ろに行ったときは、前に進む。<see cref="InsertSort{T}"/>に似ているが、挿入ではなく交換となっている。常に直前とのみ比較するので、ソート中に末尾要素が追加されも問題ない。
+/// 目の前の要素が現在の要素より小さければ前に、大きければ入れ替えて後ろに進む。一番後ろに行ったときは、前に進む。<see cref="InsertionSort{T}"/>に似ているが、挿入ではなく交換となっている。常に直前とのみ比較するので、ソート中に末尾要素が追加されも問題ない。
 /// BubbleSortよりは高速でInsertSort程度
 /// </summary>
 /// <remarks>

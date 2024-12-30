@@ -21,7 +21,7 @@ public class IntroSortMedian9<T> : SortBase<T> where T : IComparable<T>
     // ref : https://www.cs.waikato.ac.nz/~bernhard/317/source/IntroSort.java
     private const int IntroThreshold = 16;
     private HeapSort<T> heapSort = new HeapSort<T>();
-    private InsertSort<T> insertSort = new InsertSort<T>();
+    private InsertionSort<T> insertSort = new InsertionSort<T>();
 
     public override T[] Sort(T[] array)
     {

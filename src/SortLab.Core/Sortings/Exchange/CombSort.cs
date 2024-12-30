@@ -1,7 +1,7 @@
 ﻿namespace SortLab.Core.Sortings;
 
 /// <summary>
-/// <see cref="BubbleSort{T}"/>の<see cref="ShellSort{T}"/>と同様の概念の導入版。配列を1.3で割り、小数点以下を切り捨てた数(h)の間隔ととる。先頭(i=0)から順にiとi+hで比較、小さい場合に入れ替え。i+h>nとなるまで栗加須。hが1の場合は交換が発生しなくなるまで繰り返す。Comb11の最適化によりhが9,10の場合は11とする。配列要素の入れ替えが生じるため不安定ソートとなる。<see cref="InsertSort{T}"/>に同様のロジックを適用したのが<see cref="ShellSort{T}"/>である。
+/// <see cref="BubbleSort{T}"/>の<see cref="ShellSort{T}"/>と同様の概念の導入版。配列を1.3で割り、小数点以下を切り捨てた数(h)の間隔ととる。先頭(i=0)から順にiとi+hで比較、小さい場合に入れ替え。i+h>nとなるまで栗加須。hが1の場合は交換が発生しなくなるまで繰り返す。Comb11の最適化によりhが9,10の場合は11とする。配列要素の入れ替えが生じるため不安定ソートとなる。<see cref="InsertionSort{T}"/>に同様のロジックを適用したのが<see cref="ShellSort{T}"/>である。
 /// 単純だが低速
 /// </summary>
 /// <remarks>

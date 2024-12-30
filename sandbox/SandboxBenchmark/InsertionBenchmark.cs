@@ -17,8 +17,8 @@ public class InsertionBenchmark
     private int[] _binarytreeArray = default!;
     private BinaryTreeSort<int> _binarytreeSort = default!;
 
-    private int[] _insertArray = default!;
-    private InsertSort<int> _insertSort = default!;
+    private int[] _insertionArray = default!;
+    private InsertionSort<int> _insertionSort = default!;
 
     [IterationSetup]
     public void Setup()
@@ -32,8 +32,8 @@ public class InsertionBenchmark
         _binarytreeArray = BenchmarkData.GenIntArray(Number);
         _binarytreeSort = new();
 
-        _insertArray = BenchmarkData.GenIntArray(Number);
-        _insertSort = new();
+        _insertionArray = BenchmarkData.GenIntArray(Number);
+        _insertionSort = new();
     }
 
     [Benchmark]
@@ -55,8 +55,8 @@ public class InsertionBenchmark
     }
 
     [Benchmark]
-    public void InsertSort()
+    public void InsertionSort()
     {
-        _insertSort.Sort(_insertArray);
+        _insertionSort.Sort(_insertionArray);
     }
 }

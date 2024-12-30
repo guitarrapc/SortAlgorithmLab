@@ -141,7 +141,7 @@ public record Runner
                     RunSort(new BinaryTreeSort<int>(), item);
 
                     // Insert Sort
-                    RunSort(new InsertSort<int>(), item);
+                    RunSort(new InsertionSort<int>(), item);
 
                     // Shell Sort
                     RunSort(new ShellSort<int>(), item);
