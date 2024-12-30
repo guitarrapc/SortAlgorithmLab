@@ -1,12 +1,12 @@
 namespace SortLab.Tests;
 
-public class InsertSortTests
+public class InsertionSortTests
 {
     private ISort<int> sort;
     private string algorithm;
     private SortType sortType;
 
-    public InsertSortTests()
+    public InsertionSortTests()
     {
         sort = new InsertionSort<int>();
         algorithm = nameof(InsertionSort<int>);
