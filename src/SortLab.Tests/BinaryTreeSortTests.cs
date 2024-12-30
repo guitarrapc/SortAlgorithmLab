@@ -4,19 +4,19 @@ public class BinaryTreeSortTests
 {
     private ISort<int> sort;
     private string algorithm;
-    private SortMethod sortType;
+    private SortMethod method;
 
     public BinaryTreeSortTests()
     {
         sort = new BinaryTreeSort<int>();
         algorithm = nameof(BinaryTreeSort<int>);
-        sortType = SortMethod.Insertion;
+        method = SortMethod.Insertion;
     }
 
     [Fact]
-    public void SortTypeTest()
+    public void SortMethodTest()
     {
-        sort.Method.Should().Be(sortType);
+        sort.Method.Should().Be(method);
     }
 
     [Theory]

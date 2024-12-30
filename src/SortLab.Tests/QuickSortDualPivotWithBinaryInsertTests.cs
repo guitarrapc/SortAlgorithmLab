@@ -4,19 +4,19 @@ public class QuickSortDualPivotWithBinaryInsertTests
 {
     private ISort<int> sort;
     private string algorithm;
-    private SortMethod sortType;
+    private SortMethod method;
 
     public QuickSortDualPivotWithBinaryInsertTests()
     {
         sort = new QuickSortDualPivotWithBinaryInsert<int>();
         algorithm = nameof(QuickSortDualPivotWithBinaryInsert<int>);
-        sortType = SortMethod.Partitioning;
+        method = SortMethod.Partitioning;
     }
 
     [Fact]
-    public void SortTypeTest()
+    public void SortMethodTest()
     {
-        sort.Method.Should().Be(sortType);
+        sort.Method.Should().Be(method);
     }
 
     [Theory]

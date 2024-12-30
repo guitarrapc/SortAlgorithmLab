@@ -5,7 +5,7 @@ public class BucketSortTests
     private ISort<int> sort;
     private Func<int[], int[]> func;
     private string algorithm;
-    private SortMethod sortType;
+    private SortMethod method;
 
     public BucketSortTests()
     {
@@ -13,13 +13,13 @@ public class BucketSortTests
         func = array => sort.Sort(array);
         this.sort = sort;
         algorithm = nameof(BucketSortInt<int>);
-        sortType = SortMethod.Distributed;
+        method = SortMethod.Distributed;
     }
 
     [Fact]
-    public void SortTypeTest()
+    public void SortMethodTest()
     {
-        sort.Method.Should().Be(sortType);
+        sort.Method.Should().Be(method);
     }
 
     [Theory]

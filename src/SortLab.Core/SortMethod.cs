@@ -11,5 +11,4 @@ public enum SortMethod
     Distributed,
     Concurrent,
     Hybrid,
-    Other,
 }

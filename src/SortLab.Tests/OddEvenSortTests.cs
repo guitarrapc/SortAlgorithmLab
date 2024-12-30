@@ -4,19 +4,19 @@ public class OddEvenSortTests
 {
     private ISort<int> sort;
     private string algorithm;
-    private SortMethod sortType;
+    private SortMethod method;
 
     public OddEvenSortTests()
     {
         sort = new OddEvenSort<int>();
         algorithm = nameof(OddEvenSort<int>);
-        sortType = SortMethod.Exchange;
+        method = SortMethod.Exchange;
     }
 
     [Fact]
-    public void SortTypeTest()
+    public void SortMethodTest()
     {
-        sort.Method.Should().Be(sortType);
+        sort.Method.Should().Be(method);
     }
 
     [Theory]

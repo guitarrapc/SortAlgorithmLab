@@ -4,19 +4,19 @@ public class MergeSort2Tests
 {
     private ISort<int> sort;
     private string algorithm;
-    private SortMethod sortType;
+    private SortMethod method;
 
     public MergeSort2Tests()
     {
         sort = new MergeSort2<int>();
         algorithm = nameof(MergeSort2<int>);
-        sortType = SortMethod.Merging;
+        method = SortMethod.Merging;
     }
 
     [Fact]
-    public void SortTypeTest()
+    public void SortMethodTest()
     {
-        sort.Method.Should().Be(sortType);
+        sort.Method.Should().Be(method);
     }
 
     [Theory]

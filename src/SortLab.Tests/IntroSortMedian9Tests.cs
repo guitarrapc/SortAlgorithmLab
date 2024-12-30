@@ -4,19 +4,19 @@ public class IntroSortMedian9Tests
 {
     private ISort<int> sort;
     private string algorithm;
-    private SortMethod sortType;
+    private SortMethod method;
 
     public IntroSortMedian9Tests()
     {
         sort = new IntroSortMedian9<int>();
         algorithm = nameof(IntroSortMedian9<int>);
-        sortType = SortMethod.Hybrid;
+        method = SortMethod.Hybrid;
     }
 
     [Fact]
-    public void SortTypeTest()
+    public void SortMethodTest()
     {
-        sort.Method.Should().Be(sortType);
+        sort.Method.Should().Be(method);
     }
 
     [Theory]

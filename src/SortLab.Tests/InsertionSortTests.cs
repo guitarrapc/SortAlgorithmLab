@@ -4,19 +4,19 @@ public class InsertionSortTests
 {
     private ISort<int> sort;
     private string algorithm;
-    private SortMethod sortType;
+    private SortMethod method;
 
     public InsertionSortTests()
     {
         sort = new InsertionSort<int>();
         algorithm = nameof(InsertionSort<int>);
-        sortType = SortMethod.Insertion;
+        method = SortMethod.Insertion;
     }
 
     [Fact]
-    public void SortTypeTest()
+    public void SortMethodTest()
     {
-        sort.Method.Should().Be(sortType);
+        sort.Method.Should().Be(method);
     }
 
     [Theory]

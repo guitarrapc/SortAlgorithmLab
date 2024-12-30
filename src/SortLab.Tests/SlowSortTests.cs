@@ -4,19 +4,19 @@ public class SlowSortTests
 {
     private ISort<int> sort;
     private string algorithm;
-    private SortMethod sortType;
+    private SortMethod method;
 
     public SlowSortTests()
     {
         sort = new SlowSort<int>();
         algorithm = nameof(SlowSort<int>);
-        sortType = SortMethod.Exchange;
+        method = SortMethod.Exchange;
     }
 
     [Fact]
-    public void SortTypeTest()
+    public void SortMethodTest()
     {
-        sort.Method.Should().Be(sortType);
+        sort.Method.Should().Be(method);
     }
 
     [Theory]

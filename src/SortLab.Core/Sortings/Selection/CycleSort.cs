@@ -1,6 +1,7 @@
 ﻿namespace SortLab.Core.Sortings;
 
 /*
+
 Ref span ...
 
 | Method        | Number | Mean          | Error          | StdDev        | Median        | Min          | Max           | Allocated |

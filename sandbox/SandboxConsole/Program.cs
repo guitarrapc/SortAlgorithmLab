@@ -9,11 +9,11 @@ var runner = new Runner()
     //Distribution = true,
     //Exchange = true,
     //Hybrid = true,
-    Insertion = true,
+    //Insertion = true,
     //Merge = true,
     //Other = true,
     //Partition = true,
-    //Selection = true,
+    Selection = true,
 };
 runner.Run(SampleData.RandomSamples);
 runner.Run(SampleData.NegativePositiveRandomSamples);
@@ -165,9 +165,6 @@ public record Runner
                 if (Other)
                 {
                     // -- Other -- //
-
-                    // Pancake Sort
-                    RunSort(new PancakeSort<int>(), item);
                 }
 
                 if (Partition)
@@ -211,6 +208,9 @@ public record Runner
 
                     // Heap Sort
                     RunSort(new HeapSort<int>(), item);
+
+                    // Pancake Sort
+                    RunSort(new PancakeSort<int>(), item);
 
                     // Selection Sort
                     RunSort(new SelectionSort<int>(), item);

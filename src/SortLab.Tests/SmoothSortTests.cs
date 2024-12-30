@@ -4,19 +4,19 @@ public class SmoothSortTests
 {
     private ISort<int> sort;
     private string algorithm;
-    private SortMethod sortType;
+    private SortMethod method;
 
     public SmoothSortTests()
     {
         sort = new SmoothSort<int>();
         algorithm = nameof(SmoothSort<int>);
-        sortType = SortMethod.Selection;
+        method = SortMethod.Selection;
     }
 
     [Fact]
-    public void SortTypeTest()
+    public void SortMethodTest()
     {
-        sort.Method.Should().Be(sortType);
+        sort.Method.Should().Be(method);
     }
 
     [Theory]

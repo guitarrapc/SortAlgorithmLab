@@ -4,19 +4,19 @@ public class QuickSortMedian3WithInsertTests
 {
     private ISort<int> sort;
     private string algorithm;
-    private SortMethod sortType;
+    private SortMethod method;
 
     public QuickSortMedian3WithInsertTests()
     {
         sort = new QuickSortMedian3WithInsert<int>();
         algorithm = nameof(QuickSortMedian3WithInsert<int>);
-        sortType = SortMethod.Partitioning;
+        method = SortMethod.Partitioning;
     }
 
     [Fact]
-    public void SortTypeTest()
+    public void SortMethodTest()
     {
-        sort.Method.Should().Be(sortType);
+        sort.Method.Should().Be(method);
     }
 
     [Theory]

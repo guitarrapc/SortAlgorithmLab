@@ -5,7 +5,7 @@ public class CountingSortTests
     private ISort<int> sort;
     private Func<int[], int[]> func;
     private string algorithm;
-    private SortMethod sortType;
+    private SortMethod method;
 
     public CountingSortTests()
     {
@@ -13,13 +13,13 @@ public class CountingSortTests
         func = array => sort.Sort(array);
         this.sort = sort;
         algorithm = nameof(CountingSort<int>);
-        sortType = SortMethod.Distributed;
+        method = SortMethod.Distributed;
     }
 
     [Fact]
-    public void SortTypeTest()
+    public void SortMethodTest()
     {
-        sort.Method.Should().Be(sortType);
+        sort.Method.Should().Be(method);
     }
 
     [Theory]

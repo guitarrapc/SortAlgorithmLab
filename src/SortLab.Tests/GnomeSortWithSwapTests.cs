@@ -4,19 +4,19 @@ public class GnomeSortWithSwapTests
 {
     private ISort<int> sort;
     private string algorithm;
-    private SortMethod sortType;
+    private SortMethod method;
 
     public GnomeSortWithSwapTests()
     {
         sort = new GnomeSortWithSwap<int>();
         algorithm = nameof(GnomeSortWithSwap<int>);
-        sortType = SortMethod.Exchange;
+        method = SortMethod.Exchange;
     }
 
     [Fact]
-    public void SortTypeTest()
+    public void SortMethodTest()
     {
-        sort.Method.Should().Be(sortType);
+        sort.Method.Should().Be(method);
     }
 
     [Theory]
