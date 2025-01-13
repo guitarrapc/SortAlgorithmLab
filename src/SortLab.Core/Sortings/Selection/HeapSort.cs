@@ -33,6 +33,14 @@ Ref span ...
 | HeapSort      | 1000   |     252.43 us |      18.989 us |      1.041 us |     252.10 us |    251.60 us |     253.60 us |     736 B |
 | HeapSort      | 10000  |     649.33 us |     843.733 us |     46.248 us |     653.60 us |    601.10 us |     693.30 us |     736 B |
 
+Span ...
+
+| Method        | Number | Mean          | Error          | StdDev       | Median       | Min          | Max           | Allocated |
+|-------------- |------- |--------------:|---------------:|-------------:|-------------:|-------------:|--------------:|----------:|
+| HeapSort      | 100    |      15.40 us |       6.320 us |     0.346 us |     15.60 us |     15.00 us |      15.60 us |     736 B |
+| HeapSort      | 1000   |     279.03 us |      28.400 us |     1.557 us |    279.20 us |    277.40 us |     280.50 us |     736 B |
+| HeapSort      | 10000  |     545.52 us |     109.346 us |     5.994 us |    543.05 us |    541.15 us |     552.35 us |     736 B |
+
 */
 
 /// <summary>
@@ -100,7 +108,7 @@ public class HeapSort<T> : SortBase<T> where T : IComparable<T>
         for (var i = last - 1; i > first; i--)
         {
             // Move current root to end
-            Swap(ref Index(ref span, first), ref Index(ref span, i));
+            Swap(ref Index(span, first), ref Index(span, i));
 
             // Re-heapify the reduced heap
             Heapify(span, first, i - first, first);
@@ -123,13 +131,13 @@ public class HeapSort<T> : SortBase<T> where T : IComparable<T>
             var right = 2 * (root - offset) + 2 + offset;
 
             // If left child is larger than root
-            if (left < offset + size && Compare(Index(ref span, left), Index(ref span, largest)) > 0)
+            if (left < offset + size && Compare(Index(span, left), Index(span, largest)) > 0)
             {
                 largest = left;
             }
 
             // If right child is larger than largest so far
-            if (right < offset + size && Compare(Index(ref span, right), Index(ref span, largest)) > 0)
+            if (right < offset + size && Compare(Index(span, right), Index(span, largest)) > 0)
             {
                 largest = right;
             }
@@ -137,7 +145,7 @@ public class HeapSort<T> : SortBase<T> where T : IComparable<T>
             // If largest is not root, swap and heapify the affected sub-tree
             if (largest != root)
             {
-                Swap(ref Index(ref span, root), ref Index(ref span, largest));
+                Swap(ref Index(span, root), ref Index(span, largest));
                 root = largest;
             }
             else

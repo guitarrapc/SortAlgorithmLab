@@ -1,6 +1,7 @@
 ﻿namespace SortLab.Core.Sortings;
 
 /*
+
 Ref span ...
 
 | Method        | Number | Mean          | Error          | StdDev        | Median       | Min          | Max           | Allocated |
@@ -8,6 +9,14 @@ Ref span ...
 | SelectionSort | 100    |      15.83 us |      12.147 us |      0.666 us |     16.00 us |     15.10 us |      16.40 us |     736 B |
 | SelectionSort | 1000   |     260.53 us |      28.400 us |      1.557 us |    260.70 us |    258.90 us |     262.00 us |     736 B |
 | SelectionSort | 10000  |  19,651.13 us |   1,740.622 us |     95.409 us | 19,596.70 us | 19,595.40 us |  19,761.30 us |     448 B |
+
+Span ...
+
+| Method        | Number | Mean          | Error          | StdDev       | Median       | Min          | Max           | Allocated |
+|-------------- |------- |--------------:|---------------:|-------------:|-------------:|-------------:|--------------:|----------:|
+| SelectionSort | 100    |      17.40 us |       3.649 us |     0.200 us |     17.40 us |     17.20 us |      17.60 us |     448 B |
+| SelectionSort | 1000   |     234.67 us |      15.191 us |     0.833 us |    234.40 us |    234.00 us |     235.60 us |     448 B |
+| SelectionSort | 10000  |  20,021.47 us |     846.496 us |    46.399 us | 20,012.20 us | 19,980.40 us |  20,071.80 us |     736 B |
 
  */
 
@@ -65,7 +74,7 @@ public class SelectionSort<T> : SortBase<T> where T : IComparable<T>
             // Find the index of the minimum element
             for (var j = i + 1; j < last; j++)
             {
-                if (Compare(Index(ref span, j), Index(ref span, min)) < 0)
+                if (Compare(Index(span, j), Index(span, min)) < 0)
                 {
                     min = j;
                 }
@@ -74,7 +83,7 @@ public class SelectionSort<T> : SortBase<T> where T : IComparable<T>
             // Swap the found minimum element with the first element of the unsorted part
             if (min != i)
             {
-                Swap(ref Index(ref span, min), ref Index(ref span, i));
+                Swap(ref Index(span, min), ref Index(span, i));
             }
         }
     }

@@ -17,6 +17,14 @@ Ref span (start) ...
 | BinaryInsertSort | 1000   |   121.1 us |    55.55 us |   3.04 us |   121.70 us |   117.80 us |   123.8 us |     448 B |
 | BinaryInsertSort | 10000  | 8,673.2 us | 4,841.61 us | 265.38 us | 8,720.50 us | 8,387.30 us | 8,911.7 us |     736 B |
 
+Span ...
+
+| Method                 | Number | Mean          | Error        | StdDev      | Median        | Min           | Max          | Allocated |
+|----------------------- |------- |--------------:|-------------:|------------:|--------------:|--------------:|-------------:|----------:|
+| BinaryInsertSort       | 100    |    135.333 us | 3,753.441 us | 205.7388 us |     16.600 us |     16.500 us |    372.90 us |     736 B |
+| BinaryInsertSort       | 1000   |    122.133 us |    39.312 us |   2.1548 us |    122.300 us |    119.900 us |    124.20 us |     736 B |
+| BinaryInsertSort       | 10000  |  6,903.433 us |   742.971 us |  40.7247 us |  6,898.500 us |  6,865.400 us |  6,946.40 us |     736 B |
+
 */
 
 /// <summary>
@@ -103,7 +111,7 @@ public class BinaryInsertSort<T> : SortBase<T> where T : IComparable<T>
         // while maintaining stability (stable insertion sort).
         for (var i = first + 1; i < last; i++)
         {
-            var tmp = Index(ref span, i);
+            var tmp = Index(span, i);
 
             // Find the insertion position using a custom binary search
             var pos = BinarySearch(ref span, tmp, i);
@@ -113,7 +121,7 @@ public class BinaryInsertSort<T> : SortBase<T> where T : IComparable<T>
             // and 'tmp' takes the 'left' position in a stable manner.
             for (var j = pos; j <= i; j++)
             {
-                Swap(ref Index(ref span, j), ref tmp);
+                Swap(ref Index(span, j), ref tmp);
             }
         }
     }
@@ -135,7 +143,7 @@ public class BinaryInsertSort<T> : SortBase<T> where T : IComparable<T>
 
         for (var i = start; i < last; i++)
         {
-            var tmp = Index(ref span, i);
+            var tmp = Index(span, i);
 
             // Find the insertion position using a custom binary search
             var pos = BinarySearch(ref span, tmp, i);
@@ -146,12 +154,12 @@ public class BinaryInsertSort<T> : SortBase<T> where T : IComparable<T>
             {
                 for (var j = i - 1; j >= pos; j--)
                 {
-                    Index(ref span, j + 1) = Index(ref span, j);
+                    Index(span, j + 1) = Index(span, j);
                 }
             }
 
             // Finally, swap 'tmp' into the 'pos' position
-            Index(ref span, pos) = tmp;
+            Index(span, pos) = tmp;
         }
     }
 
@@ -166,7 +174,7 @@ public class BinaryInsertSort<T> : SortBase<T> where T : IComparable<T>
         while (left < right)
         {
             var mid = (left + right) / 2;
-            if (Compare(Index(ref span, mid), tmp) <= 0)
+            if (Compare(Index(span, mid), tmp) <= 0)
             {
                 left = mid + 1;
             }

@@ -18,6 +18,14 @@ Ref span (Recursive) ...
 | BinaryTreeSort   | 1000   |   109.033 us |   319.199 us |  17.4964 us |   100.000 us |    97.900 us |   129.200 us |   40736 B |
 | BinaryTreeSort   | 10000  | 1,283.600 us |   365.845 us |  20.0532 us | 1,275.700 us | 1,268.700 us | 1,306.400 us |  400448 B |
 
+Span (Itelative) ...
+
+| Method                 | Number | Mean          | Error        | StdDev      | Median        | Min           | Max          | Allocated |
+|----------------------- |------- |--------------:|-------------:|------------:|--------------:|--------------:|-------------:|----------:|
+| BinaryTreeSort         | 100    |      8.267 us |    35.579 us |   1.9502 us |      7.400 us |      6.900 us |     10.50 us |    4448 B |
+| BinaryTreeSort         | 1000   |    111.667 us |   206.286 us |  11.3072 us |    111.200 us |    100.600 us |    123.20 us |   40736 B |
+| BinaryTreeSort         | 10000  |    665.733 us |    13.448 us |   0.7371 us |    666.000 us |    664.900 us |    666.30 us |  400736 B |
+
 */
 
 /// <summary>
@@ -56,8 +64,8 @@ public class BinaryTreeSort<T> : SortBase<T> where T : IComparable<T>
 
         for (var i = 0; i < span.Length; i++)
         {
-            InsertIterative(ref root, Index(ref span, i));
-            //InsertResursive(ref root, Index(ref span, i));
+            InsertIterative(ref root, Index(span, i));
+            //InsertResursive(ref root, Index(span, i));
         }
 
         // Traverse the tree in inorder and write elements back into the array.
@@ -139,7 +147,7 @@ public class BinaryTreeSort<T> : SortBase<T> where T : IComparable<T>
         if (node is null) return;
 
         Inorder(span, node.Left, ref i);
-        Index(ref span, i++) = node.Item;
+        Index(span, i++) = node.Item;
         Inorder(span, node.Right, ref i);
     }
 

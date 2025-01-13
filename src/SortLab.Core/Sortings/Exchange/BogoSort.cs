@@ -37,7 +37,7 @@ public class BogoSort<T> : SortBase<T> where T : IComparable<T>
         var length = span.Length;
         for (var i = 0; i < length; i++)
         {
-            Swap(ref Index(ref span, i), ref Index(ref span, Random.Shared.Next(0, length)));
+            Swap(ref Index(span, i), ref Index(span, Random.Shared.Next(0, length)));
         }
     }
 
@@ -46,7 +46,7 @@ public class BogoSort<T> : SortBase<T> where T : IComparable<T>
         var length = span.Length;
         for (var i = 0; i < length - 1; i++)
         {
-            if (Compare(Index(ref span, i), Index(ref span, i + 1)) > 0)
+            if (Compare(Index(span, i), Index(span, i + 1)) > 0)
             {
                 return false;
             }
