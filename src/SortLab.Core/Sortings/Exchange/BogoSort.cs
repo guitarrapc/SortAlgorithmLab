@@ -20,28 +20,33 @@ public class BogoSort<T> : SortBase<T> where T : IComparable<T>
     public override T[] Sort(T[] array)
     {
         Statistics.Reset(array.Length, Method, Name);
-        while (!IsSorted(array))
-        {
-            Shuffle(array);
-        }
+        SortCore(array.AsSpan());
         return array;
     }
 
-    private void Shuffle(T[] array)
+    private void SortCore(Span<T> span)
     {
-        for (var i = 0; i <= array.Length - 1; i++)
+        while (!IsSorted(span))
         {
-            Statistics.AddIndexCount();
-            Swap(ref array[i], ref array[Random.Shared.Next(0, array.Length - 1)]);
+            Shuffle(span);
         }
     }
 
-    private bool IsSorted(T[] array)
+    private void Shuffle(Span<T> span)
     {
-        for (var i = 0; i < array.Length - 1; i++)
+        var length = span.Length;
+        for (var i = 0; i < length; i++)
         {
-            Statistics.AddIndexCount();
-            if (Compare(array[i], array[i + 1]) > 0)
+            Swap(ref Index(ref span, i), ref Index(ref span, Random.Shared.Next(0, length)));
+        }
+    }
+
+    private bool IsSorted(Span<T> span)
+    {
+        var length = span.Length;
+        for (var i = 0; i < length - 1; i++)
+        {
+            if (Compare(Index(ref span, i), Index(ref span, i + 1)) > 0)
             {
                 return false;
             }
