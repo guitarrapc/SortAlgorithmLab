@@ -1,6 +1,4 @@
-﻿using System.Threading;
-
-namespace SortLab.Core;
+﻿namespace SortLab.Core;
 
 public class SortStatistics : IStatistics
 {

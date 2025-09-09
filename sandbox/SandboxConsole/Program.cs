@@ -1,8 +1,5 @@
 ﻿using SortLab.Core;
 using SortLab.Core.Sortings;
-using System;
-using System.Collections.Generic;
-using System.Linq;
 
 var runner = new Runner()
 {
@@ -42,8 +39,8 @@ public record Runner
     public bool Partition { get; init; }
     public bool Selection { get; init; }
 
-    private static int[] validateArray;
-    private static CustomKeyValuePair<int, string>[] validateDic;
+    private static int[] validateArray = [];
+    private static CustomKeyValuePair<int, string>[] validateDic = [];
     public List<IOutput> MarkDownOutputList = [];
 
     public void Run(IInputSample<int>[] items)
