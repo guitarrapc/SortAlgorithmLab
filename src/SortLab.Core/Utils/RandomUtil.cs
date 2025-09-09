@@ -5,10 +5,7 @@ namespace SortLab.Core;
 public static class RandomUtil
 {
     [ThreadStatic]
-    private static Random random;
-
-    public static Func<Random> RandomFactory { get; }
-    public static Random ThreadRandom => random;
+    private static Random? random;
 
     static RandomUtil()
     {
@@ -20,6 +17,16 @@ public static class RandomUtil
             var seed = BitConverter.ToInt32(buffer, 0);
             return new Random(seed);
         };
-        random = RandomFactory();
+    }
+
+    public static Func<Random> RandomFactory { get; set; }
+
+    public static Random ThreadRandom
+    {
+        get
+        {
+            random ??= RandomFactory();
+            return random;
+        }
     }
 }
