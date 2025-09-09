@@ -67,7 +67,7 @@ public class RadixLSD10Sort<T> : SortBase<int> where T : IComparable<T>
             for (var j = 0; j < bucket.Length; ++j)
             {
                 Statistics.AddIndexCount();
-                bucket[j].Clear();
+                bucket[j]?.Clear();
             }
         }
 
@@ -123,7 +123,7 @@ public class RadixLSD10Sort<T> : SortBase<int> where T : IComparable<T>
             for (var j = 0; j < bucket.Length; ++j)
             {
                 Statistics.AddIndexCount();
-                bucket[j].Clear();
+                bucket[j]?.Clear();
             }
         }
 

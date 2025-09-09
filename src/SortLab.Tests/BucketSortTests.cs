@@ -1,4 +1,4 @@
-﻿namespace SortLab.Tests;
+namespace SortLab.Tests;
 
 public class BucketSortTests
 {
@@ -19,63 +19,63 @@ public class BucketSortTests
     [Fact]
     public void SortMethodTest()
     {
-        sort.SortType.Should().Be(method);
+        Assert.Equal(method, sort.SortType);
     }
 
     [Theory]
     [ClassData(typeof(MockRandomData))]
     public void RandomInputTypeTest(IInputSample<int> inputSample)
     {
-        inputSample.InputType.Should().Be(InputType.Random);
+        Assert.Equal(InputType.Random, inputSample.InputType);
     }
 
     [Theory]
     [ClassData(typeof(MockNegativePositiveRandomData))]
     public void MixRandomInputTypeTest(IInputSample<int> inputSample)
     {
-        inputSample.InputType.Should().Be(InputType.MixRandom);
+        Assert.Equal(InputType.MixRandom, inputSample.InputType);
     }
 
     [Theory]
     [ClassData(typeof(MockNegativeRandomData))]
     public void NegativeRandomInputTypeTest(IInputSample<int> inputSample)
     {
-        inputSample.InputType.Should().Be(InputType.NegativeRandom);
+        Assert.Equal(InputType.NegativeRandom, inputSample.InputType);
     }
 
     [Theory]
     [ClassData(typeof(MockReversedData))]
     public void ReverseInputTypeTest(IInputSample<int> inputSample)
     {
-        inputSample.InputType.Should().Be(InputType.Reversed);
+        Assert.Equal(InputType.Reversed, inputSample.InputType);
     }
 
     [Theory]
     [ClassData(typeof(MockMountainData))]
     public void MountainInputTypeTest(IInputSample<int> inputSample)
     {
-        inputSample.InputType.Should().Be(InputType.Mountain);
+        Assert.Equal(InputType.Mountain, inputSample.InputType);
     }
 
     [Theory]
     [ClassData(typeof(MockNearlySortedData))]
     public void NearlySortedInputTypeTest(IInputSample<int> inputSample)
     {
-        inputSample.InputType.Should().Be(InputType.NearlySorted);
+        Assert.Equal(InputType.NearlySorted, inputSample.InputType);
     }
 
     [Theory]
     [ClassData(typeof(MockSortedData))]
     public void SortedInputTypeTest(IInputSample<int> inputSample)
     {
-        inputSample.InputType.Should().Be(InputType.Sorted);
+        Assert.Equal(InputType.Sorted, inputSample.InputType);
     }
 
     [Theory]
     [ClassData(typeof(MockSameValuesData))]
     public void SameValuesInputTypeTest(IInputSample<int> inputSample)
     {
-        inputSample.InputType.Should().Be(InputType.SameValues);
+        Assert.Equal(InputType.SameValues, inputSample.InputType);
     }
 
     [Theory]
@@ -89,7 +89,7 @@ public class BucketSortTests
     [ClassData(typeof(MockSameValuesData))]
     public void SortResultOrderTest(IInputSample<int> inputSample)
     {
-        func(inputSample.Samples).Should().BeEquivalentTo(inputSample.Samples.OrderBy(x => x));
+        Assert.Equal(inputSample.Samples.OrderBy(x => x), func(inputSample.Samples));
     }
 
     [Theory]
@@ -103,11 +103,11 @@ public class BucketSortTests
     public void StatisticsTest(IInputSample<int> inputSample)
     {
         func(inputSample.Samples);
-        sort.Statistics.Algorithm.Should().Be(algorithm);
-        sort.Statistics.ArraySize.Should().Be(inputSample.Samples.Length);
-        sort.Statistics.IndexAccessCount.Should().NotBe(0);
-        sort.Statistics.CompareCount.Should().Be(0);
-        sort.Statistics.SwapCount.Should().Be(0);
+        Assert.Equal(algorithm, sort.Statistics.Algorithm);
+        Assert.Equal(inputSample.Samples.Length, sort.Statistics.ArraySize);
+        Assert.NotEqual((ulong)0, sort.Statistics.IndexAccessCount);
+        Assert.Equal((ulong)0, sort.Statistics.CompareCount);
+        Assert.Equal((ulong)0, sort.Statistics.SwapCount);
     }
 
     [Theory]
@@ -115,11 +115,11 @@ public class BucketSortTests
     public void StatisticsSortedTest(IInputSample<int> inputSample)
     {
         func(inputSample.Samples);
-        sort.Statistics.Algorithm.Should().Be(algorithm);
-        sort.Statistics.ArraySize.Should().Be(inputSample.Samples.Length);
-        sort.Statistics.IndexAccessCount.Should().NotBe(0);
-        sort.Statistics.CompareCount.Should().Be(0);
-        sort.Statistics.SwapCount.Should().Be(0);
+        Assert.Equal(algorithm, sort.Statistics.Algorithm);
+        Assert.Equal(inputSample.Samples.Length, sort.Statistics.ArraySize);
+        Assert.NotEqual((ulong)0, sort.Statistics.IndexAccessCount);
+        Assert.Equal((ulong)0, sort.Statistics.CompareCount);
+        Assert.Equal((ulong)0, sort.Statistics.SwapCount);
     }
 
     [Theory]
@@ -135,8 +135,8 @@ public class BucketSortTests
     {
         func(inputSample.Samples);
         sort.Statistics.Reset();
-        sort.Statistics.IndexAccessCount.Should().Be(0);
-        sort.Statistics.CompareCount.Should().Be(0);
-        sort.Statistics.SwapCount.Should().Be(0);
+        Assert.Equal((ulong)0, sort.Statistics.IndexAccessCount);
+        Assert.Equal((ulong)0, sort.Statistics.CompareCount);
+        Assert.Equal((ulong)0, sort.Statistics.SwapCount);
     }
 }
