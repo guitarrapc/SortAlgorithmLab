@@ -1,4 +1,4 @@
-namespace SortLab.Tests;
+﻿namespace SortLab.Tests;
 
 public class QuickSortDualPivotWithBinaryInsertTests
 {
@@ -16,7 +16,7 @@ public class QuickSortDualPivotWithBinaryInsertTests
     [Fact]
     public void SortMethodTest()
     {
-        sort.Method.Should().Be(method);
+        sort.SortType.Should().Be(method);
     }
 
     [Theory]

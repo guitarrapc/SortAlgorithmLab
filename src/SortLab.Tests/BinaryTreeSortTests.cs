@@ -1,4 +1,4 @@
-namespace SortLab.Tests;
+﻿namespace SortLab.Tests;
 
 public class BinaryTreeSortTests
 {
@@ -16,7 +16,7 @@ public class BinaryTreeSortTests
     [Fact]
     public void SortMethodTest()
     {
-        sort.Method.Should().Be(method);
+        sort.SortType.Should().Be(method);
     }
 
     [Theory]

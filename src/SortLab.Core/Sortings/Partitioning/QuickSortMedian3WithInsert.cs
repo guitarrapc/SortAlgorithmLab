@@ -13,7 +13,7 @@
 /// <typeparam name="T"></typeparam>
 public class QuickSortMedian3WithInsert<T> : SortBase<T> where T : IComparable<T>
 {
-    public override SortMethod Method => SortMethod.Partitioning;
+    public override SortMethod SortType => SortMethod.Partitioning;
     protected override string Name => nameof(QuickSortMedian3WithInsert<T>);
 
     // ref : https://github.com/nlfiedler/burstsort4j/blob/master/src/org/burstsort4j/Introsort.java
@@ -22,7 +22,7 @@ public class QuickSortMedian3WithInsert<T> : SortBase<T> where T : IComparable<T
 
     public override T[] Sort(T[] array)
     {
-        Statistics.Reset(array.Length, Method, Name);
+        Statistics.Reset(array.Length, SortType, Name);
         var result = SortImpl(array, 0, array.Length - 1);
         Statistics.AddCompareCount(insertSort.Statistics.CompareCount);
         Statistics.AddIndexCount(insertSort.Statistics.IndexAccessCount);

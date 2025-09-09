@@ -1,4 +1,4 @@
-namespace SortLab.Tests;
+﻿namespace SortLab.Tests;
 
 public class QuickSortMedian9WithInsertTests
 {
@@ -16,7 +16,7 @@ public class QuickSortMedian9WithInsertTests
     [Fact]
     public void SortMethodTest()
     {
-        sort.Method.Should().Be(method);
+        sort.SortType.Should().Be(method);
     }
 
     [Theory]

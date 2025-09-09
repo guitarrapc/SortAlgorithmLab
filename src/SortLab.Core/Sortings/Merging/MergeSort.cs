@@ -15,12 +15,12 @@
 
 public class MergeSort<T> : SortBase<T> where T : IComparable<T>
 {
-    public override SortMethod Method => SortMethod.Merging;
+    public override SortMethod SortType => SortMethod.Merging;
     protected override string Name => nameof(MergeSort<T>);
 
     public override T[] Sort(T[] array)
     {
-        Statistics.Reset(array.Length, Method, Name);
+        Statistics.Reset(array.Length, SortType, Name);
         var work = new T[(array.Length) / 2];
         Sort(array, 0, array.Length - 1, work);
         return array;
@@ -44,7 +44,7 @@ public class MergeSort<T> : SortBase<T> where T : IComparable<T>
     // escape left to work, then merge right, and last for left.
     private T[] Merge(T[] array, int left, int right, int mid, T[] work)
     {
-        T max = default(T);
+        T max = default(T)!;
         // if array[2] = x,y. set work[0] = x
         for (var i = left; i <= mid; i++)
         {
@@ -54,7 +54,7 @@ public class MergeSort<T> : SortBase<T> where T : IComparable<T>
             // max assign
             if (i - left >= work.Length - 1)
             {
-                max = array.Max();
+                max = array.Max()!;
                 break;
             }
         }
@@ -114,12 +114,12 @@ public class MergeSort<T> : SortBase<T> where T : IComparable<T>
 /// <typeparam name="T"></typeparam>
 public class MergeSort2<T> : SortBase<T> where T : IComparable<T>
 {
-    public override SortMethod Method => SortMethod.Merging;
+    public override SortMethod SortType => SortMethod.Merging;
     protected override string Name => nameof(MergeSort2<T>);
 
     public override T[] Sort(T[] array)
     {
-        Statistics.Reset(array.Length, Method, Name);
+        Statistics.Reset(array.Length, SortType, Name);
         return SortImpl(array);
     }
 

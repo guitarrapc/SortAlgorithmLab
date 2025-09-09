@@ -7,6 +7,9 @@ public static class RandomUtil
     [ThreadStatic]
     private static Random random;
 
+    public static Func<Random> RandomFactory { get; }
+    public static Random ThreadRandom => random;
+
     static RandomUtil()
     {
         RandomFactory = () =>
@@ -17,16 +20,6 @@ public static class RandomUtil
             var seed = BitConverter.ToInt32(buffer, 0);
             return new Random(seed);
         };
-    }
-
-    public static Func<Random> RandomFactory { get; set; }
-
-    public static Random ThreadRandom
-    {
-        get
-        {
-            random ??= RandomFactory();
-            return random;
-        }
+        random = RandomFactory();
     }
 }

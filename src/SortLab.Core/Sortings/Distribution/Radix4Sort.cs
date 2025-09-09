@@ -14,12 +14,12 @@
 /// <typeparam name="T"></typeparam>
 public class RadixLSD4Sort<T> : SortBase<int> where T : IComparable<T>
 {
-    public override SortMethod Method => SortMethod.Distributed;
+    public override SortMethod SortType => SortMethod.Distributed;
     protected override string Name => nameof(RadixLSD4Sort<T>);
 
     public override int[] Sort(int[] array)
     {
-        Statistics.Reset(array.Length, Method, Name);
+        Statistics.Reset(array.Length, SortType, Name);
         if (array.Min() >= 0)
         {
             return SortImplPositive(array);
@@ -67,7 +67,7 @@ public class RadixLSD4Sort<T> : SortBase<int> where T : IComparable<T>
             for (var j = 0; j < bucket.Length; ++j)
             {
                 Statistics.AddIndexCount();
-                bucket[j] = null;
+                bucket[j].Clear();
             }
         }
 
@@ -142,8 +142,8 @@ public class RadixLSD4Sort<T> : SortBase<int> where T : IComparable<T>
             for (var j = 0; j < positiveBucket.Length; ++j)
             {
                 Statistics.AddIndexCount();
-                positiveBucket[j] = null;
-                negativeBucket[j] = null;
+                positiveBucket[j].Clear();
+                negativeBucket[j].Clear();
             }
         }
 

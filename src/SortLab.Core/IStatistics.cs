@@ -4,8 +4,8 @@ namespace SortLab.Core;
 
 public class SortStatistics : IStatistics
 {
-    public SortMethod SortType { get; set; }
-    public string Algorithm { get; set; }
+    public SortMethod SortType { get; set; } = SortMethod.None;
+    public string Algorithm { get; set; } = "";
     public int ArraySize { get; set; }
     public ulong IndexAccessCount => _indexAccessCount;
     public ulong CompareCount => _compareCount;
