@@ -18,6 +18,14 @@ Ref span (Recursive) ...
 | BalancedTreeSort | 1000   |   187.633 us |   382.550 us |  20.9689 us |   190.700 us |   165.300 us |   206.900 us |   40736 B |
 | BalancedTreeSort | 10000  | 2,028.033 us |   159.111 us |   8.7214 us | 2,032.300 us | 2,018.000 us | 2,033.800 us |  400736 B |
 
+Span (Iterative) ...
+
+| Method                 | Number | Mean          | Error        | StdDev      | Median        | Min           | Max          | Allocated |
+|----------------------- |------- |--------------:|-------------:|------------:|--------------:|--------------:|-------------:|----------:|
+| BalancedBinaryTreeSort | 100    |     13.600 us |    11.963 us |   0.6557 us |     13.700 us |     12.900 us |     14.20 us |    4736 B |
+| BalancedBinaryTreeSort | 1000   |    174.467 us |   199.636 us |  10.9427 us |    170.200 us |    166.300 us |    186.90 us |   40448 B |
+| BalancedBinaryTreeSort | 10000  |  2,074.300 us |   387.592 us |  21.2452 us |  2,084.300 us |  2,049.900 us |  2,088.70 us |  400736 B |
+
 */
 
 /// <summary>
@@ -59,8 +67,8 @@ public class BalancedBinaryTreeSort<T> : SortBase<T> where T : IComparable<T>
         // Insert each element in the array into the AVL tree.
         for (int i = 0; i < span.Length; i++)
         {
-            // root = InsertIterative(root, Index(ref span, i));
-            root = InsertRecursive(root, Index(ref span, i));
+            // root = InsertIterative(root, Index(span, i));
+            root = InsertRecursive(root, Index(span, i));
         }
 
         // Traverse in order and write back into the array.
@@ -189,7 +197,7 @@ public class BalancedBinaryTreeSort<T> : SortBase<T> where T : IComparable<T>
         if (node is null) return;
 
         Inorder(span, node.Left, ref index);
-        Index(ref span, index++) = node.Item;
+        Index(span, index++) = node.Item;
         Inorder(span, node.Right, ref index);
     }
 

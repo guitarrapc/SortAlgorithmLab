@@ -29,7 +29,7 @@ public abstract class SortBase<T> : ISort<T> where T : IComparable<T>
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    protected ref T Index(ref Span<T> span, int pos)
+    protected ref T Index(Span<T> span, int pos)
     {
 #if DEBUG
         Statistics.AddIndexCount();

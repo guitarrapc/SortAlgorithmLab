@@ -10,6 +10,14 @@ Ref span ...
 | CycleSort     | 1000   |   8,549.93 us |     872.692 us |     47.835 us |   8,559.90 us |  8,497.90 us |   8,592.00 us |      64 B |
 | CycleSort     | 10000  | 107,614.00 us | 189,812.814 us | 10,404.281 us | 113,471.50 us | 95,601.40 us | 113,769.10 us |     448 B |
 
+Span ...
+
+| Method        | Number | Mean          | Error          | StdDev       | Median       | Min          | Max           | Allocated |
+|-------------- |------- |--------------:|---------------:|-------------:|-------------:|-------------:|--------------:|----------:|
+| CycleSort     | 100    |     112.00 us |       6.320 us |     0.346 us |    112.20 us |    111.60 us |     112.20 us |     736 B |
+| CycleSort     | 1000   |   9,055.67 us |   1,466.106 us |    80.362 us |  9,078.00 us |  8,966.50 us |   9,122.50 us |     448 B |
+| CycleSort     | 10000  | 101,010.50 us | 174,936.094 us | 9,588.838 us | 96,730.30 us | 94,307.20 us | 111,994.00 us |     736 B |
+
 */
 
 /// <summary>
@@ -54,7 +62,7 @@ public class CycleSort<T> : SortBase<T> where T : IComparable<T>
         for (var start = 0; start <= span.Length - 2; start++)
         {
             // Compare value
-            var tmp = Index(ref span, start);
+            var tmp = Index(span, start);
 
             // Find position to swap, start base point to find lower element on right side.
             var pos = FindPosition(span, tmp, start);
@@ -66,14 +74,14 @@ public class CycleSort<T> : SortBase<T> where T : IComparable<T>
             pos = SkipDuplicates(span, tmp, pos);
 
             // Perform the initial swap
-            Swap(ref Index(ref span, pos), ref tmp);
+            Swap(ref Index(span, pos), ref tmp);
 
             // Complete the cycle
             while (pos != start)
             {
                 pos = FindPosition(span, tmp, start);
                 pos = SkipDuplicates(span, tmp, pos);
-                Swap(ref Index(ref span, pos), ref tmp);
+                Swap(ref Index(span, pos), ref tmp);
             }
         }
     }
@@ -84,7 +92,7 @@ public class CycleSort<T> : SortBase<T> where T : IComparable<T>
         var pos = start;
         for (var i = start + 1; i < span.Length; i++)
         {
-            if (Compare(Index(ref span, i), value) < 0)
+            if (Compare(Index(span, i), value) < 0)
             {
                 pos++;
             }
@@ -95,7 +103,7 @@ public class CycleSort<T> : SortBase<T> where T : IComparable<T>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private int SkipDuplicates(Span<T> span, T value, int pos)
     {
-        while (Compare(value, Index(ref span, pos)) == 0)
+        while (Compare(value, Index(span, pos)) == 0)
         {
             pos++;
         }

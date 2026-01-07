@@ -1,4 +1,4 @@
-﻿namespace SortLab.Core.Sortings;
+namespace SortLab.Core.Sortings;
 
 /*
 
@@ -25,6 +25,29 @@ Ref span (Sedgewick) ...
 | ShellSort        | 100    |     10.333 us |     1.053 us |   0.0577 us |     10.300 us |     10.300 us |     10.400 us |     448 B |
 | ShellSort        | 1000   |     46.200 us |    71.151 us |   3.9000 us |     44.100 us |     43.800 us |     50.700 us |     400 B |
 | ShellSort        | 10000  |    554.200 us |   179.040 us |   9.8138 us |    553.600 us |    544.700 us |    564.300 us |     736 B |
+
+Span (Knuth) ...
+
+| Method                 | Number | Mean          | Error        | StdDev      | Median        | Min           | Max          | Allocated |
+|----------------------- |------- |--------------:|-------------:|------------:|--------------:|--------------:|-------------:|----------:|
+| ShellSort              | 100    |     13.300 us |    75.199 us |   4.1219 us |     11.600 us |     10.300 us |     18.00 us |     448 B |
+| ShellSort              | 1000   |     52.283 us |   107.813 us |   5.9096 us |     53.250 us |     45.950 us |     57.65 us |     736 B |
+| ShellSort              | 10000  |    522.533 us |   258.098 us |  14.1472 us |    515.700 us |    513.100 us |    538.80 us |     448 B |
+
+Span (Tokuda) ...
+
+| Method                 | Number | Mean          | Error        | StdDev      | Median        | Min           | Max           | Allocated |
+|----------------------- |------- |--------------:|-------------:|------------:|--------------:|--------------:|--------------:|----------:|
+| ShellSort              | 100    |     11.300 us |     6.578 us |   0.3606 us |     11.400 us |     10.900 us |     11.600 us |     736 B |
+| ShellSort              | 1000   |     46.367 us |     7.373 us |   0.4041 us |     46.300 us |     46.000 us |     46.800 us |     448 B |
+| ShellSort              | 10000  |    540.533 us |   114.955 us |   6.3011 us |    538.500 us |    535.500 us |    547.600 us |     448 B |
+
+Span (Sedgewick) ...
+
+| Method                 | Number | Mean          | Error        | StdDev      | Median        | Min           | Max           | Allocated |
+| ShellSort              | 100    |     11.933 us |     3.798 us |   0.2082 us |     12.000 us |     11.700 us |     12.100 us |     448 B |
+| ShellSort              | 1000   |     43.500 us |     6.578 us |   0.3606 us |     43.400 us |     43.200 us |     43.900 us |     736 B |
+| ShellSort              | 10000  |    557.967 us |   110.752 us |   6.0707 us |    556.900 us |    552.500 us |    564.500 us |     736 B |
 
  */
 
@@ -133,9 +156,9 @@ public class ShellSort<T> : SortBase<T> where T : IComparable<T>
             for (var i = first + h; i < last; i++)
             {
                 // Ensure j >= first + h to stay within the subrange.
-                for (int j = i; j >= first + h && Compare(Index(ref span, j - h), Index(ref span, j)) > 0; j -= h)
+                for (int j = i; j >= first + h && Compare(Index(span, j - h), Index(span, j)) > 0; j -= h)
                 {
-                    Swap(ref Index(ref span, j), ref Index(ref span, j - h));
+                    Swap(ref Index(span, j), ref Index(span, j - h));
                 }
             }
         }
@@ -170,9 +193,9 @@ public class ShellSort<T> : SortBase<T> where T : IComparable<T>
             for (int i = first + h; i < last; i++)
             {
                 // Ensure j >= first + h to stay within the subrange.
-                for (int j = i; j >= first + h && Compare(Index(ref span, j - h), Index(ref span, j)) > 0; j -= h)
+                for (int j = i; j >= first + h && Compare(Index(span, j - h), Index(span, j)) > 0; j -= h)
                 {
-                    Swap(ref Index(ref span, j), ref Index(ref span, j - h));
+                    Swap(ref Index(span, j), ref Index(span, j - h));
                 }
             }
 
@@ -217,9 +240,9 @@ public class ShellSort<T> : SortBase<T> where T : IComparable<T>
             for (var i = first + h; i < last; i++)
             {
                 // Ensure j >= first + h to stay within the subrange.
-                for (var j = i; j >= first + h && Compare(Index(ref span, j - h), Index(ref span, j)) > 0; j -= h)
+                for (var j = i; j >= first + h && Compare(Index(span, j - h), Index(span, j)) > 0; j -= h)
                 {
-                    Swap(ref Index(ref span, j), ref Index(ref span, j - h));
+                    Swap(ref Index(span, j), ref Index(span, j - h));
                 }
             }
         }

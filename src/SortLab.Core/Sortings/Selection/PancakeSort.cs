@@ -10,6 +10,14 @@ Ref span ...
 | PancakeSort   | 1000   |   5,258.63 us |     518.649 us |    28.429 us |   5,246.60 us |  5,238.20 us |   5,291.10 us |     736 B |
 | PancakeSort   | 10000  |  32,987.80 us |   4,770.804 us |   261.504 us |  32,853.00 us | 32,821.20 us |  33,289.20 us |     736 B |
 
+PancakeSort ...
+
+| Method        | Number | Mean          | Error          | StdDev       | Median       | Min          | Max           | Allocated |
+|-------------- |------- |--------------:|---------------:|-------------:|-------------:|-------------:|--------------:|----------:|
+| PancakeSort   | 100    |      85.48 us |      88.803 us |     4.868 us |     84.55 us |     81.15 us |      90.75 us |     736 B |
+| PancakeSort   | 1000   |   5,593.57 us |     377.536 us |    20.694 us |  5,585.90 us |  5,577.80 us |   5,617.00 us |     736 B |
+| PancakeSort   | 10000  |  33,698.07 us |   1,645.026 us |    90.169 us | 33,649.70 us | 33,642.40 us |  33,802.10 us |     736 B |
+
 */
 
 /// <summary>
@@ -80,7 +88,7 @@ public class PancakeSort<T> : SortBase<T> where T : IComparable<T>
         var maxIndex = first;
         for (int i = first + 1; i < last; i++)
         {
-            if (Compare(Index(ref span, i), Index(ref span, maxIndex)) > 0)
+            if (Compare(Index(span, i), Index(span, maxIndex)) > 0)
             {
                 maxIndex = i;
             }
@@ -98,7 +106,7 @@ public class PancakeSort<T> : SortBase<T> where T : IComparable<T>
     {
         while (start < end)
         {
-            Swap(ref Index(ref span, start), ref Index(ref span, end));
+            Swap(ref Index(span, start), ref Index(span, end));
             start++;
             end--;
         }

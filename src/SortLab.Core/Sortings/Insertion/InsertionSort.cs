@@ -10,6 +10,14 @@ Ref span ...
 | InsertionSort    | 1000   |    148.700 us |   100.936 us |   5.5326 us |    147.600 us |    143.800 us |    154.700 us |     736 B |
 | InsertionSort    | 10000  | 12,273.300 us | 3,278.699 us | 179.7166 us | 12,242.300 us | 12,111.100 us | 12,466.500 us |     448 B |
 
+Span ...
+
+| Method                 | Number | Mean          | Error        | StdDev      | Median        | Min           | Max          | Allocated |
+|----------------------- |------- |--------------:|-------------:|------------:|--------------:|--------------:|-------------:|----------:|
+| InsertionSort          | 100    |    101.700 us | 2,690.663 us | 147.4843 us |     16.800 us |     16.300 us |    272.00 us |     736 B |
+| InsertionSort          | 1000   |    148.733 us |   249.388 us |  13.6698 us |    141.500 us |    140.200 us |    164.50 us |     448 B |
+| InsertionSort          | 10000  | 12,031.800 us |   758.226 us |  41.5609 us | 12,010.400 us | 12,005.300 us | 12,079.70 us |     736 B |
+
 */
 
 /// <summary>
@@ -66,18 +74,18 @@ public class InsertionSort<T> : SortBase<T> where T : IComparable<T>
         for (var i = first + 1; i < last; i++)
         {
             // Temporarily store the value to be inserted
-            var tmp = Index(ref span, i);
+            var tmp = Index(span, i);
 
             // Shift the elements larger than tmp to the right
             var j = i - 1;
-            while (j >= first && Compare(Index(ref span, j), tmp) > 0)
+            while (j >= first && Compare(Index(span, j), tmp) > 0)
             {
-                Index(ref span, j + 1) = Index(ref span, j);
+                Index(span, j + 1) = Index(span, j);
                 j--;
             }
 
             // Insert tmp into the correct position
-            Index(ref span, j + 1) = tmp;
+            Index(span, j + 1) = tmp;
         }
     }
 }
