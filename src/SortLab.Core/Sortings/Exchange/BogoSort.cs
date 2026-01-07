@@ -1,4 +1,4 @@
-namespace SortLab.Core.Sortings;
+﻿namespace SortLab.Core.Sortings;
 
 /*
 
@@ -31,7 +31,7 @@ public class BogoSort<T> : SortBase<T> where T : IComparable<T>
 
     public override T[] Sort(T[] array)
     {
-        Statistics.Reset(array.Length, Method, Name);
+        Statistics.Reset(array.Length, SortType, Name);
         SortCore(array.AsSpan());
         return array;
     }
