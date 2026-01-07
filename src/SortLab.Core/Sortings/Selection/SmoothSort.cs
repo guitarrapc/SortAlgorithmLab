@@ -38,22 +38,20 @@ public class SmoothSort<T> : SortBase<T> where T : IComparable<T>
     public override SortMethod SortType => SortMethod.Selection;
     protected override string Name => nameof(SmoothSort<T>);
 
-    public override T[] Sort(T[] array)
+    public override void Sort(T[] array)
     {
-        Statistics.Reset(array.Length, SortType, Name);
         SortCore(array.AsSpan());
-
-        return array;
     }
 
-    public void Sort(Span<T> span)
+    public override void Sort(Span<T> span)
     {
-        Statistics.Reset(span.Length, SortType, nameof(SmoothSort<T>));
         SortCore(span);
     }
 
     private void SortCore(Span<T> span)
     {
+        Statistics.Reset(span.Length, SortType, Name);
+
         int q = 1, r = 0, p = 1, b = 1, c = 1;
         int r1 = 0, b1 = 0, c1 = 0;
 

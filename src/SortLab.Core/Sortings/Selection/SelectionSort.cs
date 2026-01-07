@@ -38,20 +38,36 @@ public class SelectionSort<T> : SortBase<T> where T : IComparable<T>
     public override SortMethod SortType => SortMethod.Selection;
     protected override string Name => nameof(SelectionSort<T>);
 
-    public override T[] Sort(T[] array)
+    public override void Sort(T[] array)
     {
-        Statistics.Reset(array.Length, SortType, Name);
         SortCore(array.AsSpan(), 0, array.Length);
-
-        return array;
     }
 
-    public T[] Sort(T[] array, int first, int last)
+    public override void Sort(Span<T> span)
     {
-        Statistics.Reset(array.Length, SortType, Name);
-        SortCore(array.AsSpan(), first, last);
+        SortCore(span, 0, span.Length);
+    }
 
-        return array;
+    /// <summary>
+    /// Sort a portion of the array from index first to last-1.
+    /// </summary>
+    /// <param name="array"></param>
+    /// <param name="first"></param>
+    /// <param name="last"></param>
+    public void Sort(T[] array, int first, int last)
+    {
+        SortCore(array.AsSpan(), first, last);
+    }
+
+    /// <summary>
+    /// Sort a portion of the span from index first to last-1.
+    /// </summary>
+    /// <param name="span"></param>
+    /// <param name="first"></param>
+    /// <param name="last"></param>
+    public void Sort(Span<T> span, int first, int last)
+    {
+        SortCore(span, first, last);
     }
 
     /// <summary>
@@ -62,10 +78,10 @@ public class SelectionSort<T> : SortBase<T> where T : IComparable<T>
     /// <param name="last"></param>
     private void SortCore(Span<T> span, int first, int last)
     {
+        Statistics.Reset(span.Length, SortType, Name);
+
         if (first < 0 || last > span.Length || first >= last)
-        {
             throw new ArgumentOutOfRangeException(nameof(first), "Invalid range for sorting.");
-        }
 
         for (var i = first; i < last - 1; i++)
         {
