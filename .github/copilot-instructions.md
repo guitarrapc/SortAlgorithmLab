@@ -1,3 +1,23 @@
+# Project Custom Instructions
+
+## Coding Review Guidelines
+
+When reviewing code, focus on the following points:
+
+- Use of Modern C# Features
+  - Consider using the latest syntax available (C# 13 or later), such as `using` declarations, file-scoped namespaces, and collection literals, etc.
+- Coding Style
+  - Follow general .NET coding guidelines for base conventions (e.g., naming rules).
+    - Use `PascalCase` for constant names.
+  - Inherit specific coding styles from existing code:
+    - Do not use `_` or `s_` prefixes.
+    - Omit the `private` modifier.
+    - Prefer the use of `var`.
+- Unit Tests
+  - Check for the presence of unit tests.
+
+Suggest fixes for any sections that deviate from these points.
+
 ## Index Access Consistency Guidelines
 
 When implementing sorting algorithms, maintain **consistent use of helper methods** for statistical tracking and code clarity.
