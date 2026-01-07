@@ -1,4 +1,6 @@
-﻿namespace SortLab.Core.Sortings;
+﻿using System.Diagnostics;
+
+namespace SortLab.Core.Sortings;
 
 /*
  * 
@@ -146,11 +148,11 @@ public class SmoothSort<T> : SortBase<T> where T : IComparable<T>
                     Down(ref b, ref c);
                     p = (p << 1) + 1;
 
-                    ArgumentOutOfRangeException.ThrowIfZero(p);
+                    Debug.Assert(p != 0, "p should not be zero");
                 }
             }
 
-            ArgumentOutOfRangeException.ThrowIfZero(p);
+            Debug.Assert(p != 0, "p should not be zero");
         }
     }
 
@@ -304,9 +306,6 @@ public class SmoothSort<T> : SortBase<T> where T : IComparable<T>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private void Up(ref int a, ref int b)
     {
-#if DEBUG
-        Statistics.AddSwapCount();
-#endif
         var temp = a;
         a += b + 1;
         b = temp;
@@ -320,9 +319,6 @@ public class SmoothSort<T> : SortBase<T> where T : IComparable<T>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private void Down(ref int a, ref int b)
     {
-#if DEBUG
-        Statistics.AddSwapCount();
-#endif
         var temp = b;
         b = a - b - 1;
         a = temp;
