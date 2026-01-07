@@ -3,7 +3,7 @@
 namespace SortLab.Core.Sortings;
 
 /*
- * 
+ *
 Ref span ...
 
 | Method        | Number | Mean          | Error          | StdDev        | Median        | Min          | Max           | Allocated |
@@ -183,7 +183,7 @@ public class SmoothSort<T> : SortBase<T> where T : IComparable<T>
             }
             else
             {
-                span[r1] = Index(span, r2);
+                Index(span, r1) = Index(span, r2);
                 r1 = r2;
                 Down(ref b1, ref c1);
             }
@@ -191,7 +191,7 @@ public class SmoothSort<T> : SortBase<T> where T : IComparable<T>
 
         if (r1 - r0 != 0)
         {
-            span[r1] = t;
+            Index(span, r1) = t;
         }
     }
 
@@ -234,7 +234,7 @@ public class SmoothSort<T> : SortBase<T> where T : IComparable<T>
                 if (b1 == 1)
                 {
                     // 1st step heap, just move the element
-                    span[r1] = Index(span, r3);
+                    Index(span, r1) = Index(span, r3);
                     r1 = r3;
                 }
                 else
@@ -252,12 +252,12 @@ public class SmoothSort<T> : SortBase<T> where T : IComparable<T>
                         // Judge swap or not
                         if (Compare(Index(span, r2), Index(span, r3)) <= 0)
                         {
-                            span[r1] = Index(span, r3);
+                            Index(span, r1) = Index(span, r3);
                             r1 = r3;
                         }
                         else
                         {
-                            span[r1] = Index(span, r2);
+                            Index(span, r1) = Index(span, r2);
                             r1 = r2;
                             Down(ref b1, ref c1);
                             p1 = 0;
@@ -270,7 +270,7 @@ public class SmoothSort<T> : SortBase<T> where T : IComparable<T>
         // fix if position is changed from origin
         if (r1 - r0 != 0)
         {
-            span[r1] = t;
+            Index(span, r1) = t;
         }
 
         // final adjustment
