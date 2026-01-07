@@ -18,6 +18,62 @@ When reviewing code, focus on the following points:
 
 Suggest fixes for any sections that deviate from these points.
 
+## Implementation Guidelines
+
+All sorting algorithms must be implemented with **maximum attention to performance and memory efficiency**.
+
+### Core Requirements
+
+1. **Zero Allocations**
+   - Never allocate arrays or collections during sorting
+   - Use `Span<T>` and `stackalloc` for temporary storage
+   - For large buffers, consider `ArrayPool<T>.Shared`
+
+2. **Aggressive Inlining**
+   - Mark hot-path methods with `[MethodImpl(MethodImplOptions.AggressiveInlining)]`
+   - Especially for methods called frequently in loops
+
+3. **Loop Optimization**
+   - Cache frequently accessed values outside loops
+   - Use `for` loops with indices instead of `foreach`
+   - Minimize redundant comparisons
+
+4. **Hybrid Approaches**
+   - Use insertion sort for small subarrays (typically < 16-32 elements)
+   - Switch algorithms based on data characteristics when beneficial
+
+### Example Pattern
+
+```csharp
+public class MySort<T> : SortBase<T> where T : IComparable<T>
+{
+    private const int InsertionSortThreshold = 16;
+
+    public override void Sort(Span<T> span)
+    {
+        if (span.Length <= 1) return;
+        if (span.Length <= InsertionSortThreshold)
+        {
+            InsertionSort(span);
+            return;
+        }
+        SortCore(span, 0, span.Length - 1);
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private void SortCore(Span<T> span, int left, int right)
+    {
+        // Use Index(), Compare(), Swap() consistently
+    }
+}
+```
+
+### Verification
+
+- Test with BenchmarkDotNet
+- Verify zero allocations in Release builds
+- Ensure DEBUG tracking has no impact on Release performance
+
 ## Index Access Consistency Guidelines
 
 When implementing sorting algorithms, maintain **consistent use of helper methods** for statistical tracking and code clarity.
