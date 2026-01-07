@@ -1,9 +1,14 @@
 <Solution>
   <Folder Name="/.props/">
+    <File Path="Directory.Build.props" />
     <File Path="Directory.Packages.props" />
   </Folder>
-  <Project Path="sandbox/SandboxBenchmark/SandboxBenchmark.csproj" />
-  <Project Path="sandbox/SandboxConsole/SandboxConsole.csproj" />
+  <Folder Name="/sandbox/">
+    <Project Path="sandbox/SandboxBenchmark/SandboxBenchmark.csproj" />
+    <Project Path="sandbox/SandboxConsole/SandboxConsole.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="src/SortLab.Tests/SortLab.Tests.csproj" />
+  </Folder>
   <Project Path="src/SortLab.Core/SortLab.Core.csproj" />
-  <Project Path="src/SortLab.Tests/SortLab.Tests.csproj" />
 </Solution>
