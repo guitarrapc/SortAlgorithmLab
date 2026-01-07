@@ -5,7 +5,7 @@ namespace SortLab.Core;
 public static class RandomUtil
 {
     [ThreadStatic]
-    private static Random random;
+    private static Random? random;
 
     static RandomUtil()
     {

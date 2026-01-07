@@ -23,9 +23,9 @@ public interface IInputSample<T> where T : IComparable
 
 public class InputSample<T> : IInputSample<T> where T : IComparable
 {
-    public InputType InputType { get; set; }
-    public T[] Samples { get; set; }
-    public CustomKeyValuePair<T, string>[] DictionarySamples { get; set; }
+    public required InputType InputType { get; set; }
+    public T[] Samples { get; set; } = [];
+    public CustomKeyValuePair<T, string>[] DictionarySamples { get; set; } = [];
 }
 
 public readonly struct CustomKeyValuePair<TKey, TValue> : IComparable<CustomKeyValuePair<TKey, TValue>> where TKey : notnull, IComparable

@@ -38,6 +38,16 @@ public static class EnumerableExtensions
         return SampleCore(source, sampleCount, random);
     }
 
+    /// <summary>
+    /// Core implementation of sampling.
+    /// </summary>
+    /// <typeparam name="T"></typeparam>
+    /// <param name="source"></param>
+    /// <param name="sampleCount"></param>
+    /// <param name="random"></param>
+    /// <returns></returns>
+    /// <exception cref="ArgumentNullException"></exception>
+    /// <exception cref="ArgumentOutOfRangeException"></exception>
     private static IEnumerable<T> SampleCore<T>(this IEnumerable<T> source, int sampleCount, Random random)
     {
         if (source is not IList<T> list)
@@ -65,7 +75,7 @@ public static class EnumerableExtensions
     {
         ArgumentNullException.ThrowIfNull(source);
 
-        return source.Sample(1).FirstOrDefault();
+        return source.Sample(1).First();
     }
 
     /// <summary>
@@ -80,6 +90,6 @@ public static class EnumerableExtensions
         ArgumentNullException.ThrowIfNull(source);
         ArgumentNullException.ThrowIfNull(random);
 
-        return source.Sample(1, random).FirstOrDefault();
+        return source.Sample(1, random).First();
     }
 }

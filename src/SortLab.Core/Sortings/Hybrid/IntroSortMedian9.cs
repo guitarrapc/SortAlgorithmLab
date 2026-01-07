@@ -15,7 +15,7 @@
 /// <typeparam name="T"></typeparam>
 public class IntroSortMedian9<T> : SortBase<T> where T : IComparable<T>
 {
-    public override SortMethod Method => SortMethod.Hybrid;
+    public override SortMethod SortType => SortMethod.Hybrid;
     protected override string Name => nameof(IntroSortMedian9<T>);
 
     // ref : https://www.cs.waikato.ac.nz/~bernhard/317/source/IntroSort.java
@@ -25,7 +25,7 @@ public class IntroSortMedian9<T> : SortBase<T> where T : IComparable<T>
 
     public override T[] Sort(T[] array)
     {
-        Statistics.Reset(array.Length, Method, Name);
+        Statistics.Reset(array.Length, SortType, Name);
         var result = Sort(array, 0, array.Length - 1, 2 * FloorLog(array.Length));
         Statistics.AddCompareCount(heapSort.Statistics.CompareCount);
         Statistics.AddIndexCount(heapSort.Statistics.IndexAccessCount);

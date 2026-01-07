@@ -1,4 +1,4 @@
-﻿namespace SortLab.Core.Sortings;
+namespace SortLab.Core.Sortings;
 
 /*
 
@@ -26,7 +26,7 @@ Span ...
 /// <typeparam name="T"></typeparam>
 public class BogoSort<T> : SortBase<T> where T : IComparable<T>
 {
-    public override SortMethod Method => SortMethod.Exchange;
+    public override SortMethod SortType => SortMethod.Exchange;
     protected override string Name => nameof(BogoSort<T>);
 
     public override T[] Sort(T[] array)

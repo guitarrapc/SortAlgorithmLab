@@ -48,12 +48,12 @@ Span ...
 /// <typeparam name="T"></typeparam>
 public class BinaryInsertSort<T> : SortBase<T> where T : IComparable<T>
 {
-    public override SortMethod Method => SortMethod.Insertion;
+    public override SortMethod SortType => SortMethod.Insertion;
     protected override string Name => nameof(BinaryInsertSort<T>);
 
     public override T[] Sort(T[] array)
     {
-        Statistics.Reset(array.Length, Method, Name);
+        Statistics.Reset(array.Length, SortType, Name);
         SortCore(array.AsSpan(), 0, array.Length);
         return array;
     }
@@ -67,7 +67,7 @@ public class BinaryInsertSort<T> : SortBase<T> where T : IComparable<T>
     /// <returns></returns>
     public T[] Sort(T[] array, int first, int last)
     {
-        Statistics.Reset(array.Length, Method, Name);
+        Statistics.Reset(array.Length, SortType, Name);
         SortCore(array.AsSpan(), first, last);
         return array;
     }
@@ -82,7 +82,7 @@ public class BinaryInsertSort<T> : SortBase<T> where T : IComparable<T>
     /// <returns></returns>
     public T[] Sort(T[] array, int first, int last, int start)
     {
-        Statistics.Reset(array.Length, Method, Name);
+        Statistics.Reset(array.Length, SortType, Name);
         SortCore(array.AsSpan(), first, last, start);
         return array;
     }

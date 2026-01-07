@@ -13,12 +13,12 @@
 /// <typeparam name="T"></typeparam>
 public class StoogeSort<T> : SortBase<T> where T : IComparable<T>
 {
-    public override SortMethod Method => SortMethod.Exchange;
+    public override SortMethod SortType => SortMethod.Exchange;
     protected override string Name => nameof(StoogeSort<T>);
 
     public override T[] Sort(T[] array)
     {
-        Statistics.Reset(array.Length, Method, Name);
+        Statistics.Reset(array.Length, SortType, Name);
         for (var i = 0; i < array.Length; i++)
         {
             for (var j = array.Length - 1; j > i; j--)

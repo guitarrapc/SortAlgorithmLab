@@ -14,12 +14,12 @@
 
 public class CountingSort<T> : SortBase<int> where T : IComparable<T>
 {
-    public override SortMethod Method => SortMethod.Distributed;
+    public override SortMethod SortType => SortMethod.Distributed;
     protected override string Name => nameof(CountingSort<T>);
 
     public override int[] Sort(int[] array)
     {
-        Statistics.Reset(array.Length, Method, Name);
+        Statistics.Reset(array.Length, SortType, Name);
         if (array.Min() >= 0)
         {
             return SortImplPositive(array);

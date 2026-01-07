@@ -47,12 +47,12 @@ Span (Iterative) ...
 /// <typeparam name="T"></typeparam>
 public class BalancedBinaryTreeSort<T> : SortBase<T> where T : IComparable<T>
 {
-    public override SortMethod Method => SortMethod.Insertion;
+    public override SortMethod SortType => SortMethod.Insertion;
     protected override string Name => nameof(BalancedBinaryTreeSort<T>);
 
     public override T[] Sort(T[] array)
     {
-        Statistics.Reset(array.Length, Method, Name);
+        Statistics.Reset(array.Length, SortType, Name);
         SortCore(array.AsSpan());
         return array;
     }

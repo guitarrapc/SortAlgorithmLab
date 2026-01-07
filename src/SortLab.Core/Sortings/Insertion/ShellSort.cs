@@ -1,4 +1,4 @@
-﻿namespace SortLab.Core.Sortings;
+namespace SortLab.Core.Sortings;
 
 /*
 
@@ -76,19 +76,19 @@ Span (Sedgewick) ...
 /// <typeparam name="T"></typeparam>
 public class ShellSort<T> : SortBase<T> where T : IComparable<T>
 {
-    public override SortMethod Method => SortMethod.Insertion;
+    public override SortMethod SortType => SortMethod.Insertion;
     protected override string Name => nameof(ShellSort<T>);
 
     public override T[] Sort(T[] array)
     {
-        Statistics.Reset(array.Length, Method, Name);
-        SortCore(array.AsSpan(), 0, array.Length, GapType.Tokuda);
+        Statistics.Reset(array.Length, SortType, Name);
+        SortCore(array.AsSpan(), 0, array.Length, GapType.Knuth);
         return array;
     }
 
     public T[] Sort(T[] array, int first, int last)
     {
-        Statistics.Reset(array.Length, Method, Name);
+        Statistics.Reset(array.Length, SortType, Name);
         SortCore(array.AsSpan(), first, last, GapType.Knuth);
         return array;
     }

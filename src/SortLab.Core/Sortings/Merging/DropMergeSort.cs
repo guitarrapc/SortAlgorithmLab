@@ -19,7 +19,7 @@
 public class DropMergeSort<T> : SortBase<T> where T : IComparable<T>
 {
     // refer: https://github.com/JamesQuintero/ShiftSort
-    public override SortMethod Method => SortMethod.Merging;
+    public override SortMethod SortType => SortMethod.Merging;
     protected override string Name => nameof(DropMergeSort<T>);
 
     private QuickSortMedian9WithBinaryInsert<T> quickSort = new QuickSortMedian9WithBinaryInsert<T>();
@@ -44,7 +44,7 @@ public class DropMergeSort<T> : SortBase<T> where T : IComparable<T>
 
     public override T[] Sort(T[] array)
     {
-        Statistics.Reset(array.Length, Method, Name);
+        Statistics.Reset(array.Length, SortType, Name);
         var a = SortImpl(array);
         Statistics.AddIndexCount(quickSort.Statistics.IndexAccessCount);
         Statistics.AddCompareCount(quickSort.Statistics.CompareCount);
@@ -154,7 +154,7 @@ public class DropMergeSort<T> : SortBase<T> where T : IComparable<T>
                     if (FastBackTracking)
                     {
                         // Back-track until we can accept at least one of the recently dropped elements:
-                        var maxOfDropped = array.AsSpan(read, read + droppedInRow + 1).ToArray().Max();
+                        var maxOfDropped = array.AsSpan(read, read + droppedInRow + 1).ToArray().Max()!;
                         // while (1 <= write && max_of_dropped < array[write - 1]) {
                         while (1 <= write && Compare(maxOfDropped, array[write - 1]) < 0)
                         {
