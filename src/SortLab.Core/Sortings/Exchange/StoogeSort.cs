@@ -16,21 +16,41 @@ public class StoogeSort<T> : SortBase<T> where T : IComparable<T>
     public override SortMethod SortType => SortMethod.Exchange;
     protected override string Name => nameof(StoogeSort<T>);
 
-    public override T[] Sort(T[] array)
+    public override void Sort(T[] array)
     {
         Statistics.Reset(array.Length, SortType, Name);
-        for (var i = 0; i < array.Length; i++)
+        SortCore(array.AsSpan(), 0, array.Length - 1);
+    }
+
+    public override void Sort(Span<T> span)
+    {
+        Statistics.Reset(span.Length, SortType, Name);
+        SortCore(span, 0, span.Length - 1);
+    }
+
+    private void SortCore(Span<T> span, int start, int end)
+    {
+        if (start >= end) return;
+
+        // If first element is larger than last, swap them
+        if (Compare(Index(span, start), Index(span, end)) > 0)
         {
-            for (var j = array.Length - 1; j > i; j--)
-            {
-                Statistics.AddIndexCount();
-                //array.Dump($"{j} : {array[j]}, {j - 1} : {array[j - 1]}, {array[j - 1].CompareTo(array[j]) > 0}");
-                if (Compare(array[j], array[j - 1]) < 0)
-                {
-                    Swap(ref array[j], ref array[j - 1]);
-                }
-            }
+            Swap(ref Index(span, start), ref Index(span, end));
         }
-        return array;
+
+        // If there are 3 or more elements
+        if (end - start + 1 >= 3)
+        {
+            var third = (end - start + 1) / 3;
+
+            // Sort first 2/3
+            SortCore(span, start, end - third);
+
+            // Sort last 2/3
+            SortCore(span, start + third, end);
+
+            // Sort first 2/3 again
+            SortCore(span, start, end - third);
+        }
     }
 }

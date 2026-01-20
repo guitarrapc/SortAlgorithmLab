@@ -16,26 +16,30 @@ public class SlowSort<T> : SortBase<T> where T : IComparable<T>
     public override SortMethod SortType => SortMethod.Exchange;
     protected override string Name => nameof(SlowSort<T>);
 
-    public override T[] Sort(T[] array)
+    public override void Sort(T[] array)
     {
         Statistics.Reset(array.Length, SortType, Name);
-        return SortImpl(array, 0, array.Length - 1);
+        SortCore(array.AsSpan(), 0, array.Length - 1);
     }
 
-    private T[] SortImpl(T[] array, int start, int end)
+    public override void Sort(Span<T> span)
     {
-        if (start >= end) return array;
+        Statistics.Reset(span.Length, SortType, Name);
+        SortCore(span, 0, span.Length - 1);
+    }
+
+    private void SortCore(Span<T> span, int start, int end)
+    {
+        if (start >= end) return;
 
         var m = (start + end) / 2;
-        SortImpl(array, start, m);
-        SortImpl(array, m + 1, end);
+        SortCore(span, start, m);
+        SortCore(span, m + 1, end);
 
-        Statistics.AddIndexCount();
-        if (Compare(array[end], array[m]) < 0)
+        if (Compare(Index(span, end), Index(span, m)) < 0)
         {
-            Swap(ref array[end], ref array[m]);
+            Swap(ref Index(span, end), ref Index(span, m));
         }
-        SortImpl(array, start, end - 1);
-        return array;
+        SortCore(span, start, end - 1);
     }
 }

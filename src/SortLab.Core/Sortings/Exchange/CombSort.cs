@@ -16,23 +16,32 @@ public class CombSort<T> : SortBase<T> where T : IComparable<T>
     public override SortMethod SortType => SortMethod.Exchange;
     protected override string Name => nameof(CombSort<T>);
 
-    public override T[] Sort(T[] array)
+    public override void Sort(T[] array)
     {
         Statistics.Reset(array.Length, SortType, Name);
+        SortCore(array.AsSpan());
+    }
 
+    public override void Sort(Span<T> span)
+    {
+        Statistics.Reset(span.Length, SortType, Name);
+        SortCore(span);
+    }
+
+    private void SortCore(Span<T> span)
+    {
         // same logic as ShellSort, but CombSort use divide by 1.3.
         // divide by 1.3
-        var h = CalculateH(array.Length);
+        var h = CalculateH(span.Length);
 
         while (true)
         {
             var swapped = false;
-            for (var i = 0; i + h < array.Length; i++)
+            for (var i = 0; i + h < span.Length; i++)
             {
-                Statistics.AddIndexCount();
-                if (Compare(array[i], array[i + h]) > 0)
+                if (Compare(Index(span, i), Index(span, i + h)) > 0)
                 {
-                    Swap(ref array[i], ref array[i + h]);
+                    Swap(ref Index(span, i), ref Index(span, i + h));
                     swapped = true;
                 }
             }
@@ -45,9 +54,7 @@ public class CombSort<T> : SortBase<T> where T : IComparable<T>
             {
                 h = CalculateH(h);
             }
-
         }
-        return array;
     }
 
     int CalculateH(int length)
