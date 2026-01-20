@@ -42,47 +42,59 @@ public class DropMergeSort<T> : SortBase<T> where T : IComparable<T>
     /// If more than this percentage of elements have been dropped, we abort.
     const double EarlyOutDisorderFraction = 0.6;
 
-    public override T[] Sort(T[] array)
+    public override void Sort(T[] array)
     {
         Statistics.Reset(array.Length, SortType, Name);
-        var a = SortImpl(array);
+        SortCore(array.AsSpan());
         Statistics.AddIndexCount(quickSort.Statistics.IndexAccessCount);
         Statistics.AddCompareCount(quickSort.Statistics.CompareCount);
         Statistics.AddSwapCount(quickSort.Statistics.SwapCount);
         Statistics.AddIndexCount(quickSort2.Statistics.IndexAccessCount);
         Statistics.AddCompareCount(quickSort2.Statistics.CompareCount);
         Statistics.AddSwapCount(quickSort2.Statistics.SwapCount);
-        return a;
     }
 
-    private T[] SortImpl(T[] array)
+    public override void Sort(Span<T> span)
+    {
+        Statistics.Reset(span.Length, SortType, Name);
+        SortCore(span);
+        Statistics.AddIndexCount(quickSort.Statistics.IndexAccessCount);
+        Statistics.AddCompareCount(quickSort.Statistics.CompareCount);
+        Statistics.AddSwapCount(quickSort.Statistics.SwapCount);
+        Statistics.AddIndexCount(quickSort2.Statistics.IndexAccessCount);
+        Statistics.AddCompareCount(quickSort2.Statistics.CompareCount);
+        Statistics.AddSwapCount(quickSort2.Statistics.SwapCount);
+    }
+
+    private void SortCore(Span<T> span)
     {
         var droppedInRow = 0;
         var write = 0;
         var read = 0;
-        var dropped = new T[array.Length];
+        var dropped = new T[span.Length];
         var droppedIndex = 0;
 
-        while (read < array.Length)
+        while (read < span.Length)
         {
-            Statistics.AddIndexCount();
-
             // fallback to QuickSort
             if (EarlyOut
-                && read == array.Length / EarlyOutTestAt
+                && read == span.Length / EarlyOutTestAt
                 && dropped.Length > (read * EarlyOutDisorderFraction))
             {
                 for (var i = 0; i < droppedIndex; i++)
                 {
-                    array[write + i] = dropped[i];
+                    Index(span, write + i) = dropped[i];
                 }
-                return quickSort.Sort(array);
+                var tempArray = span.ToArray();
+                quickSort.Sort(tempArray);
+                tempArray.AsSpan().CopyTo(span);
+                return;
             }
 
-            if (write == 0 || Compare(array[read], array[write - 1]) >= 0)
+            if (write == 0 || Compare(Index(span, read), Index(span, write - 1)) >= 0)
             {
                 // The element is order - keep it:
-                array[write] = array[read];
+                Index(span, write) = Index(span, read);
                 read++;
                 write++;
                 droppedInRow = 0;
@@ -104,13 +116,11 @@ public class DropMergeSort<T> : SortBase<T> where T : IComparable<T>
                 if (DoubleComparisons
                     && droppedInRow == 0
                     && 2 <= write
-                    && Compare(array[read], array[write - 2]) >= 0)
+                    && Compare(Index(span, read), Index(span, write - 2)) >= 0)
                 {
-                    Statistics.AddSwapCount();
                     // Quick undo: drop previously accepted element, and overwrite with new one:
-                    dropped[droppedIndex++] = array[write - 1];
-                    //dropped.push(prev);
-                    array[write - 1] = array[read];
+                    dropped[droppedIndex++] = Index(span, write - 1);
+                    Index(span, write - 1) = Index(span, read);
                     read++;
                     continue;
                 }
@@ -118,8 +128,7 @@ public class DropMergeSort<T> : SortBase<T> where T : IComparable<T>
                 if (droppedInRow < Recency)
                 {
                     // Drop it
-                    dropped[droppedIndex++] = array[read];
-                    // dropped.push(slice[read]);
+                    dropped[droppedIndex++] = Index(span, read);
                     read++;
                     droppedInRow++;
                 }
@@ -143,8 +152,6 @@ public class DropMergeSort<T> : SortBase<T> where T : IComparable<T>
                     */
 
                     // Undo dropping the last num_dropped_in_row elements:
-                    var truncToLength = dropped.Length - droppedInRow;
-                    //dropped = dropped.GetRange(0, droppedInRow);
                     droppedIndex -= droppedInRow;
                     read -= droppedInRow;
 
@@ -154,50 +161,43 @@ public class DropMergeSort<T> : SortBase<T> where T : IComparable<T>
                     if (FastBackTracking)
                     {
                         // Back-track until we can accept at least one of the recently dropped elements:
-                        var maxOfDropped = array.AsSpan(read, read + droppedInRow + 1).ToArray().Max()!;
-                        // while (1 <= write && max_of_dropped < array[write - 1]) {
-                        while (1 <= write && Compare(maxOfDropped, array[write - 1]) < 0)
+                        var maxOfDropped = span.Slice(read, droppedInRow + 1).ToArray().Max()!;
+                        while (1 <= write && Compare(maxOfDropped, Index(span, write - 1)) < 0)
                         {
                             backTracked++;
                             write--;
                         }
                     }
 
-                    // Optimized for C# to not change size of array
                     // Drop the back-tracked elements:
                     for (var i = 0; i < backTracked; i++)
                     {
-                        dropped[droppedIndex++] = array[write + i];
+                        dropped[droppedIndex++] = Index(span, write + i);
                     }
                     droppedInRow = 0;
                 }
             }
         }
 
-        // Optimized for C# to not change size of array.
-        // Drop the back-tracked elements:
-        dropped = dropped.AsSpan(0, droppedIndex).ToArray();
-        dropped = quickSort2.Sort(dropped);
+        // Sort dropped elements
+        var droppedArray = dropped.AsSpan(0, droppedIndex).ToArray();
+        quickSort2.Sort(droppedArray);
 
-        var back = array.Length;
-        while (dropped.Length > 0)
+        var back = span.Length;
+        var droppedCount = droppedIndex;
+        while (droppedCount > 0)
         {
-            // C# alternate Pop implementation.
-            var lastDropped = dropped[dropped.Length - 1];
-            dropped = dropped.AsSpan(0, dropped.Length - 1).ToArray();
-            // let last_dropped = dropped.pop();
+            var lastDropped = droppedArray[droppedCount - 1];
+            droppedCount--;
 
-            while (0 < write && Compare(lastDropped, array[write - 1]) < 0)
+            while (0 < write && Compare(lastDropped, Index(span, write - 1)) < 0)
             {
-                Statistics.AddSwapCount();
-                array[back - 1] = array[write - 1];
+                Index(span, back - 1) = Index(span, write - 1);
                 back--;
                 write--;
             }
-            array[back - 1] = lastDropped;
+            Index(span, back - 1) = lastDropped;
             back--;
         }
-
-        return array;
     }
 }

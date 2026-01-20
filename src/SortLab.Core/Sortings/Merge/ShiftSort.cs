@@ -18,37 +18,39 @@ public class ShiftSort<T> : SortBase<T> where T : IComparable<T>
     public override SortMethod SortType => SortMethod.Merging;
     protected override string Name => nameof(ShiftSort<T>);
 
-    public override T[] Sort(T[] array)
+    public override void Sort(T[] array)
     {
         Statistics.Reset(array.Length, SortType, Name);
-        return SortImpl(array);
+        SortCore(array.AsSpan());
     }
 
-    private T[] SortImpl(T[] array)
+    public override void Sort(Span<T> span)
     {
-        var zeroIndices = new int[(int)(array.Length / 2) + 2];
-        zeroIndices[0] = array.Length;
+        Statistics.Reset(span.Length, SortType, Name);
+        SortCore(span);
+    }
+
+    private void SortCore(Span<T> span)
+    {
+        Span<int> zeroIndices = stackalloc int[(span.Length / 2) + 2];
+        zeroIndices[0] = span.Length;
 
         var endTracker = 1;
 
-        // check 3items where decrease order like "array[x -2] < array[x - 1] < array[x]"
-        for (var x = array.Length - 1; x >= 1; x--)
+        // check 3items where decrease order like "span[x -2] < span[x - 1] < span[x]"
+        for (var x = span.Length - 1; x >= 1; x--)
         {
-            Statistics.AddIndexCount();
-            if (Compare(array[x], array[x - 1]) < 0)
+            if (Compare(Index(span, x), Index(span, x - 1)) < 0)
             {
-                Statistics.AddIndexCount();
-                if (x > 1 && Compare(array[x - 1], array[x - 2]) < 0)
+                if (x > 1 && Compare(Index(span, x - 1), Index(span, x - 2)) < 0)
                 {
                     // change to increase order
-                    Swap(ref array[x], ref array[x - 2]);
+                    Swap(ref Index(span, x), ref Index(span, x - 2));
 
-                    if (x != array.Length - 1)
+                    if (x != span.Length - 1)
                     {
-                        Statistics.AddIndexCount();
-                        if (Compare(array[x + 1], array[x]) < 0)
+                        if (Compare(Index(span, x + 1), Index(span, x)) < 0)
                         {
-                            Statistics.AddIndexCount();
                             zeroIndices[endTracker] = x + 1;
                             endTracker++;
                         }
@@ -66,18 +68,16 @@ public class ShiftSort<T> : SortBase<T> where T : IComparable<T>
         }
 
         //merges sorted lists specified by zero_indices
-        Split(array, zeroIndices, 0, endTracker);
-        return array;
+        Split(span, zeroIndices, 0, endTracker);
     }
 
-    private void Split(T[] array, int[] zeroIndices, int i, int j)
+    private void Split(Span<T> span, Span<int> zeroIndices, int i, int j)
     {
         // if already 3 indices merge and end.
         // i == j -2
         if ((j - i) == 2)
         {
-            Statistics.AddIndexCount();
-            Merge(array, zeroIndices[j], zeroIndices[j - 1], zeroIndices[i]);
+            Merge(span, zeroIndices[j], zeroIndices[j - 1], zeroIndices[i]);
             return;
         }
         else if ((j - i) < 2)
@@ -90,17 +90,17 @@ public class ShiftSort<T> : SortBase<T> where T : IComparable<T>
         var i2 = j2 + 1;
 
         // split first half
-        Split(array, zeroIndices, i, j2);
+        Split(span, zeroIndices, i, j2);
         // split second half
-        Split(array, zeroIndices, i2, j); ;
+        Split(span, zeroIndices, i2, j); ;
 
         // merge first half
-        Merge(array, zeroIndices[i2], zeroIndices[j2], zeroIndices[i]);
+        Merge(span, zeroIndices[i2], zeroIndices[j2], zeroIndices[i]);
         // merge second half
-        Merge(array, zeroIndices[j], zeroIndices[i2], zeroIndices[i]);
+        Merge(span, zeroIndices[j], zeroIndices[i2], zeroIndices[i]);
     }
 
-    private void Merge(T[] array, int first, int second, int third)
+    private void Merge(Span<T> span, int first, int second, int third)
     {
         if (second - first > third - second)
         {
@@ -109,8 +109,7 @@ public class ShiftSort<T> : SortBase<T> where T : IComparable<T>
             var counter = 0;
             for (var y = second; y < third; y++)
             {
-                Statistics.AddIndexCount();
-                tmp2nd[counter] = array[y];
+                tmp2nd[counter] = Index(span, y);
                 counter++;
             }
 
@@ -119,15 +118,14 @@ public class ShiftSort<T> : SortBase<T> where T : IComparable<T>
             var left = second - 1;
             while (secondCounter > 0)
             {
-                Statistics.AddIndexCount();
-                if (left >= first && Compare(array[left], tmp2nd[secondCounter - 1]) >= 0)
+                if (left >= first && Compare(Index(span, left), tmp2nd[secondCounter - 1]) >= 0)
                 {
-                    array[left + secondCounter] = array[left];
+                    Index(span, left + secondCounter) = Index(span, left);
                     left--;
                 }
                 else
                 {
-                    array[left + secondCounter] = tmp2nd[secondCounter - 1];
+                    Index(span, left + secondCounter) = tmp2nd[secondCounter - 1];
                     secondCounter--;
                 }
             }
@@ -139,8 +137,7 @@ public class ShiftSort<T> : SortBase<T> where T : IComparable<T>
             var counter = 0;
             for (var y = first; y < second; y++)
             {
-                Statistics.AddIndexCount();
-                tmp1st[counter] = array[y];
+                tmp1st[counter] = Index(span, y);
                 counter++;
             }
 
@@ -150,15 +147,14 @@ public class ShiftSort<T> : SortBase<T> where T : IComparable<T>
             var right = second;
             while (firstCounter < tmp1st.Length)
             {
-                Statistics.AddIndexCount();
-                if (right < third && Compare(array[right], tmp1st[firstCounter]) < 0)
+                if (right < third && Compare(Index(span, right), tmp1st[firstCounter]) < 0)
                 {
-                    array[right - tmpLength] = array[right];
+                    Index(span, right - tmpLength) = Index(span, right);
                     right++;
                 }
                 else
                 {
-                    array[right - tmpLength] = tmp1st[firstCounter];
+                    Index(span, right - tmpLength) = tmp1st[firstCounter];
                     firstCounter++;
                     tmpLength--;
                 }
