@@ -1,4 +1,4 @@
-namespace SortLab.Tests;
+﻿namespace SortLab.Tests;
 
 public class CountingSortTests
 {
@@ -152,8 +152,10 @@ public class CountingSortTests
         var sorted = Enumerable.Range(0, n).ToArray();
         sort.Sort(sorted);
 
-        // Sorted data should produce predictable statistics
-        Assert.NotEqual(0UL, sort.Statistics.CompareCount);
+        // CountingSort is a non-comparison sort
+        // No comparisons are made during sorting
+        Assert.Equal(0UL, sort.Statistics.CompareCount);
+        Assert.Equal(0UL, sort.Statistics.SwapCount);
     }
 
     [Theory]
@@ -166,7 +168,9 @@ public class CountingSortTests
         var reversed = Enumerable.Range(0, n).Reverse().ToArray();
         sort.Sort(reversed);
 
-        // Reversed data should require sorting operations
-        Assert.NotEqual(0UL, sort.Statistics.CompareCount);
+        // CountingSort is a non-comparison sort
+        // No comparisons or swaps are made
+        Assert.Equal(0UL, sort.Statistics.CompareCount);
+        Assert.Equal(0UL, sort.Statistics.SwapCount);
     }
 }

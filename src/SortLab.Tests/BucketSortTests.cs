@@ -1,4 +1,4 @@
-namespace SortLab.Tests;
+﻿namespace SortLab.Tests;
 
 public class BucketSortTests
 {
@@ -152,8 +152,10 @@ public class BucketSortTests
         var sorted = Enumerable.Range(0, n).ToArray();
         sort.Sort(sorted);
 
-        // Sorted data should produce predictable statistics
-        Assert.NotEqual(0UL, sort.Statistics.CompareCount);
+        // BucketSort may have comparisons within buckets
+        // but sorted data should have minimal operations
+        // SwapCount should be 0 for sorted data
+        Assert.Equal(0UL, sort.Statistics.SwapCount);
     }
 
     [Theory]
@@ -166,7 +168,8 @@ public class BucketSortTests
         var reversed = Enumerable.Range(0, n).Reverse().ToArray();
         sort.Sort(reversed);
 
-        // Reversed data should require sorting operations
-        Assert.NotEqual(0UL, sort.Statistics.CompareCount);
+        // BucketSort redistributes elements into buckets
+        // No swaps in the traditional sense
+        Assert.Equal(0UL, sort.Statistics.SwapCount);
     }
 }

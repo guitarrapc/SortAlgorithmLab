@@ -149,8 +149,10 @@ public class PancakeSortTests
         var sorted = Enumerable.Range(0, n).ToArray();
         sort.Sort(sorted);
 
+        // PancakeSort checks each element position
+        // For sorted data, no swaps are needed
         Assert.NotEqual(0UL, sort.Statistics.CompareCount);
-        Assert.NotEqual(0UL, sort.Statistics.SwapCount);
+        Assert.Equal(0UL, sort.Statistics.SwapCount);
     }
 
     [Theory]
@@ -163,6 +165,7 @@ public class PancakeSortTests
         var reversed = Enumerable.Range(0, n).Reverse().ToArray();
         sort.Sort(reversed);
 
+        // PancakeSort requires flips for reversed data
         Assert.NotEqual(0UL, sort.Statistics.CompareCount);
         Assert.NotEqual(0UL, sort.Statistics.SwapCount);
     }
