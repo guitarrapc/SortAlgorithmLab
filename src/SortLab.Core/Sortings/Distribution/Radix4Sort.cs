@@ -1,4 +1,5 @@
 ﻿using System.Numerics;
+using System.Runtime.InteropServices;
 
 namespace SortLab.Core.Sortings;
 
@@ -115,9 +116,53 @@ public class RadixLSD4Sort<T> : SortBase<T>
 
     private void SortCoreNegative(Span<T> span, int digitCount)
     {
-        var positiveBuckets = new List<T>[RadixSize];
-        var negativeBuckets = new List<T>[RadixSize];
+        // Separate into negative and positive arrays first
+        var negativeList = new List<T>();
+        var positiveList = new List<T>();
         var zero = T.Zero;
+
+        for (var i = 0; i < span.Length; i++)
+        {
+            var value = Index(span, i);
+            if (Compare(value, zero) < 0)
+            {
+                negativeList.Add(value);
+            }
+            else
+            {
+                positiveList.Add(value);
+            }
+        }
+
+        // Sort negative numbers (using absolute values, then reverse)
+        if (negativeList.Count > 0)
+        {
+            var negativeSpan = CollectionsMarshal.AsSpan(negativeList);
+            SortNegativeValues(negativeSpan, digitCount);
+        }
+
+        // Sort positive numbers
+        if (positiveList.Count > 0)
+        {
+            var positiveSpan = CollectionsMarshal.AsSpan(positiveList);
+            SortCorePositive(positiveSpan, digitCount);
+        }
+
+        // Merge back: negatives first, then positives
+        var writeIndex = 0;
+        foreach (var item in negativeList)
+        {
+            Index(span, writeIndex++) = item;
+        }
+        foreach (var item in positiveList)
+        {
+            Index(span, writeIndex++) = item;
+        }
+    }
+
+    private void SortNegativeValues(Span<T> span, int digitCount)
+    {
+        var buckets = new List<T>[RadixSize];
 
         for (int d = 0; d < digitCount; d++)
         {
@@ -126,72 +171,27 @@ public class RadixLSD4Sort<T> : SortBase<T>
             // Clear buckets
             for (var i = 0; i < RadixSize; i++)
             {
-                positiveBuckets[i]?.Clear();
-                negativeBuckets[i]?.Clear();
+                buckets[i]?.Clear();
             }
 
-            var positiveCount = 0;
-            
-            // Distribute elements into positive/negative buckets
+            // Distribute elements into buckets (using absolute value)
             for (var i = 0; i < span.Length; i++)
             {
                 var value = Index(span, i);
-                var key = GetDigit(value, shift);
-                
-                if (Compare(value, zero) >= 0)
-                {
-                    positiveBuckets[key] ??= new List<T>();
-                    positiveBuckets[key].Add(value);
-                    positiveCount++;
-                }
-                else
-                {
-                    negativeBuckets[key] ??= new List<T>();
-                    negativeBuckets[key].Add(value);
-                }
+                var absValue = T.Abs(value);
+                var key = GetDigit(absValue, shift);
+                buckets[key] ??= new List<T>();
+                buckets[key].Add(value);
             }
 
-            var negativeCount = span.Length - positiveCount;
-            
-            // Collect negative numbers (reversed order for last digit)
-            var writeIndex = 0;
-            if (d == digitCount - 1)
+            // Collect elements back from buckets in reverse order (for negatives)
+            for (int j = RadixSize - 1, i = 0; j >= 0; j--)
             {
-                // Last digit: reverse order for negatives
-                for (int j = RadixSize - 1; j >= 0; j--)
+                if (buckets[j] != null)
                 {
-                    if (negativeBuckets[j] != null)
+                    foreach (var item in buckets[j])
                     {
-                        foreach (var item in negativeBuckets[j])
-                        {
-                            Index(span, writeIndex++) = item;
-                        }
-                    }
-                }
-            }
-            else
-            {
-                // Not last digit: normal order
-                for (int j = 0; j < RadixSize; j++)
-                {
-                    if (negativeBuckets[j] != null)
-                    {
-                        foreach (var item in negativeBuckets[j])
-                        {
-                            Index(span, writeIndex++) = item;
-                        }
-                    }
-                }
-            }
-            
-            // Collect positive numbers
-            for (int j = 0; j < RadixSize; j++)
-            {
-                if (positiveBuckets[j] != null)
-                {
-                    foreach (var item in positiveBuckets[j])
-                    {
-                        Index(span, writeIndex++) = item;
+                        Index(span, i++) = item;
                     }
                 }
             }

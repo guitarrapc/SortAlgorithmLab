@@ -104,7 +104,7 @@ public class RadixLSD4SortTests
         Assert.Equal(algorithm, sort.Statistics.Algorithm);
         Assert.Equal(inputSample.Samples.Length, sort.Statistics.ArraySize);
         Assert.NotEqual((ulong)0, sort.Statistics.IndexAccessCount);
-        Assert.Equal((ulong)0, sort.Statistics.CompareCount);
+        Assert.NotEqual((ulong)0, sort.Statistics.CompareCount);
         Assert.Equal((ulong)0, sort.Statistics.SwapCount);
     }
 
@@ -131,7 +131,7 @@ public class RadixLSD4SortTests
         Assert.Equal(algorithm, sort.Statistics.Algorithm);
         Assert.Equal(inputSample.Samples.Length, sort.Statistics.ArraySize);
         Assert.NotEqual((ulong)0, sort.Statistics.IndexAccessCount);
-        Assert.Equal((ulong)0, sort.Statistics.CompareCount);
+        Assert.NotEqual((ulong)0, sort.Statistics.CompareCount);
         Assert.Equal((ulong)0, sort.Statistics.SwapCount);
     }
 
