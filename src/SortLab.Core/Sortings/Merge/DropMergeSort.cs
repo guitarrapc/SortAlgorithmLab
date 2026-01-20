@@ -7,11 +7,13 @@
 /// * You have a lot of data (10k elements or more, and definitively when you get into the millions).
 /// </summary>
 /// <remarks>
-/// stable : no
-/// inplace : no (O((K))
-/// Compare : O(N + K⋅log(K))
-/// Swap : n log2 n
-/// Order : O(n log n) (Best case : O(n), Worst case : O(n log n))
+/// stable  : no
+/// inplace : no  (O(K) where K is the number of out-of-order elements)
+/// Compare : O(N + K⋅log(K)) where K is the number of dropped elements
+/// Swap    : O(N + K⋅log(K))
+/// Order   : O(n log n)
+///         * best case : O(n)       (when data is mostly sorted)
+///         * worst case: O(n log n) (when data is heavily disordered)
 /// </remarks>
 /// <typeparam name="T"></typeparam>
 // ref : https://github.com/emilk/drop-merge-sort

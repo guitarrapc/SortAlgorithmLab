@@ -4,11 +4,13 @@
 /// Merge Sortの類似ですが、Swap回数が極度に少ない安定な内部ソート。ベストケースでO(n)、平均でもマージソート同様にO(n log n)と高速に挙動する
 /// </summary>
 /// <remarks>
-/// stable : yes
-/// inplace : no (n)
-/// Compare : n log2 n
-/// Swap : n log2 n
-/// Order : O(n log n) (Best case : O(n), Worst case : O(n log n))
+/// stable  : yes
+/// inplace : no  (Requires O(n) additional memory)
+/// Compare : O(n log n)
+/// Swap    : O(n)     (Significantly fewer swaps than traditional merge sort)
+/// Order   : O(n log n)
+///         * best case : O(n)       (when data is mostly sorted)
+///         * worst case: O(n log n)
 /// </remarks>
 /// <typeparam name="T"></typeparam>
 

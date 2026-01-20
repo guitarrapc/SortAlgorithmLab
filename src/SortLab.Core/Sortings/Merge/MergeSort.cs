@@ -5,11 +5,14 @@
 /// TopDown
 /// </summary>
 /// <remarks>
-/// stable : yes
-/// inplace : no (n)
-/// Compare : n log2 n
-/// Swap : n log2 n
-/// Order : O(n log n) (Worst case : O(n log n))
+/// stable  : yes
+/// inplace : no  (Requires O(n) additional memory)
+/// Compare : O(n log n)
+/// Swap    : O(n log n)
+/// Order   : O(n log n)
+///         * average   : O(n log n)
+///         * best case : O(n log n)
+///         * worst case: O(n log n)
 /// </remarks>
 /// <typeparam name="T"></typeparam>
 
