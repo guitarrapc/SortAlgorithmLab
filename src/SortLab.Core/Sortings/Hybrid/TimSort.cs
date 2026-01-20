@@ -51,31 +51,44 @@ public class TimSort<T> : SortBase<T> where T : IComparable<T>
         this.runLength = new int[stackLength];
     }
 
-    public override T[] Sort(T[] array)
+    public override void Sort(T[] array)
     {
         Statistics.Reset(array.Length, SortType, Name);
 
         // run
         Initialize(array);
-        var result = SortImpl(array, 0, array.Length);
+        SortCore(array, 0, array.Length);
         Statistics.AddCompareCount(insertSort.Statistics.CompareCount);
         Statistics.AddIndexCount(insertSort.Statistics.IndexAccessCount);
         Statistics.AddSwapCount(insertSort.Statistics.SwapCount);
-        return result;
     }
 
-    private T[] SortImpl(T[] array, int low, int high)
+    public override void Sort(Span<T> span)
+    {
+        Statistics.Reset(span.Length, SortType, Name);
+
+        // Convert span to array for processing
+        var array = span.ToArray();
+        Initialize(array);
+        SortCore(array, 0, array.Length);
+        array.AsSpan().CopyTo(span);
+        Statistics.AddCompareCount(insertSort.Statistics.CompareCount);
+        Statistics.AddIndexCount(insertSort.Statistics.IndexAccessCount);
+        Statistics.AddSwapCount(insertSort.Statistics.SwapCount);
+    }
+
+    private void SortCore(T[] array, int low, int high)
     {
         var remaining = high - low;
-        if (remaining < 2) return array;
+        if (remaining < 2) return;
 
         var runLength = 0;
         // small array will use binaryinsertsort
         if (remaining < defaultMinGallop)
         {
             runLength = Ascending(array, low, high);
-            insertSort.Sort(array, low, high, low + runLength);
-            return array;
+            insertSort.Sort(array.AsSpan(), low, high, low + runLength);
+            return;
         }
 
         var minRun = MinRunLength(remaining);
@@ -88,7 +101,7 @@ public class TimSort<T> : SortBase<T> where T : IComparable<T>
             if (runLength < minRun)
             {
                 var force = remaining > minRun ? minRun : remaining;
-                insertSort.Sort(array, low, low + force, low + runLength);
+                insertSort.Sort(array.AsSpan(), low, low + force, low + runLength);
                 runLength = force;
             }
 
@@ -104,8 +117,6 @@ public class TimSort<T> : SortBase<T> where T : IComparable<T>
 
         // force merge remaining
         ForceMergeRun(array);
-
-        return array;
     }
 
     private void PushRun(int runStart, int runLength)

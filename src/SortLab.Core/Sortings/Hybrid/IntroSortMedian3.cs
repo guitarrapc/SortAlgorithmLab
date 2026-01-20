@@ -22,52 +22,60 @@ public class IntroSortMedian3<T> : SortBase<T> where T : IComparable<T>
     private HeapSort<T> heapSort = new HeapSort<T>();
     private InsertionSort<T> insertSort = new InsertionSort<T>();
 
-    public override T[] Sort(T[] array)
+    public override void Sort(T[] array)
     {
         Statistics.Reset(array.Length, SortType, Name);
-        var result = Sort(array, 0, array.Length - 1, 2 * FloorLog(array.Length));
+        SortCore(array.AsSpan(), 0, array.Length - 1, 2 * FloorLog(array.Length));
         Statistics.AddCompareCount(heapSort.Statistics.CompareCount);
         Statistics.AddIndexCount(heapSort.Statistics.IndexAccessCount);
         Statistics.AddSwapCount(heapSort.Statistics.SwapCount);
         Statistics.AddCompareCount(insertSort.Statistics.CompareCount);
         Statistics.AddIndexCount(insertSort.Statistics.IndexAccessCount);
         Statistics.AddSwapCount(insertSort.Statistics.SwapCount);
-        return result;
     }
 
-    private T[] Sort(T[] array, int left, int right, int depthLimit)
+    public override void Sort(Span<T> span)
+    {
+        Statistics.Reset(span.Length, SortType, Name);
+        SortCore(span, 0, span.Length - 1, 2 * FloorLog(span.Length));
+        Statistics.AddCompareCount(heapSort.Statistics.CompareCount);
+        Statistics.AddIndexCount(heapSort.Statistics.IndexAccessCount);
+        Statistics.AddSwapCount(heapSort.Statistics.SwapCount);
+        Statistics.AddCompareCount(insertSort.Statistics.CompareCount);
+        Statistics.AddIndexCount(insertSort.Statistics.IndexAccessCount);
+        Statistics.AddSwapCount(insertSort.Statistics.SwapCount);
+    }
+
+    private void SortCore(Span<T> span, int left, int right, int depthLimit)
     {
         while (right - left > IntroThreshold)
         {
             if (depthLimit == 0)
             {
-                heapSort.Sort(array, left, right);
-                return array;
+                heapSort.Sort(span, left, right);
+                return;
             }
             depthLimit--;
-            Statistics.AddIndexCount();
-            var partition = Partition(array, left, right, Median3(array[left], array[left + ((right - left) / 2) + 1], array[right - 1]));
-            Sort(array, partition, right, depthLimit);
+            var partition = Partition(span, left, right, Median3(Index(span, left), Index(span, left + ((right - left) / 2) + 1), Index(span, right - 1)));
+            SortCore(span, partition, right, depthLimit);
             right = partition;
         }
-        return insertSort.Sort(array, left, right + 1);
+        insertSort.Sort(span, left, right + 1);
     }
 
-    private int Partition(T[] array, int left, int right, T pivot)
+    private int Partition(Span<T> span, int left, int right, T pivot)
     {
         var l = left;
         var r = right;
         while (true)
         {
-            while (Compare(array[l], pivot) < 0)
+            while (Compare(Index(span, l), pivot) < 0)
             {
-                Statistics.AddIndexCount();
                 l++;
             }
             r--;
-            while (Compare(pivot, array[r]) < 0)
+            while (Compare(pivot, Index(span, r)) < 0)
             {
-                Statistics.AddIndexCount();
                 r--;
             }
 
@@ -76,7 +84,7 @@ public class IntroSortMedian3<T> : SortBase<T> where T : IComparable<T>
                 return l;
             }
 
-            Swap(ref array[l], ref array[r]);
+            Swap(ref Index(span, l), ref Index(span, r));
             l++;
         }
     }
