@@ -293,12 +293,15 @@ src/SortLab.Core/
 
 ### 1. ヘルパーメソッド（Compare, Swap, Index）の共有
 
-**現状：** `SortBase<T>` の protected メソッドとして提供
+**現状：** `SortBase<T>` の protected メソッドとして提供されており、インスタンス経由で統計情報にアクセス可能
 
-**解決策：**
+**課題：** 静的メソッド化すると、Contextを毎回引数で渡す必要がある
+
+#### 案A: 静的ヘルパークラス（毎回渡す）
+
+最もシンプルな方法。Contextを毎回渡す。
 
 ```csharp
-// 静的ヘルパークラス
 internal static class SortHelper
 {
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -326,11 +329,269 @@ internal static class SortHelper
 }
 
 // 使用例
-if (SortHelper.Compare(span, j, j - 1, context) < 0)
+public static void Sort<T>(Span<T> span, ISortContext context) where T : IComparable<T>
 {
-    SortHelper.Swap(span, j, j - 1, context);
+    for (var i = 0; i < span.Length; i++)
+    {
+        for (var j = span.Length - 1; j > i; j--)
+        {
+            // 毎回contextを渡す
+            if (SortHelper.Compare(span, j, j - 1, context) < 0)
+            {
+                SortHelper.Swap(span, j, j - 1, context);
+            }
+        }
+    }
 }
 ```
+
+**メリット：**
+- ✅ 追加の型が不要
+- ✅ シンプル
+
+**デメリット：**
+- ⚠️ 冗長（毎回contextを書く）
+
+---
+
+#### 案B: SortSpan（ref struct でラップ）
+
+`Span<T>` と `ISortContext` をまとめたラッパーを作る。現在の `SortBase<T>` に近い書き心地。
+
+```csharp
+/// <summary>
+/// Span + Context をまとめたラッパー（ref struct）
+/// </summary>
+public ref struct SortSpan<T> where T : IComparable<T>
+{
+    readonly Span<T> _span;
+    readonly ISortContext _context;
+    
+    public SortSpan(Span<T> span, ISortContext context)
+    {
+        _span = span;
+        _context = context;
+    }
+    
+    public int Length => _span.Length;
+    
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public int Compare(int i, int j)
+    {
+        var result = _span[i].CompareTo(_span[j]);
+        _context.OnCompare(i, j, result);
+        return result;
+    }
+    
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public void Swap(int i, int j)
+    {
+        _context.OnSwap(i, j);
+        (_span[i], _span[j]) = (_span[j], _span[i]);
+    }
+    
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public ref T this[int index]
+    {
+        get
+        {
+            _context.OnIndexAccess(index);
+            return ref _span[index];
+        }
+    }
+}
+
+// 使用例
+public static void Sort<T>(Span<T> span, ISortContext context) where T : IComparable<T>
+{
+    var s = new SortSpan<T>(span, context);  // 1回だけラップ
+    
+    for (var i = 0; i < s.Length; i++)
+    {
+        for (var j = s.Length - 1; j > i; j--)
+        {
+            // contextを意識しない！現在のSortBase<T>に近い書き心地
+            if (s.Compare(j, j - 1) < 0)
+            {
+                s.Swap(j, j - 1);
+            }
+        }
+    }
+}
+```
+
+**メリット：**
+- ✅ 現在の `SortBase<T>` に近い書き心地
+- ✅ `context` を毎回書かなくていい
+- ✅ `ref struct` なのでヒープ割り当てなし
+- ✅ 責務の分離が維持される（観察はContext、操作+通知はSortSpan）
+
+**デメリット：**
+- ⚠️ `ref struct` の制約（async/await不可、クロージャに入れられない等）
+- ⚠️ 追加の型が増える
+
+---
+
+#### 案C: Contextに操作を持たせる（逆転の発想）
+
+Contextが観察だけでなく操作も担当する設計。
+
+```csharp
+public interface ISortContext
+{
+    int Compare<T>(Span<T> span, int i, int j) where T : IComparable<T>;
+    void Swap<T>(Span<T> span, int i, int j);
+    ref T Index<T>(Span<T> span, int index);
+}
+
+public sealed class NullContext : ISortContext
+{
+    public static readonly NullContext Default = new();
+    private NullContext() { }
+    
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public int Compare<T>(Span<T> span, int i, int j) where T : IComparable<T>
+        => span[i].CompareTo(span[j]);
+    
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public void Swap<T>(Span<T> span, int i, int j)
+        => (span[i], span[j]) = (span[j], span[i]);
+    
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public ref T Index<T>(Span<T> span, int index)
+        => ref span[index];
+}
+
+public sealed class StatisticsContext : ISortContext
+{
+    public ulong CompareCount { get; private set; }
+    public ulong SwapCount { get; private set; }
+    public ulong IndexAccessCount { get; private set; }
+    
+    public int Compare<T>(Span<T> span, int i, int j) where T : IComparable<T>
+    {
+        CompareCount++;
+        return span[i].CompareTo(span[j]);
+    }
+    
+    public void Swap<T>(Span<T> span, int i, int j)
+    {
+        SwapCount++;
+        (span[i], span[j]) = (span[j], span[i]);
+    }
+    
+    public ref T Index<T>(Span<T> span, int index)
+    {
+        IndexAccessCount++;
+        return ref span[index];
+    }
+    
+    public void Reset()
+    {
+        CompareCount = 0;
+        SwapCount = 0;
+        IndexAccessCount = 0;
+    }
+}
+
+// ビジュアライズ用（操作を委譲 + 観察）
+public sealed class VisualizationContext : ISortContext
+{
+    readonly ISortContext _inner;  // 実際の操作を委譲
+    readonly Action<int, int, int>? _onCompare;
+    readonly Action<int, int>? _onSwap;
+    readonly Action<int>? _onAccess;
+    
+    public VisualizationContext(
+        ISortContext? inner = null,
+        Action<int, int, int>? onCompare = null,
+        Action<int, int>? onSwap = null,
+        Action<int>? onAccess = null)
+    {
+        _inner = inner ?? NullContext.Default;
+        _onCompare = onCompare;
+        _onSwap = onSwap;
+        _onAccess = onAccess;
+    }
+    
+    public int Compare<T>(Span<T> span, int i, int j) where T : IComparable<T>
+    {
+        var result = _inner.Compare(span, i, j);
+        _onCompare?.Invoke(i, j, result);
+        return result;
+    }
+    
+    public void Swap<T>(Span<T> span, int i, int j)
+    {
+        _inner.Swap(span, i, j);
+        _onSwap?.Invoke(i, j);
+    }
+    
+    public ref T Index<T>(Span<T> span, int index)
+    {
+        _onAccess?.Invoke(index);
+        return ref _inner.Index(span, index);
+    }
+}
+
+// 使用例
+public static void Sort<T>(Span<T> span, ISortContext ctx) where T : IComparable<T>
+{
+    for (var i = 0; i < span.Length; i++)
+    {
+        for (var j = span.Length - 1; j > i; j--)
+        {
+            // ctx経由で操作（シンプル）
+            if (ctx.Compare(span, j, j - 1) < 0)
+            {
+                ctx.Swap(span, j, j - 1);
+            }
+        }
+    }
+}
+```
+
+**使用例：**
+
+```csharp
+// 統計なし
+BubbleSort.Sort(array.AsSpan(), NullContext.Default);
+
+// 統計あり
+var stats = new StatisticsContext();
+BubbleSort.Sort(array.AsSpan(), stats);
+
+// 統計 + 描画（デコレータパターン）
+var stats = new StatisticsContext();
+var viz = new VisualizationContext(
+    inner: stats,  // 統計Contextに委譲
+    onSwap: (i, j) => Render(i, j)
+);
+BubbleSort.Sort(array.AsSpan(), viz);
+```
+
+**メリット：**
+- ✅ 操作と観察が一体化（シンプル）
+- ✅ 追加の型が少ない
+- ✅ デコレータパターンで組み合わせ可能
+
+**デメリット：**
+- ⚠️ Contextの責務が大きくなる（観察だけでなく操作も担当）
+- ⚠️ インターフェースが大きくなる
+
+---
+
+#### 比較表
+
+| 観点 | 案A: 毎回渡す | 案B: SortSpan | 案C: Context操作 |
+|------|-------------|---------------|-----------------|
+| アルゴリズム実装のクリーンさ | △ 冗長 | ◎ 現行に近い | ○ |
+| 追加の型 | なし | SortSpan | なし |
+| 責務の分離 | ◎ | ◎ | △ 大きくなる |
+| 組み合わせ（統計+描画） | CompositeContext | CompositeContext | デコレータ |
+| 現行コードとの類似性 | △ | ◎ 最も近い | ○ |
+
+---
 
 ### 2. アルゴリズム情報（名前、SortMethod）
 
