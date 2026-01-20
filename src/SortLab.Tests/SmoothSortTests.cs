@@ -101,7 +101,8 @@ public class SmoothSortTests
     [ClassData(typeof(MockSameValuesData))]
     public void StatisticsTest(IInputSample<int> inputSample)
     {
-        sort.Sort(inputSample.Samples);
+        var array = inputSample.Samples.ToArray();
+        sort.Sort(array);
         Assert.Equal(algorithm, sort.Statistics.Algorithm);
         Assert.Equal(inputSample.Samples.Length, sort.Statistics.ArraySize);
         Assert.NotEqual((ulong)0, sort.Statistics.IndexAccessCount);
@@ -113,12 +114,13 @@ public class SmoothSortTests
     [ClassData(typeof(MockSortedData))]
     public void StatisticsSortedTest(IInputSample<int> inputSample)
     {
-        sort.Sort(inputSample.Samples);
+        var array = inputSample.Samples.ToArray();
+        sort.Sort(array);
         Assert.Equal(algorithm, sort.Statistics.Algorithm);
         Assert.Equal(inputSample.Samples.Length, sort.Statistics.ArraySize);
         Assert.NotEqual((ulong)0, sort.Statistics.IndexAccessCount);
         Assert.NotEqual((ulong)0, sort.Statistics.CompareCount);
-        Assert.NotEqual((ulong)0, sort.Statistics.SwapCount);
+        Assert.Equal((ulong)0, sort.Statistics.SwapCount);
     }
 
     [Theory]
@@ -132,7 +134,8 @@ public class SmoothSortTests
     [ClassData(typeof(MockSameValuesData))]
     public void StatisticsResetTest(IInputSample<int> inputSample)
     {
-        sort.Sort(inputSample.Samples);
+        var array = inputSample.Samples.ToArray();
+        sort.Sort(array);
         sort.Statistics.Reset();
         Assert.Equal((ulong)0, sort.Statistics.IndexAccessCount);
         Assert.Equal((ulong)0, sort.Statistics.CompareCount);

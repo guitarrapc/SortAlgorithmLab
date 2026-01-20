@@ -106,7 +106,7 @@ public class MergeSort2Tests
         Assert.Equal(inputSample.Samples.Length, sort.Statistics.ArraySize);
         Assert.NotEqual((ulong)0, sort.Statistics.IndexAccessCount);
         Assert.NotEqual((ulong)0, sort.Statistics.CompareCount);
-        Assert.NotEqual((ulong)0, sort.Statistics.SwapCount);
+        Assert.Equal((ulong)0, sort.Statistics.SwapCount);
     }
 
     [Theory]
@@ -118,7 +118,7 @@ public class MergeSort2Tests
         Assert.Equal(inputSample.Samples.Length, sort.Statistics.ArraySize);
         Assert.NotEqual((ulong)0, sort.Statistics.IndexAccessCount);
         Assert.NotEqual((ulong)0, sort.Statistics.CompareCount);
-        Assert.NotEqual((ulong)0, sort.Statistics.SwapCount);
+        Assert.Equal((ulong)0, sort.Statistics.SwapCount);
     }
 
     [Theory]
