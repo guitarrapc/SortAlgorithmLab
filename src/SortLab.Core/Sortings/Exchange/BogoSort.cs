@@ -29,11 +29,16 @@ public class BogoSort<T> : SortBase<T> where T : IComparable<T>
     public override SortMethod SortType => SortMethod.Exchange;
     protected override string Name => nameof(BogoSort<T>);
 
-    public override T[] Sort(T[] array)
+    public override void Sort(T[] array)
     {
         Statistics.Reset(array.Length, SortType, Name);
         SortCore(array.AsSpan());
-        return array;
+    }
+
+    public override void Sort(Span<T> span)
+    {
+        Statistics.Reset(span.Length, SortType, Name);
+        SortCore(span);
     }
 
     private void SortCore(Span<T> span)

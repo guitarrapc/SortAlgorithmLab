@@ -35,12 +35,12 @@ Span (Itelative) ...
 /// </summary>
 /// <remarks>
 /// stable  : no  (Typically, Binary Tree Sort is not stable unless additional mechanisms are used.)
-/// inplace : no (Requires additional memory for the tree structure)
-/// Compare : O(n log n) on average
-/// Swap    : 0 (Swaps are not used; instead, tree node assignments)
-/// Index   : O(n) (Accesses each element once during in-order traversal)
+/// inplace : no  (Requires additional memory for the tree structure)
+/// Compare : O(n log n)  (on average)
+/// Swap    : 0        (Swaps are not used; instead, tree node assignments)
+/// Index   : O(n)     (Accesses each element once during in-order traversal)
 /// Order   : O(n log n)
-///         * average:     O(n log n)
+///         * average   : O(n log n)
 ///         * worst case: O(n^2) (if the tree becomes unbalanced)
 /// </remarks>
 /// <typeparam name="T"></typeparam>
@@ -49,12 +49,16 @@ public class BinaryTreeSort<T> : SortBase<T> where T : IComparable<T>
     public override SortMethod SortType => SortMethod.Insertion;
     protected override string Name => nameof(BinaryTreeSort<T>);
 
-    public override T[] Sort(T[] array)
+    public override void Sort(T[] array)
     {
         Statistics.Reset(array.Length, SortType, Name);
         SortCore(array.AsSpan());
+    }
 
-        return array;
+    public override void Sort(Span<T> span)
+    {
+        Statistics.Reset(span.Length, SortType, Name);
+        SortCore(span);
     }
 
     private void SortCore(Span<T> span)

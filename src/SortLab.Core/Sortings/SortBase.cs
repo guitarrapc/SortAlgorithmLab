@@ -8,7 +8,10 @@ public abstract class SortBase<T> : ISort<T> where T : IComparable<T>
     public abstract SortMethod SortType { get; }
     protected abstract string Name { get; }
 
-    public abstract T[] Sort(T[] array);
+    /// <inheritdoc/>
+    public abstract void Sort(T[] array);
+    /// <inheritdoc/>
+    public abstract void Sort(Span<T> span);
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     protected int Compare(T x, T y)

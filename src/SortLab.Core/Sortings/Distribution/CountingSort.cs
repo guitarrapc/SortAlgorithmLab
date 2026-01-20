@@ -1,117 +1,96 @@
 ﻿namespace SortLab.Core.Sortings;
 
 /// <summary>
-/// 値の分布状況を数え上げることを利用してインデックスを導きソートする。バケットソート同様に、とりえる値の範囲を知っていないといけないことと、カウントと結果用の配列分メモリを食う。
+/// 値の分布状況を数え上げることを利用してインデックスを導きソートします。
+/// 各値の出現回数をカウントし、累積和を計算して正しい位置に配置する安定なソートアルゴリズムです。
+/// 値の範囲が狭い場合に非常に高速ですが、範囲が広いとメモリを大量に消費します。
 /// </summary>
 /// <remarks>
-/// stable : yes
-/// inplace : no (n + r)
-/// Compare : 0
-/// Swap : 0
-/// Order : O(n + k) (k = helper array = counting + result)
+/// stable  : yes
+/// inplace : no (n + k where k = range of values)
+/// Compare : 0        (No comparison operations)
+/// Swap    : 0
+/// Order   : O(n + k) where k is the range of values
+/// Note    : 値の範囲が大きいとメモリ使用量が膨大になります。
 /// </remarks>
-/// <typeparam name="T"></typeparam>
-
-public class CountingSort<T> : SortBase<int> where T : IComparable<T>
+public class CountingSort : SortBase<int>
 {
-    public override SortMethod SortType => SortMethod.Distributed;
-    protected override string Name => nameof(CountingSort<T>);
+    private const int MaxCountArraySize = 10_000_000; // Maximum allowed count array size
 
-    public override int[] Sort(int[] array)
+    public override SortMethod SortType => SortMethod.Distributed;
+    protected override string Name => nameof(CountingSort);
+
+    public override void Sort(int[] array)
     {
         Statistics.Reset(array.Length, SortType, Name);
-        if (array.Min() >= 0)
-        {
-            return SortImplPositive(array);
-        }
-        else
-        {
-            return SortImplNegative(array);
-        }
+        SortCore(array.AsSpan());
     }
 
-    private int[] SortImplPositive(int[] array)
+    public override void Sort(Span<int> span)
     {
-        var min = 0;
-        var max = 0;
+        Statistics.Reset(span.Length, SortType, Name);
+        SortCore(span);
+    }
 
-        for (var i = 1; i < array.Length; i++)
+    private void SortCore(Span<int> span)
+    {
+        if (span.Length <= 1) return;
+
+        // Find min and max to determine range
+        var min = int.MaxValue;
+        var max = int.MinValue;
+
+        for (var i = 0; i < span.Length; i++)
         {
-            Statistics.AddIndexCount();
-            if (array[i] < min)
-            {
-                min = array[i];
-            }
-            else if (array[i] > max)
-            {
-                max = array[i];
-            }
+            var value = Index(span, i);
+            if (value < min) min = value;
+            if (value > max) max = value;
         }
 
-        var resultArray = new int[array.Length];
-        var countArray = new int[max - min + 1 + 1];
+        // If all elements are the same, no need to sort
+        if (min == max) return;
 
-        // count up each number of element to countArray
-        for (var i = 0; i < array.Length; i++)
+        // Check for overflow and validate range
+        long range = (long)max - (long)min + 1;
+        if (range > int.MaxValue)
+            throw new ArgumentException($"Value range is too large for CountingSort: {range}. Maximum supported range is {int.MaxValue}.");
+        if (range > MaxCountArraySize)
+            throw new ArgumentException($"Value range ({range}) exceeds maximum count array size ({MaxCountArraySize}). Consider using QuickSort or another comparison-based sort.");
+
+        var offset = -min; // Offset to normalize values to 0-based index
+        var size = (int)range;
+
+        // Create count array
+        var countArray = new int[size];
+
+        // Count occurrences of each value
+        for (var i = 0; i < span.Length; i++)
         {
-            Statistics.AddIndexCount();
-            ++countArray[array[i]];
+            countArray[Index(span, i) + offset]++;
         }
 
-        // change current index element counter by adding previous index counter.
+        // Calculate cumulative counts (for stable sort)
         for (var i = 1; i < countArray.Length; i++)
         {
-            Statistics.AddIndexCount();
             countArray[i] += countArray[i - 1];
         }
 
-        // set countArrayed index element into resultArray, then decrement countArray.
-        for (var i = 0; i < array.Length; i++)
+        // Build result using Span for proper index tracking
+        var resultSpan = new int[span.Length].AsSpan();
+        
+        // Build result array in reverse order to maintain stability
+        for (var i = span.Length - 1; i >= 0; i--)
         {
-            Statistics.AddIndexCount();
-            resultArray[countArray[array[i]] - 1] = array[i];
-            --countArray[array[i]];
+            var value = Index(span, i);
+            var index = value + offset;
+            Index(resultSpan, countArray[index] - 1) = value;
+            countArray[index]--;
         }
 
-        return resultArray;
-    }
-    private int[] SortImplNegative(int[] array)
-    {
-        var max = -1;
-        for (var i = 0; i < array.Length; i++)
+        // Copy back to span
+        for (var i = 0; i < span.Length; i++)
         {
-            Statistics.AddIndexCount();
-            if (Math.Abs(array[i]) > max)
-            {
-                Statistics.AddIndexCount();
-                max = Math.Abs(array[i]);
-            }
+            Index(span, i) = Index(resultSpan, i);
         }
-        var stack = new int[max * 2 + 1];
-
-        for (var i = 0; i < array.Length; i++)
-        {
-            Statistics.AddIndexCount();
-            stack[array[i] + max]++;
-        }
-
-        var j = stack.Length - 1;
-        var k = array.Length - 1;
-        while (k >= 0)
-        {
-            Statistics.AddIndexCount();
-            if (stack[j] > 0)
-            {
-                Statistics.AddIndexCount();
-                stack[j]--;
-                array[k] = j - max;
-                k--;
-            }
-            else
-            {
-                j--;
-            }
-        }
-        return array;
     }
 }

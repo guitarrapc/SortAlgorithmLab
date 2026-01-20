@@ -1,14 +1,19 @@
 ﻿namespace SortLab.Core.Sortings;
 
 /// <summary>
-/// 開始と終わりから中央値を導いて、この3点を枢軸として配列を左右で分ける。左右で中央値よりも小さい(大きい)データに置き換えてデータを分割する(分割統治)。最後に左右それぞれをソートする(この時点で不安定)ことで計算量をソート済みに抑えることができる。不安定なソート。
+/// 配列の先頭、中央、末尾から中央値を求めてピボットとし、このピボットを基準に配列を左右に分割する。
+/// 左側にはピボットより小さい要素、右側には大きい要素を配置し、再帰的にそれぞれをソートする分割統治法。
+/// Median-of-3法でピボットを選択することで、最悪ケースの確率を低減している。
 /// </summary>
 /// <remarks>
-/// stable : no
-/// inplace : no (log n)
-/// Compare :
-/// Swap :
-/// Order : O(n log n) (Worst case : O(nlog^2n))
+/// stable  : no
+/// inplace : yes (Only uses O(log n) recursive stack space)
+/// Compare : O(n log n)  (Average case, Worst case: O(n^2))
+/// Swap    : O(n log n)  (Average case, Worst case: O(n^2))
+/// Order   : O(n log n)
+///         * average   : O(n log n)
+///         * best case : O(n log n)
+///         * worst case: O(n^2)     (rare with median-of-3)
 /// </remarks>
 /// <typeparam name="T"></typeparam>
 public class QuickSortMedian3<T> : SortBase<T> where T : IComparable<T>
@@ -16,47 +21,48 @@ public class QuickSortMedian3<T> : SortBase<T> where T : IComparable<T>
     public override SortMethod SortType => SortMethod.Partitioning;
     protected override string Name => nameof(QuickSortMedian3<T>);
 
-    public override T[] Sort(T[] array)
+    public override void Sort(T[] array)
     {
         Statistics.Reset(array.Length, SortType, Name);
-        return SortImpl(array, 0, array.Length - 1);
+        SortCore(array.AsSpan(), 0, array.Length - 1);
     }
 
-    private T[] SortImpl(T[] array, int left, int right)
+    public override void Sort(Span<T> span)
     {
-        if (left >= right) return array;
+        Statistics.Reset(span.Length, SortType, Name);
+        SortCore(span, 0, span.Length - 1);
+    }
+
+    private void SortCore(Span<T> span, int left, int right)
+    {
+        if (left >= right) return;
 
         // fase 1. decide pivot
-        var pivot = Median3(array[left], array[(left + (right - left)) / 2], array[right]);
+        var pivot = Median3(Index(span, left), Index(span, (left + (right - left)) / 2), Index(span, right));
         var l = left;
         var r = right;
 
         while (l <= r)
         {
-            while (l < right && Compare(array[l], pivot) < 0)
+            while (l < right && Compare(Index(span, l), pivot) < 0)
             {
-                Statistics.AddIndexCount();
-                Statistics.AddCompareCount();
                 l++;
             }
 
-            while (r > left && Compare(array[r], pivot) > 0)
+            while (r > left && Compare(Index(span, r), pivot) > 0)
             {
-                Statistics.AddIndexCount();
-                Statistics.AddCompareCount();
                 r--;
             }
 
             if (l > r) break;
-            Swap(ref array[l], ref array[r]);
+            Swap(ref Index(span, l), ref Index(span, r));
             l++;
             r--;
         }
 
         // fase 2. Sort Left and Right
-        SortImpl(array, left, l - 1);
-        SortImpl(array, l, right);
-        return array;
+        SortCore(span, left, l - 1);
+        SortCore(span, l, right);
     }
 
     // less efficient compatison

@@ -21,7 +21,7 @@ Span ...
 */
 
 /// <summary>
-/// ソート済みとなる先頭に並ぶ部分を維持します。ソート済み部分の末尾から配列の末尾に向かって進み、各要素と比較し、値が小さい限りソート済み部分と交換します。(つまり、新しい要素の値が小さい限り前方に移動します。) 
+/// 最適化版挿入ソート。ソート済みとなる先頭に並ぶ部分を維持します。ソート済み部分の末尾から配列の末尾に向かって進み、各要素と比較し、値が小さい限りソート済み部分と交換します。(つまり、新しい要素の値が小さい限り前方に移動します。) 
 /// <see cref="IComparable"/> の性質により、x.CompareTo(y) > 0 の場合は元の順序が保持されるため、安定ソートです。
 /// すでにソートされた配列では高速に動作しますが、逆順の配列では遅くなります。  
 /// <br/>
@@ -32,13 +32,13 @@ Span ...
 /// <remarks>
 /// stable  : yes
 /// inplace : yes
-/// Compare : O(n^2), strictly n(n-1) / 2
-/// Swap    : O(n^2), strictly n^2/2
-/// Index   : O(n^2) (Each element may be accessed multiple times during swaps)
+/// Compare : O(n^2)     (strictly n(n-1) / 2)
+/// Swap    : O(n^2)     (strictly n^2/2)
+/// Index   : O(n^2)     (Each element may be accessed multiple times during swaps)
 /// Order   : O(n^2)
-///         * average:                   O(n^2) 
-///         * best case (nearly sorted): O(n)
-///         * worst case can approach  : O(n^2)
+///         * average   : O(n^2) 
+///         * best case : O(n) (nearly sorted)
+///         * worst case: O(n^2)
 /// </remarks>
 /// <typeparam name="T"></typeparam>
 public class InsertionSort<T> : SortBase<T> where T : IComparable<T>
@@ -46,22 +46,25 @@ public class InsertionSort<T> : SortBase<T> where T : IComparable<T>
     public override SortMethod SortType => SortMethod.Insertion;
     protected override string Name => nameof(InsertionSort<T>);
 
-    public override T[] Sort(T[] array)
+    public override void Sort(T[] array)
     {
         Statistics.Reset(array.Length, SortType, Name);
         SortCore(array.AsSpan(), 0, array.Length);
-        return array;
     }
 
-    public T[] Sort(T[] array, int first, int last)
+    public override void Sort(Span<T> span)
     {
-        Statistics.Reset(array.Length, SortType, Name);
-        SortCore(array.AsSpan(), first, last);
-        return array;
+        Statistics.Reset(span.Length, SortType, Name);
+        SortCore(span, 0, span.Length);
+    }
+
+    internal void Sort(Span<T> span, int first, int last)
+    {
+        SortCore(span, first, last);
     }
 
     /// <summary>
-    /// Optimized insertion sort
+    /// Optimized insertion sort using shift operations
     /// </summary>
     /// <param name="span"></param>
     /// <param name="first"></param>
@@ -86,6 +89,73 @@ public class InsertionSort<T> : SortBase<T> where T : IComparable<T>
 
             // Insert tmp into the correct position
             Index(span, j + 1) = tmp;
+        }
+    }
+}
+
+/// <summary>
+/// 純粋な挿入ソート。ソート済みとなる先頭に並ぶ部分を維持します。ソート済み部分の末尾から配列の末尾に向かって進み、各要素と比較し、値が小さい限りソート済み部分と交換します。(つまり、新しい要素の値が小さい限り前方に移動します。) 
+/// <see cref="IComparable"/> の性質により、x.CompareTo(y) > 0 の場合は元の順序が保持されるため、安定ソートです。
+/// すでにソートされた配列では高速に動作しますが、逆順の配列では遅くなります。  
+/// <br/>
+/// Maintains a sorted portion of the array at the beginning. Progresses from the end of the sorted portion towards the end of the array, Compares each element and swaps it with the sorted portion as long as it is smaller. (In other words, new elements are moved forward as long as their value is smaller.)
+/// Due to the properties of <see cref="IComparable"/>, where x.CompareTo(y) > 0 ensures the original order is preserved, this is a stable sort.
+/// Performs well on already sorted arrays but is slow on reverse-sorted arrays.
+/// </summary>
+/// <remarks>
+/// stable  : yes
+/// inplace : yes
+/// Compare : O(n^2), strictly n(n-1) / 2
+/// Swap    : O(n^2), strictly n^2/2
+/// Index   : O(n^2) (Each element may be accessed multiple times during swaps)
+/// Order   : O(n^2)
+///         * average:                   O(n^2) 
+///         * best case (nearly sorted): O(n)
+///         * worst case can approach  : O(n^2)
+/// </remarks>
+/// <typeparam name="T"></typeparam>
+public class InsertionNonOptimizedSort<T> : SortBase<T> where T : IComparable<T>
+{
+    public override SortMethod SortType => SortMethod.Insertion;
+    protected override string Name => nameof(InsertionNonOptimizedSort<T>);
+
+    public override void Sort(T[] array)
+    {
+        Statistics.Reset(array.Length, SortType, Name);
+        SortCore(array.AsSpan(), 0, array.Length);
+    }
+
+    public override void Sort(Span<T> span)
+    {
+        Statistics.Reset(span.Length, SortType, Name);
+        SortCore(span, 0, span.Length);
+    }
+
+    internal void Sort(Span<T> span, int first, int last)
+    {
+        SortCore(span, first, last);
+    }
+
+    /// <summary>
+    /// Insertion sort using swaps (non-optimized)
+    /// </summary>
+    /// <param name="span"></param>
+    /// <param name="first"></param>
+    /// <param name="last"></param>
+    private void SortCore(Span<T> span, int first, int last)
+    {
+        if (last - first <= 1)
+            return;
+
+        for (var i = first + 1; i < last; i++)
+        {
+            // Move the element at position i backward until it's in the correct position
+            var j = i;
+            while (j > first && Compare(Index(span, j - 1), Index(span, j)) > 0)
+            {
+                Swap(ref Index(span, j - 1), ref Index(span, j));
+                j--;
+            }
         }
     }
 }

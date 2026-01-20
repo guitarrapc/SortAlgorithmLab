@@ -51,12 +51,15 @@ Span ...
 /// Then, the root element is moved to the end of the sorted array, the last element is moved to the root, and the heap structure is re-established. Repeating this process ensures that the maximum value in the heap is always at the root, allowing elements to be naturally sorted as they are moved to the sorted array.
 /// </summary>
 /// <remarks>
-/// stable : no
+/// stable  : no
 /// inplace : yes
 /// Compare : O(n log n)  
 /// Swap    : O(n log n)  
-/// Index   : O(n log n) (Each element is accessed O(log n) times during heap operations)  
-/// Order   : O(n log n) (best, average, and worst cases)
+/// Index   : O(n log n)     (Each element is accessed O(log n) times during heap operations)  
+/// Order   : O(n log n)
+///         * average   : O(n log n)
+///         * best case : O(n log n)
+///         * worst case: O(n log n)
 /// </remarks>
 /// <typeparam name="T"></typeparam>
 
@@ -65,36 +68,33 @@ public class HeapSort<T> : SortBase<T> where T : IComparable<T>
     public override SortMethod SortType => SortMethod.Selection;
     protected override string Name => nameof(HeapSort<T>);
 
-    public override T[] Sort(T[] array)
+    public override void Sort(T[] array)
     {
         Statistics.Reset(array.Length, SortType, Name);
         SortCore(array.AsSpan(), 0, array.Length);
+    }
 
-        return array;
+    public override void Sort(Span<T> span)
+    {
+        Statistics.Reset(span.Length, SortType, Name);
+        SortCore(span, 0, span.Length);
     }
 
     /// <summary>
-    /// 指定した範囲の配列をヒープソートする
+    /// Sort a portion of the span from index first to last-1.
     /// </summary>
-    /// <param name="array"></param>
+    /// <param name="span"></param>
     /// <param name="first"></param>
     /// <param name="last"></param>
-    /// <returns></returns>
-    /// <exception cref="ArgumentOutOfRangeException"></exception>
-    public T[] Sort(T[] array, int first, int last)
+    internal void Sort(Span<T> span, int first, int last)
     {
-        Statistics.Reset(array.Length, SortType, Name);
-        SortCore(array.AsSpan(), first, last);
-
-        return array;
+        SortCore(span, first, last);
     }
 
     private void SortCore(Span<T> span, int first, int last)
     {
         if (first < 0 || last > span.Length || first >= last)
-        {
             throw new ArgumentOutOfRangeException(nameof(first), "Invalid range for sorting.");
-        }
 
         var n = last - first;
 

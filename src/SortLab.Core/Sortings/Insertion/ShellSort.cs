@@ -1,4 +1,4 @@
-namespace SortLab.Core.Sortings;
+﻿namespace SortLab.Core.Sortings;
 
 /*
 
@@ -63,15 +63,15 @@ Span (Sedgewick) ...
 /// <see cref="CombSort{T}"/> is a similar concept applied to <see cref="BubbleSort{T}"/>.
 /// </summary>
 /// <remarks>
-/// stable  : no (because gap-based insertion sorting does not preserve the order of equal elements)
+/// stable  : no  (gap-based insertion sorting does not preserve the order of equal elements)
 /// inplace : yes
-/// Compare : Depends on gap sequence (often around O(n^(1.3)) ~ O(n^(1.5)) on average.)
-/// Swap    : In swap-based implementation, potentially multiple swaps per insertion
-/// Index   : O(n^2) (Each element may be accessed multiple times during swaps) 
+/// Compare : Depends on gap sequence (often around O(n^1.3) ~ O(n^1.5))
+/// Swap    : O(n^1.3) ~ O(n^2) (Potentially multiple swaps per insertion)
+/// Index   : O(n^2)   (Each element may be accessed multiple times during swaps) 
 /// Order   : Typically sub-quadratic
-///         * average:                   O(n^1.3 ~ n^1.5)
-///         * best case (nearly sorted): O(n)
-///         * worst case can approach  : O(n^2)
+///         * average   : O(n^1.3 ~ n^1.5)
+///         * best case : O(n) (nearly sorted)
+///         * worst case: O(n^2)
 /// </remarks>
 /// <typeparam name="T"></typeparam>
 public class ShellSort<T> : SortBase<T> where T : IComparable<T>
@@ -79,18 +79,16 @@ public class ShellSort<T> : SortBase<T> where T : IComparable<T>
     public override SortMethod SortType => SortMethod.Insertion;
     protected override string Name => nameof(ShellSort<T>);
 
-    public override T[] Sort(T[] array)
+    public override void Sort(T[] array)
     {
         Statistics.Reset(array.Length, SortType, Name);
         SortCore(array.AsSpan(), 0, array.Length, GapType.Knuth);
-        return array;
     }
 
-    public T[] Sort(T[] array, int first, int last)
+    public override void Sort(Span<T> span)
     {
-        Statistics.Reset(array.Length, SortType, Name);
-        SortCore(array.AsSpan(), first, last, GapType.Knuth);
-        return array;
+        Statistics.Reset(span.Length, SortType, Name);
+        SortCore(span, 0, span.Length, GapType.Knuth);
     }
 
     /// <summary>

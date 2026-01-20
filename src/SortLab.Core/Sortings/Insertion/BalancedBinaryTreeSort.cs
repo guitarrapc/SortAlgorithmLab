@@ -37,24 +37,30 @@ Span (Iterative) ...
 /// </summary>
 /// <remarks>
 /// stable  : no  (Binary Tree Sort is not stable as it does not preserve the relative order of equal elements)  
-/// inplace : no 
-/// Compare : O(n log n) on average  
-/// Swap    : 0  (No swaps are performed in the array itself)  
-/// Index   : O(n) (Each element is accessed once during in-order traversal)  
+/// inplace : no  (Requires additional memory for the tree structure)
+/// Compare : O(n log n)  
+/// Swap    : 0        (No swaps are performed in the array itself)  
+/// Index   : O(n)     (Each element is accessed once during in-order traversal)  
 /// Order   : O(n log n)
-///         * average:                 O(n log n)
-///         * worst case can approach: O(n log n) 
+///         * average   : O(n log n)
+///         * worst case: O(n log n) (due to tree balancing)
+/// </remarks>
 /// <typeparam name="T"></typeparam>
 public class BalancedBinaryTreeSort<T> : SortBase<T> where T : IComparable<T>
 {
     public override SortMethod SortType => SortMethod.Insertion;
     protected override string Name => nameof(BalancedBinaryTreeSort<T>);
 
-    public override T[] Sort(T[] array)
+    public override void Sort(T[] array)
     {
         Statistics.Reset(array.Length, SortType, Name);
         SortCore(array.AsSpan());
-        return array;
+    }
+
+    public override void Sort(Span<T> span)
+    {
+        Statistics.Reset(span.Length, SortType, Name);
+        SortCore(span);
     }
 
     /// <summary>

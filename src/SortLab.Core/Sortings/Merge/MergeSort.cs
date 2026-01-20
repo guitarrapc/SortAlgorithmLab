@@ -5,11 +5,14 @@
 /// TopDown
 /// </summary>
 /// <remarks>
-/// stable : yes
-/// inplace : no (n)
-/// Compare : n log2 n
-/// Swap : n log2 n
-/// Order : O(n log n) (Worst case : O(n log n))
+/// stable  : yes
+/// inplace : no  (Requires O(n) additional memory)
+/// Compare : O(n log n)
+/// Swap    : O(n log n)
+/// Order   : O(n log n)
+///         * average   : O(n log n)
+///         * best case : O(n log n)
+///         * worst case: O(n log n)
 /// </remarks>
 /// <typeparam name="T"></typeparam>
 
@@ -18,51 +21,53 @@ public class MergeSort<T> : SortBase<T> where T : IComparable<T>
     public override SortMethod SortType => SortMethod.Merging;
     protected override string Name => nameof(MergeSort<T>);
 
-    public override T[] Sort(T[] array)
+    public override void Sort(T[] array)
     {
         Statistics.Reset(array.Length, SortType, Name);
-        var work = new T[(array.Length) / 2];
-        Sort(array, 0, array.Length - 1, work);
-        return array;
+        SortCore(array.AsSpan(), 0, array.Length - 1);
     }
 
-    private T[] Sort(T[] array, int left, int right, T[] work)
+    public override void Sort(Span<T> span)
     {
+        Statistics.Reset(span.Length, SortType, Name);
+        SortCore(span, 0, span.Length - 1);
+    }
+
+    private void SortCore(Span<T> span, int left, int right)
+    {
+        if (left >= right) return;
+
         var mid = (left + right) / 2;
-        if (left == right) return array;
-        Statistics.AddIndexCount();
+        var work = new T[(span.Length) / 2];
 
         // left : merge + sort
-        Sort(array, left, mid, work);
+        SortCore(span, left, mid);
         // right : merge + sort
-        Sort(array, mid + 1, right, work);
+        SortCore(span, mid + 1, right);
         // left + right: merge
-        Merge(array, left, right, mid, work);
-        return array;
+        Merge(span, left, right, mid, work);
     }
 
-    // escape left to work, then merge right, and last for left.
-    private T[] Merge(T[] array, int left, int right, int mid, T[] work)
+    private void Merge(Span<T> span, int left, int right, int mid, T[] work)
     {
-        T max = default(T)!;
-        // if array[2] = x,y. set work[0] = x
+        var max = default(T)!;
+        // Copy left part to work
         for (var i = left; i <= mid; i++)
         {
-            Statistics.AddIndexCount();
-            work[i - left] = array[i];
+            work[i - left] = Index(span, i);
 
             // max assign
             if (i - left >= work.Length - 1)
             {
-                max = array.Max()!;
+                max = span.ToArray().Max()!;
                 break;
             }
         }
 
-        int l = left;
-        int r = mid + 1;
+        var l = left;
+        var r = mid + 1;
 
-        // merge array-left and work
+        // merge span-left and work
         while (true)
         {
             var k = l + r - (mid + 1);
@@ -74,14 +79,13 @@ public class MergeSort<T> : SortBase<T> where T : IComparable<T>
             {
                 while (l <= mid)
                 {
-                    Statistics.AddIndexCount();
                     k = l + r - (mid + 1);
-                    Swap(ref array[k], ref work[l - left]);
+                    Swap(ref Index(span, k), ref work[l - left]);
 
                     // max assign on edge case
                     if (l - left >= work.Length - 1)
                     {
-                        array[right] = max;
+                        Index(span, right) = max;
                         break;
                     }
                     l++;
@@ -90,19 +94,17 @@ public class MergeSort<T> : SortBase<T> where T : IComparable<T>
             }
 
             // sort
-            if (Compare(work[l - left], array[r]) < 0)
+            if (Compare(work[l - left], Index(span, r)) < 0)
             {
-                Swap(ref array[k], ref work[l - left]);
+                Swap(ref Index(span, k), ref work[l - left]);
                 l++;
             }
             else
             {
-                Swap(ref array[k], ref array[r]);
+                Swap(ref Index(span, k), ref Index(span, r));
                 r++;
             }
         }
-
-        return array;
     }
 }
 
@@ -117,58 +119,64 @@ public class MergeSort2<T> : SortBase<T> where T : IComparable<T>
     public override SortMethod SortType => SortMethod.Merging;
     protected override string Name => nameof(MergeSort2<T>);
 
-    public override T[] Sort(T[] array)
+    public override void Sort(T[] array)
     {
         Statistics.Reset(array.Length, SortType, Name);
-        return SortImpl(array);
+        var result = SortCore(array.AsSpan());
+        result.CopyTo(array);
     }
 
-    private T[] SortImpl(T[] array)
+    public override void Sort(Span<T> span)
     {
-        if (array.Length <= 1) return array;
+        Statistics.Reset(span.Length, SortType, Name);
+        var result = SortCore(span);
+        result.CopyTo(span);
+    }
 
-        Statistics.AddIndexCount();
+    private Span<T> SortCore(Span<T> span)
+    {
+        if (span.Length <= 1) return span;
 
-        int mid = array.Length / 2;
-        var left = array.Take(mid).ToArray();
-        var right = array.Skip(mid).ToArray();
-        left = SortImpl(left);
-        right = SortImpl(right);
-        var result = Merge(left, right);
+        var mid = span.Length / 2;
+        var leftArray = span.Slice(0, mid).ToArray();
+        var rightArray = span.Slice(mid).ToArray();
+        var leftResult = SortCore(leftArray.AsSpan());
+        var rightResult = SortCore(rightArray.AsSpan());
+        var result = Merge(leftResult, rightResult);
         return result;
     }
 
-    private T[] Merge(T[] left, T[] right)
+    private Span<T> Merge(Span<T> left, Span<T> right)
     {
         var result = new T[left.Length + right.Length];
+        var resultSpan = result.AsSpan();
         var i = 0;
         var j = 0;
         var current = 0;
         while (i < left.Length || j < right.Length)
         {
-            Statistics.AddIndexCount();
             if (i < left.Length && j < right.Length)
             {
                 if (Compare(left[i], right[j]) <= 0)
                 {
-                    Swap(ref result[current], ref left[i++]);
+                    Index(resultSpan, current) = left[i++];
                 }
                 else
                 {
-                    Swap(ref result[current], ref right[j++]);
+                    Index(resultSpan, current) = right[j++];
                 }
             }
             else if (i < left.Length)
             {
-                Swap(ref result[current], ref left[i++]);
+                Index(resultSpan, current) = left[i++];
             }
             else
             {
-                Swap(ref result[current], ref right[j++]);
+                Index(resultSpan, current) = right[j++];
             }
             current++;
         }
 
-        return result;
+        return resultSpan;
     }
 }

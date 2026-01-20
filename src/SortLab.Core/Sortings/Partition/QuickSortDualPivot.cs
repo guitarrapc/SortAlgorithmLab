@@ -1,0 +1,83 @@
+﻿namespace SortLab.Core.Sortings;
+
+/// <summary>
+/// ピボットを2つ使用することで、配列を3つの領域に分割する。
+/// 通常のQuickSortよりも再帰の深さを浅くし、キャッシュ効率を高めることで高速化を図る。
+/// Java 7以降の標準ソートアルゴリズムとして採用されている。
+/// </summary>
+/// <remarks>
+/// stable  : no
+/// inplace : yes (Only uses O(log n) recursive stack space)
+/// Compare : O(n log n)  (Average case, Worst case: O(n^2))
+/// Swap    : O(n log n)  (Average case, Worst case: O(n^2))
+/// Order   : O(n log n)
+///         * average   : O(n log n) (often faster than single-pivot QuickSort)
+///         * best case : O(n log n)
+///         * worst case: O(n^2)     (rare)
+/// </remarks>
+/// <typeparam name="T"></typeparam>
+public class QuickSortDualPivot<T> : SortBase<T> where T : IComparable<T>
+{
+    public override SortMethod SortType => SortMethod.Partitioning;
+    protected override string Name => nameof(QuickSortDualPivot<T>);
+
+    public override void Sort(T[] array)
+    {
+        Statistics.Reset(array.Length, SortType, Name);
+        SortCore(array.AsSpan(), 0, array.Length - 1);
+    }
+
+    public override void Sort(Span<T> span)
+    {
+        Statistics.Reset(span.Length, SortType, Name);
+        SortCore(span, 0, span.Length - 1);
+    }
+
+    private void SortCore(Span<T> span, int left, int right)
+    {
+        if (right <= left) return;
+
+        // fase 0. Make sure left item is lower than right item
+        if (Compare(Index(span, left), Index(span, right)) > 0)
+        {
+            Swap(ref Index(span, left), ref Index(span, right));
+        }
+
+        // fase 1. decide pivot
+        var l = left + 1;
+        var k = l;
+        var g = right - 1;
+
+        while (k <= g)
+        {
+            if (Compare(Index(span, k), Index(span, left)) < 0)
+            {
+                Swap(ref Index(span, k), ref Index(span, l));
+                k++;
+                l++;
+            }
+            else if (Compare(Index(span, right), Index(span, k)) < 0)
+            {
+                Swap(ref Index(span, k), ref Index(span, g));
+                g--;
+            }
+            else
+            {
+                k++;
+            }
+        }
+
+        l--;
+        g++;
+        Swap(ref Index(span, left), ref Index(span, l));
+        Swap(ref Index(span, right), ref Index(span, g));
+
+        // fase 2. Sort Left, Mid and righ
+        SortCore(span, left, l - 1);
+        if (Compare(Index(span, left), Index(span, right)) < 0)
+        {
+            SortCore(span, l + 1, g - 1);
+        }
+        SortCore(span, g + 1, right);
+    }
+}

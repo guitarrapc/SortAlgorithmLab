@@ -4,11 +4,11 @@
 /// リストの先頭に戻る前に、前回の位置を覚えておくことで<see cref="GnomeSortWithSwap{T}"/>を最適化している。これにより、<see cref="InsertionSort{T}"/>と同程度の計算量になる。
 /// </summary>
 /// <remarks>
-/// stable : yes
+/// stable  : yes
 /// inplace : yes
-/// Compare :
-/// Swap :
-/// Order : O(n^2)
+/// Compare : O(n^2)  (Best case: O(n) when already sorted)
+/// Swap    : O(n^2)  (Best case: 0 when already sorted)
+/// Order   : O(n^2)  (Best case: O(n))
 /// </remarks>
 /// <typeparam name="T"></typeparam>
 public class GnomeSort<T> : SortBase<T> where T : IComparable<T>
@@ -16,19 +16,28 @@ public class GnomeSort<T> : SortBase<T> where T : IComparable<T>
     public override SortMethod SortType => SortMethod.Exchange;
     protected override string Name => nameof(GnomeSort<T>);
 
-    public override T[] Sort(T[] array)
+    public override void Sort(T[] array)
     {
         Statistics.Reset(array.Length, SortType, Name);
-        for (var i = 0; i < array.Length; i++)
+        SortCore(array.AsSpan());
+    }
+
+    public override void Sort(Span<T> span)
+    {
+        Statistics.Reset(span.Length, SortType, Name);
+        SortCore(span);
+    }
+
+    private void SortCore(Span<T> span)
+    {
+        for (var i = 0; i < span.Length; i++)
         {
-            Statistics.AddIndexCount();
-            while (i > 0 && Compare(array[i - 1], array[i]) > 0)
+            while (i > 0 && Compare(Index(span, i - 1), Index(span, i)) > 0)
             {
-                Swap(ref array[i - 1], ref array[i]);
+                Swap(ref Index(span, i - 1), ref Index(span, i));
                 i--;
             }
         }
-        return array;
     }
 }
 
@@ -49,25 +58,33 @@ public class GnomeSortWithSwap<T> : SortBase<T> where T : IComparable<T>
     public override SortMethod SortType => SortMethod.Exchange;
     protected override string Name => nameof(GnomeSortWithSwap<T>);
 
-    public override T[] Sort(T[] array)
+    public override void Sort(T[] array)
     {
         Statistics.Reset(array.Length, SortType, Name);
-        for (var i = 1; i < array.Length;)
+        SortCore(array.AsSpan());
+    }
+
+    public override void Sort(Span<T> span)
+    {
+        Statistics.Reset(span.Length, SortType, Name);
+        SortCore(span);
+    }
+
+    private void SortCore(Span<T> span)
+    {
+        for (var i = 1; i < span.Length;)
         {
-            Statistics.AddIndexCount();
-            if (Compare(array[i - 1], array[i]) <= 0)
+            if (Compare(Index(span, i - 1), Index(span, i)) <= 0)
             {
                 i++;
             }
             else
             {
-                Swap(ref array[i - 1], ref array[i]);
+                Swap(ref Index(span, i - 1), ref Index(span, i));
                 i -= 1;
                 if (i == 0) i = 1;
             }
-
         }
-        return array;
     }
 }
 
@@ -80,28 +97,33 @@ public class GnomeSortNoOptimization<T> : SortBase<T> where T : IComparable<T>
     public override SortMethod SortType => SortMethod.Exchange;
     protected override string Name => nameof(GnomeSortNoOptimization<T>);
 
-    public override T[] Sort(T[] array)
+    public override void Sort(T[] array)
     {
         Statistics.Reset(array.Length, SortType, Name);
-        for (var i = 0; i < array.Length - 1; i++)
+        SortCore(array.AsSpan());
+    }
+
+    public override void Sort(Span<T> span)
+    {
+        Statistics.Reset(span.Length, SortType, Name);
+        SortCore(span);
+    }
+
+    private void SortCore(Span<T> span)
+    {
+        for (var i = 0; i < span.Length - 1; i++)
         {
-            if (Compare(array[i], array[i + 1]) > 0)
+            if (Compare(Index(span, i), Index(span, i + 1)) > 0)
             {
-                Swap(ref array[i], ref array[i + 1]);
+                Swap(ref Index(span, i), ref Index(span, i + 1));
                 for (var j = i; j > 0; j--)
                 {
-                    Statistics.AddIndexCount();
-                    if (Compare(array[j - 1], array[j]) <= 0) break;
+                    if (Compare(Index(span, j - 1), Index(span, j)) <= 0) break;
 
-                    Swap(ref array[j - 1], ref array[j]);
+                    Swap(ref Index(span, j - 1), ref Index(span, j));
                 }
             }
-            else
-            {
-                Statistics.AddIndexCount();
-            }
         }
-        return array;
     }
 }
 
@@ -114,24 +136,32 @@ public class GnomeSortSimple<T> : SortBase<T> where T : IComparable<T>
     public override SortMethod SortType => SortMethod.Exchange;
     protected override string Name => nameof(GnomeSortSimple<T>);
 
-    public override T[] Sort(T[] array)
+    public override void Sort(T[] array)
     {
         Statistics.Reset(array.Length, SortType, Name);
+        SortCore(array.AsSpan());
+    }
 
+    public override void Sort(Span<T> span)
+    {
+        Statistics.Reset(span.Length, SortType, Name);
+        SortCore(span);
+    }
+
+    private void SortCore(Span<T> span)
+    {
         var i = 0;
-        while (i < array.Length)
+        while (i < span.Length)
         {
-            Statistics.AddIndexCount();
-            if (i == 0 || Compare(array[i - 1], array[i]) <= 0)
+            if (i == 0 || Compare(Index(span, i - 1), Index(span, i)) <= 0)
             {
                 i++;
             }
             else
             {
-                Swap(ref array[i], ref array[i - 1]);
+                Swap(ref Index(span, i), ref Index(span, i - 1));
                 --i;
             }
         }
-        return array;
     }
 }

@@ -1,81 +1,83 @@
+﻿using SortLab.Tests.Attributes;
+
 namespace SortLab.Tests;
 
-public class BinaryTreeSortTests
+public class InsertionNonOptimizedSortTests
 {
     private ISort<int> sort;
     private string algorithm;
     private SortMethod method;
 
-    public BinaryTreeSortTests()
+    public InsertionNonOptimizedSortTests()
     {
-        sort = new BinaryTreeSort<int>();
-        algorithm = nameof(BinaryTreeSort<int>);
+        sort = new InsertionNonOptimizedSort<int>();
+        algorithm = nameof(InsertionNonOptimizedSort<int>);
         method = SortMethod.Insertion;
     }
 
-    [Fact]
+    [CISkippableFact]
     public void SortMethodTest()
     {
         Assert.Equal(method, sort.SortType);
     }
 
-    [Theory]
+    [CISkippableTheory]
     [ClassData(typeof(MockRandomData))]
     public void RandomInputTypeTest(IInputSample<int> inputSample)
     {
         Assert.Equal(InputType.Random, inputSample.InputType);
     }
 
-    [Theory]
+    [CISkippableTheory]
     [ClassData(typeof(MockNegativePositiveRandomData))]
     public void MixRandomInputTypeTest(IInputSample<int> inputSample)
     {
         Assert.Equal(InputType.MixRandom, inputSample.InputType);
     }
 
-    [Theory]
+    [CISkippableTheory]
     [ClassData(typeof(MockNegativeRandomData))]
     public void NegativeRandomInputTypeTest(IInputSample<int> inputSample)
     {
         Assert.Equal(InputType.NegativeRandom, inputSample.InputType);
     }
 
-    [Theory]
+    [CISkippableTheory]
     [ClassData(typeof(MockReversedData))]
     public void ReverseInputTypeTest(IInputSample<int> inputSample)
     {
         Assert.Equal(InputType.Reversed, inputSample.InputType);
     }
 
-    [Theory]
+    [CISkippableTheory]
     [ClassData(typeof(MockMountainData))]
     public void MountainInputTypeTest(IInputSample<int> inputSample)
     {
         Assert.Equal(InputType.Mountain, inputSample.InputType);
     }
 
-    [Theory]
+    [CISkippableTheory]
     [ClassData(typeof(MockNearlySortedData))]
     public void NearlySortedInputTypeTest(IInputSample<int> inputSample)
     {
         Assert.Equal(InputType.NearlySorted, inputSample.InputType);
     }
 
-    [Theory]
+    [CISkippableTheory]
     [ClassData(typeof(MockSortedData))]
     public void SortedInputTypeTest(IInputSample<int> inputSample)
     {
         Assert.Equal(InputType.Sorted, inputSample.InputType);
     }
 
-    [Theory]
+    [CISkippableTheory]
     [ClassData(typeof(MockSameValuesData))]
     public void SameValuesInputTypeTest(IInputSample<int> inputSample)
     {
         Assert.Equal(InputType.SameValues, inputSample.InputType);
     }
 
-    [Theory]
+    [CISkippableTheory]
     [ClassData(typeof(MockRandomData))]
     [ClassData(typeof(MockNegativePositiveRandomData))]
     [ClassData(typeof(MockNegativeRandomData))]
@@ -91,7 +93,7 @@ public class BinaryTreeSortTests
         Assert.Equal(inputSample.Samples.OrderBy(x => x), array);
     }
 
-    [Theory]
+    [CISkippableTheory]
     [ClassData(typeof(MockRandomData))]
     [ClassData(typeof(MockNegativePositiveRandomData))]
     [ClassData(typeof(MockNegativeRandomData))]
@@ -106,22 +108,22 @@ public class BinaryTreeSortTests
         Assert.Equal(inputSample.Samples.Length, sort.Statistics.ArraySize);
         Assert.NotEqual((ulong)0, sort.Statistics.IndexAccessCount);
         Assert.NotEqual((ulong)0, sort.Statistics.CompareCount);
-        Assert.Equal((ulong)0, sort.Statistics.SwapCount);
+        Assert.NotEqual((ulong)0, sort.Statistics.SwapCount);
     }
 
-    [Theory]
+    [CISkippableTheory]
     [ClassData(typeof(MockSortedData))]
     public void StatisticsSortedTest(IInputSample<int> inputSample)
     {
         sort.Sort(inputSample.Samples);
         Assert.Equal(algorithm, sort.Statistics.Algorithm);
         Assert.Equal(inputSample.Samples.Length, sort.Statistics.ArraySize);
-        Assert.NotEqual((ulong)0, sort.Statistics.IndexAccessCount);
-        Assert.NotEqual((ulong)0, sort.Statistics.CompareCount);
-        Assert.Equal((ulong)0, sort.Statistics.SwapCount);
+        Assert.NotEqual(0UL, sort.Statistics.IndexAccessCount);
+        Assert.Equal((ulong)inputSample.Samples.Length - 1, sort.Statistics.CompareCount);
+        Assert.Equal(0UL, sort.Statistics.SwapCount);
     }
 
-    [Theory]
+    [CISkippableTheory]
     [ClassData(typeof(MockRandomData))]
     [ClassData(typeof(MockNegativePositiveRandomData))]
     [ClassData(typeof(MockNegativeRandomData))]
@@ -139,7 +141,7 @@ public class BinaryTreeSortTests
         Assert.Equal((ulong)0, sort.Statistics.SwapCount);
     }
 
-    [Theory]
+    [CISkippableTheory]
     [InlineData(10)]
     [InlineData(20)]
     [InlineData(50)]
@@ -149,11 +151,12 @@ public class BinaryTreeSortTests
         var sorted = Enumerable.Range(0, n).ToArray();
         sort.Sort(sorted);
 
-        // Sorted data should produce predictable statistics
-        Assert.NotEqual(0UL, sort.Statistics.CompareCount);
+        var expectedCompares = (ulong)(n - 1);
+        Assert.Equal(expectedCompares, sort.Statistics.CompareCount);
+        Assert.Equal(0UL, sort.Statistics.SwapCount);
     }
 
-    [Theory]
+    [CISkippableTheory]
     [InlineData(10)]
     [InlineData(20)]
     [InlineData(50)]
@@ -163,7 +166,10 @@ public class BinaryTreeSortTests
         var reversed = Enumerable.Range(0, n).Reverse().ToArray();
         sort.Sort(reversed);
 
-        // Reversed data should require sorting operations
-        Assert.NotEqual(0UL, sort.Statistics.CompareCount);
+        var expectedCompares = (ulong)(n * (n - 1) / 2);
+        var expectedSwaps = (ulong)(n * (n - 1) / 2);
+        Assert.Equal(expectedCompares, sort.Statistics.CompareCount);
+        Assert.Equal(expectedSwaps, sort.Statistics.SwapCount);
     }
 }
+

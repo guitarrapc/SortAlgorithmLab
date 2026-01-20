@@ -1,14 +1,18 @@
 ﻿namespace SortLab.Core.Sortings;
 
 /// <summary>
-/// QuickSort + InsertSortによる Quick Searchでだいたいソート済みになった時に最速を目指す。
+/// QuickSort + InsertionSort によるハイブリッドソート。
+/// QuickSortでだいたいソート済みになった小さな部分配列でInsertionSortに切り替えることで、最高のパフォーマンスを目指す。
 /// </summary>
 /// <remarks>
-/// stable : no
-/// inplace : no (log n)
-/// Compare :
-/// Swap :
-/// Order : O(n log n) (Worst case : O(n nlog n))
+/// stable  : no
+/// inplace : yes (Only uses O(log n) recursive stack space)
+/// Compare : O(n log n)  (Average case, Worst case: O(n^2))
+/// Swap    : O(n log n)  (Average case, Worst case: O(n^2))
+/// Order   : O(n log n)
+///         * average   : O(n log n)
+///         * best case : O(n log n)
+///         * worst case: O(n^2)
 /// </remarks>
 /// <typeparam name="T"></typeparam>
 public class QuickSortMedian3WithInsert<T> : SortBase<T> where T : IComparable<T>
@@ -20,56 +24,61 @@ public class QuickSortMedian3WithInsert<T> : SortBase<T> where T : IComparable<T
     private const int InsertThreshold = 16;
     private InsertionSort<T> insertSort = new InsertionSort<T>();
 
-    public override T[] Sort(T[] array)
+    public override void Sort(T[] array)
     {
         Statistics.Reset(array.Length, SortType, Name);
-        var result = SortImpl(array, 0, array.Length - 1);
+        SortCore(array.AsSpan(), 0, array.Length - 1);
         Statistics.AddCompareCount(insertSort.Statistics.CompareCount);
         Statistics.AddIndexCount(insertSort.Statistics.IndexAccessCount);
         Statistics.AddSwapCount(insertSort.Statistics.SwapCount);
-        return result;
     }
 
-    private T[] SortImpl(T[] array, int left, int right)
+    public override void Sort(Span<T> span)
     {
-        if (left >= right) return array;
+        Statistics.Reset(span.Length, SortType, Name);
+        SortCore(span, 0, span.Length - 1);
+        Statistics.AddCompareCount(insertSort.Statistics.CompareCount);
+        Statistics.AddIndexCount(insertSort.Statistics.IndexAccessCount);
+        Statistics.AddSwapCount(insertSort.Statistics.SwapCount);
+    }
+
+    private void SortCore(Span<T> span, int left, int right)
+    {
+        if (left >= right) return;
 
         // switch to insert sort
         if (right - left < InsertThreshold)
         {
-            return insertSort.Sort(array, left, right + 1);
+            insertSort.Sort(span, left, right + 1);
+            return;
         }
 
         // fase 1. decide pivot
-        Statistics.AddIndexCount();
-        var pivot = Median3(array[left], array[(left + (right - left)) / 2], array[right]);
+        var pivot = Median3(Index(span, left), Index(span, (left + (right - left)) / 2), Index(span, right));
         var l = left;
         var r = right;
 
         while (l <= r)
         {
-            while (l < right && Compare(array[l], pivot) < 0)
+            while (l < right && Compare(Index(span, l), pivot) < 0)
             {
-                Statistics.AddIndexCount();
                 l++;
             }
 
-            while (r > left && Compare(array[r], pivot) > 0)
+            while (r > left && Compare(Index(span, r), pivot) > 0)
             {
-                Statistics.AddIndexCount();
                 r--;
             }
 
             if (l > r) break;
-            Swap(ref array[l], ref array[r]);
+            Swap(ref Index(span, l), ref Index(span, r));
             l++;
             r--;
         }
 
         // fase 2. Sort Left and Right
-        SortImpl(array, left, l - 1);
-        SortImpl(array, l, right);
-        return array;
+        SortCore(span, left, l - 1);
+        SortCore(span, l, right);
     }
 
     private T Median3(T low, T mid, T high)

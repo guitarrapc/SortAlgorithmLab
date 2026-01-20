@@ -1,7 +1,9 @@
-﻿namespace SortLab.Core.Sortings;
+﻿using System.Diagnostics;
+
+namespace SortLab.Core.Sortings;
 
 /*
- * 
+ *
 Ref span ...
 
 | Method        | Number | Mean          | Error          | StdDev        | Median        | Min          | Max           | Allocated |
@@ -24,11 +26,14 @@ Span ...
 /// ヒープソートの亜種。HeapSortのBinaryTree手法ではなく、Leonardo Sequenceで並べる。あとは、大きい数値をツリーから拾って順に並べる。レオナルド数列の特性から、順番に並んでいる要素をなるべく移動しないようにソートできるため、順番に並んでいるほど計算時間が少なくなる。(完全に並んでいればO(n))
 /// </summary>
 /// <remarks>
-/// stable : no
+/// stable  : no
 /// inplace : yes
-/// Compare : n log n
-/// Swap : n log n
-/// Order : O(n log n) (best case : n) (Worst case : O(n log n))
+/// Compare : O(n log n)
+/// Swap    : O(n log n)
+/// Order   : O(n log n)
+///         * average   : O(n log n)
+///         * best case : O(n)       (when data is already sorted)
+///         * worst case: O(n log n)
 /// </remarks>
 /// <typeparam name="T"></typeparam>
 
@@ -38,17 +43,15 @@ public class SmoothSort<T> : SortBase<T> where T : IComparable<T>
     public override SortMethod SortType => SortMethod.Selection;
     protected override string Name => nameof(SmoothSort<T>);
 
-    public override T[] Sort(T[] array)
+    public override void Sort(T[] array)
     {
         Statistics.Reset(array.Length, SortType, Name);
         SortCore(array.AsSpan());
-
-        return array;
     }
 
-    public void Sort(Span<T> span)
+    public override void Sort(Span<T> span)
     {
-        Statistics.Reset(span.Length, SortType, nameof(SmoothSort<T>));
+        Statistics.Reset(span.Length, SortType, Name);
         SortCore(span);
     }
 
@@ -148,11 +151,11 @@ public class SmoothSort<T> : SortBase<T> where T : IComparable<T>
                     Down(ref b, ref c);
                     p = (p << 1) + 1;
 
-                    ArgumentOutOfRangeException.ThrowIfZero(p);
+                    Debug.Assert(p != 0, "p should not be zero");
                 }
             }
 
-            ArgumentOutOfRangeException.ThrowIfZero(p);
+            Debug.Assert(p != 0, "p should not be zero");
         }
     }
 
@@ -183,7 +186,7 @@ public class SmoothSort<T> : SortBase<T> where T : IComparable<T>
             }
             else
             {
-                span[r1] = Index(span, r2);
+                Index(span, r1) = Index(span, r2);
                 r1 = r2;
                 Down(ref b1, ref c1);
             }
@@ -191,7 +194,7 @@ public class SmoothSort<T> : SortBase<T> where T : IComparable<T>
 
         if (r1 - r0 != 0)
         {
-            span[r1] = t;
+            Index(span, r1) = t;
         }
     }
 
@@ -234,7 +237,7 @@ public class SmoothSort<T> : SortBase<T> where T : IComparable<T>
                 if (b1 == 1)
                 {
                     // 1st step heap, just move the element
-                    span[r1] = Index(span, r3);
+                    Index(span, r1) = Index(span, r3);
                     r1 = r3;
                 }
                 else
@@ -252,12 +255,12 @@ public class SmoothSort<T> : SortBase<T> where T : IComparable<T>
                         // Judge swap or not
                         if (Compare(Index(span, r2), Index(span, r3)) <= 0)
                         {
-                            span[r1] = Index(span, r3);
+                            Index(span, r1) = Index(span, r3);
                             r1 = r3;
                         }
                         else
                         {
-                            span[r1] = Index(span, r2);
+                            Index(span, r1) = Index(span, r2);
                             r1 = r2;
                             Down(ref b1, ref c1);
                             p1 = 0;
@@ -270,7 +273,7 @@ public class SmoothSort<T> : SortBase<T> where T : IComparable<T>
         // fix if position is changed from origin
         if (r1 - r0 != 0)
         {
-            span[r1] = t;
+            Index(span, r1) = t;
         }
 
         // final adjustment
@@ -306,9 +309,6 @@ public class SmoothSort<T> : SortBase<T> where T : IComparable<T>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private void Up(ref int a, ref int b)
     {
-#if DEBUG
-        Statistics.AddSwapCount();
-#endif
         var temp = a;
         a += b + 1;
         b = temp;
@@ -322,9 +322,6 @@ public class SmoothSort<T> : SortBase<T> where T : IComparable<T>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private void Down(ref int a, ref int b)
     {
-#if DEBUG
-        Statistics.AddSwapCount();
-#endif
         var temp = b;
         b = a - b - 1;
         a = temp;

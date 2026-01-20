@@ -1,4 +1,4 @@
-namespace SortLab.Tests;
+﻿namespace SortLab.Tests;
 
 public class SelectionSortTests
 {
@@ -86,7 +86,9 @@ public class SelectionSortTests
     [ClassData(typeof(MockSameValuesData))]
     public void SortResultOrderTest(IInputSample<int> inputSample)
     {
-        Assert.Equal(inputSample.Samples.OrderBy(x => x), sort.Sort(inputSample.Samples));
+        var array = inputSample.Samples.ToArray();
+        sort.Sort(array);
+        Assert.Equal(inputSample.Samples.OrderBy(x => x), array);
     }
 
     [Theory]
@@ -120,6 +122,44 @@ public class SelectionSortTests
     }
 
     [Theory]
+    [InlineData(10)]
+    [InlineData(20)]
+    [InlineData(50)]
+    [InlineData(100)]
+    public void TheoreticalValuesSortedTest(int n)
+    {
+        var sorted = Enumerable.Range(0, n).ToArray();
+        sort.Sort(sorted);
+
+        // 理論値: ソート済みの場合
+        // 比較回数: n(n-1)/2 (常に全ての要素を比較)
+        // 交換回数: 0 (交換不要)
+        var expectedCompares = (ulong)(n * (n - 1) / 2);
+
+        Assert.Equal(expectedCompares, sort.Statistics.CompareCount);
+        Assert.Equal(0UL, sort.Statistics.SwapCount);
+    }
+
+    [Theory]
+    [InlineData(10)]
+    [InlineData(20)]
+    [InlineData(50)]
+    [InlineData(100)]
+    public void TheoreticalValuesReversedTest(int n)
+    {
+        var reversed = Enumerable.Range(0, n).Reverse().ToArray();
+        sort.Sort(reversed);
+
+        // 理論値: 逆順の場合
+        // 比較回数: n(n-1)/2 (常に同じ)
+        // 交換回数: 最大 n/2 (各ペアの中央で交換)
+        var expectedCompares = (ulong)(n * (n - 1) / 2);
+
+        Assert.Equal(expectedCompares, sort.Statistics.CompareCount);
+        Assert.True(sort.Statistics.SwapCount <= (ulong)(n / 2 + 1)); // 理論上の上限
+    }
+
+    [Theory]
     [ClassData(typeof(MockRandomData))]
     [ClassData(typeof(MockNegativePositiveRandomData))]
     [ClassData(typeof(MockNegativeRandomData))]
@@ -136,5 +176,5 @@ public class SelectionSortTests
         Assert.Equal((ulong)0, sort.Statistics.CompareCount);
         Assert.Equal((ulong)0, sort.Statistics.SwapCount);
     }
-}
 
+}

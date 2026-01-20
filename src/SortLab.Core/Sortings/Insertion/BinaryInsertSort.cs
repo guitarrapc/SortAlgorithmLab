@@ -37,13 +37,13 @@ Span ...
 /// <remarks>
 /// stable  : yes
 /// inplace : yes
-/// Compare : O(n log n) on average (Each insertion performs a binary search) 
-/// Swap    : O(n^2/2) (Each insertion may require shifting elements) 
-/// Index   : O(n^2) (Each element may be accessed multiple times during shifts)
-/// Order   : O(n log n)
-///         * average:                   O(n log n) for comparisons and O(n^2) for shifts  
-///         * best case (nearly sorted): O(n)  
-///         * worst case can approach:   O(n^2) 
+/// Compare : O(n log n) (Binary search for each insertion) 
+/// Swap    : O(n^2)     (Each insertion may require shifting elements) 
+/// Index   : O(n^2)     (Each element may be accessed multiple times during shifts)
+/// Order   : O(n^2)     (Comparisons are O(n log n), but shifts dominate at O(n^2))
+///         * average   : O(n^2)  
+///         * best case : O(n)    (nearly sorted)  
+///         * worst case: O(n^2)  (reverse sorted)
 /// </remarks>
 /// <typeparam name="T"></typeparam>
 public class BinaryInsertSort<T> : SortBase<T> where T : IComparable<T>
@@ -51,11 +51,16 @@ public class BinaryInsertSort<T> : SortBase<T> where T : IComparable<T>
     public override SortMethod SortType => SortMethod.Insertion;
     protected override string Name => nameof(BinaryInsertSort<T>);
 
-    public override T[] Sort(T[] array)
+    public override void Sort(T[] array)
     {
         Statistics.Reset(array.Length, SortType, Name);
         SortCore(array.AsSpan(), 0, array.Length);
-        return array;
+    }
+
+    public override void Sort(Span<T> span)
+    {
+        Statistics.Reset(span.Length, SortType, Name);
+        SortCore(span, 0, span.Length);
     }
 
     /// <summary>
@@ -65,26 +70,10 @@ public class BinaryInsertSort<T> : SortBase<T> where T : IComparable<T>
     /// <param name="first"></param>
     /// <param name="last"></param>
     /// <returns></returns>
-    public T[] Sort(T[] array, int first, int last)
+    internal void Sort(Span<T> span, int first, int last)
     {
-        Statistics.Reset(array.Length, SortType, Name);
-        SortCore(array.AsSpan(), first, last);
-        return array;
-    }
-
-    /// <summary>
-    /// Sort the subrange [first..last) and start insertion sort from 'start'.
-    /// </summary>
-    /// <param name="array"></param>
-    /// <param name="first"></param>
-    /// <param name="last"></param>
-    /// <param name="start"></param>
-    /// <returns></returns>
-    public T[] Sort(T[] array, int first, int last, int start)
-    {
-        Statistics.Reset(array.Length, SortType, Name);
-        SortCore(array.AsSpan(), first, last, start);
-        return array;
+        Statistics.Reset(span.Length, SortType, Name);
+        SortCore(span, first, last);
     }
 
     /// <summary>

@@ -18,11 +18,22 @@ public class CocktailShakerSort<T> : SortBase<T> where T : IComparable<T>
     public override SortMethod SortType => SortMethod.Exchange;
     protected override string Name => nameof(CocktailShakerSort<T>);
 
-    public override T[] Sort(T[] array)
+    public override void Sort(T[] array)
     {
         Statistics.Reset(array.Length, SortType, Name);
+        SortCore(array.AsSpan());
+    }
+
+    public override void Sort(Span<T> span)
+    {
+        Statistics.Reset(span.Length, SortType, Name);
+        SortCore(span);
+    }
+
+    private void SortCore(Span<T> span)
+    {
         var min = 0;
-        var max = array.Length - 1;
+        var max = span.Length - 1;
 
         while (min != max)
         {
@@ -30,11 +41,9 @@ public class CocktailShakerSort<T> : SortBase<T> where T : IComparable<T>
             var lastSwapIndex = min;
             for (var i = min; i < max; i++)
             {
-                Statistics.AddIndexCount();
-                if (Compare(array[i], array[i + 1]) > 0)
+                if (Compare(Index(span, i), Index(span, i + 1)) > 0)
                 {
-                    //array.Dump($"min -> {i} : {array[i]}, {i + 1} : {array[i+1]}");
-                    Swap(ref array[i], ref array[i + 1]);
+                    Swap(ref Index(span, i), ref Index(span, i + 1));
                     lastSwapIndex = i;
                 }
             }
@@ -46,19 +55,15 @@ public class CocktailShakerSort<T> : SortBase<T> where T : IComparable<T>
             lastSwapIndex = max;
             for (var i = max; i > min; i--)
             {
-                Statistics.AddIndexCount();
-                if (Compare(array[i], array[i - 1]) < 0)
+                if (Compare(Index(span, i), Index(span, i - 1)) < 0)
                 {
-                    //array.Dump($"max -> {i} : {array[i]}, {i + 1} : {array[i + 1]}");
-                    Swap(ref array[i], ref array[i - 1]);
+                    Swap(ref Index(span, i), ref Index(span, i - 1));
                     lastSwapIndex = i;
                 }
             }
             min = lastSwapIndex;
             if (min == max) break;
         }
-
-        return array;
     }
 }
 
@@ -77,40 +82,45 @@ public class CocktailShakerSort2<T> : SortBase<T> where T : IComparable<T>
     public override SortMethod SortType => SortMethod.Exchange;
     protected override string Name => nameof(CocktailShakerSort2<T>);
 
-    public override T[] Sort(T[] array)
+    public override void Sort(T[] array)
     {
         Statistics.Reset(array.Length, SortType, Name);
+        SortCore(array.AsSpan());
+    }
 
+    public override void Sort(Span<T> span)
+    {
+        Statistics.Reset(span.Length, SortType, Name);
+        SortCore(span);
+    }
+
+    private void SortCore(Span<T> span)
+    {
         // half calculation
-        for (int i = 0; i < array.Length / 2; i++)
+        for (int i = 0; i < span.Length / 2; i++)
         {
             var swapped = false;
 
             // Bubble Sort (To Min)
-            for (int j = i; j < array.Length - i - 1; j++)
+            for (int j = i; j < span.Length - i - 1; j++)
             {
-                Statistics.AddIndexCount();
-                if (Compare(array[j], array[j + 1]) > 0)
+                if (Compare(Index(span, j), Index(span, j + 1)) > 0)
                 {
-                    //array.Dump($"min -> {j} : {array[j]}, {j + 1} : {array[j + 1]}");
-                    Swap(ref array[j], ref array[j + 1]);
+                    Swap(ref Index(span, j), ref Index(span, j + 1));
                     swapped = true;
                 }
             }
 
             // Bubble Sort (To Max)
-            for (int j = array.Length - 2 - i; j > i; j--)
+            for (int j = span.Length - 2 - i; j > i; j--)
             {
-                Statistics.AddIndexCount();
-                if (Compare(array[j], array[j - 1]) < 0)
+                if (Compare(Index(span, j), Index(span, j - 1)) < 0)
                 {
-                    //array.Dump($"max -> {j} : {array[j]}, {j - 1} : {array[j-1]}");
-                    Swap(ref array[j], ref array[j - 1]);
+                    Swap(ref Index(span, j), ref Index(span, j - 1));
                     swapped = true;
                 }
             }
             if (!swapped) break;
         }
-        return array;
     }
 }

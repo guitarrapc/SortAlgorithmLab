@@ -1,4 +1,4 @@
-namespace SortLab.Tests;
+﻿namespace SortLab.Tests;
 
 public class GnomeSortTests
 {
@@ -86,7 +86,9 @@ public class GnomeSortTests
     [ClassData(typeof(MockSameValuesData))]
     public void SortResultOrderTest(IInputSample<int> inputSample)
     {
-        Assert.Equal(inputSample.Samples.OrderBy(x => x), sort.Sort(inputSample.Samples));
+        var array = inputSample.Samples.ToArray();
+        sort.Sort(array);
+        Assert.Equal(inputSample.Samples.OrderBy(x => x), array);
     }
 
     [Theory]
@@ -117,6 +119,41 @@ public class GnomeSortTests
         Assert.NotEqual(0UL, sort.Statistics.IndexAccessCount);
         Assert.Equal((ulong)inputSample.Samples.Length - 1, sort.Statistics.CompareCount);
         Assert.Equal(0UL, sort.Statistics.SwapCount);
+    }
+
+    [Theory]
+    [InlineData(10)]
+    [InlineData(20)]
+    [InlineData(50)]
+    [InlineData(100)]
+    public void TheoreticalValuesSortedTest(int n)
+    {
+        var sorted = Enumerable.Range(0, n).ToArray();
+        sort.Sort(sorted);
+        
+        // 理論値: ソート済みの場合
+        // 比較回数: n-1 (各要素が正しい位置にあることを確認)
+        // 交換回数: 0 (交換不要)
+        Assert.Equal((ulong)(n - 1), sort.Statistics.CompareCount);
+        Assert.Equal(0UL, sort.Statistics.SwapCount);
+    }
+
+    [Theory]
+    [InlineData(10)]
+    [InlineData(20)]
+    [InlineData(50)]
+    [InlineData(100)]
+    public void TheoreticalValuesReversedTest(int n)
+    {
+        var reversed = Enumerable.Range(0, n).Reverse().ToArray();
+        sort.Sort(reversed);
+        
+        // 理論値: 逆順の場合 (最悪ケース)
+        // GnomeSortは最適化版なので比較回数はInsertionSortより多い
+        // 交換回数: n(n-1)/2
+        var expectedSwaps = (ulong)(n * (n - 1) / 2);
+        
+        Assert.Equal(expectedSwaps, sort.Statistics.SwapCount);
     }
 
     [Theory]

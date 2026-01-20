@@ -28,10 +28,13 @@ PancakeSort ...
 /// <remarks>
 /// stable  : no
 /// inplace : yes
-/// Compare : O(n^2)  (Performs approximately n(n-1)/2 comparisons)  
-/// Swap    : O(n^2)  (Performs up to 2n swap in the worst case)  
-/// Index   : O(n^2)  (Each element is accessed O(n) times during the sort) 
-/// Order   : O(n^2)  (Average and worst-case time complexity)  
+/// Compare : O(n^2)     (Performs approximately n(n-1)/2 comparisons)  
+/// Swap    : O(n^2)     (Each flip performs O(n) swaps, up to 2n flips total)  
+/// Index   : O(n^2)     (Each element is accessed O(n) times during the sort) 
+/// Order   : O(n^2)
+///         * average   : O(n^2)
+///         * best case : O(n^2)
+///         * worst case: O(n^2)  
 /// </remarks>
 /// <typeparam name="T"></typeparam>
 public class PancakeSort<T> : SortBase<T> where T : IComparable<T>
@@ -39,28 +42,22 @@ public class PancakeSort<T> : SortBase<T> where T : IComparable<T>
     public override SortMethod SortType => SortMethod.Selection;
     protected override string Name => nameof(PancakeSort<T>);
 
-    public override T[] Sort(T[] array)
+    public override void Sort(T[] array)
     {
         Statistics.Reset(array.Length, SortType, Name);
         SortCore(array.AsSpan(), 0, array.Length);
-
-        return array;
     }
 
-    public T[] Sort(T[] array, int first, int last)
+    public override void Sort(Span<T> span)
     {
-        Statistics.Reset(array.Length, SortType, Name);
-        SortCore(array.AsSpan(), first, last);
-
-        return array;
+        Statistics.Reset(span.Length, SortType, Name);
+        SortCore(span, 0, span.Length);
     }
 
     private void SortCore(Span<T> span, int first, int last)
     {
         if (first < 0 || last > span.Length || first >= last)
-        {
             throw new ArgumentOutOfRangeException(nameof(first), "Invalid range for sorting.");
-        }
 
         for (var currentSize = last; currentSize > first; currentSize--)
         {

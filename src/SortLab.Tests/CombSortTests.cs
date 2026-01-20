@@ -86,7 +86,9 @@ public class CombSortTests
     [ClassData(typeof(MockSameValuesData))]
     public void SortResultOrderTest(IInputSample<int> inputSample)
     {
-        Assert.Equal(inputSample.Samples.OrderBy(x => x), sort.Sort(inputSample.Samples));
+        var array = inputSample.Samples.ToArray();
+        sort.Sort(array);
+        Assert.Equal(inputSample.Samples.OrderBy(x => x), array);
     }
 
     [Theory]
@@ -120,6 +122,21 @@ public class CombSortTests
     }
 
     [Theory]
+    [InlineData(10)]
+    [InlineData(20)]
+    [InlineData(50)]
+    [InlineData(100)]
+    public void TheoreticalValuesSortedTest(int n)
+    {
+        var sorted = Enumerable.Range(0, n).ToArray();
+        sort.Sort(sorted);
+        
+        // 理論値: ソート済みの場合
+        // 交換回数: 0 (交換不要)
+        Assert.Equal(0UL, sort.Statistics.SwapCount);
+    }
+
+    [Theory]
     [ClassData(typeof(MockRandomData))]
     [ClassData(typeof(MockNegativePositiveRandomData))]
     [ClassData(typeof(MockNegativeRandomData))]
@@ -136,5 +153,5 @@ public class CombSortTests
         Assert.Equal((ulong)0, sort.Statistics.CompareCount);
         Assert.Equal((ulong)0, sort.Statistics.SwapCount);
     }
-}
 
+}
