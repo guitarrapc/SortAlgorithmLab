@@ -21,7 +21,7 @@ Span ...
 */
 
 /// <summary>
-/// ソート済みとなる先頭に並ぶ部分を維持します。ソート済み部分の末尾から配列の末尾に向かって進み、各要素と比較し、値が小さい限りソート済み部分と交換します。(つまり、新しい要素の値が小さい限り前方に移動します。) 
+/// 最適化版挿入ソート。ソート済みとなる先頭に並ぶ部分を維持します。ソート済み部分の末尾から配列の末尾に向かって進み、各要素と比較し、値が小さい限りソート済み部分と交換します。(つまり、新しい要素の値が小さい限り前方に移動します。) 
 /// <see cref="IComparable"/> の性質により、x.CompareTo(y) > 0 の場合は元の順序が保持されるため、安定ソートです。
 /// すでにソートされた配列では高速に動作しますが、逆順の配列では遅くなります。  
 /// <br/>
@@ -94,7 +94,7 @@ public class InsertionSort<T> : SortBase<T> where T : IComparable<T>
 }
 
 /// <summary>
-/// ソート済みとなる先頭に並ぶ部分を維持します。ソート済み部分の末尾から配列の末尾に向かって進み、各要素と比較し、値が小さい限りソート済み部分と交換します。(つまり、新しい要素の値が小さい限り前方に移動します。) 
+/// 純粋な挿入ソート。ソート済みとなる先頭に並ぶ部分を維持します。ソート済み部分の末尾から配列の末尾に向かって進み、各要素と比較し、値が小さい限りソート済み部分と交換します。(つまり、新しい要素の値が小さい限り前方に移動します。) 
 /// <see cref="IComparable"/> の性質により、x.CompareTo(y) > 0 の場合は元の順序が保持されるため、安定ソートです。
 /// すでにソートされた配列では高速に動作しますが、逆順の配列では遅くなります。  
 /// <br/>
@@ -117,7 +117,7 @@ public class InsertionSort<T> : SortBase<T> where T : IComparable<T>
 public class InsertionNonOptimizedSort<T> : SortBase<T> where T : IComparable<T>
 {
     public override SortMethod SortType => SortMethod.Insertion;
-    protected override string Name => nameof(InsertionSort<T>);
+    protected override string Name => nameof(InsertionNonOptimizedSort<T>);
 
     public override void Sort(T[] array)
     {
