@@ -1,4 +1,4 @@
-namespace SortLab.Tests;
+﻿namespace SortLab.Tests;
 
 public class SlowSortTests
 {
@@ -88,7 +88,9 @@ public class SlowSortTests
     {
         if (inputSample.Samples.Length < 1000)
         {
-            Assert.Equal(inputSample.Samples.OrderBy(x => x), sort.Sort(inputSample.Samples));
+            var array = inputSample.Samples.ToArray();
+            sort.Sort(array);
+            Assert.Equal(inputSample.Samples.OrderBy(x => x), array);
         }
     }
 
@@ -104,7 +106,8 @@ public class SlowSortTests
     {
         if (inputSample.Samples.Length < 1000)
         {
-            sort.Sort(inputSample.Samples);
+            var array = inputSample.Samples.ToArray();
+            sort.Sort(array);
             Assert.Equal(algorithm, sort.Statistics.Algorithm);
             Assert.Equal(inputSample.Samples.Length, sort.Statistics.ArraySize);
             Assert.NotEqual((ulong)0, sort.Statistics.IndexAccessCount);
@@ -119,7 +122,8 @@ public class SlowSortTests
     {
         if (inputSample.Samples.Length < 1000)
         {
-            sort.Sort(inputSample.Samples);
+            var array = inputSample.Samples.ToArray();
+            sort.Sort(array);
             Assert.Equal(algorithm, sort.Statistics.Algorithm);
             Assert.Equal(inputSample.Samples.Length, sort.Statistics.ArraySize);
             Assert.NotEqual((ulong)0, sort.Statistics.IndexAccessCount);
@@ -141,7 +145,8 @@ public class SlowSortTests
     {
         if (inputSample.Samples.Length < 1000)
         {
-            sort.Sort(inputSample.Samples);
+            var array = inputSample.Samples.ToArray();
+            sort.Sort(array);
             sort.Statistics.Reset();
             Assert.Equal((ulong)0, sort.Statistics.IndexAccessCount);
             Assert.Equal((ulong)0, sort.Statistics.CompareCount);

@@ -1,17 +1,14 @@
-namespace SortLab.Tests;
+﻿namespace SortLab.Tests;
 
 public class RadixLSD4SortTests
 {
     private ISort<int> sort;
-    private Func<int[], int[]> func;
     private string algorithm;
     private SortMethod method;
 
     public RadixLSD4SortTests()
     {
-        var sort = new RadixLSD4Sort<int>();
-        func = array => sort.Sort(array);
-        this.sort = sort;
+        sort = new RadixLSD4Sort<int>();
         algorithm = nameof(RadixLSD4Sort<int>);
         method = SortMethod.Distributed;
     }
@@ -89,7 +86,9 @@ public class RadixLSD4SortTests
     [ClassData(typeof(MockSameValuesData))]
     public void SortResultOrderTest(IInputSample<int> inputSample)
     {
-        Assert.Equal(inputSample.Samples.OrderBy(x => x), func(inputSample.Samples));
+        var array = inputSample.Samples.ToArray();
+        sort.Sort(array);
+        Assert.Equal(inputSample.Samples.OrderBy(x => x), array);
     }
 
     [Theory]
@@ -100,7 +99,8 @@ public class RadixLSD4SortTests
     [ClassData(typeof(MockSameValuesData))]
     public void StatisticsTest(IInputSample<int> inputSample)
     {
-        func(inputSample.Samples);
+        var array = inputSample.Samples.ToArray();
+        sort.Sort(array);
         Assert.Equal(algorithm, sort.Statistics.Algorithm);
         Assert.Equal(inputSample.Samples.Length, sort.Statistics.ArraySize);
         Assert.NotEqual((ulong)0, sort.Statistics.IndexAccessCount);
@@ -113,7 +113,8 @@ public class RadixLSD4SortTests
     [ClassData(typeof(MockNegativeRandomData))]
     public void StatisticsNegativeTest(IInputSample<int> inputSample)
     {
-        func(inputSample.Samples);
+        var array = inputSample.Samples.ToArray();
+        sort.Sort(array);
         Assert.Equal(algorithm, sort.Statistics.Algorithm);
         Assert.Equal(inputSample.Samples.Length, sort.Statistics.ArraySize);
         Assert.NotEqual((ulong)0, sort.Statistics.IndexAccessCount);
@@ -125,7 +126,8 @@ public class RadixLSD4SortTests
     [ClassData(typeof(MockSortedData))]
     public void StatisticsSortedTest(IInputSample<int> inputSample)
     {
-        func(inputSample.Samples);
+        var array = inputSample.Samples.ToArray();
+        sort.Sort(array);
         Assert.Equal(algorithm, sort.Statistics.Algorithm);
         Assert.Equal(inputSample.Samples.Length, sort.Statistics.ArraySize);
         Assert.NotEqual((ulong)0, sort.Statistics.IndexAccessCount);
@@ -144,7 +146,8 @@ public class RadixLSD4SortTests
     [ClassData(typeof(MockSameValuesData))]
     public void StatisticsResetTest(IInputSample<int> inputSample)
     {
-        func(inputSample.Samples);
+        var array = inputSample.Samples.ToArray();
+        sort.Sort(array);
         sort.Statistics.Reset();
         Assert.Equal((ulong)0, sort.Statistics.IndexAccessCount);
         Assert.Equal((ulong)0, sort.Statistics.CompareCount);

@@ -1,4 +1,4 @@
-namespace SortLab.Tests;
+﻿namespace SortLab.Tests;
 
 public class IntroSortMedian9Tests
 {
@@ -86,7 +86,9 @@ public class IntroSortMedian9Tests
     [ClassData(typeof(MockSameValuesData))]
     public void SortResultOrderTest(IInputSample<int> inputSample)
     {
-        Assert.Equal(inputSample.Samples.OrderBy(x => x), sort.Sort(inputSample.Samples));
+        var array = inputSample.Samples.ToArray();
+        sort.Sort(array);
+        Assert.Equal(inputSample.Samples.OrderBy(x => x), array);
     }
 
     [Theory]

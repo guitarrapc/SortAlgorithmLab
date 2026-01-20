@@ -1,4 +1,4 @@
-namespace SortLab.Tests;
+﻿namespace SortLab.Tests;
 
 public class BogoSortTests
 {
@@ -88,7 +88,9 @@ public class BogoSortTests
     {
         if (inputSample.Samples.Length < 100)
         {
-            Assert.Equal(inputSample.Samples.OrderBy(x => x), sort.Sort(inputSample.Samples));
+            var array = inputSample.Samples.ToArray();
+            sort.Sort(array);
+            Assert.Equal(inputSample.Samples.OrderBy(x => x), array);
         }
     }
 

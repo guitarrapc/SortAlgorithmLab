@@ -86,9 +86,10 @@ public class BubbleSortTests
     [ClassData(typeof(MockSameValuesData))]
     public void SortResultOrderTest(IInputSample<int> inputSample)
     {
-        var result = sort.Sort(inputSample.Samples);
+        var array = inputSample.Samples.ToArray();
+        sort.Sort(array);
         var expected = inputSample.Samples.OrderBy(x => x).ToArray();
-        Assert.Equal(expected, result);
+        Assert.Equal(expected, array);
     }
 
     [Theory]

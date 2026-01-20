@@ -56,19 +56,19 @@ public record Runner
                     // -- Distribution -- //
 
                     // Bucket Sort
-                    var bucketSort = new BucketSortInt<int>();
-                    RunSort(bucketSort, array => bucketSort.Sort(array), item);
+                    var bucketSort = new BucketSort<int>(x => x);
+                    RunSort(bucketSort, item);
 
                     // Radix Sort(LSD)
                     var radix10Sort = new RadixLSD10Sort<int>();
-                    RunSort(radix10Sort, array => radix10Sort.Sort(array), item);
+                    RunSort(radix10Sort, item);
 
                     var radix4Sort = new RadixLSD4Sort<int>();
-                    RunSort(radix4Sort, array => radix4Sort.Sort(array), item);
+                    RunSort(radix4Sort, item);
 
                     // Counting Sort
-                    var countingSort = new CountingSort<int>();
-                    RunSort(countingSort, array => countingSort.Sort(array), item);
+                    var countingSort = new CountingSort();
+                    RunSort(countingSort, item);
                 }
 
                 if (Exchange)
@@ -253,10 +253,10 @@ public record Runner
         ResetArray(ref array, ref keep);
 
         // run sort
-        var after = sort.Sort(array);
+        sort.Sort(array);
 
         // validate
-        sort.Statistics.IsSorted = after.SequenceEqual(validateArray);
+        sort.Statistics.IsSorted = array.SequenceEqual(validateArray);
 
         // result
         MarkDownOutputList.Add(new MarkdownOutput(sort.Statistics, input.InputType));
@@ -264,7 +264,7 @@ public record Runner
         // Console Output
         var sortResult = sort.Statistics.IsSorted ? "Correct" : $"""
         Before : {keep.ToJoinedString(" ")}
-        After  : {after.ToJoinedString(" ")}
+        After  : {array.ToJoinedString(" ")}
         """;
         var console = new ConsoleOutput(sort.Statistics, sortResult, input.InputType);
         Console.WriteLine(console.ToString());
@@ -311,10 +311,10 @@ public record Runner
         ResetArray(ref array, ref keep);
 
         // run sort
-        var after = sort.Sort(array);
+        sort.Sort(array);
 
         // validate
-        sort.Statistics.IsSorted = after.SequenceEqual(validateDic);
+        sort.Statistics.IsSorted = array.SequenceEqual(validateDic);
 
         // result
         MarkDownOutputList.Add(new MarkdownOutput(sort.Statistics, input.InputType));
@@ -322,7 +322,7 @@ public record Runner
         // Console Output
         var sortResult = sort.Statistics.IsSorted ? "Correct" : $"""
         Before : {keep.ToJoinedString(" ")}
-        After  : {after.ToJoinedString(" ")}
+        After  : {array.ToJoinedString(" ")}
         """;
         var console = new ConsoleOutput(sort.Statistics, sortResult, input.InputType);
         Console.WriteLine(console.ToString());

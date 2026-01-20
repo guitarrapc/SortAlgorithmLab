@@ -1,18 +1,15 @@
-namespace SortLab.Tests;
+﻿namespace SortLab.Tests;
 
 public class BucketSortTests
 {
     private ISort<int> sort;
-    private Func<int[], int[]> func;
     private string algorithm;
     private SortMethod method;
 
     public BucketSortTests()
     {
-        var sort = new BucketSortInt<int>();
-        func = array => sort.Sort(array);
-        this.sort = sort;
-        algorithm = nameof(BucketSortInt<int>);
+        sort = new BucketSort<int>(x => x);
+        algorithm = nameof(BucketSort<int>);
         method = SortMethod.Distributed;
     }
 
@@ -89,7 +86,9 @@ public class BucketSortTests
     [ClassData(typeof(MockSameValuesData))]
     public void SortResultOrderTest(IInputSample<int> inputSample)
     {
-        Assert.Equal(inputSample.Samples.OrderBy(x => x), func(inputSample.Samples));
+        var array = inputSample.Samples.ToArray();
+        sort.Sort(array);
+        Assert.Equal(inputSample.Samples.OrderBy(x => x), array);
     }
 
     [Theory]
@@ -102,7 +101,8 @@ public class BucketSortTests
     [ClassData(typeof(MockSameValuesData))]
     public void StatisticsTest(IInputSample<int> inputSample)
     {
-        func(inputSample.Samples);
+        var array = inputSample.Samples.ToArray();
+        sort.Sort(array);
         Assert.Equal(algorithm, sort.Statistics.Algorithm);
         Assert.Equal(inputSample.Samples.Length, sort.Statistics.ArraySize);
         Assert.NotEqual((ulong)0, sort.Statistics.IndexAccessCount);
@@ -114,7 +114,8 @@ public class BucketSortTests
     [ClassData(typeof(MockSortedData))]
     public void StatisticsSortedTest(IInputSample<int> inputSample)
     {
-        func(inputSample.Samples);
+        var array = inputSample.Samples.ToArray();
+        sort.Sort(array);
         Assert.Equal(algorithm, sort.Statistics.Algorithm);
         Assert.Equal(inputSample.Samples.Length, sort.Statistics.ArraySize);
         Assert.NotEqual((ulong)0, sort.Statistics.IndexAccessCount);
@@ -133,7 +134,8 @@ public class BucketSortTests
     [ClassData(typeof(MockSameValuesData))]
     public void StatisticsResetTest(IInputSample<int> inputSample)
     {
-        func(inputSample.Samples);
+        var array = inputSample.Samples.ToArray();
+        sort.Sort(array);
         sort.Statistics.Reset();
         Assert.Equal((ulong)0, sort.Statistics.IndexAccessCount);
         Assert.Equal((ulong)0, sort.Statistics.CompareCount);
