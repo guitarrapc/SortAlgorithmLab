@@ -1,14 +1,14 @@
 ﻿namespace SortLab.Core.Sortings;
 
 /// <summary>
-/// 配列の先頭と末尾を比較し先頭が大きければ交換。処理配列が3要素以上なら先頭2/3、末尾2/3、先頭2/3の順にソート。激遅、不安定で外部メモリと配列の同長つかうだめだめソート。
+/// 配列の先頭と末尾を比較し先頭が大きければ交換。処理配列が3要素以上なら先頭2/3、末尾2/3、先頭2/3の順にソート。激遅、不安定なソート。
 /// </summary>
 /// <remarks>
-/// stable : no
-/// inplace : no (n)
-/// Compare : n^(log3/log1.5)
-/// Swap : n^2
-/// Order : O(n^(log3/log1.5)) = O(n^2.7095)
+/// stable  : no
+/// inplace : yes  (Only uses recursive stack space)
+/// Compare : O(n^(log3/log1.5)) = O(n^2.7095)
+/// Swap    : O(n^2.7095)
+/// Order   : O(n^(log3/log1.5)) = O(n^2.7095)  (One of the slowest sorting algorithms)
 /// </remarks>
 /// <typeparam name="T"></typeparam>
 public class StoogeSort<T> : SortBase<T> where T : IComparable<T>

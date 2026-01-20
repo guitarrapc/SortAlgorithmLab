@@ -5,10 +5,11 @@
 /// 単純だが低速
 /// </summary>
 /// <remarks>
-/// stable : no
+/// stable  : no
 /// inplace : yes
 /// Compare : O(n log n)
-/// Swap : O(n log n)
+/// Swap    : O(n log n)
+/// Order   : O(n^2 / 2^p) where p is number of increments (Average: O(n log n), Worst: O(n^2))
 /// </remarks>
 /// <typeparam name="T"></typeparam>
 public class CombSort<T> : SortBase<T> where T : IComparable<T>

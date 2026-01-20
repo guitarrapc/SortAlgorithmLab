@@ -4,11 +4,11 @@
 /// リストの先頭に戻る前に、前回の位置を覚えておくことで<see cref="GnomeSortWithSwap{T}"/>を最適化している。これにより、<see cref="InsertionSort{T}"/>と同程度の計算量になる。
 /// </summary>
 /// <remarks>
-/// stable : yes
+/// stable  : yes
 /// inplace : yes
-/// Compare :
-/// Swap :
-/// Order : O(n^2)
+/// Compare : O(n^2)  (Best case: O(n) when already sorted)
+/// Swap    : O(n^2)  (Best case: 0 when already sorted)
+/// Order   : O(n^2)  (Best case: O(n))
 /// </remarks>
 /// <typeparam name="T"></typeparam>
 public class GnomeSort<T> : SortBase<T> where T : IComparable<T>
