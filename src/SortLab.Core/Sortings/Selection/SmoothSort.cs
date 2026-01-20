@@ -26,11 +26,14 @@ Span ...
 /// ヒープソートの亜種。HeapSortのBinaryTree手法ではなく、Leonardo Sequenceで並べる。あとは、大きい数値をツリーから拾って順に並べる。レオナルド数列の特性から、順番に並んでいる要素をなるべく移動しないようにソートできるため、順番に並んでいるほど計算時間が少なくなる。(完全に並んでいればO(n))
 /// </summary>
 /// <remarks>
-/// stable : no
+/// stable  : no
 /// inplace : yes
-/// Compare : n log n
-/// Swap : n log n
-/// Order : O(n log n) (best case : n) (Worst case : O(n log n))
+/// Compare : O(n log n)
+/// Swap    : O(n log n)
+/// Order   : O(n log n)
+///         * average   : O(n log n)
+///         * best case : O(n)       (when data is already sorted)
+///         * worst case: O(n log n)
 /// </remarks>
 /// <typeparam name="T"></typeparam>
 

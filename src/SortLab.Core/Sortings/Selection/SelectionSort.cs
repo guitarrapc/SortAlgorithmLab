@@ -26,11 +26,14 @@ Span ...
 /// Iterates through each position in the array, finding the minimum element in the unsorted portion and swapping it with the current position. Swapping elements based on indices makes Selection Sort an unstable sorting algorithm.
 /// </summary>
 /// <remarks>
-/// stable : no
+/// stable  : no
 /// inplace : yes
-/// Compare : O(n^2)  (Performs approximately n(n-1)/2 comparisons) 
-/// Swap : O(n)    (Performs n-1 swaps)
-/// Order : O(n^2)  (Best, average, and worst-case time complexity)
+/// Compare : O(n^2)     (Performs approximately n(n-1)/2 comparisons) 
+/// Swap    : O(n)       (Performs n-1 swaps)
+/// Order   : O(n^2)
+///         * average   : O(n^2)
+///         * best case : O(n^2)     (comparisons are always needed)
+///         * worst case: O(n^2)
 /// </remarks>
 /// <typeparam name="T"></typeparam>
 public class SelectionSort<T> : SortBase<T> where T : IComparable<T>

@@ -28,10 +28,13 @@ PancakeSort ...
 /// <remarks>
 /// stable  : no
 /// inplace : yes
-/// Compare : O(n^2)  (Performs approximately n(n-1)/2 comparisons)  
-/// Swap    : O(n^2)  (Performs up to 2n swap in the worst case)  
-/// Index   : O(n^2)  (Each element is accessed O(n) times during the sort) 
-/// Order   : O(n^2)  (Average and worst-case time complexity)  
+/// Compare : O(n^2)     (Performs approximately n(n-1)/2 comparisons)  
+/// Swap    : O(n^2)     (Each flip performs O(n) swaps, up to 2n flips total)  
+/// Index   : O(n^2)     (Each element is accessed O(n) times during the sort) 
+/// Order   : O(n^2)
+///         * average   : O(n^2)
+///         * best case : O(n^2)
+///         * worst case: O(n^2)  
 /// </remarks>
 /// <typeparam name="T"></typeparam>
 public class PancakeSort<T> : SortBase<T> where T : IComparable<T>

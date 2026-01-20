@@ -28,13 +28,13 @@ Span ...
 /// <remarks>
 /// stable  : no 
 /// inplace : yes
-/// Compare : O(n^2)
-/// Swap    : O(n)
-/// Index   : O(n^2) (Each element may be accessed multiple times during comparisons)  
-/// Order   : O(n^2)  
-///         * average:                   O(n^2)  
-///         * best case (nearly sorted): O(n)  
-///         * worst case can approach:   O(n^2) 
+/// Compare : O(n^2)     (Always performs approximately n(n-1)/2 comparisons)
+/// Swap    : O(n)       (Minimizes swaps, theoretically optimal)
+/// Index   : O(n^2)     (Each element may be accessed multiple times during comparisons)  
+/// Order   : O(n^2)
+///         * average   : O(n^2)  
+///         * best case : O(n^2)     (comparisons are always needed)
+///         * worst case: O(n^2) 
 /// </remarks>
 /// <typeparam name="T"></typeparam>
 public class CycleSort<T> : SortBase<T> where T : IComparable<T>

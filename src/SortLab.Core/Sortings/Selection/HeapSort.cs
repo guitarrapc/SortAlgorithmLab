@@ -51,12 +51,15 @@ Span ...
 /// Then, the root element is moved to the end of the sorted array, the last element is moved to the root, and the heap structure is re-established. Repeating this process ensures that the maximum value in the heap is always at the root, allowing elements to be naturally sorted as they are moved to the sorted array.
 /// </summary>
 /// <remarks>
-/// stable : no
+/// stable  : no
 /// inplace : yes
 /// Compare : O(n log n)  
 /// Swap    : O(n log n)  
-/// Index   : O(n log n) (Each element is accessed O(log n) times during heap operations)  
-/// Order   : O(n log n) (best, average, and worst cases)
+/// Index   : O(n log n)     (Each element is accessed O(log n) times during heap operations)  
+/// Order   : O(n log n)
+///         * average   : O(n log n)
+///         * best case : O(n log n)
+///         * worst case: O(n log n)
 /// </remarks>
 /// <typeparam name="T"></typeparam>
 
