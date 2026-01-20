@@ -1,14 +1,18 @@
 ﻿namespace SortLab.Core.Sortings;
 
 /// <summary>
-/// QuickSort + InsertSortによる Quick Searchでだいたいソート済みになった時に最速を目指す。
+/// QuickSort + InsertionSort によるハイブリッドソート。
+/// QuickSortでだいたいソート済みになった小さな部分配列でInsertionSortに切り替えることで、最高のパフォーマンスを目指す。
 /// </summary>
 /// <remarks>
-/// stable : no
-/// inplace : no (log n)
-/// Compare :
-/// Swap :
-/// Order : O(n log n) (Worst case : O(n nlog n))
+/// stable  : no
+/// inplace : yes (Only uses O(log n) recursive stack space)
+/// Compare : O(n log n)  (Average case, Worst case: O(n^2))
+/// Swap    : O(n log n)  (Average case, Worst case: O(n^2))
+/// Order   : O(n log n)
+///         * average   : O(n log n)
+///         * best case : O(n log n)
+///         * worst case: O(n^2)
 /// </remarks>
 /// <typeparam name="T"></typeparam>
 public class QuickSortMedian3WithInsert<T> : SortBase<T> where T : IComparable<T>

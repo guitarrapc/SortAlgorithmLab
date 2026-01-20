@@ -1,14 +1,18 @@
 ﻿namespace SortLab.Core.Sortings;
 
 /// <summary>
-/// Dual-Pivot QuickSort に InsertSortを組み合わせて最速を狙う
+/// Dual-Pivot QuickSort に InsertionSortを組み合わせたハイブリッドソート。
+/// 小さな部分配列でInsertionSortに切り替えることで、最高のパフォーマンスを目指す。
 /// </summary>
 /// <remarks>
-/// stable : no
-/// inplace : no (log n)
-/// Compare :
-/// Swap :
-/// Order : O(n log n) (Worst case : O(nlog^2n))
+/// stable  : no
+/// inplace : yes (Only uses O(log n) recursive stack space)
+/// Compare : O(n log n)  (Average case, Worst case: O(n^2))
+/// Swap    : O(n log n)  (Average case, Worst case: O(n^2))
+/// Order   : O(n log n)
+///         * average   : O(n log n) (often faster than single-pivot variants)
+///         * best case : O(n log n)
+///         * worst case: O(n^2)     (rare)
 /// </remarks>
 /// <typeparam name="T"></typeparam>
 public class QuickSortDualPivotWithInsert<T> : SortBase<T> where T : IComparable<T>

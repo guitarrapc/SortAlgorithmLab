@@ -1,14 +1,19 @@
 ﻿namespace SortLab.Core.Sortings;
 
 /// <summary>
-/// ピボットを2つにすることで再帰の深さを浅くすることで、QuickSortを高速化する。
+/// ピボットを2つ使用することで、配列を3つの領域に分割する。
+/// 通常のQuickSortよりも再帰の深さを浅くし、キャッシュ効率を高めることで高速化を図る。
+/// Java 7以降の標準ソートアルゴリズムとして採用されている。
 /// </summary>
 /// <remarks>
-/// stable : no
-/// inplace : no (log n)
-/// Compare :
-/// Swap :
-/// Order : O(n log n) (Worst case : O(nlog^2n))
+/// stable  : no
+/// inplace : yes (Only uses O(log n) recursive stack space)
+/// Compare : O(n log n)  (Average case, Worst case: O(n^2))
+/// Swap    : O(n log n)  (Average case, Worst case: O(n^2))
+/// Order   : O(n log n)
+///         * average   : O(n log n) (often faster than single-pivot QuickSort)
+///         * best case : O(n log n)
+///         * worst case: O(n^2)     (rare)
 /// </remarks>
 /// <typeparam name="T"></typeparam>
 public class QuickSortDualPivot<T> : SortBase<T> where T : IComparable<T>

@@ -1,14 +1,19 @@
 ﻿namespace SortLab.Core.Sortings;
 
 /// <summary>
-/// 開始と終わりから中央値を導いて、この3点を枢軸として配列を左右で分ける。左右で中央値よりも小さい(大きい)データに置き換えてデータを分割する(分割統治)。最後に左右それぞれをソートする(この時点で不安定)ことで計算量をソート済みに抑えることができる。不安定なソート。
+/// 配列の先頭、中央、末尾から中央値を求めてピボットとし、このピボットを基準に配列を左右に分割する。
+/// 左側にはピボットより小さい要素、右側には大きい要素を配置し、再帰的にそれぞれをソートする分割統治法。
+/// Median-of-3法でピボットを選択することで、最悪ケースの確率を低減している。
 /// </summary>
 /// <remarks>
-/// stable : no
-/// inplace : no (log n)
-/// Compare :
-/// Swap :
-/// Order : O(n log n) (Worst case : O(nlog^2n))
+/// stable  : no
+/// inplace : yes (Only uses O(log n) recursive stack space)
+/// Compare : O(n log n)  (Average case, Worst case: O(n^2))
+/// Swap    : O(n log n)  (Average case, Worst case: O(n^2))
+/// Order   : O(n log n)
+///         * average   : O(n log n)
+///         * best case : O(n log n)
+///         * worst case: O(n^2)     (rare with median-of-3)
 /// </remarks>
 /// <typeparam name="T"></typeparam>
 public class QuickSortMedian3<T> : SortBase<T> where T : IComparable<T>

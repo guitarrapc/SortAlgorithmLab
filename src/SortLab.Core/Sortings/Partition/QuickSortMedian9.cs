@@ -1,14 +1,18 @@
 ﻿namespace SortLab.Core.Sortings;
 
 /// <summary>
-/// QuickSortのMedian-3 Killer対策に、Median9を採用する。ランダムデータでは若干おそくなるものの、山型データでは高速化、および最悪ケースの頻度は下がる
+/// QuickSortのMedian-3 Killer対策に、Median-of-9法を採用する。ランダムデータでは若干遅くなるものの、山型データでは高速化、および最悪ケースの頻度は下がる。
+/// 9個の要素から中央値を求めることで、偏ったデータに対してより堅牢なピボット選択を実現する。
 /// </summary>
 /// <remarks>
-/// stable : no
-/// inplace : no (log n)
-/// Compare :
-/// Swap :
-/// Order : O(n log n) (Worst case : O(nlog^2n))
+/// stable  : no
+/// inplace : yes (Only uses O(log n) recursive stack space)
+/// Compare : O(n log n)  (Average case, Worst case: O(n^2))
+/// Swap    : O(n log n)  (Average case, Worst case: O(n^2))
+/// Order   : O(n log n)
+///         * average   : O(n log n)
+///         * best case : O(n log n)
+///         * worst case: O(n^2)     (very rare with median-of-9)
 /// </remarks>
 /// <typeparam name="T"></typeparam>
 public class QuickSortMedian9<T> : SortBase<T> where T : IComparable<T>
