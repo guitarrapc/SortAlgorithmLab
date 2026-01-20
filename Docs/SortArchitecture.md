@@ -61,11 +61,15 @@ var stats = sort.Statistics;       // 状態がソートクラス内部に存在
 
 ---
 
-## 提案設計
+## 提案設計：Class-based Context Pattern
 
-### 案1: Generic Struct Context（推奨）
+classベースのContextパターンを採用。シンプルなAPIと拡張性を両立。
 
-構造体Contextをジェネリクスで受け取り、JITインライン化で最高パフォーマンスを実現。
+### 設計方針
+
+- **Context は class** - `ref` 渡し不要でAPIがシンプル
+- **NullContext.Default** - シングルトンで何もしない（パフォーマンス優先）
+- **CompositeContext** - 複数のContextを組み合わせ可能（統計+描画など）
 
 ```csharp
 // ===========================================
@@ -90,67 +94,93 @@ public interface ISortContext
 }
 
 // ===========================================
-// Context 実装：No-op（統計不要時）
+// Context 実装：No-op（シングルトン）
 // ===========================================
-public readonly struct NullContext : ISortContext
+public sealed class NullContext : ISortContext
 {
-    // JITが空メソッドを完全に削除 → ゼロオーバーヘッド
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static readonly NullContext Default = new();
+    
+    private NullContext() { }  // シングルトン
+    
     public void OnCompare(int i, int j, int result) { }
-    
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public void OnSwap(int i, int j) { }
-    
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public void OnIndexAccess(int index) { }
 }
 
 // ===========================================
 // Context 実装：統計収集
 // ===========================================
-public struct StatisticsContext : ISortContext
+public sealed class StatisticsContext : ISortContext
 {
-    public ulong CompareCount;
-    public ulong SwapCount;
-    public ulong IndexAccessCount;
+    public ulong CompareCount { get; private set; }
+    public ulong SwapCount { get; private set; }
+    public ulong IndexAccessCount { get; private set; }
 
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public void OnCompare(int i, int j, int result) => CompareCount++;
-    
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public void OnSwap(int i, int j) => SwapCount++;
-    
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public void OnIndexAccess(int index) => IndexAccessCount++;
+    
+    public void Reset()
+    {
+        CompareCount = 0;
+        SwapCount = 0;
+        IndexAccessCount = 0;
+    }
 }
 
 // ===========================================
 // Context 実装：ビジュアライズ
 // ===========================================
-public class VisualizationContext : ISortContext
+public sealed class VisualizationContext : ISortContext
 {
-    private readonly Action<int, int, int>? _onCompareCallback;
-    private readonly Action<int, int>? _onSwapCallback;
-    private readonly Action<int>? _onAccessCallback;
+    private readonly Action<int, int, int>? _onCompare;
+    private readonly Action<int, int>? _onSwap;
+    private readonly Action<int>? _onAccess;
     
     public VisualizationContext(
         Action<int, int, int>? onCompare = null,
         Action<int, int>? onSwap = null,
         Action<int>? onAccess = null)
     {
-        _onCompareCallback = onCompare;
-        _onSwapCallback = onSwap;
-        _onAccessCallback = onAccess;
+        _onCompare = onCompare;
+        _onSwap = onSwap;
+        _onAccess = onAccess;
     }
     
-    public void OnCompare(int i, int j, int result) 
-        => _onCompareCallback?.Invoke(i, j, result);
+    public void OnCompare(int i, int j, int result) => _onCompare?.Invoke(i, j, result);
+    public void OnSwap(int i, int j) => _onSwap?.Invoke(i, j);
+    public void OnIndexAccess(int index) => _onAccess?.Invoke(index);
+}
+
+// ===========================================
+// Context 実装：複合（統計+描画など）
+// ===========================================
+public sealed class CompositeContext : ISortContext
+{
+    private readonly ISortContext[] _contexts;
     
-    public void OnSwap(int i, int j) 
-        => _onSwapCallback?.Invoke(i, j);
+    public CompositeContext(params ISortContext[] contexts)
+    {
+        _contexts = contexts;
+    }
     
-    public void OnIndexAccess(int index) 
-        => _onAccessCallback?.Invoke(index);
+    public void OnCompare(int i, int j, int result)
+    {
+        foreach (var ctx in _contexts)
+            ctx.OnCompare(i, j, result);
+    }
+    
+    public void OnSwap(int i, int j)
+    {
+        foreach (var ctx in _contexts)
+            ctx.OnSwap(i, j);
+    }
+    
+    public void OnIndexAccess(int index)
+    {
+        foreach (var ctx in _contexts)
+            ctx.OnIndexAccess(index);
+    }
 }
 
 // ===========================================
@@ -158,17 +188,12 @@ public class VisualizationContext : ISortContext
 // ===========================================
 public static class BubbleSort
 {
-    // シンプルAPI：統計なし
+    // シンプルAPI：Contextなし（NullContext使用）
     public static void Sort<T>(Span<T> span) where T : IComparable<T>
-    {
-        var context = new NullContext();
-        Sort(span, ref context);
-    }
+        => Sort(span, NullContext.Default);
 
-    // 統計/描画対応API：Contextを受け取る
-    public static void Sort<T, TContext>(Span<T> span, ref TContext context)
-        where T : IComparable<T>
-        where TContext : ISortContext
+    // Context対応API
+    public static void Sort<T>(Span<T> span, ISortContext context) where T : IComparable<T>
     {
         for (var i = 0; i < span.Length; i++)
         {
@@ -191,187 +216,53 @@ public static class BubbleSort
 }
 ```
 
-**使用例：**
+### 使用例
 
 ```csharp
-// 1. シンプルな使用（統計なし、最高パフォーマンス）
+// 1. シンプルな使用（統計なし）
 BubbleSort.Sort<int>(array);
 
-// 2. 統計収集あり
+// 2. 統計収集
 var stats = new StatisticsContext();
-BubbleSort.Sort(array.AsSpan(), ref stats);
+BubbleSort.Sort(array.AsSpan(), stats);
 Console.WriteLine($"Comparisons: {stats.CompareCount}, Swaps: {stats.SwapCount}");
 
 // 3. ビジュアライズ（描画）
 var viz = new VisualizationContext(
     onCompare: (i, j, result) => HighlightCompare(i, j),
-    onSwap: (i, j) => AnimateSwap(i, j),
-    onAccess: (index) => HighlightAccess(index)
+    onSwap: (i, j) => AnimateSwap(i, j)
 );
-BubbleSort.Sort(array.AsSpan(), ref viz);
+BubbleSort.Sort(array.AsSpan(), viz);
 
-// 4. ビジュアライズ（将来）
+// 4. 統計 + 描画を同時に（CompositeContext）
+var stats = new StatisticsContext();
 var viz = new VisualizationContext(onSwap: (i, j) => Render(i, j));
-BubbleSort.Sort(array.AsSpan(), ref viz);
+var composite = new CompositeContext(stats, viz);
+BubbleSort.Sort(array.AsSpan(), composite);
+Console.WriteLine($"Swaps: {stats.SwapCount}");  // 統計も取れる
 
-// 4. 並行実行（各スレッドが独自のContextを持つ）
+// 5. 並行実行（各スレッドが独自のContextを持つ）
 Parallel.ForEach(arrays, array =>
 {
     var localStats = new StatisticsContext();
-    BubbleSort.Sort(array.AsSpan(), ref localStats);
+    BubbleSort.Sort(array.AsSpan(), localStats);
     // localStatsは各スレッドで独立
 });
 ```
 
-**パフォーマンス特性：**
+### パフォーマンス特性
 
-| Context | 仮想呼び出し | インライン化 | 実行時オーバーヘッド |
-|---------|------------|------------|-------------------|
-| `NullContext` (struct) | なし | ◎ 完全インライン化 | **ゼロ**（引数も最適化で除去） |
-| `StatisticsContext` (struct) | なし | ◎ 完全インライン化 | 最小（カウントのみ、引数は無視） |
-| `VisualizationContext` (class) | あり | △ 部分的 | あり（コールバック + 引数渡し） |
+| Context | 仮想呼び出し | 実行時オーバーヘッド | 備考 |
+|---------|------------|-------------------|------|
+| `NullContext.Default` | あり | 最小 | 空メソッドのみ、シングルトン |
+| `StatisticsContext` | あり | 小 | カウントインクリメントのみ |
+| `VisualizationContext` | あり | 中 | コールバック実行 |
+| `CompositeContext` | あり | 中〜大 | 複数Context呼び出し |
 
-**Note：** 位置情報（インデックス）を引数で渡すことで、統計収集では無視し、ビジュアライズでは活用できます。構造体Contextの場合、JITが未使用引数を最適化で除去するため、パフォーマンスへの影響は最小限です。
-
----
-
-### 案2: インターフェース直接渡し（シンプル版）
-
-ジェネリクスを使わず、インターフェースで受け取る。
-
-```csharp
-public static class BubbleSort
-{
-    public static void Sort<T>(Span<T> span) where T : IComparable<T>
-        => Sort(span, null);
-
-    public static void Sort<T>(Span<T> span, ISortContext? context) where T : IComparable<T>
-    {
-        for (var i = 0; i < span.Length; i++)
-        {
-            for (var j = span.Length - 1; j > i; j--)
-            {
-                context?.OnIndexAccess(j);
-                context?.OnIndexAccess(j - 1);
-                
-                var cmp = span[j].CompareTo(span[j - 1]);
-                context?.OnCompare(j, j - 1, cmp);
-                
-                if (cmp < 0)
-                {
-                    context?.OnSwap(j, j - 1);
-                    (span[j], span[j - 1]) = (span[j - 1], span[j]);
-                }
-            }
-        }
-    }
-}
-```
-
-**メリット：**
-- ✅ シンプルなAPI
-- ✅ `null` 渡しで統計なし
-
-**デメリット：**
-- ⚠️ `null` チェックのオーバーヘッド（JITが最適化する可能性はあるが保証なし）
-- ⚠️ 仮想呼び出しが残る
-
----
-
-### 案3: 戻り値で統計を返す（純粋関数型）
-
-統計が必要な場合は戻り値で返す。Context不要。
-
-**注意：** この案はビジュアライズに対応できないため、統計のみの用途に限定されます。
-
-```csharp
-public readonly record struct SortResult(
-    ulong CompareCount,
-    ulong SwapCount,
-    ulong IndexAccessCount);
-
-public static class BubbleSort
-{
-    // 統計なし
-    public static void Sort<T>(Span<T> span) where T : IComparable<T>
-    {
-        // ソートロジックのみ
-    }
-
-    // 統計あり：結果を戻り値で返す
-    public static SortResult SortWithStatistics<T>(Span<T> span) where T : IComparable<T>
-    {
-        ulong compareCount = 0, swapCount = 0, indexAccessCount = 0;
-        
-        // ソートロジック + カウント
-        
-        return new SortResult(compareCount, swapCount, indexAccessCount);
-    }
-}
-```
-
-**メリット：**
-- ✅ 完全にステートレス
-- ✅ APIが最もシンプル
-
-**デメリット：**
-- ⚠️ コード重複（統計あり/なしで2つの実装が必要）
-- ⚠️ ビジュアライズ対応不可
-
----
-
-## 比較表
-
-| 観点 | 案1: Generic Struct | 案2: Interface | 案3: 戻り値 |
-|------|-------------------|----------------|------------|
-| **パフォーマンス（統計なし）** | ◎ ゼロオーバーヘッド | ○ nullチェック分 | ◎ ゼロ |
-| **パフォーマンス（統計あり）** | ◎ インライン化 | ○ 仮想呼び出し | ◎ ローカル変数 |
-| **ソート関数のステートレス性** | ◎ 完全 | ◎ 完全 | ◎ 完全 |
-| **ビジュアライズ対応** | ◎ 可能 | ◎ 可能 | ✗ 不可 |
-| **API の簡潔さ** | ○ ジェネリクスが増える | ◎ シンプル | ◎ 最もシンプル |
-| **コード重複** | ◎ なし（1実装） | ◎ なし | △ 2実装必要 |
-| **型安全性** | ◎ コンパイル時チェック | ○ 実行時 | ◎ |
-
----
-
-## 推奨案
-
-**案1: Generic Struct Context** を推奨します。
-
-**理由：**
-1. **ソート関数が完全にステートレス** - 静的メソッドで純粋関数
-2. **状態はContextに逃がせる** - 統計・描画の状態はContext側が管理
-3. **パフォーマンス最高** - `NullContext` 使用時はゼロオーバーヘッド
-4. **将来のビジュアライズ対応が可能** - Contextを拡張するだけ
-5. **コード重複なし** - 1つの実装で統計あり/なし両対応
-
----
-
-## 補足：クラスContextの対応
-
-ビジュアライズでクラスContextを使いたい場合、`ref` 渡しの制約を回避するオーバーロードを追加：
-
-```csharp
-public static class BubbleSort
-{
-    // 構造体Context用（ref渡し）
-    public static void Sort<T, TContext>(Span<T> span, ref TContext context)
-        where T : IComparable<T>
-        where TContext : ISortContext
-    { /* ... */ }
-
-    // クラスContext用（参照渡し不要）
-    public static void Sort<T>(Span<T> span, ISortContext context)
-        where T : IComparable<T>
-    {
-        // 内部でラップして呼び出し
-        var wrapper = new ContextWrapper(context);
-        Sort(span, ref wrapper);
-    }
-}
-
-// または、クラス用の別オーバーロードを用意
-```
+**Note：**
+- 仮想呼び出し（vtable lookup）のコストは存在するが、ソートの比較・スワップ回数に比べれば微小
+- パフォーマンスクリティカルな場合は `NullContext.Default` で統計なしにする
+- JITのdevirtualization最適化により、特定条件下ではさらに最適化される可能性あり
 
 ---
 
@@ -381,9 +272,10 @@ public static class BubbleSort
 src/SortLab.Core/
 ├── Contexts/
 │   ├── ISortContext.cs           # インターフェース
-│   ├── NullContext.cs            # No-op（struct）
-│   ├── StatisticsContext.cs      # 統計収集（struct）
-│   └── VisualizationContext.cs   # 描画用（class）
+│   ├── NullContext.cs            # No-op（シングルトン class）
+│   ├── StatisticsContext.cs      # 統計収集（class）
+│   ├── VisualizationContext.cs   # 描画用（class）
+│   └── CompositeContext.cs       # 複合（class）
 ├── Algorithms/
 │   ├── Exchange/
 │   │   ├── BubbleSort.cs         # static class
@@ -410,9 +302,8 @@ src/SortLab.Core/
 internal static class SortHelper
 {
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static int Compare<T, TContext>(Span<T> span, int i, int j, ref TContext context)
+    public static int Compare<T>(Span<T> span, int i, int j, ISortContext context)
         where T : IComparable<T>
-        where TContext : ISortContext
     {
         var result = span[i].CompareTo(span[j]);
         context.OnCompare(i, j, result);
@@ -420,16 +311,14 @@ internal static class SortHelper
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static void Swap<T, TContext>(Span<T> span, int i, int j, ref TContext context)
-        where TContext : ISortContext
+    public static void Swap<T>(Span<T> span, int i, int j, ISortContext context)
     {
         context.OnSwap(i, j);
         (span[i], span[j]) = (span[j], span[i]);
     }
     
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static ref T Index<T, TContext>(Span<T> span, int index, ref TContext context)
-        where TContext : ISortContext
+    public static ref T Index<T>(Span<T> span, int index, ISortContext context)
     {
         context.OnIndexAccess(index);
         return ref span[index];
@@ -437,9 +326,9 @@ internal static class SortHelper
 }
 
 // 使用例
-if (SortHelper.Compare(span, j, j - 1, ref context) < 0)
+if (SortHelper.Compare(span, j, j - 1, context) < 0)
 {
-    SortHelper.Swap(span, j, j - 1, ref context);
+    SortHelper.Swap(span, j, j - 1, context);
 }
 ```
 
@@ -469,18 +358,24 @@ public class BubbleSortLegacy<T> : ISort<T> where T : IComparable<T>
 
 ---
 
-## 決定事項
+## 採用設計まとめ
 
-1. **採用する設計** - 案1（Generic Struct Context）/ 案2 / 案3
-2. **ビジュアライズ対応** - 必要 / 不要（将来対応）
-3. **クラスContext対応** - オーバーロード追加 / 不要
-4. **ヘルパーメソッド** - 静的クラス / 各アルゴリズム内で重複
+| 項目 | 決定 |
+|------|------|
+| **Context の型** | class（シングルトン + 通常インスタンス） |
+| **NullContext** | `NullContext.Default` シングルトン |
+| **複合Context** | `CompositeContext` で複数組み合わせ可能 |
+| **ソートAPI** | `Sort<T>(Span<T>)` と `Sort<T>(Span<T>, ISortContext)` |
+| **ヘルパーメソッド** | `SortHelper` 静的クラス |
+| **ビジュアライズ対応** | 対応（`VisualizationContext` で位置情報取得可能） |
 
 ---
 
 ## 次のステップ
 
-1. 設計案の選択
-2. `BubbleSort` での実装
-3. ベンチマークで現行版との比較
-4. 他アルゴリズムへの展開
+1. `ISortContext` インターフェースと各Context実装を作成
+2. `SortHelper` 静的クラスを作成
+3. `BubbleSort` を新設計で実装
+4. ベンチマークで現行版との比較
+5. 他アルゴリズムへの展開
+6. 旧API（`SortBase<T>`, `ISort<T>`）の非推奨化・削除
