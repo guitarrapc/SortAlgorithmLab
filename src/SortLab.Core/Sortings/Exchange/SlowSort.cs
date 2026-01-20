@@ -2,13 +2,14 @@
 
 /// <summary>
 /// 配列左半分で最大の数をさがし、配列右半分で最大の数を探して両者を比較し左半分が大きければ交換。残りを配列の要素数-1で繰り返しソート済みまで行く。
+/// Multiply and Surrender戦略を使った分割統治アルゴリズムで、意図的に非効率な設計のため実用性はない。
 /// </summary>
 /// <remarks>
-/// stable : no
-/// inplace : no (n)
-/// Compare : ....
-/// Swap : ....
-/// Order : .....
+/// stable  : no
+/// inplace : yes
+/// Compare : Ω(n^(log n / (2+ε)))  (Extremely high number of comparisons due to recursive overhead)
+/// Swap    : O(n^(log n / 2))     (Depends on the data, but can be very high)
+/// Order   : O(n^(log n / (2+ε))) on average (Worst case: much worse than O(n^2), one of the slowest sorting algorithms)
 /// </remarks>
 /// <typeparam name="T"></typeparam>
 public class SlowSort<T> : SortBase<T> where T : IComparable<T>
