@@ -138,5 +138,35 @@ public class InsertionSortTests
         Assert.Equal((ulong)0, sort.Statistics.CompareCount);
         Assert.Equal((ulong)0, sort.Statistics.SwapCount);
     }
+
+    [Theory]
+    [InlineData(10)]
+    [InlineData(20)]
+    [InlineData(50)]
+    [InlineData(100)]
+    public void TheoreticalValuesSortedTest(int n)
+    {
+        var sorted = Enumerable.Range(0, n).ToArray();
+        sort.Sort(sorted);
+
+        var expectedCompares = (ulong)(n - 1);
+        Assert.Equal(expectedCompares, sort.Statistics.CompareCount);
+        Assert.Equal(0UL, sort.Statistics.SwapCount);
+    }
+
+    [Theory]
+    [InlineData(10)]
+    [InlineData(20)]
+    [InlineData(50)]
+    [InlineData(100)]
+    public void TheoreticalValuesReversedTest(int n)
+    {
+        var reversed = Enumerable.Range(0, n).Reverse().ToArray();
+        sort.Sort(reversed);
+
+        var expectedCompares = (ulong)(n * (n - 1) / 2);
+        Assert.Equal(expectedCompares, sort.Statistics.CompareCount);
+        Assert.Equal(0UL, sort.Statistics.SwapCount);
+    }
 }
 

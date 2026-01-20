@@ -1,4 +1,4 @@
-﻿namespace SortLab.Tests;
+namespace SortLab.Tests;
 
 public class GnomeSortNoOptimizationTests
 {
@@ -122,6 +122,38 @@ public class GnomeSortNoOptimizationTests
     }
 
     [Theory]
+    [InlineData(10)]
+    [InlineData(20)]
+    [InlineData(50)]
+    [InlineData(100)]
+    public void TheoreticalValuesSortedTest(int n)
+    {
+        var sorted = Enumerable.Range(0, n).ToArray();
+        sort.Sort(sorted);
+        
+        // 理論値: ソート済みの場合
+        // 交換回数: 0 (交換不要)
+        Assert.Equal(0UL, sort.Statistics.SwapCount);
+    }
+
+    [Theory]
+    [InlineData(10)]
+    [InlineData(20)]
+    [InlineData(50)]
+    [InlineData(100)]
+    public void TheoreticalValuesReversedTest(int n)
+    {
+        var reversed = Enumerable.Range(0, n).Reverse().ToArray();
+        sort.Sort(reversed);
+        
+        // 理論値: 逆順の場合 (最悪ケース)
+        // 交換回数: n(n-1)/2
+        var expectedSwaps = (ulong)(n * (n - 1) / 2);
+        
+        Assert.Equal(expectedSwaps, sort.Statistics.SwapCount);
+    }
+
+    [Theory]
     [ClassData(typeof(MockRandomData))]
     [ClassData(typeof(MockNegativePositiveRandomData))]
     [ClassData(typeof(MockNegativeRandomData))]
@@ -138,5 +170,5 @@ public class GnomeSortNoOptimizationTests
         Assert.Equal((ulong)0, sort.Statistics.CompareCount);
         Assert.Equal((ulong)0, sort.Statistics.SwapCount);
     }
-}
 
+}

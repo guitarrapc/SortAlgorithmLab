@@ -1,4 +1,4 @@
-Ôªønamespace SortLab.Tests;
+namespace SortLab.Tests;
 
 public class ShellSortTests
 {
@@ -122,6 +122,23 @@ public class ShellSortTests
     }
 
     [Theory]
+    [InlineData(10)]
+    [InlineData(20)]
+    [InlineData(50)]
+    [InlineData(100)]
+    public void TheoreticalValuesSortedTest(int n)
+    {
+        var sorted = Enumerable.Range(0, n).ToArray();
+        sort.Sort(sorted);
+        
+        // óùò_íl: É\Å[ÉgçœÇ›ÇÃèÍçá
+        // åä∑âÒêî: 0 (åä∑ïsóv)
+        // î‰ärâÒêîÇÕÉMÉÉÉbÉvÉVÅ[ÉPÉìÉXÇ…àÀë∂Ç∑ÇÈÇ™ÅAç≈å„ÇÃh=1Ç≈ÇÕ n-1 âÒÇÃî‰är
+        Assert.Equal(0UL, sort.Statistics.SwapCount);
+        Assert.True(sort.Statistics.CompareCount >= (ulong)(n - 1)); // ç≈è¨Ç≈Ç‡ n-1 âÒ
+    }
+
+    [Theory]
     [ClassData(typeof(MockRandomData))]
     [ClassData(typeof(MockNegativePositiveRandomData))]
     [ClassData(typeof(MockNegativeRandomData))]
@@ -138,5 +155,5 @@ public class ShellSortTests
         Assert.Equal((ulong)0, sort.Statistics.CompareCount);
         Assert.Equal((ulong)0, sort.Statistics.SwapCount);
     }
-}
 
+}

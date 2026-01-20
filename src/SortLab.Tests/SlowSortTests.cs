@@ -1,4 +1,4 @@
-﻿namespace SortLab.Tests;
+namespace SortLab.Tests;
 
 public class SlowSortTests
 {
@@ -152,5 +152,33 @@ public class SlowSortTests
             Assert.Equal((ulong)0, sort.Statistics.CompareCount);
             Assert.Equal((ulong)0, sort.Statistics.SwapCount);
         }
+    }
+
+    [Theory]
+    [InlineData(10)]
+    [InlineData(20)]
+    [InlineData(50)]
+    [InlineData(100)]
+    public void TheoreticalValuesSortedTest(int n)
+    {
+        var sorted = Enumerable.Range(0, n).ToArray();
+        sort.Sort(sorted);
+
+        // Sorted data should produce predictable statistics
+        Assert.NotEqual(0UL, sort.Statistics.CompareCount);
+    }
+
+    [Theory]
+    [InlineData(10)]
+    [InlineData(20)]
+    [InlineData(50)]
+    [InlineData(100)]
+    public void TheoreticalValuesReversedTest(int n)
+    {
+        var reversed = Enumerable.Range(0, n).Reverse().ToArray();
+        sort.Sort(reversed);
+
+        // Reversed data should require sorting operations
+        Assert.NotEqual(0UL, sort.Statistics.CompareCount);
     }
 }

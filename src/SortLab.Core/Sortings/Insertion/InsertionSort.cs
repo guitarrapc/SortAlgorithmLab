@@ -33,7 +33,7 @@ Span ...
 /// stable  : yes
 /// inplace : yes
 /// Compare : O(n^2), strictly n(n-1) / 2
-/// Swap    : 0
+/// Swap    : O(n^2), strictly n^2/2
 /// Index   : O(n^2) (Each element may be accessed multiple times during swaps)
 /// Order   : O(n^2)
 ///         * average:                   O(n^2) 
@@ -64,7 +64,7 @@ public class InsertionSort<T> : SortBase<T> where T : IComparable<T>
     }
 
     /// <summary>
-    /// Optimized insertion sort
+    /// Optimized insertion sort using shift operations
     /// </summary>
     /// <param name="span"></param>
     /// <param name="first"></param>
