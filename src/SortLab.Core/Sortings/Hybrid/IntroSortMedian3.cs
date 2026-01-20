@@ -1,15 +1,18 @@
 ﻿namespace SortLab.Core.Sortings;
 
 /// <summary>
-/// Contains Bug on HeapSort.
-/// QuickSort + HeapSort + InsertSort によるQuickSortの最悪ケースでのO(n^2) を回避する実装。一定の深度以下になった場合にHeapSortにスイッチすることで最悪ケースを防ぎ、ほぼソート済み状況ではInsertSortで最速を狙う。
+/// QuickSort + HeapSort + InsertionSort によるハイブリッドソート。
+/// QuickSortの最悪ケースでのO(n^2)を回避するため、再帰の深度が一定以上になった場合はHeapSortに切り替え、
+/// 小さな部分配列ではInsertionSortを使用することで、あらゆるケースで高速なソートを実現します。
+/// Median-of-3法でピボットを選択します。
 /// </summary>
 /// <remarks>
-/// stable : no
-/// inplace : no (log n)
-/// Compare : n log n
-/// Swap : n log n
-/// Order : O(n log n) (Worst case : O(n log n))
+/// stable  : no
+/// inplace : yes (Only uses O(log n) recursive stack space)
+/// Compare : O(n log n)
+/// Swap    : O(n log n)
+/// Order   : O(n log n) (Worst case: O(n log n), Best case: O(n log n))
+/// Note    : .NET Frameworkの標準ソートアルゴリズムの基礎となる手法
 /// </remarks>
 /// <typeparam name="T"></typeparam>
 public class IntroSortMedian3<T> : SortBase<T> where T : IComparable<T>

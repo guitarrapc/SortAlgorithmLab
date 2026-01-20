@@ -1,16 +1,18 @@
 ﻿namespace SortLab.Core.Sortings;
 
 /// <summary>
-/// Contains Bug on HeapSort.
-/// 配列から、常に最大の要素をルートにもつ2分木構造(ヒープ)を作る(この時点で不安定)。あとは、ルート要素をソート済み配列の末尾に詰めて、ヒープの末端をルートに持ってきて再度ヒープ構造を作る。これを繰り返すことでヒープの最大値は常にルート要素になり、これをソート済み配列につめていくことで自然とソートができる。
-/// Median3 は山データでエッジケース問題があるため、Median9が望ましい
+/// QuickSort + HeapSort + InsertionSort によるハイブリッドソート。
+/// QuickSortの最悪ケースでのO(n^2)を回避するため、再帰の深度が一定以上になった場合はHeapSortに切り替え、
+/// 小さな部分配列ではInsertionSortを使用することで、あらゆるケースで高速なソートを実現します。
+/// Median-of-9法でピボットを選択するため、Median-of-3よりも偏ったデータに対して堅牢です。
 /// </summary>
 /// <remarks>
-/// stable : no
-/// inplace : no (log n)
-/// Compare : n log n
-/// Swap : n log n
-/// Order : O(n log n) (Worst case : O(n log n))
+/// stable  : no
+/// inplace : yes (Only uses O(log n) recursive stack space)
+/// Compare : O(n log n)
+/// Swap    : O(n log n)
+/// Order   : O(n log n) (Worst case: O(n log n), Best case: O(n log n))
+/// Note    : Median-of-9法により山型データなどのエッジケースに強い
 /// </remarks>
 /// <typeparam name="T"></typeparam>
 public class IntroSortMedian9<T> : SortBase<T> where T : IComparable<T>
