@@ -16,20 +16,26 @@ public class QuickSortDualPivot<T> : SortBase<T> where T : IComparable<T>
     public override SortMethod SortType => SortMethod.Partitioning;
     protected override string Name => nameof(QuickSortDualPivot<T>);
 
-    public override T[] Sort(T[] array)
+    public override void Sort(T[] array)
     {
         Statistics.Reset(array.Length, SortType, Name);
-        return SortImpl(array, 0, array.Length - 1);
+        SortCore(array.AsSpan(), 0, array.Length - 1);
     }
 
-    private T[] SortImpl(T[] array, int left, int right)
+    public override void Sort(Span<T> span)
     {
-        if (right <= left) return array;
+        Statistics.Reset(span.Length, SortType, Name);
+        SortCore(span, 0, span.Length - 1);
+    }
+
+    void SortCore(Span<T> span, int left, int right)
+    {
+        if (right <= left) return;
 
         // fase 0. Make sure left item is lower than right item
-        if (Compare(array[left], array[right]) > 0)
+        if (Compare(Index(span, left), Index(span, right)) > 0)
         {
-            Swap(ref array[left], ref array[right]);
+            Swap(ref Index(span, left), ref Index(span, right));
         }
 
         // fase 1. decide pivot
@@ -39,16 +45,15 @@ public class QuickSortDualPivot<T> : SortBase<T> where T : IComparable<T>
 
         while (k <= g)
         {
-            Statistics.AddIndexCount();
-            if (Compare(array[k], array[left]) < 0)
+            if (Compare(Index(span, k), Index(span, left)) < 0)
             {
-                Swap(ref array[k], ref array[l]);
+                Swap(ref Index(span, k), ref Index(span, l));
                 k++;
                 l++;
             }
-            else if (Compare(array[right], array[k]) < 0)
+            else if (Compare(Index(span, right), Index(span, k)) < 0)
             {
-                Swap(ref array[k], ref array[g]);
+                Swap(ref Index(span, k), ref Index(span, g));
                 g--;
             }
             else
@@ -59,16 +64,15 @@ public class QuickSortDualPivot<T> : SortBase<T> where T : IComparable<T>
 
         l--;
         g++;
-        Swap(ref array[left], ref array[l]);
-        Swap(ref array[right], ref array[g]);
+        Swap(ref Index(span, left), ref Index(span, l));
+        Swap(ref Index(span, right), ref Index(span, g));
 
         // fase 2. Sort Left, Mid and righ
-        SortImpl(array, left, l - 1);
-        if (Compare(array[left], array[right]) < 0)
+        SortCore(span, left, l - 1);
+        if (Compare(Index(span, left), Index(span, right)) < 0)
         {
-            SortImpl(array, l + 1, g - 1);
+            SortCore(span, l + 1, g - 1);
         }
-        SortImpl(array, g + 1, right);
-        return array;
+        SortCore(span, g + 1, right);
     }
 }

@@ -20,56 +20,61 @@ public class QuickSortMedian9WithBinaryInsert<T> : SortBase<T> where T : ICompar
     private const int InsertThreshold = 16;
     private BinaryInsertSort<T> insertSort = new BinaryInsertSort<T>();
 
-    public override T[] Sort(T[] array)
+    public override void Sort(T[] array)
     {
         Statistics.Reset(array.Length, SortType, Name);
-        var result = SortImpl(array, 0, array.Length - 1);
+        SortCore(array.AsSpan(), 0, array.Length - 1);
         Statistics.AddCompareCount(insertSort.Statistics.CompareCount);
         Statistics.AddIndexCount(insertSort.Statistics.IndexAccessCount);
         Statistics.AddSwapCount(insertSort.Statistics.SwapCount);
-        return result;
     }
 
-    private T[] SortImpl(T[] array, int left, int right)
+    public override void Sort(Span<T> span)
     {
-        if (left >= right) return array;
+        Statistics.Reset(span.Length, SortType, Name);
+        SortCore(span, 0, span.Length - 1);
+        Statistics.AddCompareCount(insertSort.Statistics.CompareCount);
+        Statistics.AddIndexCount(insertSort.Statistics.IndexAccessCount);
+        Statistics.AddSwapCount(insertSort.Statistics.SwapCount);
+    }
+
+    void SortCore(Span<T> span, int left, int right)
+    {
+        if (left >= right) return;
 
         // switch to insert sort
         if (right - left < InsertThreshold)
         {
-            return insertSort.Sort(array, left, right + 1);
+            insertSort.Sort(span, left, right + 1);
+            return;
         }
 
         // fase 1. decide pivot
-        Statistics.AddIndexCount();
-        var pivot = Median9(array, left, right);
+        var pivot = Median9(span, left, right);
         var l = left;
         var r = right;
 
         while (l <= r)
         {
-            while (l < right && Compare(array[l], pivot) < 0)
+            while (l < right && Compare(Index(span, l), pivot) < 0)
             {
-                Statistics.AddIndexCount();
                 l++;
             }
 
-            while (r > left && Compare(array[r], pivot) > 0)
+            while (r > left && Compare(Index(span, r), pivot) > 0)
             {
-                Statistics.AddIndexCount();
                 r--;
             }
 
             if (l > r) break;
-            Swap(ref array[l], ref array[r]);
+            Swap(ref Index(span, l), ref Index(span, r));
             l++;
             r--;
         }
 
         // fase 2. Sort Left and Right
-        SortImpl(array, left, l - 1);
-        SortImpl(array, l, right);
-        return array;
+        SortCore(span, left, l - 1);
+        SortCore(span, l, right);
     }
 
     private T Median3(T low, T mid, T high)
@@ -98,20 +103,20 @@ public class QuickSortMedian9WithBinaryInsert<T> : SortBase<T> where T : ICompar
         }
     }
 
-    private T Median9(T[] array, int low, int high)
+    T Median9(Span<T> span, int low, int high)
     {
         var m2 = (high - low) / 2;
         var m4 = m2 / 2;
         var m8 = m4 / 2;
-        var a = array[low];
-        var b = array[low + m8];
-        var c = array[low + m4];
-        var d = array[low + m2 - m8];
-        var e = array[low + m2];
-        var f = array[low + m2 + m8];
-        var g = array[high - m4];
-        var h = array[high - m8];
-        var i = array[high];
+        var a = Index(span, low);
+        var b = Index(span, low + m8);
+        var c = Index(span, low + m4);
+        var d = Index(span, low + m2 - m8);
+        var e = Index(span, low + m2);
+        var f = Index(span, low + m2 + m8);
+        var g = Index(span, high - m4);
+        var h = Index(span, high - m8);
+        var i = Index(span, high);
         return Median3(Median3(a, b, c), Median3(d, e, f), Median3(g, h, i));
     }
 }

@@ -58,9 +58,9 @@ public class InsertionSort<T> : SortBase<T> where T : IComparable<T>
         SortCore(span, 0, span.Length);
     }
 
-    internal void Sort(T[] array, int first, int last)
+    internal void Sort(Span<T> span, int first, int last)
     {
-        SortCore(array.AsSpan(), first, last);
+        SortCore(span, first, last);
     }
 
     /// <summary>
