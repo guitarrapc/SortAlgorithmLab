@@ -44,18 +44,18 @@ public class CycleSort<T> : SortBase<T> where T : IComparable<T>
 
     public override void Sort(T[] array)
     {
+        Statistics.Reset(array.Length, SortType, Name);
         SortCore(array.AsSpan());
     }
 
     public override void Sort(Span<T> span)
     {
+        Statistics.Reset(span.Length, SortType, Name);
         SortCore(span);
     }
 
     private void SortCore(Span<T> span)
     {
-        Statistics.Reset(span.Length, SortType, Name);
-
         for (var start = 0; start <= span.Length - 2; start++)
         {
             // Compare value

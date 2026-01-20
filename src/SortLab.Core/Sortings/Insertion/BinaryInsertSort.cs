@@ -72,20 +72,8 @@ public class BinaryInsertSort<T> : SortBase<T> where T : IComparable<T>
     /// <returns></returns>
     internal void Sort(Span<T> span, int first, int last)
     {
+        Statistics.Reset(span.Length, SortType, Name);
         SortCore(span, first, last);
-    }
-
-    /// <summary>
-    /// Sort the subrange [first..last) and start insertion sort from 'start'.
-    /// </summary>
-    /// <param name="array"></param>
-    /// <param name="first"></param>
-    /// <param name="last"></param>
-    /// <param name="start"></param>
-    /// <returns></returns>
-    internal void Sort(Span<T> span, int first, int last, int start)
-    {
-        SortCore(span, first, last, start);
     }
 
     /// <summary>

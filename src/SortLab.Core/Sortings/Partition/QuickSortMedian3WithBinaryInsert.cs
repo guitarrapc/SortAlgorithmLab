@@ -38,7 +38,7 @@ public class QuickSortMedian3WithBinaryInsert<T> : SortBase<T> where T : ICompar
         Statistics.AddSwapCount(insertSort.Statistics.SwapCount);
     }
 
-    void SortCore(Span<T> span, int left, int right)
+    private void SortCore(Span<T> span, int left, int right)
     {
         if (left >= right) return;
 

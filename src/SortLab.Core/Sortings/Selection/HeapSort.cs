@@ -78,19 +78,6 @@ public class HeapSort<T> : SortBase<T> where T : IComparable<T>
     }
 
     /// <summary>
-    /// Sort a portion of the array from index first to last-1.
-    /// </summary>
-    /// <param name="array"></param>
-    /// <param name="first"></param>
-    /// <param name="last"></param>
-    /// <returns></returns>
-    /// <exception cref="ArgumentOutOfRangeException"></exception>
-    internal void Sort(T[] array, int first, int last)
-    {
-        SortCore(array.AsSpan(), first, last);
-    }
-
-    /// <summary>
     /// Sort a portion of the span from index first to last-1.
     /// </summary>
     /// <param name="span"></param>

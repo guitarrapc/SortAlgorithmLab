@@ -28,7 +28,7 @@ public class QuickSortMedian3<T> : SortBase<T> where T : IComparable<T>
         SortCore(span, 0, span.Length - 1);
     }
 
-    void SortCore(Span<T> span, int left, int right)
+    private void SortCore(Span<T> span, int left, int right)
     {
         if (left >= right) return;
 

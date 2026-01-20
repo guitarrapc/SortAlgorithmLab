@@ -31,7 +31,7 @@ public class QuickSortDualPivotWithBinaryInsert<T> : SortBase<T> where T : IComp
         SortCore(span, 0, span.Length - 1);
     }
 
-    void SortCore(Span<T> span, int left, int right)
+    private void SortCore(Span<T> span, int left, int right)
     {
         if (right <= left) return;
 

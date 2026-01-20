@@ -91,11 +91,6 @@ public class ShellSort<T> : SortBase<T> where T : IComparable<T>
         SortCore(span, 0, span.Length, GapType.Knuth);
     }
 
-    internal void Sort(T[] array, int first, int last)
-    {
-        SortCore(array.AsSpan(), first, last, GapType.Knuth);
-    }
-
     /// <summary>
     /// Main entry to switch gap sequences (Knuth, Tokuda, Sedgewick)
     /// </summary>

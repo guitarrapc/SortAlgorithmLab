@@ -108,15 +108,15 @@ public class QuickSortMedian9WithInsert<T> : SortBase<T> where T : IComparable<T
         var m2 = (high - low) / 2;
         var m4 = m2 / 2;
         var m8 = m4 / 2;
-        var a = Index(span, low);
-        var b = Index(span, low + m8);
-        var c = Index(span, low + m4);
-        var d = Index(span, low + m2 - m8);
-        var e = Index(span, low + m2);
-        var f = Index(span, low + m2 + m8);
-        var g = Index(span, high - m4);
-        var h = Index(span, high - m8);
-        var i = Index(span, high);
-        return Median3(Median3(a, b, c), Median3(d, e, f), Median3(g, h, i));
+        var p1 = Index(span, low);
+        var p2 = Index(span, low + m8);
+        var p3 = Index(span, low + m4);
+        var p4 = Index(span, low + m2 - m8);
+        var p5 = Index(span, low + m2);
+        var p6 = Index(span, low + m2 + m8);
+        var p7 = Index(span, high - m4);
+        var p8 = Index(span, high - m8);
+        var p9 = Index(span, high);
+        return Median3(Median3(p1, p2, p3), Median3(p4, p5, p6), Median3(p7, p8, p9));
     }
 }
