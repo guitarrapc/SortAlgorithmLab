@@ -1,43 +1,51 @@
-﻿namespace SortLab.Core.Sortings;
+﻿using System.Numerics;
+
+namespace SortLab.Core.Sortings;
 
 /// <summary>
-/// 10進数のバケット対応基数ソート。基数の数だけバケットを用意して、基数の桁ごとにバケットソートを行うことで、バケットソートにあった値の範囲制限をゆるくしたもの。
-/// これにより、桁ごとにバケットを用意すれば良くなり対象が楽になる。
+/// 10進数基数のLSD基数ソート。
+/// 値を10進数の桁として扱い、各桁ごとにバケットソートを行います。
+/// 人間が理解しやすい10進数ベースのアルゴリズムで、デバッグや教育目的に適しています。
 /// </summary>
 /// <remarks>
 /// stable : yes
-/// inplace : no (n + 2^d)
-/// Compare : 2kn
+/// inplace : no (n + 10)
+/// Compare : 0 (比較演算なし、除算と剰余演算のみ)
 /// Swap : 0
-/// Order : O(kn)
+/// Order : O(kn) where k is the number of decimal digits
+/// Note: 10進数演算を使用するため、2進数ベースのRadixLSD4Sortより遅い場合があります。
 /// </remarks>
-/// <typeparam name="T"></typeparam>
-public class RadixLSD10Sort<T> : SortBase<int> where T : IComparable<T>
+/// <typeparam name="T">ソート対象の整数型（IBinaryInteger制約）</typeparam>
+public class RadixLSD10Sort<T> : SortBase<T> 
+    where T : IBinaryInteger<T>, IMinMaxValue<T>, IComparable<T>
 {
+    private const int RadixBase = 10;       // Decimal base
+    
     public override SortMethod SortType => SortMethod.Distributed;
     protected override string Name => nameof(RadixLSD10Sort<T>);
 
-    public override void Sort(int[] array)
+    public override void Sort(T[] array)
     {
         Statistics.Reset(array.Length, SortType, Name);
         SortCore(array.AsSpan());
     }
 
-    public override void Sort(Span<int> span)
+    public override void Sort(Span<T> span)
     {
         Statistics.Reset(span.Length, SortType, Name);
         SortCore(span);
     }
 
-    private void SortCore(Span<int> span)
+    private void SortCore(Span<T> span)
     {
         if (span.Length <= 1) return;
 
         // Check if we have negative numbers
         var hasNegative = false;
+        var zero = T.Zero;
         for (var i = 0; i < span.Length; i++)
         {
-            if (Index(span, i) < 0)
+            if (Compare(Index(span, i), zero) < 0)
             {
                 hasNegative = true;
                 break;
@@ -54,97 +62,159 @@ public class RadixLSD10Sort<T> : SortBase<int> where T : IComparable<T>
         }
     }
 
-    private void SortCorePositive(Span<int> span)
+    private void SortCorePositive(Span<T> span)
     {
         // Find max to determine number of digits
-        var max = int.MinValue;
+        var max = T.MinValue;
         for (var i = 0; i < span.Length; i++)
         {
             var value = Index(span, i);
-            if (value > max) max = value;
+            if (Compare(value, max) > 0)
+            {
+                max = value;
+            }
         }
 
-        var digit = max == 0 ? 1 : 1 + (int)Math.Log10(max);
-        var bucket = new List<int>[10];
+        // Calculate number of decimal digits
+        var digitCount = GetDigitCount(max);
+        var buckets = new List<T>[RadixBase];
 
-        for (int d = 0, r = 1; d < digit; d++, r *= 10)
+        var divisor = T.One;
+        var ten = T.CreateChecked(10);
+
+        for (var d = 0; d < digitCount; d++)
         {
-            // Make bucket for possibly assigned number of int
+            // Clear buckets
+            for (var i = 0; i < RadixBase; i++)
+            {
+                buckets[i]?.Clear();
+            }
+
+            // Distribute elements into buckets
             for (var i = 0; i < span.Length; i++)
             {
                 var value = Index(span, i);
-                var key = (value / r) % 10;
-                bucket[key] ??= [];
-                bucket[key].Add(value);
+                var digit = GetDecimalDigit(value, divisor);
+                buckets[digit] ??= new List<T>();
+                buckets[digit].Add(value);
             }
 
-            // Put array int to each bucket
-            for (int j = 0, i = 0; j < bucket.Length; j++)
+            // Collect elements back from buckets
+            for (int j = 0, i = 0; j < RadixBase; j++)
             {
-                if (bucket[j] != null)
+                if (buckets[j] != null)
                 {
-                    foreach (var item in bucket[j])
+                    foreach (var item in buckets[j])
                     {
                         Index(span, i++) = item;
                     }
                 }
             }
 
-            for (var j = 0; j < bucket.Length; j++)
-            {
-                bucket[j]?.Clear();
-            }
+            divisor *= ten;
         }
     }
 
-    private void SortCoreNegative(Span<int> span)
+    private void SortCoreNegative(Span<T> span)
     {
-        var bucket = new List<int>[20];
+        // For negative numbers, use 20 buckets (10 for negative, 10 for positive)
+        var buckets = new List<T>[20];
         
-        // Find max digit
-        var max = 0;
+        // Find max absolute value to determine number of digits
+        var maxAbs = T.Zero;
         for (var i = 0; i < span.Length; i++)
         {
-            var digit = GetDigit(Index(span, i));
-            if (digit > max)
+            var value = Index(span, i);
+            var abs = T.Abs(value);
+            if (Compare(abs, maxAbs) > 0)
             {
-                max = digit;
+                maxAbs = abs;
             }
         }
 
-        for (var r = 1; r <= max; r++)
+        var digitCount = GetDigitCount(maxAbs);
+        var divisor = T.One;
+        var ten = T.CreateChecked(10);
+        var zero = T.Zero;
+        var nine = T.CreateChecked(9);
+
+        for (var d = 0; d < digitCount; d++)
         {
-            for (var i = 0; i < span.Length; i++)
+            // Clear buckets
+            for (var i = 0; i < 20; i++)
             {
-                var tmp = Index(span, i);
-                var radix = tmp < 0
-                    ? -(int)(Math.Abs(tmp) / Math.Pow(10, r - 1)) % 10
-                    : (int)(tmp / Math.Pow(10, r - 1)) % 10;
-                radix += 9;
-                bucket[radix] ??= new List<int>();
-                bucket[radix].Add(tmp);
+                buckets[i]?.Clear();
             }
 
-            for (int j = 0, i = 0; j < bucket.Length; j++)
+            // Distribute elements into buckets
+            for (var i = 0; i < span.Length; i++)
             {
-                if (bucket[j] != null)
+                var value = Index(span, i);
+                var digit = GetDecimalDigit(T.Abs(value), divisor);
+                
+                // Negative numbers: negate digit and offset by 9
+                // Positive numbers: offset by 9
+                int bucketIndex;
+                if (Compare(value, zero) < 0)
                 {
-                    foreach (var item in bucket[j])
+                    bucketIndex = 9 - digit;  // 9, 8, 7, ..., 0 for digits 0-9
+                }
+                else
+                {
+                    bucketIndex = 10 + digit;  // 10, 11, 12, ..., 19 for digits 0-9
+                }
+
+                buckets[bucketIndex] ??= new List<T>();
+                buckets[bucketIndex].Add(value);
+            }
+
+            // Collect elements back from buckets
+            for (int j = 0, i = 0; j < 20; j++)
+            {
+                if (buckets[j] != null)
+                {
+                    foreach (var item in buckets[j])
                     {
                         Index(span, i++) = item;
                     }
                 }
             }
 
-            for (var j = 0; j < bucket.Length; j++)
-            {
-                bucket[j]?.Clear();
-            }
+            divisor *= ten;
         }
     }
 
-    private int GetDigit(int i)
+    /// <summary>
+    /// Get the number of decimal digits in a value
+    /// </summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private int GetDigitCount(T value)
     {
-        return Math.Abs(i) < 10 ? 1 : 1 + GetDigit(i / 10);
+        if (value == T.Zero)
+            return 1;
+
+        var count = 0;
+        var temp = T.Abs(value);
+        var zero = T.Zero;
+        var ten = T.CreateChecked(10);
+
+        while (Compare(temp, zero) > 0)
+        {
+            temp /= ten;
+            count++;
+        }
+
+        return count;
+    }
+
+    /// <summary>
+    /// Extract a decimal digit at the given position (divisor = 10^position)
+    /// </summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private int GetDecimalDigit(T value, T divisor)
+    {
+        var ten = T.CreateChecked(10);
+        var digit = (value / divisor) % ten;
+        return int.CreateChecked(digit);
     }
 }
