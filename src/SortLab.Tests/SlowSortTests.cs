@@ -1,3 +1,5 @@
+﻿using SortLab.Tests.Attributes;
+
 namespace SortLab.Tests;
 
 public class SlowSortTests
@@ -13,69 +15,69 @@ public class SlowSortTests
         method = SortMethod.Exchange;
     }
 
-    [Fact]
+    [CISkippableFact]
     public void SortMethodTest()
     {
         Assert.Equal(method, sort.SortType);
     }
 
-    [Theory]
+    [CISkippableTheory]
     [ClassData(typeof(MockRandomData))]
     public void RandomInputTypeTest(IInputSample<int> inputSample)
     {
         Assert.Equal(InputType.Random, inputSample.InputType);
     }
 
-    [Theory]
+    [CISkippableTheory]
     [ClassData(typeof(MockNegativePositiveRandomData))]
     public void MixRandomInputTypeTest(IInputSample<int> inputSample)
     {
         Assert.Equal(InputType.MixRandom, inputSample.InputType);
     }
 
-    [Theory]
+    [CISkippableTheory]
     [ClassData(typeof(MockNegativeRandomData))]
     public void NegativeRandomInputTypeTest(IInputSample<int> inputSample)
     {
         Assert.Equal(InputType.NegativeRandom, inputSample.InputType);
     }
 
-    [Theory]
+    [CISkippableTheory]
     [ClassData(typeof(MockReversedData))]
     public void ReverseInputTypeTest(IInputSample<int> inputSample)
     {
         Assert.Equal(InputType.Reversed, inputSample.InputType);
     }
 
-    [Theory]
+    [CISkippableTheory]
     [ClassData(typeof(MockMountainData))]
     public void MountainInputTypeTest(IInputSample<int> inputSample)
     {
         Assert.Equal(InputType.Mountain, inputSample.InputType);
     }
 
-    [Theory]
+    [CISkippableTheory]
     [ClassData(typeof(MockNearlySortedData))]
     public void NearlySortedInputTypeTest(IInputSample<int> inputSample)
     {
         Assert.Equal(InputType.NearlySorted, inputSample.InputType);
     }
 
-    [Theory]
+    [CISkippableTheory]
     [ClassData(typeof(MockSortedData))]
     public void SortedInputTypeTest(IInputSample<int> inputSample)
     {
         Assert.Equal(InputType.Sorted, inputSample.InputType);
     }
 
-    [Theory]
+    [CISkippableTheory]
     [ClassData(typeof(MockSameValuesData))]
     public void SameValuesInputTypeTest(IInputSample<int> inputSample)
     {
         Assert.Equal(InputType.SameValues, inputSample.InputType);
     }
 
-    [Theory]
+    [CISkippableTheory]
     [ClassData(typeof(MockRandomData))]
     [ClassData(typeof(MockNegativePositiveRandomData))]
     [ClassData(typeof(MockNegativeRandomData))]
@@ -94,7 +96,7 @@ public class SlowSortTests
         }
     }
 
-    [Theory]
+    [CISkippableTheory]
     [ClassData(typeof(MockRandomData))]
     [ClassData(typeof(MockNegativePositiveRandomData))]
     [ClassData(typeof(MockNegativeRandomData))]
@@ -116,7 +118,7 @@ public class SlowSortTests
         }
     }
 
-    [Theory]
+    [CISkippableTheory]
     [ClassData(typeof(MockSortedData))]
     public void StatisticsSortedTest(IInputSample<int> inputSample)
     {
@@ -132,7 +134,7 @@ public class SlowSortTests
         }
     }
 
-    [Theory]
+    [CISkippableTheory]
     [ClassData(typeof(MockRandomData))]
     [ClassData(typeof(MockNegativePositiveRandomData))]
     [ClassData(typeof(MockNegativeRandomData))]
@@ -154,7 +156,7 @@ public class SlowSortTests
         }
     }
 
-    [Theory]
+    [CISkippableTheory]
     [InlineData(10)]
     [InlineData(20)]
     [InlineData(50)]
@@ -168,7 +170,7 @@ public class SlowSortTests
         Assert.NotEqual(0UL, sort.Statistics.CompareCount);
     }
 
-    [Theory]
+    [CISkippableTheory]
     [InlineData(10)]
     [InlineData(20)]
     [InlineData(50)]
