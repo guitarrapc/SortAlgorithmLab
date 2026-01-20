@@ -6,12 +6,12 @@
 /// 値の範囲が狭い場合に非常に高速ですが、範囲が広いとメモリを大量に消費します。
 /// </summary>
 /// <remarks>
-/// stable : yes
+/// stable  : yes
 /// inplace : no (n + k where k = range of values)
-/// Compare : 0 (比較演算なし)
-/// Swap : 0
-/// Order : O(n + k) where k is the range of values
-/// Note: 値の範囲が大きいとメモリ使用量が膨大になります。
+/// Compare : 0        (No comparison operations)
+/// Swap    : 0
+/// Order   : O(n + k) where k is the range of values
+/// Note    : 値の範囲が大きいとメモリ使用量が膨大になります。
 /// </remarks>
 public class CountingSort : SortBase<int>
 {

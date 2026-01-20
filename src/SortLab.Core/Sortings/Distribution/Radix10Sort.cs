@@ -8,12 +8,12 @@ namespace SortLab.Core.Sortings;
 /// 人間が理解しやすい10進数ベースのアルゴリズムで、デバッグや教育目的に適しています。
 /// </summary>
 /// <remarks>
-/// stable : yes
+/// stable  : yes
 /// inplace : no (n + 10)
-/// Compare : 0 (比較演算なし、除算と剰余演算のみ)
-/// Swap : 0
-/// Order : O(kn) where k is the number of decimal digits
-/// Note: 10進数演算を使用するため、2進数ベースのRadixLSD4Sortより遅い場合があります。
+/// Compare : 0        (No comparison operations, only division and modulo)
+/// Swap    : 0
+/// Order   : O(d * n) where d is the number of decimal digits (d = log₁₀(max))
+/// Note    : 10進数演算を使用するため、2進数ベースのRadixLSD4Sortより遅い場合があります。
 /// </remarks>
 /// <typeparam name="T">ソート対象の整数型（IBinaryInteger制約）</typeparam>
 public class RadixLSD10Sort<T> : SortBase<T> 

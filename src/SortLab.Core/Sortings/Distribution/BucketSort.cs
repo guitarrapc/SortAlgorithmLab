@@ -6,12 +6,12 @@
 /// 比較演算を行わない安定なソートアルゴリズムです。
 /// </summary>
 /// <remarks>
-/// stable : yes
-/// inplace : no (n*k)
-/// Compare : 0 (キー抽出のみ)
-/// Swap : 0
-/// Order : O(n + k) where k is the range of keys (Worst case: O(n^2) if range is too large)
-/// Note: 値の範囲が大きいとメモリ使用量が膨大になります。
+/// stable  : yes
+/// inplace : no (n + k where k = range of keys)
+/// Compare : 0        (No comparison operations, only key extraction)
+/// Swap    : 0
+/// Order   : O(n + k) where k is the range of keys (Worst case: O(n^2) if range is too large)
+/// Note    : 値の範囲が大きいとメモリ使用量が膨大になります。
 /// </remarks>
 /// <typeparam name="T">ソート対象の要素型</typeparam>
 public class BucketSort<T>(Func<T, int> keySelector) : SortBase<T> where T : IComparable<T>

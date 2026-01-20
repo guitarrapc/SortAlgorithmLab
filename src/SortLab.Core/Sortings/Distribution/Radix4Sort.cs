@@ -9,12 +9,12 @@ namespace SortLab.Core.Sortings;
 /// 各桁ごとにバケットソートを繰り返すことで、値の範囲に依存しない効率的なソートを実現します。
 /// </summary>
 /// <remarks>
-/// stable : yes
+/// stable  : yes
 /// inplace : no (n + 2^8)
-/// Compare : 0 (比較演算なし、ビット演算のみ)
-/// Swap : 0
-/// Order : O(kn) where k is the number of digits (4 for int, 8 for long)
-/// Note: ビット演算を使用するため、整数型専用のアルゴリズムです。
+/// Compare : 0        (No comparison operations, only bitwise operations)
+/// Swap    : 0
+/// Order   : O(d * n) where d is the number of 8-bit digits (d = ⌈sizeof(T)/1⌉ bytes)
+/// Note    : ビット演算を使用するため、整数型専用のアルゴリズムです。
 /// </remarks>
 /// <typeparam name="T">ソート対象の整数型（IBinaryInteger制約）</typeparam>
 public class RadixLSD4Sort<T> : SortBase<T>
