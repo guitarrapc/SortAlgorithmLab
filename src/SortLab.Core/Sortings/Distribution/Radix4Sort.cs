@@ -17,137 +17,141 @@ public class RadixLSD4Sort<T> : SortBase<int> where T : IComparable<T>
     public override SortMethod SortType => SortMethod.Distributed;
     protected override string Name => nameof(RadixLSD4Sort<T>);
 
-    public override int[] Sort(int[] array)
+    public override void Sort(int[] array)
     {
         Statistics.Reset(array.Length, SortType, Name);
-        if (array.Min() >= 0)
+        SortCore(array.AsSpan());
+    }
+
+    public override void Sort(Span<int> span)
+    {
+        Statistics.Reset(span.Length, SortType, Name);
+        SortCore(span);
+    }
+
+    private void SortCore(Span<int> span)
+    {
+        if (span.Length <= 1) return;
+
+        // Check if we have negative numbers
+        var hasNegative = false;
+        for (var i = 0; i < span.Length; i++)
         {
-            return SortImplPositive(array);
+            if (Index(span, i) < 0)
+            {
+                hasNegative = true;
+                break;
+            }
+        }
+
+        if (hasNegative)
+        {
+            SortCoreNegative(span);
         }
         else
         {
-            return SortImplNegative(array);
+            SortCorePositive(span);
         }
     }
 
-    private int[] SortImplPositive(int[] array)
+    private void SortCorePositive(Span<int> span)
     {
         var bucket = new List<int>[256];
         var digit = 4;
 
-        for (int d = 0, logR = 0; d < digit; ++d, logR += 8)
+        for (int d = 0, logR = 0; d < digit; d++, logR += 8)
         {
-            // make bucket for possibly assigned number of int
-            for (var i = 0; i < array.Length; i++)
+            // Make bucket for possibly assigned number of int
+            for (var i = 0; i < span.Length; i++)
             {
-                Statistics.AddIndexCount();
-                // pick 256 radix d's digit number
-                var key = (array[i] >> logR) & 255;
-                if (bucket[key] == null) bucket[key] = new List<int>();
-                bucket[key].Add(array[i]);
+                var value = Index(span, i);
+                // Pick 256 radix d's digit number
+                var key = (value >> logR) & 255;
+                bucket[key] ??= new List<int>();
+                bucket[key].Add(value);
             }
 
-            // put array int to each bucket.
-            for (int j = 0, i = 0; j < bucket.Length; ++j)
+            // Put array int to each bucket
+            for (int j = 0, i = 0; j < bucket.Length; j++)
             {
                 if (bucket[j] != null)
                 {
                     foreach (var item in bucket[j])
                     {
-                        Statistics.AddIndexCount();
-                        array[i++] = item;
+                        Index(span, i++) = item;
                     }
-                }
-                else
-                {
-                    Statistics.AddIndexCount();
                 }
             }
 
-            for (var j = 0; j < bucket.Length; ++j)
+            for (var j = 0; j < bucket.Length; j++)
             {
-                Statistics.AddIndexCount();
                 bucket[j]?.Clear();
             }
         }
-
-        return array;
     }
 
-    private int[] SortImplNegative(int[] array)
+    private void SortCoreNegative(Span<int> span)
     {
         var positiveBucket = new List<int>[256];
         var negativeBucket = new List<int>[256];
         var digit = 4;
 
-        for (int d = 0, logR = 0; d < digit; ++d, logR += 8)
+        for (int d = 0, logR = 0; d < digit; d++, logR += 8)
         {
-            var offset = array.Length;
-            // make bucket for possibly assigned number of int
-            for (var i = 0; i < array.Length; i++)
+            var offset = span.Length;
+            
+            // Make bucket for possibly assigned number of int
+            for (var i = 0; i < span.Length; i++)
             {
-                if (Compare(array[i], 0) >= 0)
+                var value = Index(span, i);
+                if (Compare(value, 0) >= 0)
                 {
-                    Statistics.AddIndexCount();
-                    // pick 256 radix d's digit number
-                    var key = (array[i] >> logR) & 255;
-                    if (positiveBucket[key] == null) positiveBucket[key] = new List<int>();
-                    positiveBucket[key].Add(array[i]);
+                    // Pick 256 radix d's digit number
+                    var key = (value >> logR) & 255;
+                    positiveBucket[key] ??= new List<int>();
+                    positiveBucket[key].Add(value);
                     offset--;
                 }
                 else
                 {
-                    Statistics.AddIndexCount();
-                    // pick 256 radix d's digit number
-                    var key = (array[i] >> logR) & 255;
-                    if (negativeBucket[key] == null) negativeBucket[key] = new List<int>();
-                    negativeBucket[key].Add(array[i]);
+                    // Pick 256 radix d's digit number
+                    var key = (value >> logR) & 255;
+                    negativeBucket[key] ??= new List<int>();
+                    negativeBucket[key].Add(value);
                 }
             }
 
-            // put array int to each bucket.
-            // negative bucket
-            for (int j = 0, i = 0; j < negativeBucket.Length; ++j)
+            // Put array int to each bucket
+            // Negative bucket
+            for (int j = 0, i = 0; j < negativeBucket.Length; j++)
             {
                 if (negativeBucket[j] != null)
                 {
                     foreach (var item in negativeBucket[j])
                     {
-                        Statistics.AddIndexCount();
-                        array[i++] = item;
+                        Index(span, i++) = item;
                     }
                 }
-                else
-                {
-                    Statistics.AddIndexCount();
-                }
             }
-            // positive bucket
-            for (int j = 0, i = offset; j < positiveBucket.Length; ++j)
+            
+            // Positive bucket
+            for (int j = 0, i = offset; j < positiveBucket.Length; j++)
             {
                 if (positiveBucket[j] != null)
                 {
                     foreach (var item in positiveBucket[j])
                     {
-                        Statistics.AddIndexCount();
-                        array[i++] = item;
+                        Index(span, i++) = item;
                     }
-                }
-                else
-                {
-                    Statistics.AddIndexCount();
                 }
             }
 
-            for (var j = 0; j < positiveBucket.Length; ++j)
+            for (var j = 0; j < positiveBucket.Length; j++)
             {
-                Statistics.AddIndexCount();
                 positiveBucket[j]?.Clear();
                 negativeBucket[j]?.Clear();
             }
         }
-
-        return array;
     }
 
     private int GetValue(int key, int i)

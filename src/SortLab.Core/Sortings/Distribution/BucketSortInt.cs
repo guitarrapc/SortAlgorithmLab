@@ -18,53 +18,58 @@ public class BucketSort<T>(Func<T, int> getKey) : SortBase<T> where T : ICompara
     public override SortMethod SortType => SortMethod.Distributed;
     protected override string Name => nameof(BucketSort<T>);
 
-    public override T[] Sort(T[] array)
+    public override void Sort(T[] array)
     {
         Statistics.Reset(array.Length, SortType, Name);
-        var size = array.Select(x => getKey(x)).Max() + 1;
+        SortCore(array.AsSpan());
+    }
 
-        // 0 position
-        var offset = 0;
-        var min = array.Select(x => getKey(x)).Min();
+    public override void Sort(Span<T> span)
+    {
+        Statistics.Reset(span.Length, SortType, Name);
+        SortCore(span);
+    }
 
-        // incase lower than 0
-        if (min < 0)
+    private void SortCore(Span<T> span)
+    {
+        if (span.Length <= 1) return;
+
+        // Calculate size and offset
+        var min = int.MaxValue;
+        var max = int.MinValue;
+
+        for (var i = 0; i < span.Length; i++)
         {
-            offset = Math.Abs(min);
-            size = array.Select(x => getKey(x)).Max() - min + 1;
+            var key = getKey(Index(span, i));
+            if (key < min) min = key;
+            if (key > max) max = key;
         }
 
-        var bucket = new List<T>[size];
-        var keys = array.Select(x => getKey(x)).ToArray();
+        var offset = min < 0 ? Math.Abs(min) : 0;
+        var size = max - min + 1;
 
-        foreach (var item in array)
+        var bucket = new List<T>[size];
+
+        // Fill buckets
+        for (var i = 0; i < span.Length; i++)
         {
-            Statistics.AddIndexCount();
+            var item = Index(span, i);
             var key = getKey(item) + offset;
-            if (bucket[key] == null)
-            {
-                bucket[key] = new List<T>();
-            }
+            bucket[key] ??= new List<T>();
             bucket[key].Add(item);
         }
 
-        for (int j = 0, i = 0; j < bucket.Length; ++j)
+        // Write back to span
+        for (int j = 0, i = 0; j < bucket.Length; j++)
         {
             if (bucket[j] != null)
             {
                 foreach (var item in bucket[j])
                 {
-                    Statistics.AddIndexCount();
-                    array[i++] = item;
+                    Index(span, i++) = item;
                 }
             }
-            else
-            {
-                Statistics.AddIndexCount();
-            }
         }
-
-        return array;
     }
 }
 
@@ -79,40 +84,50 @@ public class BucketSortInt<T> : SortBase<int>
     public override SortMethod SortType => SortMethod.Distributed;
     protected override string Name => nameof(BucketSortInt<T>);
 
-    public override int[] Sort(int[] array)
+    public override void Sort(int[] array)
     {
         Statistics.Reset(array.Length, SortType, Name);
-        var size = array.Max();
+        SortCore(array.AsSpan());
+    }
 
-        // 0 position
-        var offset = 0;
-        var min = array.Min();
+    public override void Sort(Span<int> span)
+    {
+        Statistics.Reset(span.Length, SortType, Name);
+        SortCore(span);
+    }
 
-        // incase lower than 0
-        if (min < 0)
+    private void SortCore(Span<int> span)
+    {
+        if (span.Length <= 1) return;
+
+        // Find min and max
+        var min = int.MaxValue;
+        var max = int.MinValue;
+
+        for (var i = 0; i < span.Length; i++)
         {
-            offset = Math.Abs(min);
-            size = array.Max() - min;
+            var value = Index(span, i);
+            if (value < min) min = value;
+            if (value > max) max = value;
         }
 
-        // make bucket for possibly assigned number of int
-        var bucket = new int[size + 1];
-        for (var i = 0; i < array.Length; i++)
+        var offset = min < 0 ? Math.Abs(min) : 0;
+        var size = max - min + 1;
+
+        // Make bucket for possibly assigned number of int
+        var bucket = new int[size];
+        for (var i = 0; i < span.Length; i++)
         {
-            Statistics.AddIndexCount();
-            bucket[array[i] + offset]++;
+            bucket[Index(span, i) + offset]++;
         }
 
-        // put array int to each bucket.
-        for (int j = 0, i = 0; j < bucket.Length; ++j)
+        // Put array int to each bucket
+        for (int j = 0, i = 0; j < bucket.Length; j++)
         {
-            for (var k = bucket[j]; k != 0; --k, ++i)
+            for (var k = bucket[j]; k != 0; k--, i++)
             {
-                Statistics.AddIndexCount();
-                array[i] = j - offset;
+                Index(span, i) = j - offset;
             }
         }
-
-        return array;
     }
 }

@@ -17,94 +17,112 @@ public class CountingSort<T> : SortBase<int> where T : IComparable<T>
     public override SortMethod SortType => SortMethod.Distributed;
     protected override string Name => nameof(CountingSort<T>);
 
-    public override int[] Sort(int[] array)
+    public override void Sort(int[] array)
     {
         Statistics.Reset(array.Length, SortType, Name);
-        if (array.Min() >= 0)
+        SortCore(array.AsSpan());
+    }
+
+    public override void Sort(Span<int> span)
+    {
+        Statistics.Reset(span.Length, SortType, Name);
+        SortCore(span);
+    }
+
+    private void SortCore(Span<int> span)
+    {
+        if (span.Length <= 1) return;
+
+        // Find min to determine if we need negative handling
+        var hasNegative = false;
+        for (var i = 0; i < span.Length; i++)
         {
-            return SortImplPositive(array);
+            if (Index(span, i) < 0)
+            {
+                hasNegative = true;
+                break;
+            }
+        }
+
+        if (hasNegative)
+        {
+            SortCoreNegative(span);
         }
         else
         {
-            return SortImplNegative(array);
+            SortCorePositive(span);
         }
     }
 
-    private int[] SortImplPositive(int[] array)
+    private void SortCorePositive(Span<int> span)
     {
-        var min = 0;
-        var max = 0;
+        var min = int.MaxValue;
+        var max = int.MinValue;
 
-        for (var i = 1; i < array.Length; i++)
+        for (var i = 0; i < span.Length; i++)
         {
-            Statistics.AddIndexCount();
-            if (array[i] < min)
-            {
-                min = array[i];
-            }
-            else if (array[i] > max)
-            {
-                max = array[i];
-            }
+            var value = Index(span, i);
+            if (value < min) min = value;
+            if (value > max) max = value;
         }
 
-        var resultArray = new int[array.Length];
-        var countArray = new int[max - min + 1 + 1];
+        var resultArray = new int[span.Length];
+        var countArray = new int[max - min + 2];
 
-        // count up each number of element to countArray
-        for (var i = 0; i < array.Length; i++)
+        // Count up each number of element to countArray
+        for (var i = 0; i < span.Length; i++)
         {
-            Statistics.AddIndexCount();
-            ++countArray[array[i]];
+            countArray[Index(span, i) - min]++;
         }
 
-        // change current index element counter by adding previous index counter.
+        // Change current index element counter by adding previous index counter
         for (var i = 1; i < countArray.Length; i++)
         {
-            Statistics.AddIndexCount();
             countArray[i] += countArray[i - 1];
         }
 
-        // set countArrayed index element into resultArray, then decrement countArray.
-        for (var i = 0; i < array.Length; i++)
+        // Set countArrayed index element into resultArray, then decrement countArray
+        for (var i = span.Length - 1; i >= 0; i--)
         {
-            Statistics.AddIndexCount();
-            resultArray[countArray[array[i]] - 1] = array[i];
-            --countArray[array[i]];
+            var value = Index(span, i);
+            resultArray[countArray[value - min] - 1] = value;
+            countArray[value - min]--;
         }
 
-        return resultArray;
+        // Copy back to span
+        for (var i = 0; i < span.Length; i++)
+        {
+            Index(span, i) = resultArray[i];
+        }
     }
-    private int[] SortImplNegative(int[] array)
+
+    private void SortCoreNegative(Span<int> span)
     {
         var max = -1;
-        for (var i = 0; i < array.Length; i++)
+        for (var i = 0; i < span.Length; i++)
         {
-            Statistics.AddIndexCount();
-            if (Math.Abs(array[i]) > max)
+            var absValue = Math.Abs(Index(span, i));
+            if (absValue > max)
             {
-                Statistics.AddIndexCount();
-                max = Math.Abs(array[i]);
+                max = absValue;
             }
         }
+
         var stack = new int[max * 2 + 1];
 
-        for (var i = 0; i < array.Length; i++)
+        for (var i = 0; i < span.Length; i++)
         {
-            Statistics.AddIndexCount();
-            stack[array[i] + max]++;
+            stack[Index(span, i) + max]++;
         }
 
         var j = stack.Length - 1;
-        var k = array.Length - 1;
+        var k = span.Length - 1;
         while (k >= 0)
         {
-            Statistics.AddIndexCount();
             if (stack[j] > 0)
             {
-                Statistics.AddIndexCount();
                 stack[j]--;
-                array[k] = j - max;
+                Index(span, k) = j - max;
                 k--;
             }
             else
@@ -112,6 +130,5 @@ public class CountingSort<T> : SortBase<int> where T : IComparable<T>
                 j--;
             }
         }
-        return array;
     }
 }

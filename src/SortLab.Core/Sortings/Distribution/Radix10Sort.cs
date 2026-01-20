@@ -17,73 +17,95 @@ public class RadixLSD10Sort<T> : SortBase<int> where T : IComparable<T>
     public override SortMethod SortType => SortMethod.Distributed;
     protected override string Name => nameof(RadixLSD10Sort<T>);
 
-    public override int[] Sort(int[] array)
+    public override void Sort(int[] array)
     {
         Statistics.Reset(array.Length, SortType, Name);
-        if (array.Min() >= 0)
+        SortCore(array.AsSpan());
+    }
+
+    public override void Sort(Span<int> span)
+    {
+        Statistics.Reset(span.Length, SortType, Name);
+        SortCore(span);
+    }
+
+    private void SortCore(Span<int> span)
+    {
+        if (span.Length <= 1) return;
+
+        // Check if we have negative numbers
+        var hasNegative = false;
+        for (var i = 0; i < span.Length; i++)
         {
-            return SortImplPositive(array);
+            if (Index(span, i) < 0)
+            {
+                hasNegative = true;
+                break;
+            }
+        }
+
+        if (hasNegative)
+        {
+            SortCoreNegative(span);
         }
         else
         {
-            return SortImplNegative(array);
+            SortCorePositive(span);
         }
     }
 
-    private int[] SortImplPositive(int[] array)
+    private void SortCorePositive(Span<int> span)
     {
-        var digit = 1 + (int)array.Max(x => Math.Log10(x));
+        // Find max to determine number of digits
+        var max = int.MinValue;
+        for (var i = 0; i < span.Length; i++)
+        {
+            var value = Index(span, i);
+            if (value > max) max = value;
+        }
 
+        var digit = max == 0 ? 1 : 1 + (int)Math.Log10(max);
         var bucket = new List<int>[10];
 
-        for (int d = 0, r = 1; d < digit; ++d, r *= 10)
+        for (int d = 0, r = 1; d < digit; d++, r *= 10)
         {
-            // make bucket for possibly assigned number of int
-            for (var i = 0; i < array.Length; i++)
+            // Make bucket for possibly assigned number of int
+            for (var i = 0; i < span.Length; i++)
             {
-                Statistics.AddIndexCount();
-                var key = (array[i] / r) % 10;
-                if (bucket[key] == null) bucket[key] = [];
-                bucket[key].Add(array[i]);
+                var value = Index(span, i);
+                var key = (value / r) % 10;
+                bucket[key] ??= [];
+                bucket[key].Add(value);
             }
 
-            // put array int to each bucket.
-            for (int j = 0, i = 0; j < bucket.Length; ++j)
+            // Put array int to each bucket
+            for (int j = 0, i = 0; j < bucket.Length; j++)
             {
                 if (bucket[j] != null)
                 {
                     foreach (var item in bucket[j])
                     {
-                        Statistics.AddIndexCount();
-                        array[i++] = item;
+                        Index(span, i++) = item;
                     }
-                }
-                else
-                {
-                    Statistics.AddIndexCount();
                 }
             }
 
-            for (var j = 0; j < bucket.Length; ++j)
+            for (var j = 0; j < bucket.Length; j++)
             {
-                Statistics.AddIndexCount();
                 bucket[j]?.Clear();
             }
         }
-
-        return array;
     }
 
-    private int[] SortImplNegative(int[] array)
+    private void SortCoreNegative(Span<int> span)
     {
         var bucket = new List<int>[20];
-        // findmax
+        
+        // Find max digit
         var max = 0;
-        int digit = 0;
-        for (var i = 0; i < array.Length; i++)
+        for (var i = 0; i < span.Length; i++)
         {
-            Statistics.AddIndexCount();
-            digit = GetDigit(array[i]);
+            var digit = GetDigit(Index(span, i));
             if (digit > max)
             {
                 max = digit;
@@ -92,42 +114,33 @@ public class RadixLSD10Sort<T> : SortBase<int> where T : IComparable<T>
 
         for (var r = 1; r <= max; r++)
         {
-            for (var i = 0; i < array.Length; i++)
+            for (var i = 0; i < span.Length; i++)
             {
-                Statistics.AddIndexCount();
-                var tmp = array[i];
+                var tmp = Index(span, i);
                 var radix = tmp < 0
                     ? -(int)(Math.Abs(tmp) / Math.Pow(10, r - 1)) % 10
                     : (int)(tmp / Math.Pow(10, r - 1)) % 10;
                 radix += 9;
-                if (bucket[radix] == null) bucket[radix] = new List<int>();
+                bucket[radix] ??= new List<int>();
                 bucket[radix].Add(tmp);
             }
 
-            for (int j = 0, i = 0; j < bucket.Length; ++j)
+            for (int j = 0, i = 0; j < bucket.Length; j++)
             {
                 if (bucket[j] != null)
                 {
                     foreach (var item in bucket[j])
                     {
-                        Statistics.AddIndexCount();
-                        array[i++] = item;
+                        Index(span, i++) = item;
                     }
-                }
-                else
-                {
-                    Statistics.AddIndexCount();
                 }
             }
 
-            for (var j = 0; j < bucket.Length; ++j)
+            for (var j = 0; j < bucket.Length; j++)
             {
-                Statistics.AddIndexCount();
                 bucket[j]?.Clear();
             }
         }
-
-        return array;
     }
 
     private int GetDigit(int i)
