@@ -51,18 +51,18 @@ public class BinaryTreeSort<T> : SortBase<T> where T : IComparable<T>
 
     public override void Sort(T[] array)
     {
+        Statistics.Reset(array.Length, SortType, Name);
         SortCore(array.AsSpan());
     }
 
     public override void Sort(Span<T> span)
     {
+        Statistics.Reset(span.Length, SortType, Name);
         SortCore(span);
     }
 
     private void SortCore(Span<T> span)
     {
-        Statistics.Reset(span.Length, SortType, Name);
-
         // The root node of the binary tree (null == the tree is empty).
         Node? root = null;
 

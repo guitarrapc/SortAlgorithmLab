@@ -52,11 +52,13 @@ public class BalancedBinaryTreeSort<T> : SortBase<T> where T : IComparable<T>
 
     public override void Sort(T[] array)
     {
+        Statistics.Reset(array.Length, SortType, Name);
         SortCore(array.AsSpan());
     }
 
     public override void Sort(Span<T> span)
     {
+        Statistics.Reset(span.Length, SortType, Name);
         SortCore(span);
     }
 
@@ -65,8 +67,6 @@ public class BalancedBinaryTreeSort<T> : SortBase<T> where T : IComparable<T>
     /// </summary>
     private void SortCore(Span<T> span)
     {
-        Statistics.Reset(span.Length, SortType, Name);
-
         Node? root = null;
 
         // Insert each element in the array into the AVL tree.
