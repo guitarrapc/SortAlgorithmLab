@@ -46,18 +46,21 @@ public class InsertionSort<T> : SortBase<T> where T : IComparable<T>
     public override SortMethod SortType => SortMethod.Insertion;
     protected override string Name => nameof(InsertionSort<T>);
 
-    public override T[] Sort(T[] array)
+    public override void Sort(T[] array)
     {
         Statistics.Reset(array.Length, SortType, Name);
         SortCore(array.AsSpan(), 0, array.Length);
-        return array;
     }
 
-    public T[] Sort(T[] array, int first, int last)
+    public override void Sort(Span<T> span)
     {
-        Statistics.Reset(array.Length, SortType, Name);
+        Statistics.Reset(span.Length, SortType, Name);
+        SortCore(span, 0, span.Length);
+    }
+
+    internal void Sort(T[] array, int first, int last)
+    {
         SortCore(array.AsSpan(), first, last);
-        return array;
     }
 
     /// <summary>

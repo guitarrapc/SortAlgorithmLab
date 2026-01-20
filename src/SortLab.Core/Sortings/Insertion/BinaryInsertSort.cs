@@ -51,11 +51,16 @@ public class BinaryInsertSort<T> : SortBase<T> where T : IComparable<T>
     public override SortMethod SortType => SortMethod.Insertion;
     protected override string Name => nameof(BinaryInsertSort<T>);
 
-    public override T[] Sort(T[] array)
+    public override void Sort(T[] array)
     {
         Statistics.Reset(array.Length, SortType, Name);
         SortCore(array.AsSpan(), 0, array.Length);
-        return array;
+    }
+
+    public override void Sort(Span<T> span)
+    {
+        Statistics.Reset(span.Length, SortType, Name);
+        SortCore(span, 0, span.Length);
     }
 
     /// <summary>
@@ -65,11 +70,9 @@ public class BinaryInsertSort<T> : SortBase<T> where T : IComparable<T>
     /// <param name="first"></param>
     /// <param name="last"></param>
     /// <returns></returns>
-    public T[] Sort(T[] array, int first, int last)
+    internal void Sort(Span<T> span, int first, int last)
     {
-        Statistics.Reset(array.Length, SortType, Name);
-        SortCore(array.AsSpan(), first, last);
-        return array;
+        SortCore(span, first, last);
     }
 
     /// <summary>
@@ -80,11 +83,9 @@ public class BinaryInsertSort<T> : SortBase<T> where T : IComparable<T>
     /// <param name="last"></param>
     /// <param name="start"></param>
     /// <returns></returns>
-    public T[] Sort(T[] array, int first, int last, int start)
+    internal void Sort(Span<T> span, int first, int last, int start)
     {
-        Statistics.Reset(array.Length, SortType, Name);
-        SortCore(array.AsSpan(), first, last, start);
-        return array;
+        SortCore(span, first, last, start);
     }
 
     /// <summary>

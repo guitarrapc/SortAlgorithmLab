@@ -49,16 +49,20 @@ public class BinaryTreeSort<T> : SortBase<T> where T : IComparable<T>
     public override SortMethod SortType => SortMethod.Insertion;
     protected override string Name => nameof(BinaryTreeSort<T>);
 
-    public override T[] Sort(T[] array)
+    public override void Sort(T[] array)
     {
-        Statistics.Reset(array.Length, SortType, Name);
         SortCore(array.AsSpan());
+    }
 
-        return array;
+    public override void Sort(Span<T> span)
+    {
+        SortCore(span);
     }
 
     private void SortCore(Span<T> span)
     {
+        Statistics.Reset(span.Length, SortType, Name);
+
         // The root node of the binary tree (null == the tree is empty).
         Node? root = null;
 

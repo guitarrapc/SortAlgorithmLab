@@ -1,4 +1,4 @@
-namespace SortLab.Core.Sortings;
+﻿namespace SortLab.Core.Sortings;
 
 /*
 
@@ -79,18 +79,21 @@ public class ShellSort<T> : SortBase<T> where T : IComparable<T>
     public override SortMethod SortType => SortMethod.Insertion;
     protected override string Name => nameof(ShellSort<T>);
 
-    public override T[] Sort(T[] array)
+    public override void Sort(T[] array)
     {
         Statistics.Reset(array.Length, SortType, Name);
         SortCore(array.AsSpan(), 0, array.Length, GapType.Knuth);
-        return array;
     }
 
-    public T[] Sort(T[] array, int first, int last)
+    public override void Sort(Span<T> span)
     {
-        Statistics.Reset(array.Length, SortType, Name);
+        Statistics.Reset(span.Length, SortType, Name);
+        SortCore(span, 0, span.Length, GapType.Knuth);
+    }
+
+    internal void Sort(T[] array, int first, int last)
+    {
         SortCore(array.AsSpan(), first, last, GapType.Knuth);
-        return array;
     }
 
     /// <summary>
