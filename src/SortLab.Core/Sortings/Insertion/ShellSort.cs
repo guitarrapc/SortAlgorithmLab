@@ -63,15 +63,15 @@ Span (Sedgewick) ...
 /// <see cref="CombSort{T}"/> is a similar concept applied to <see cref="BubbleSort{T}"/>.
 /// </summary>
 /// <remarks>
-/// stable  : no (because gap-based insertion sorting does not preserve the order of equal elements)
+/// stable  : no  (gap-based insertion sorting does not preserve the order of equal elements)
 /// inplace : yes
-/// Compare : Depends on gap sequence (often around O(n^(1.3)) ~ O(n^(1.5)) on average.)
-/// Swap    : In swap-based implementation, potentially multiple swaps per insertion
-/// Index   : O(n^2) (Each element may be accessed multiple times during swaps) 
+/// Compare : Depends on gap sequence (often around O(n^1.3) ~ O(n^1.5))
+/// Swap    : O(n^1.3) ~ O(n^2) (Potentially multiple swaps per insertion)
+/// Index   : O(n^2)   (Each element may be accessed multiple times during swaps) 
 /// Order   : Typically sub-quadratic
-///         * average:                   O(n^1.3 ~ n^1.5)
-///         * best case (nearly sorted): O(n)
-///         * worst case can approach  : O(n^2)
+///         * average   : O(n^1.3 ~ n^1.5)
+///         * best case : O(n) (nearly sorted)
+///         * worst case: O(n^2)
 /// </remarks>
 /// <typeparam name="T"></typeparam>
 public class ShellSort<T> : SortBase<T> where T : IComparable<T>

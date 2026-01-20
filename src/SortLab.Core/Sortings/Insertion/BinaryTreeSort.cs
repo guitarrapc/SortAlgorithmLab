@@ -35,12 +35,12 @@ Span (Itelative) ...
 /// </summary>
 /// <remarks>
 /// stable  : no  (Typically, Binary Tree Sort is not stable unless additional mechanisms are used.)
-/// inplace : no (Requires additional memory for the tree structure)
-/// Compare : O(n log n) on average
-/// Swap    : 0 (Swaps are not used; instead, tree node assignments)
-/// Index   : O(n) (Accesses each element once during in-order traversal)
+/// inplace : no  (Requires additional memory for the tree structure)
+/// Compare : O(n log n)  (on average)
+/// Swap    : 0        (Swaps are not used; instead, tree node assignments)
+/// Index   : O(n)     (Accesses each element once during in-order traversal)
 /// Order   : O(n log n)
-///         * average:     O(n log n)
+///         * average   : O(n log n)
 ///         * worst case: O(n^2) (if the tree becomes unbalanced)
 /// </remarks>
 /// <typeparam name="T"></typeparam>

@@ -37,13 +37,13 @@ Span ...
 /// <remarks>
 /// stable  : yes
 /// inplace : yes
-/// Compare : O(n log n) on average (Each insertion performs a binary search) 
-/// Swap    : O(n^2/2) (Each insertion may require shifting elements) 
-/// Index   : O(n^2) (Each element may be accessed multiple times during shifts)
-/// Order   : O(n log n)
-///         * average:                   O(n log n) for comparisons and O(n^2) for shifts  
-///         * best case (nearly sorted): O(n)  
-///         * worst case can approach:   O(n^2) 
+/// Compare : O(n log n) (Binary search for each insertion) 
+/// Swap    : O(n^2)     (Each insertion may require shifting elements) 
+/// Index   : O(n^2)     (Each element may be accessed multiple times during shifts)
+/// Order   : O(n^2)     (Comparisons are O(n log n), but shifts dominate at O(n^2))
+///         * average   : O(n^2)  
+///         * best case : O(n)    (nearly sorted)  
+///         * worst case: O(n^2)  (reverse sorted)
 /// </remarks>
 /// <typeparam name="T"></typeparam>
 public class BinaryInsertSort<T> : SortBase<T> where T : IComparable<T>

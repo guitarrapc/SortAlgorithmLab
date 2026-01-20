@@ -32,13 +32,13 @@ Span ...
 /// <remarks>
 /// stable  : yes
 /// inplace : yes
-/// Compare : O(n^2), strictly n(n-1) / 2
-/// Swap    : O(n^2), strictly n^2/2
-/// Index   : O(n^2) (Each element may be accessed multiple times during swaps)
+/// Compare : O(n^2)     (strictly n(n-1) / 2)
+/// Swap    : O(n^2)     (strictly n^2/2)
+/// Index   : O(n^2)     (Each element may be accessed multiple times during swaps)
 /// Order   : O(n^2)
-///         * average:                   O(n^2) 
-///         * best case (nearly sorted): O(n)
-///         * worst case can approach  : O(n^2)
+///         * average   : O(n^2) 
+///         * best case : O(n) (nearly sorted)
+///         * worst case: O(n^2)
 /// </remarks>
 /// <typeparam name="T"></typeparam>
 public class InsertionSort<T> : SortBase<T> where T : IComparable<T>
