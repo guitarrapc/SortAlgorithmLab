@@ -1,5 +1,4 @@
-﻿using SortLab.Core.Algorithms;
-using SortLab.Core.Contexts;
+﻿using SortLab.Core.Contexts;
 using System.Diagnostics;
 
 namespace SortLab.Core.Algorithms;
