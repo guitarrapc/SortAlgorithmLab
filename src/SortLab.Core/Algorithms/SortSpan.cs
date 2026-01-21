@@ -1,6 +1,6 @@
 ﻿using SortLab.Core.Contexts;
 
-namespace SortLab.Core.Internals;
+namespace SortLab.Core.Algorithms;
 
 internal ref struct SortSpan<T>(Span<T> span, ISortContext ccontext) where T: IComparable<T>
 {
