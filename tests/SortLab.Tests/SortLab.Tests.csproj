@@ -16,6 +16,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\SortLab.Core\SortLab.Core.csproj" />
+    <ProjectReference Include="..\..\src\SortLab.Core\SortLab.Core.csproj" />
   </ItemGroup>
 </Project>
