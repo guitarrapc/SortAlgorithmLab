@@ -9,20 +9,38 @@ internal ref struct SortSpan<T>(Span<T> span, ISortContext ccontext) where T: IC
 
     public int Length => _span.Length;
 
+    /// <summary>
+    /// Retrieves the element at the specified zero-based index. (Equivalent to span[i].)
+    /// </summary>
+    /// <param name="i">The zero-based index of the element to retrieve. Must be within the bounds of the collection.</param>
+    /// <returns>The element of type T at the specified index.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public T Read(int i)
     {
-        _context.OnIndexAccess(i);
+        _context.OnIndexRead(i);
         return _span[i];
     }
 
+    /// <summary>
+    /// Sets the element at the specified index to the given value. (Equivalent to span[i] = value.)
+    /// </summary>
+    /// <param name="i">The zero-based index of the element to set.</param>
+    /// <param name="value">The value to assign to the element at the specified index.</param>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public void Write(int i, T value)
     {
-        _context.OnIndexAccess(i);
+        _context.OnIndexWrite(i);
         _span[i] = value;
     }
 
+    /// <summary>
+    /// Compares the elements at the specified indices and returns an integer that indicates their relative order. (Equivalent to span[i].CompareTo(span[j]).)
+    /// </summary>
+    /// <param name="i">The index of the first element to compare.</param>
+    /// <param name="j">The index of the second element to compare.</param>
+    /// <returns>A signed integer that indicates the relative order of the elements: less than zero if the element at index i is
+    /// less than the element at index j; zero if they are equal; greater than zero if the element at index i is greater
+    /// than the element at index j.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public int Compare(int i, int j)
     {
@@ -33,6 +51,13 @@ internal ref struct SortSpan<T>(Span<T> span, ISortContext ccontext) where T: IC
         return result;
     }
 
+    /// <summary>
+    /// Exchanges the values at the specified indices within the collection. (Equivalent to swapping span[i] and span[j].)
+    /// </summary>
+    /// <remarks>This method notifies the underlying context of the swap operation before updating the values.
+    /// Both indices must refer to valid elements within the collection.</remarks>
+    /// <param name="i">The index of the first element to swap.</param>
+    /// <param name="j">The index of the second element to swap.</param>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public void Swap(int i, int j)
     {

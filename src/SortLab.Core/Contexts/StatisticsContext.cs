@@ -16,12 +16,16 @@ public sealed class StatisticsContext : ISortContext
     public ulong SwapCount => _swapCount;
     private ulong _swapCount;
 
-    public ulong IndexAccessCount => _indexAccessCount;
-    private ulong _indexAccessCount;
+    public ulong IndexReadCount => _indexReadCount;
+    private ulong _indexReadCount;
+
+    public ulong IndexWriteCount => _indexWriteCount;
+    private ulong _indexWriteCount;
 
     public void OnCompare(int i, int j, int result) => Interlocked.Increment(ref _compareCount);
     public void OnSwap(int i, int j) => Interlocked.Increment(ref _swapCount);
-    public void OnIndexAccess(int index) => Interlocked.Increment(ref _indexAccessCount);
+    public void OnIndexRead(int index) => Interlocked.Increment(ref _indexReadCount);
+    public void OnIndexWrite(int index) => Interlocked.Increment(ref _indexWriteCount);
 
     /// <summary>
     /// Resets all operation counters to zero.
@@ -34,6 +38,7 @@ public sealed class StatisticsContext : ISortContext
     {
         _compareCount = 0;
         _swapCount = 0;
-        _indexAccessCount = 0;
+        _indexReadCount = 0;
+        _indexWriteCount = 0;
     }
 }

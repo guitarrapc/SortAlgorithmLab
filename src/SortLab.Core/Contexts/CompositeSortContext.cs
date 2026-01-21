@@ -34,11 +34,19 @@ public sealed class CompositeSortContext : ISortContext
             context.OnSwap(i, j);
         }
     }
-    public void OnIndexAccess(int index)
+    public void OnIndexRead(int index)
     {
         foreach (var context in _contexts)
         {
-            context.OnIndexAccess(index);
+            context.OnIndexRead(index);
+        }
+    }
+
+    public void OnIndexWrite(int index)
+    {
+        foreach (var context in _contexts)
+        {
+            context.OnIndexWrite(index);
         }
     }
 }

@@ -18,8 +18,14 @@ public interface ISortContext
     void OnSwap(int i, int j);
 
     /// <summary>
-    /// Handles access to an element at the specified index.
+    /// Handles the event when an item at the specified index is read.
     /// </summary>
-    /// <param name="index">Index of the access</param>
-    void OnIndexAccess(int index);
+    /// <param name="index">The zero-based index of the item that was read.</param>
+    void OnIndexRead(int index);
+
+    /// <summary>
+    /// Handles a write operation at the specified index.
+    /// </summary>
+    /// <param name="index">The zero-based index at which the write operation occurs.</param>
+    void OnIndexWrite(int index);
 }

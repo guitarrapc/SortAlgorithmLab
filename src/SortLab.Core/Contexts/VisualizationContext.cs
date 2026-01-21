@@ -13,19 +13,23 @@ public sealed class VisualizationContext : ISortContext
 {
     private readonly Action<int, int, int>? _onCompare;
     private readonly Action<int, int>? _onSwap;
-    private readonly Action<int>? _onIndexAccess;
+    private readonly Action<int>? _onIndexRead;
+    private readonly Action<int>? _onIndexWrite;
 
     public VisualizationContext(
         Action<int, int, int>? onCompare = null,
         Action<int, int>? onSwap = null,
-        Action<int>? onIndexAccess = null)
+        Action<int>? onIndexRead = null,
+        Action<int>? onIndexWrite = null)
     {
         _onCompare = onCompare;
         _onSwap = onSwap;
-        _onIndexAccess = onIndexAccess;
+        _onIndexRead = onIndexRead;
+        _onIndexWrite = onIndexWrite;
     }
 
     public void OnCompare(int i, int j, int result) => _onCompare?.Invoke(i, j, result);
     public void OnSwap(int i, int j) => _onSwap?.Invoke(i, j);
-    public void OnIndexAccess(int index) => _onIndexAccess?.Invoke(index);
+    public void OnIndexRead(int index) => _onIndexRead?.Invoke(index);
+    public void OnIndexWrite(int index) => _onIndexWrite?.Invoke(index);
 }

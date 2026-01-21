@@ -14,10 +14,16 @@ public sealed class NullSortContext : ISortContext
     public void OnCompare(int i, int j, int result)
     {
     }
+
     public void OnSwap(int i, int j)
     {
     }
-    public void OnIndexAccess(int index)
+
+    public void OnIndexRead(int index)
+    {
+    }
+
+    public void OnIndexWrite(int index)
     {
     }
 }
