@@ -22,6 +22,25 @@ Suggest fixes for any sections that deviate from these points.
 
 All sorting algorithms must be implemented with **maximum attention to performance and memory efficiency**.
 
+### Architecture Overview
+
+Sorting algorithms follow the **Class-based Context + SortSpan** pattern:
+
+- **Static methods** - Sort algorithms are implemented as static methods (stateless)
+- **ISortContext** - Handles observation (statistics, visualization) via callback interface
+- **SortSpan<T>** - ref struct that wraps `Span<T>` + `ISortContext` for clean API
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│  BubbleSort.Sort<T>(span)                                   │
+│  BubbleSort.Sort<T>(span, context)                          │
+│  ─────────────────────────────────────────────────────────  │
+│  • Static methods (no instance required)                    │
+│  • Stateless (pure functions)                               │
+│  • Context handles statistics/visualization                 │
+└─────────────────────────────────────────────────────────────┘
+```
+
 ### Core Requirements
 
 1. **Zero Allocations**
@@ -45,25 +64,31 @@ All sorting algorithms must be implemented with **maximum attention to performan
 ### Example Pattern
 
 ```csharp
-public class MySort<T> : SortBase<T> where T : IComparable<T>
+public static class MySort
 {
     private const int InsertionSortThreshold = 16;
 
-    public override void Sort(Span<T> span)
+    public static void Sort<T>(Span<T> span) where T : IComparable<T>
+        => Sort(span, NullSortContext.Default);
+
+    public static void Sort<T>(Span<T> span, ISortContext context) where T : IComparable<T>
     {
         if (span.Length <= 1) return;
-        if (span.Length <= InsertionSortThreshold)
+        
+        var s = new SortSpan<T>(span, context);
+        
+        if (s.Length <= InsertionSortThreshold)
         {
-            InsertionSort(span);
+            InsertionSort(s);
             return;
         }
-        SortCore(span, 0, span.Length - 1);
+        SortCore(s, 0, s.Length - 1);
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private void SortCore(Span<T> span, int left, int right)
+    private static void SortCore<T>(SortSpan<T> s, int left, int right) where T : IComparable<T>
     {
-        // Use Index(), Compare(), Swap() consistently
+        // Use s.Read(), s.Write(), s.Compare(), s.Swap() consistently
     }
 }
 ```
@@ -72,62 +97,99 @@ public class MySort<T> : SortBase<T> where T : IComparable<T>
 
 - Test with BenchmarkDotNet
 - Verify zero allocations in Release builds
-- Ensure DEBUG tracking has no impact on Release performance
+- Ensure Context overhead is minimal with `NullSortContext.Default`
 
-## Index Access Consistency Guidelines
+## SortSpan Usage Guidelines
 
-When implementing sorting algorithms, maintain **consistent use of helper methods** for statistical tracking and code clarity.
+When implementing sorting algorithms, use **SortSpan<T>** for all array/span operations.
 
 This approach provides:
 
-- **Accurate statistics** for algorithm analysis in DEBUG mode
+- **Accurate statistics** for algorithm analysis via ISortContext
 - **Clean abstraction** for tracking operations
-- **Zero performance impact** in production (Release builds)
+- **Minimal performance impact** with NullSortContext (empty method calls)
 - **Consistent code style** across all sorting implementations
+- **Separation of concerns** - algorithm logic vs observation
 
 ### Required Practices
 
-Use the following helper methods for all array/span operations, all methods are defined in the base sorting class `SortBase<T>`:
+Use `SortSpan<T>` helper methods for all array/span operations:
 
-1. **Always use `Index(span, pos)` for all array/span access**
-   - Both reads and writes must go through the `Index` method
-   - This ensures accurate index access counting in DEBUG builds
+1. **Use `s.Read(i)` for reading elements**
+   - Notifies context via `OnIndexRead(i)`
    - Example:
      ```csharp
-     // ✅ Correct - both sides use Index
-     Index(span, i) = Index(span, j);
+     var s = new SortSpan<T>(span, context);
+     
+     // ✅ Correct - uses Read
+     var value = s.Read(i);
 
-     // ❌ Incorrect - inconsistent access
-     span[i] = span[j];
+     // ❌ Incorrect - bypasses context
+     var value = span[i];
      ```
 
-2. **Always use `Swap(ref a, ref b)` for element swapping**
-   - Use the base class `Swap` method instead of tuple deconstruction
-   - Ensures accurate swap counting in DEBUG builds
+2. **Use `s.Write(i, value)` for writing elements**
+   - Notifies context via `OnIndexWrite(i)`
+   - Example:
+     ```csharp
+     // ✅ Correct - uses Write
+     s.Write(i, value);
+
+     // ❌ Incorrect - bypasses context
+     span[i] = value;
+     ```
+
+3. **Use `s.Compare(i, j)` for comparisons**
+   - Reads both elements, compares, and notifies context via `OnCompare(i, j, result)`
    - Example:
      ```csharp
      // ✅ Correct
-     Swap(ref Index(span, i), ref Index(span, j));
+     if (s.Compare(i, j) < 0) { ... }
 
-     // ❌ Incorrect
+     // ❌ Incorrect - bypasses context
+     if (span[i].CompareTo(span[j]) < 0) { ... }
+     ```
+
+4. **Use `s.Swap(i, j)` for element swapping**
+   - Reads both elements, notifies context via `OnSwap(i, j)`, then writes
+   - Example:
+     ```csharp
+     // ✅ Correct
+     s.Swap(i, j);
+
+     // ❌ Incorrect - bypasses context
      (span[i], span[j]) = (span[j], span[i]);
      ```
 
-3. **Use `Compare(x, y)` for all comparisons**
-   - Never call `CompareTo` directly
-   - Ensures accurate comparison counting in DEBUG builds
-    - Example:
-      ```csharp
-      // ✅ Correct
-      if (Compare(Index(span, i), Index(span, j)) < 0) { ... }
+### Context Types
 
-      // ❌ Incorrect
-      if (Index(span, i).CompareTo(Index(span, j)) < 0) { ... }
-      ```
+| Context | Purpose | Overhead |
+|---------|---------|----------|
+| `NullSortContext.Default` | No statistics (production) | Minimal (empty methods) |
+| `StatisticsContext` | Collect operation counts | Small (Interlocked.Increment) |
+| `VisualizationContext` | Animation/rendering callbacks | Medium (callback invocation) |
+| `CompositeSortContext` | Combine multiple contexts | Medium-Large |
 
-These methods are performance-optimized to have **no overhead** in Release builds.
+### Usage Examples
 
-- All helper methods are marked with `[MethodImpl(MethodImplOptions.AggressiveInlining)]`
-- In Release builds, these methods are inlined with **zero overhead**
-- Statistical tracking (`#if DEBUG`) is completely removed in Release builds
-- There is **no performance penalty** for using these helper methods consistently
+```csharp
+// Production - no statistics
+MySort.Sort<int>(array);
+
+// With statistics
+var stats = new StatisticsContext();
+MySort.Sort(array.AsSpan(), stats);
+Console.WriteLine($"Compares: {stats.CompareCount}, Swaps: {stats.SwapCount}");
+Console.WriteLine($"Reads: {stats.IndexReadCount}, Writes: {stats.IndexWriteCount}");
+
+// With visualization
+var viz = new VisualizationContext(
+    onSwap: (i, j) => RenderSwap(i, j),
+    onCompare: (i, j, result) => HighlightCompare(i, j)
+);
+MySort.Sort(array.AsSpan(), viz);
+
+// Combined statistics + visualization
+var composite = new CompositeSortContext(stats, viz);
+MySort.Sort(array.AsSpan(), composite);
+```
