@@ -52,6 +52,38 @@ internal ref struct SortSpan<T>(Span<T> span, ISortContext ccontext) where T: IC
     }
 
     /// <summary>
+    /// Compares the element at the specified index with a given value. (Equivalent to span[i].CompareTo(value).)
+    /// </summary>
+    /// <param name="i">The index of the element to compare.</param>
+    /// <param name="value">The value to compare against.</param>
+    /// <returns>A signed integer that indicates the relative order: less than zero if the element at index i is
+    /// less than value; zero if they are equal; greater than zero if the element at index i is greater than value.</returns>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public int Compare(int i, T value)
+    {
+        var a = Read(i);
+        var result = a.CompareTo(value);
+        _context.OnCompare(i, -1, result);
+        return result;
+    }
+
+    /// <summary>
+    /// Compares a given value with the element at the specified index. (Equivalent to value.CompareTo(span[i]).)
+    /// </summary>
+    /// <param name="value">The value to compare.</param>
+    /// <param name="i">The index of the element to compare against.</param>
+    /// <returns>A signed integer that indicates the relative order: less than zero if value is
+    /// less than the element at index i; zero if they are equal; greater than zero if value is greater than the element at index i.</returns>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public int Compare(T value, int i)
+    {
+        var b = Read(i);
+        var result = value.CompareTo(b);
+        _context.OnCompare(-1, i, result);
+        return result;
+    }
+
+    /// <summary>
     /// Exchanges the values at the specified indices within the collection. (Equivalent to swapping span[i] and span[j].)
     /// </summary>
     /// <remarks>This method notifies the underlying context of the swap operation before updating the values.

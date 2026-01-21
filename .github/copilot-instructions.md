@@ -143,11 +143,26 @@ Use `SortSpan<T>` helper methods for all array/span operations:
    - Reads both elements, compares, and notifies context via `OnCompare(i, j, result)`
    - Example:
      ```csharp
-     // ✅ Correct
+     // ✅ Correct - comparing two indices
      if (s.Compare(i, j) < 0) { ... }
 
      // ❌ Incorrect - bypasses context
      if (span[i].CompareTo(span[j]) < 0) { ... }
+     ```
+   
+   - For comparing with a value (not an index):
+     ```csharp
+     var value = s.Read(someIndex);
+     
+     // ✅ Correct - comparing index with value
+     if (s.Compare(i, value) < 0) { ... }
+     
+     // ✅ Correct - comparing value with index
+     if (s.Compare(value, i) < 0) { ... }
+
+     // ❌ Incorrect - direct CompareTo bypasses context
+     if (s.Read(i).CompareTo(value) < 0) { ... }
+     if (value.CompareTo(s.Read(i)) < 0) { ... }
      ```
 
 4. **Use `s.Swap(i, j)` for element swapping**
@@ -160,6 +175,8 @@ Use `SortSpan<T>` helper methods for all array/span operations:
      // ❌ Incorrect - bypasses context
      (span[i], span[j]) = (span[j], span[i]);
      ```
+
+**Important:** Never use `CompareTo()` directly. All comparisons must go through `SortSpan` methods to ensure accurate statistics tracking.
 
 ### Context Types
 
