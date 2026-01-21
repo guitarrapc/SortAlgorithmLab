@@ -11,11 +11,11 @@
 /// visualization. All provided contexts will receive each event in the order they were supplied to the
 /// constructor.
 /// </remarks>
-public sealed class CompositeSortContext : ISortContext
+public sealed class CompositeContext : ISortContext
 {
     private readonly ISortContext[] _contexts;
 
-    public CompositeSortContext(params ISortContext[] contexts)
+    public CompositeContext(params ISortContext[] contexts)
     {
         _contexts = contexts;
     }

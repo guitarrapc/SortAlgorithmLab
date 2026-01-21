@@ -3,11 +3,11 @@
 /// <summary>
 /// No-op implementation of ISortContext.
 /// </summary>
-public sealed class NullSortContext : ISortContext
+public sealed class NullContext : ISortContext
 {
-    public static readonly NullSortContext Default = new();
+    public static readonly NullContext Default = new();
 
-    private NullSortContext()
+    private NullContext()
     {
     }
 
