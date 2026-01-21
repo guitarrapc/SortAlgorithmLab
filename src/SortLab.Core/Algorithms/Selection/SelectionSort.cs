@@ -1,0 +1,106 @@
+﻿using SortLab.Core.Algorithms;
+using SortLab.Core.Contexts;
+using System.Diagnostics;
+
+namespace SortLab.Core.Algorithms;
+
+/*
+
+Ref span ...
+
+| Method        | Number | Mean          | Error          | StdDev        | Median       | Min          | Max           | Allocated |
+|-------------- |------- |--------------:|---------------:|--------------:|-------------:|-------------:|--------------:|----------:|
+| SelectionSort | 100    |      15.83 us |      12.147 us |      0.666 us |     16.00 us |     15.10 us |      16.40 us |     736 B |
+| SelectionSort | 1000   |     260.53 us |      28.400 us |      1.557 us |    260.70 us |    258.90 us |     262.00 us |     736 B |
+| SelectionSort | 10000  |  19,651.13 us |   1,740.622 us |     95.409 us | 19,596.70 us | 19,595.40 us |  19,761.30 us |     448 B |
+
+Span ...
+
+| Method        | Number | Mean          | Error          | StdDev       | Median       | Min          | Max           | Allocated |
+|-------------- |------- |--------------:|---------------:|-------------:|-------------:|-------------:|--------------:|----------:|
+| SelectionSort | 100    |      17.40 us |       3.649 us |     0.200 us |     17.40 us |     17.20 us |      17.60 us |     448 B |
+| SelectionSort | 1000   |     234.67 us |      15.191 us |     0.833 us |    234.40 us |    234.00 us |     235.60 us |     448 B |
+| SelectionSort | 10000  |  20,021.47 us |     846.496 us |    46.399 us | 20,012.20 us | 19,980.40 us |  20,071.80 us |     736 B |
+
+ */
+
+/// <summary>
+/// 配列の各位置に対して、未ソート部分から最小の要素を見つけて現在の位置と交換することでソートを行います。値をインデックスベースで交換するため、不安定なソートアルゴリズムです。
+/// <br/>
+/// Iterates through each position in the array, finding the minimum element in the unsorted portion and swapping it with the current position. Swapping elements based on indices makes Selection Sort an unstable sorting algorithm.
+/// </summary>
+/// <remarks>
+/// stable  : no
+/// inplace : yes
+/// Compare : O(n^2)     (Performs approximately n(n-1)/2 comparisons) 
+/// Swap    : O(n)       (Performs n-1 swaps)
+/// Order   : O(n^2)
+///         * average   : O(n^2)
+///         * best case : O(n^2)     (comparisons are always needed)
+///         * worst case: O(n^2)
+/// </remarks>
+/// <typeparam name="T"></typeparam>
+public  static class SelectionSort
+{
+    /// <summary>
+    /// Sorts the elements in the specified span in ascending order using the default comparer.
+    /// </summary>
+    /// <typeparam name="T">The type of elements in the span. Must implement <see cref="IComparable{T}"/>.</typeparam>
+    /// <param name="span">The span of elements to sort in place.</param>
+    public static void Sort<T>(Span<T> span) where T : IComparable<T>
+    {
+        Sort(span, 0, span.Length, NullContext.Default);
+    }
+
+    /// <summary>
+    /// Sorts the elements in the specified span using the provided sort context.
+    /// </summary>
+    /// <typeparam name="T">The type of elements in the span. Must implement <see cref="IComparable{T}"/>.</typeparam>
+    /// <param name="span">The span of elements to sort. The elements within this span will be reordered in place.</param>
+    /// <param name="context">The sort context that defines the sorting strategy or options to use during the operation. Cannot be null.</param>
+    public static void Sort<T>(Span<T> span, ISortContext context) where T : IComparable<T>
+    {
+        Sort(span, 0, span.Length, context);
+    }
+
+    /// <summary>
+    /// Sorts the elements in the specified range of a span using the provided sort context.
+    /// </summary>
+    /// <typeparam name="T">The type of elements in the span. Must implement <see cref="IComparable{T}"/>.</typeparam>
+    /// <param name="span">The span containing the elements to sort.</param>
+    /// <param name="first">The zero-based index of the first element in the range to sort. Must be greater than or equal to 0 and less than
+    /// <paramref name="last"/>.</param>
+    /// <param name="last">The exclusive upper bound of the range to sort. Must be less than or equal to the length of <paramref
+    /// name="span"/>.</param>
+    /// <param name="context">The sort context to use during the sorting operation.</param>
+    /// <exception cref="ArgumentOutOfRangeException">Thrown when <paramref name="first"/> is less than 0, <paramref name="last"/> is greater than the length of
+    /// <paramref name="span"/>, or <paramref name="first"/> is greater than or equal to <paramref name="last"/>.</exception>
+    internal static void Sort<T>(Span<T> span, int first, int last, ISortContext context) where T : IComparable<T>
+    {
+        Debug.Assert(first >= 0 && last <= span.Length && first < last, "Invalid range for sorting.");
+
+        if (span.Length <= 1) return;
+
+        var s = new SortSpan<T>(span, context);
+
+        for (var i = first; i < last - 1; i++)
+        {
+            var min = i;
+
+            // Find the index of the minimum element
+            for (var j = i + 1; j < last; j++)
+            {
+                if (s.Compare(j, min) < 0)
+                {
+                    min = j;
+                }
+            }
+
+            // Swap the found minimum element with the first element of the unsorted part
+            if (min != i)
+            {
+                s.Swap(min, i);
+            }
+        }
+    }
+}
