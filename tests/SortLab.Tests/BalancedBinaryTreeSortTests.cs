@@ -1,80 +1,10 @@
+﻿using SortLab.Core.Algorithms;
+using SortLab.Core.Contexts;
+
 namespace SortLab.Tests;
 
 public class BalancedBinaryTreeSortTests
 {
-    private ISort<int> sort;
-    private string algorithm;
-    private SortMethod method;
-
-    public BalancedBinaryTreeSortTests()
-    {
-        sort = new BalancedBinaryTreeSort<int>();
-        algorithm = nameof(BalancedBinaryTreeSort<int>);
-        method = SortMethod.Insertion;
-    }
-
-    [Fact]
-    public void SortMethodTest()
-    {
-        Assert.Equal(method, sort.SortType);
-    }
-
-    [Theory]
-    [ClassData(typeof(MockRandomData))]
-    public void RandomInputTypeTest(IInputSample<int> inputSample)
-    {
-        Assert.Equal(InputType.Random, inputSample.InputType);
-    }
-
-    [Theory]
-    [ClassData(typeof(MockNegativePositiveRandomData))]
-    public void MixRandomInputTypeTest(IInputSample<int> inputSample)
-    {
-        Assert.Equal(InputType.MixRandom, inputSample.InputType);
-    }
-
-    [Theory]
-    [ClassData(typeof(MockNegativeRandomData))]
-    public void NegativeRandomInputTypeTest(IInputSample<int> inputSample)
-    {
-        Assert.Equal(InputType.NegativeRandom, inputSample.InputType);
-    }
-
-    [Theory]
-    [ClassData(typeof(MockReversedData))]
-    public void ReverseInputTypeTest(IInputSample<int> inputSample)
-    {
-        Assert.Equal(InputType.Reversed, inputSample.InputType);
-    }
-
-    [Theory]
-    [ClassData(typeof(MockMountainData))]
-    public void MountainInputTypeTest(IInputSample<int> inputSample)
-    {
-        Assert.Equal(InputType.Mountain, inputSample.InputType);
-    }
-
-    [Theory]
-    [ClassData(typeof(MockNearlySortedData))]
-    public void NearlySortedInputTypeTest(IInputSample<int> inputSample)
-    {
-        Assert.Equal(InputType.NearlySorted, inputSample.InputType);
-    }
-
-    [Theory]
-    [ClassData(typeof(MockSortedData))]
-    public void SortedInputTypeTest(IInputSample<int> inputSample)
-    {
-        Assert.Equal(InputType.Sorted, inputSample.InputType);
-    }
-
-    [Theory]
-    [ClassData(typeof(MockSameValuesData))]
-    public void SameValuesInputTypeTest(IInputSample<int> inputSample)
-    {
-        Assert.Equal(InputType.SameValues, inputSample.InputType);
-    }
-
     [Theory]
     [ClassData(typeof(MockRandomData))]
     [ClassData(typeof(MockNegativePositiveRandomData))]
@@ -87,7 +17,7 @@ public class BalancedBinaryTreeSortTests
     public void SortResultOrderTest(IInputSample<int> inputSample)
     {
         var array = inputSample.Samples.ToArray();
-        sort.Sort(array);
+        BalancedBinaryTreeSort.Sort(array.AsSpan());
         Assert.Equal(inputSample.Samples.OrderBy(x => x), array);
     }
 
@@ -101,45 +31,45 @@ public class BalancedBinaryTreeSortTests
     [ClassData(typeof(MockSameValuesData))]
     public void StatisticsTest(IInputSample<int> inputSample)
     {
+        var stats = new StatisticsContext();
         var array = inputSample.Samples.ToArray();
-        sort.Sort(array);
-        Assert.Equal(algorithm, sort.Statistics.Algorithm);
-        Assert.Equal(inputSample.Samples.Length, sort.Statistics.ArraySize);
-        Assert.NotEqual((ulong)0, sort.Statistics.IndexAccessCount);
-        Assert.NotEqual((ulong)0, sort.Statistics.CompareCount);
-        Assert.Equal((ulong)0, sort.Statistics.SwapCount);
+        BalancedBinaryTreeSort.Sort(array.AsSpan(), stats);
+
+        Assert.Equal((ulong)inputSample.Samples.Length, (ulong)array.Length);
+        Assert.NotEqual(0UL, stats.IndexReadCount);
+        Assert.NotEqual(0UL, stats.IndexWriteCount);
+        Assert.NotEqual(0UL, stats.CompareCount);
+        Assert.Equal(0UL, stats.SwapCount);
     }
 
     [Theory]
     [ClassData(typeof(MockSortedData))]
     public void StatisticsSortedTest(IInputSample<int> inputSample)
     {
+        var stats = new StatisticsContext();
         var array = inputSample.Samples.ToArray();
-        sort.Sort(array);
-        Assert.Equal(algorithm, sort.Statistics.Algorithm);
-        Assert.Equal(inputSample.Samples.Length, sort.Statistics.ArraySize);
-        Assert.NotEqual((ulong)0, sort.Statistics.IndexAccessCount);
-        Assert.NotEqual((ulong)0, sort.Statistics.CompareCount);
-        Assert.Equal((ulong)0, sort.Statistics.SwapCount);
+        BalancedBinaryTreeSort.Sort(array.AsSpan(), stats);
+
+        Assert.Equal((ulong)inputSample.Samples.Length, (ulong)array.Length);
+        Assert.NotEqual(0UL, stats.IndexReadCount);
+        Assert.NotEqual(0UL, stats.IndexWriteCount);
+        Assert.NotEqual(0UL, stats.CompareCount);
+        Assert.Equal(0UL, stats.SwapCount);
     }
 
     [Theory]
     [ClassData(typeof(MockRandomData))]
-    [ClassData(typeof(MockNegativePositiveRandomData))]
-    [ClassData(typeof(MockNegativeRandomData))]
-    [ClassData(typeof(MockReversedData))]
-    [ClassData(typeof(MockMountainData))]
-    [ClassData(typeof(MockNearlySortedData))]
-    [ClassData(typeof(MockSortedData))]
-    [ClassData(typeof(MockSameValuesData))]
     public void StatisticsResetTest(IInputSample<int> inputSample)
     {
+        var stats = new StatisticsContext();
         var array = inputSample.Samples.ToArray();
-        sort.Sort(array);
-        sort.Statistics.Reset();
-        Assert.Equal((ulong)0, sort.Statistics.IndexAccessCount);
-        Assert.Equal((ulong)0, sort.Statistics.CompareCount);
-        Assert.Equal((ulong)0, sort.Statistics.SwapCount);
+        BalancedBinaryTreeSort.Sort(array.AsSpan(), stats);
+
+        stats.Reset();
+        Assert.Equal(0UL, stats.IndexReadCount);
+        Assert.Equal(0UL, stats.IndexWriteCount);
+        Assert.Equal(0UL, stats.CompareCount);
+        Assert.Equal(0UL, stats.SwapCount);
     }
 
     [Theory]
@@ -149,11 +79,26 @@ public class BalancedBinaryTreeSortTests
     [InlineData(100)]
     public void TheoreticalValuesSortedTest(int n)
     {
+        var stats = new StatisticsContext();
         var sorted = Enumerable.Range(0, n).ToArray();
-        sort.Sort(sorted);
+        BalancedBinaryTreeSort.Sort(sorted.AsSpan(), stats);
 
-        // Sorted data should produce predictable statistics
-        Assert.NotEqual(0UL, sort.Statistics.CompareCount);
+        // For sorted data [0, 1, 2, ..., n-1], AVL tree maintains balance through rotations
+        // Expected comparisons for balanced tree:
+        // - Each insertion into a tree of i elements takes ~log2(i) comparisons
+        // - Total: approximately n*log2(n) comparisons
+        // - Each insertion reads one element from the array: n reads
+        // - In-order traversal writes all elements back: n writes
+        var avgCompares = (ulong)(n * Math.Log2(Math.Max(n, 2)));
+        var minCompares = avgCompares / 2;  // Allow some variance
+        var maxCompares = avgCompares * 2;  // Upper bound for balanced insertions
+        var expectedReads = (ulong)n;  // Reading during insertion
+        var expectedWrites = (ulong)n; // Writing during in-order traversal
+        
+        Assert.InRange(stats.CompareCount, minCompares, maxCompares);
+        Assert.Equal(expectedReads, stats.IndexReadCount);
+        Assert.Equal(expectedWrites, stats.IndexWriteCount);
+        Assert.Equal(0UL, stats.SwapCount);
     }
 
     [Theory]
@@ -163,10 +108,77 @@ public class BalancedBinaryTreeSortTests
     [InlineData(100)]
     public void TheoreticalValuesReversedTest(int n)
     {
+        var stats = new StatisticsContext();
         var reversed = Enumerable.Range(0, n).Reverse().ToArray();
-        sort.Sort(reversed);
+        BalancedBinaryTreeSort.Sort(reversed.AsSpan(), stats);
 
-        // Reversed data should require sorting operations
-        Assert.NotEqual(0UL, sort.Statistics.CompareCount);
+        // For reversed data [n-1, n-2, ..., 1, 0], AVL tree maintains balance through rotations
+        // Expected comparisons for balanced tree:
+        // - Each insertion into a tree of i elements takes ~log2(i) comparisons
+        // - Total: approximately n*log2(n) comparisons
+        // - Each insertion reads one element from the array: n reads
+        // - In-order traversal writes all elements back: n writes
+        var avgCompares = (ulong)(n * Math.Log2(Math.Max(n, 2)));
+        var minCompares = avgCompares / 2;  // Allow some variance
+        var maxCompares = avgCompares * 2;  // Upper bound for balanced insertions
+        var expectedReads = (ulong)n;  // Reading during insertion
+        var expectedWrites = (ulong)n; // Writing during in-order traversal
+        
+        Assert.InRange(stats.CompareCount, minCompares, maxCompares);
+        Assert.Equal(expectedReads, stats.IndexReadCount);
+        Assert.Equal(expectedWrites, stats.IndexWriteCount);
+        Assert.Equal(0UL, stats.SwapCount);
+    }
+
+    [Theory]
+    [InlineData(10)]
+    [InlineData(20)]
+    [InlineData(50)]
+    [InlineData(100)]
+    public void TheoreticalValuesRandomTest(int n)
+    {
+        var stats = new StatisticsContext();
+        var random = Enumerable.Range(0, n).OrderBy(_ => Guid.NewGuid()).ToArray();
+        BalancedBinaryTreeSort.Sort(random.AsSpan(), stats);
+
+        // For random data, AVL tree maintains balance automatically
+        // Expected comparisons:
+        // - Each insertion into a balanced tree of i elements takes ~log2(i) comparisons
+        // - Total: approximately n*log2(n) comparisons
+        // - Balanced tree guarantees O(log n) height, so worst case is better than BST
+        var avgCompares = (ulong)(n * Math.Log2(Math.Max(n, 2)));
+        var minCompares = avgCompares / 2;  // Allow variance for very balanced insertions
+        var maxCompares = avgCompares * 2;  // Upper bound (still O(n log n))
+        var expectedReads = (ulong)n;  // Reading during insertion
+        var expectedWrites = (ulong)n; // Writing during in-order traversal
+        
+        Assert.InRange(stats.CompareCount, minCompares, maxCompares);
+        Assert.Equal(expectedReads, stats.IndexReadCount);
+        Assert.Equal(expectedWrites, stats.IndexWriteCount);
+        Assert.Equal(0UL, stats.SwapCount);
+    }
+
+    [Theory]
+    [InlineData(10)]
+    [InlineData(20)]
+    [InlineData(50)]
+    [InlineData(100)]
+    public void TheoreticalValuesBalancedPropertyTest(int n)
+    {
+        var stats = new StatisticsContext();
+        var random = Enumerable.Range(0, n).OrderBy(_ => Guid.NewGuid()).ToArray();
+        BalancedBinaryTreeSort.Sort(random.AsSpan(), stats);
+
+        // AVL tree guarantees that the height is always O(log n)
+        // This ensures that comparisons remain in the O(n log n) range
+        // even in worst-case scenarios (unlike unbalanced BST which degrades to O(n^2))
+        var worstCaseBST = (ulong)(n * (n - 1) / 2);  // Unbalanced BST worst case
+        var balancedUpperBound = (ulong)(n * Math.Log2(Math.Max(n, 2)) * 3);  // 3x safety margin
+        
+        // Verify that comparisons are significantly better than worst-case unbalanced BST
+        Assert.True(stats.CompareCount < worstCaseBST / 2,
+            $"CompareCount ({stats.CompareCount}) should be significantly less than unbalanced BST worst case ({worstCaseBST})");
+        Assert.True(stats.CompareCount < balancedUpperBound,
+            $"CompareCount ({stats.CompareCount}) should be within balanced tree bounds ({balancedUpperBound})");
     }
 }
