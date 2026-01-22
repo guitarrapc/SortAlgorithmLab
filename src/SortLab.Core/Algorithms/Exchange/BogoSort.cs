@@ -41,11 +41,18 @@ public static class BogoSort
 
         while (!IsSorted(s))
         {
-            var length = s.Length;
-            for (var i = 0; i < length; i++)
-            {
-                s.Swap(i, Random.Shared.Next(0, length));
-            }
+            Shuffle(s);
+        }
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private static void Shuffle<T>(SortSpan<T> s) where T : IComparable<T>
+    {
+        // Fisher-Yates shuffle - すべての順列を均等な確率で生成
+        var length = s.Length;
+        for (var i = length - 1; i > 0; i--)
+        {
+            s.Swap(i, Random.Shared.Next(0, i + 1));
         }
     }
 
