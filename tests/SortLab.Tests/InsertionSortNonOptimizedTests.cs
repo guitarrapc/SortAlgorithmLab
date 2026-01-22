@@ -3,7 +3,7 @@ using SortLab.Core.Contexts;
 
 namespace SortLab.Tests;
 
-public class InsertionNonOptimizedSortTests
+public class InsertionSortNonOptimizedTests
 {
     [Theory]
     [ClassData(typeof(MockRandomData))]
@@ -17,7 +17,7 @@ public class InsertionNonOptimizedSortTests
     public void SortResultOrderTest(IInputSample<int> inputSample)
     {
         var array = inputSample.Samples.ToArray();
-        InsertionNonOptimizedSort.Sort(array.AsSpan());
+        InsertionSortNonOptimized.Sort(array.AsSpan());
         Assert.Equal(inputSample.Samples.OrderBy(x => x), array);
     }
 
@@ -33,7 +33,7 @@ public class InsertionNonOptimizedSortTests
     {
         var stats = new StatisticsContext();
         var array = inputSample.Samples.ToArray();
-        InsertionNonOptimizedSort.Sort(array.AsSpan(), stats);
+        InsertionSortNonOptimized.Sort(array.AsSpan(), stats);
 
         Assert.Equal((ulong)inputSample.Samples.Length, (ulong)array.Length);
         Assert.NotEqual(0UL, stats.IndexReadCount);
@@ -48,7 +48,7 @@ public class InsertionNonOptimizedSortTests
     {
         var stats = new StatisticsContext();
         var array = inputSample.Samples.ToArray();
-        InsertionNonOptimizedSort.Sort(array.AsSpan(), stats);
+        InsertionSortNonOptimized.Sort(array.AsSpan(), stats);
 
         Assert.Equal((ulong)inputSample.Samples.Length, (ulong)array.Length);
         Assert.NotEqual(0UL, stats.IndexReadCount);
@@ -63,7 +63,7 @@ public class InsertionNonOptimizedSortTests
     {
         var stats = new StatisticsContext();
         var array = inputSample.Samples.ToArray();
-        InsertionNonOptimizedSort.Sort(array.AsSpan(), stats);
+        InsertionSortNonOptimized.Sort(array.AsSpan(), stats);
 
         stats.Reset();
         Assert.Equal(0UL, stats.IndexReadCount);
@@ -81,7 +81,7 @@ public class InsertionNonOptimizedSortTests
     {
         var stats = new StatisticsContext();
         var sorted = Enumerable.Range(0, n).ToArray();
-        InsertionNonOptimizedSort.Sort(sorted.AsSpan(), stats);
+        InsertionSortNonOptimized.Sort(sorted.AsSpan(), stats);
 
         // Insertion Sort (Non-Optimized) on sorted data: best case O(n)
         // - For each position i (from 1 to n-1), we compare once with the previous element
@@ -112,7 +112,7 @@ public class InsertionNonOptimizedSortTests
     {
         var stats = new StatisticsContext();
         var reversed = Enumerable.Range(0, n).Reverse().ToArray();
-        InsertionNonOptimizedSort.Sort(reversed.AsSpan(), stats);
+        InsertionSortNonOptimized.Sort(reversed.AsSpan(), stats);
 
         // Insertion Sort (Non-Optimized) on reversed data: worst case O(n^2)
         // - Position 1: 1 comparison, 1 swap
@@ -146,7 +146,7 @@ public class InsertionNonOptimizedSortTests
     {
         var stats = new StatisticsContext();
         var random = Enumerable.Range(0, n).OrderBy(_ => Guid.NewGuid()).ToArray();
-        InsertionNonOptimizedSort.Sort(random.AsSpan(), stats);
+        InsertionSortNonOptimized.Sort(random.AsSpan(), stats);
 
         // Insertion Sort (Non-Optimized) on random data: average case O(n^2)
         // - Average comparisons: approximately n(n-1)/4

@@ -211,7 +211,7 @@ public static class InsertionSort
 /// </list>
 /// </remarks>
 /// <typeparam name="T"></typeparam>
-public static class InsertionNonOptimizedSort
+public static class InsertionSortNonOptimized
 {
     /// <summary>
     /// Sorts the elements in the specified span in ascending order using the default comparer.
