@@ -14,8 +14,11 @@ Span ...
 */
 
 /// <summary>
-/// 配列をランダムにシャッフルし、ソートされているかを確認することを繰り返す、非常に非効率なソートアルゴリズムです。Permutation Sortとも呼ばれます。10ソートで事実上限界<br/>
+/// 配列をランダムにシャッフルし、ソートされているかを確認することを繰り返す、非常に非効率なソートアルゴリズムです。Permutation Sortとも呼ばれます。
+/// 10要素程度が現実的な時間で終了する限界です。
+/// <br/>
 /// Continuously shuffles the array randomly until it is sorted, checking after each shuffle. This approach is extremely inefficient and impractical for sorting.
+/// 10 elements is about the limit for completing in a realistic time.
 /// </summary>
 /// <remarks>
 /// stable  : no
