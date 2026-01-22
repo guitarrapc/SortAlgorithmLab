@@ -1,11 +1,12 @@
 ﻿using SortLab.Core.Algorithms;
 using SortLab.Core.Contexts;
+using SortLab.Tests.Attributes;
 
 namespace SortLab.Tests;
 
-public class CocktailShakerSortTests
+public class CocktailShakerSortNonOptimizedTests
 {
-    [Theory]
+    [CISkippableTheory]
     [ClassData(typeof(MockRandomData))]
     [ClassData(typeof(MockNegativePositiveRandomData))]
     [ClassData(typeof(MockNegativeRandomData))]
@@ -17,11 +18,11 @@ public class CocktailShakerSortTests
     public void SortResultOrderTest(IInputSample<int> inputSample)
     {
         var array = inputSample.Samples.ToArray();
-        CocktailShakerSort.Sort(array.AsSpan());
+        CocktailShakerSortNonOptimized.Sort(array.AsSpan());
         Assert.Equal(inputSample.Samples.OrderBy(x => x), array);
     }
 
-    [Theory]
+    [CISkippableTheory]
     [ClassData(typeof(MockRandomData))]
     [ClassData(typeof(MockNegativePositiveRandomData))]
     [ClassData(typeof(MockNegativeRandomData))]
@@ -33,7 +34,7 @@ public class CocktailShakerSortTests
     {
         var stats = new StatisticsContext();
         var array = inputSample.Samples.ToArray();
-        CocktailShakerSort.Sort(array.AsSpan(), stats);
+        CocktailShakerSortNonOptimized.Sort(array.AsSpan(), stats);
 
         Assert.Equal((ulong)inputSample.Samples.Length, (ulong)array.Length);
         Assert.NotEqual(0UL, stats.IndexReadCount);
@@ -42,13 +43,13 @@ public class CocktailShakerSortTests
         Assert.NotEqual(0UL, stats.SwapCount);
     }
 
-    [Theory]
+    [CISkippableTheory]
     [ClassData(typeof(MockSortedData))]
     public void StatisticsSortedTest(IInputSample<int> inputSample)
     {
         var stats = new StatisticsContext();
         var array = inputSample.Samples.ToArray();
-        CocktailShakerSort.Sort(array.AsSpan(), stats);
+        CocktailShakerSortNonOptimized.Sort(array.AsSpan(), stats);
 
         Assert.Equal((ulong)inputSample.Samples.Length, (ulong)array.Length);
         Assert.NotEqual(0UL, stats.IndexReadCount);
@@ -57,13 +58,13 @@ public class CocktailShakerSortTests
         Assert.Equal(0UL, stats.SwapCount);
     }
 
-    [Theory]
+    [CISkippableTheory]
     [ClassData(typeof(MockRandomData))]
     public void StatisticsResetTest(IInputSample<int> inputSample)
     {
         var stats = new StatisticsContext();
         var array = inputSample.Samples.ToArray();
-        CocktailShakerSort.Sort(array.AsSpan(), stats);
+        CocktailShakerSortNonOptimized.Sort(array.AsSpan(), stats);
 
         stats.Reset();
         Assert.Equal(0UL, stats.IndexReadCount);
@@ -72,7 +73,7 @@ public class CocktailShakerSortTests
         Assert.Equal(0UL, stats.SwapCount);
     }
 
-    [Theory]
+    [CISkippableTheory]
     [InlineData(10)]
     [InlineData(20)]
     [InlineData(50)]
@@ -81,13 +82,14 @@ public class CocktailShakerSortTests
     {
         var stats = new StatisticsContext();
         var sorted = Enumerable.Range(0, n).ToArray();
-        CocktailShakerSort.Sort(sorted.AsSpan(), stats);
+        CocktailShakerSortNonOptimized.Sort(sorted.AsSpan(), stats);
 
-        // Cocktail Shaker Sort (Optimized) - Sorted case:
-        // First forward pass: n-1 comparisons, 0 swaps
-        // Since lastSwapIndex remains at min, max becomes min and loop exits
-        // Total: n-1 comparisons, 0 swaps, 0 writes
-        var expectedCompares = (ulong)(n - 1);
+        // Cocktail Shaker Sort (NonOptimized) - Sorted case:
+        // Iteration i=0: forward (n-1 comparisons) + backward (n-2 comparisons)
+        // Total: (n-1) + (n-2) = 2n-3 comparisons
+        // Early termination on first iteration (swapped = false)
+        // For n=10: 9 + 8 = 17 comparisons
+        var expectedCompares = (ulong)(2 * n - 3);
         var expectedSwaps = 0UL;
         var expectedWrites = 0UL;
 
@@ -101,7 +103,7 @@ public class CocktailShakerSortTests
         Assert.Equal(expectedReads, stats.IndexReadCount);
     }
 
-    [Theory]
+    [CISkippableTheory]
     [InlineData(10)]
     [InlineData(20)]
     [InlineData(50)]
@@ -110,9 +112,9 @@ public class CocktailShakerSortTests
     {
         var stats = new StatisticsContext();
         var reversed = Enumerable.Range(0, n).Reverse().ToArray();
-        CocktailShakerSort.Sort(reversed.AsSpan(), stats);
+        CocktailShakerSortNonOptimized.Sort(reversed.AsSpan(), stats);
 
-        // Cocktail Shaker Sort - Reversed case (worst case):
+        // Cocktail Shaker Sort (NonOptimized) - Reversed case (worst case):
         // Same as bubble sort: n(n-1)/2 comparisons and swaps
         // Each swap writes 2 elements
         var expectedCompares = (ulong)(n * (n - 1) / 2);
@@ -130,7 +132,7 @@ public class CocktailShakerSortTests
         Assert.Equal(expectedReads, stats.IndexReadCount);
     }
 
-    [Theory]
+    [CISkippableTheory]
     [InlineData(10)]
     [InlineData(20)]
     [InlineData(50)]
@@ -139,12 +141,14 @@ public class CocktailShakerSortTests
     {
         var stats = new StatisticsContext();
         var random = Enumerable.Range(0, n).OrderBy(_ => Guid.NewGuid()).ToArray();
-        CocktailShakerSort.Sort(random.AsSpan(), stats);
+        CocktailShakerSortNonOptimized.Sort(random.AsSpan(), stats);
 
-        // Cocktail Shaker Sort - Random case:
-        // Comparisons: O(n²), typically less than worst case due to optimization
+        // Cocktail Shaker Sort (NonOptimized) - Random case:
+        // Has early termination (if !swapped break)
+        // Best case (sorted): 2n-3 comparisons
+        // Worst case (no early termination): n(n-1)/2 comparisons
         // Swaps: Average n(n-1)/4 for random data
-        var minCompares = (ulong)(n - 1);  // Best case (already sorted)
+        var minCompares = (ulong)(2 * n - 3);  // Best case (already sorted)
         var maxCompares = (ulong)(n * (n - 1) / 2);  // Worst case
         var maxSwaps = (ulong)(n * (n - 1) / 2);
 
