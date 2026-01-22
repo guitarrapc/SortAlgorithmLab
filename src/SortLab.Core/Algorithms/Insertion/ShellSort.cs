@@ -115,14 +115,14 @@ public static class ShellSort
                     SortKnuth1973(span, first, last, context);
                     break;
                 }
-            case GapType.Tokuda1992:
-                {
-                    SortTokuda1992(span, first, last, context);
-                    break;
-                }
             case GapType.Sedgewick1986:
                 {
                     SortSedgewick1986(span, first, last, context);
+                    break;
+                }
+            case GapType.Tokuda1992:
+                {
+                    SortTokuda1992(span, first, last, context);
                     break;
                 }
             case GapType.Ciura2001:
@@ -137,9 +137,8 @@ public static class ShellSort
                 }
             default:
                 throw new NotImplementedException(gapType.ToString());
-        };
+        }
     }
-
 
     /// <summary>
     /// Shell sort using the Knuth sequence: h = 3*h + 1
@@ -159,23 +158,67 @@ public static class ShellSort
 
         var s = new SortSpan<T>(span, context);
 
-        // Calculate the initial gap (Knuth sequence).
-        // We stop when h >= length/9. This is just one approach.
-        // 1, 4, 13, 40, 121, 364, 1093, ...
-        var h = 1;
-        while (h < length / 9)
-        {
-            h = h * 3 + 1;
-        }
+        // Knuth's sequence: h = 3*h + 1
+        ReadOnlySpan<int> knuthSequence = [1, 4, 13, 40, 121, 364, 1093, 3280, 9841, 29524, 88573, 265720, 797161, 2391484];
 
-        // Decrease h by dividing by 3 each iteration until h == 0.
-        for (; h > 0; h /= 3)
+        // Find the largest gap index where gap <= (length/2)
+        int gapIndex = knuthSequence.Length - 1;
+        while (gapIndex >= 0 && knuthSequence[gapIndex] > length / 2)
+            gapIndex--;
+
+        // Decrease gap by moving to previous index
+        for (; gapIndex >= 0; gapIndex--)
         {
+            var h = knuthSequence[gapIndex];
+            
             // Swap based Insertion sort with gap h.
             for (var i = first + h; i < last; i++)
             {
                 // Ensure j >= first + h to stay within the subrange.
                 for (int j = i; j >= first + h && s.Compare(j - h, j) > 0; j -= h)
+                {
+                    s.Swap(j, j - h);
+                }
+            }
+        }
+    }
+
+    /// <summary>
+    /// Shell sort using a typical Sedgewick sequence (h = 4^k + 3*2^(k-1) + 1).
+    /// Note that Sedgewick also has various formula-based sequences.
+    /// Concrete sequence: 1, 5, 19, 41, 109, 209, 505, 929, 2161, 3905, ...
+    /// </summary>
+    /// <param name="span"></param>
+    /// <param name="first"></param>
+    /// <param name="last"></param>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private static void SortSedgewick1986<T>(Span<T> span, int first, int last, ISortContext context) where T : IComparable<T>
+    {
+        var length = last - first;
+        // Only 1 or 0 elements
+        if (length < 2)
+            return;
+
+        var s = new SortSpan<T>(span, context);
+
+        // A partial Sedgewick sequence. Different references may show slightly different numbers.
+        ReadOnlySpan<int> sedgewickSequence = [1, 5, 19, 41, 109, 209, 505, 929, 2161, 3905];
+
+        // Find the largest gap index where gap <= (length/2)
+        int gapIndex = sedgewickSequence.Length - 1;
+        while (gapIndex >= 0 && sedgewickSequence[gapIndex] > length / 2)
+            gapIndex--;
+
+        // Decrease gap by moving to previous index
+        for (; gapIndex >= 0; gapIndex--)
+        {
+            var h = sedgewickSequence[gapIndex];
+            
+            // Swap based Insertion sort with gap h.
+            for (var i = first + h; i < last; i++)
+            {
+                // Ensure j >= first + h to stay within the subrange.
+                for (var j = i; j >= first + h && s.Compare(j - h, j) > 0; j -= h)
                 {
                     s.Swap(j, j - h);
                 }
@@ -201,16 +244,19 @@ public static class ShellSort
 
         var s = new SortSpan<T>(span, context);
 
-        // Initial gap for Tokuda sequence.
-        int h = 1;
-        while (h < length / 5)
-        {
-            h = (9 * h + 1) / 4;
-        }
+        // Tokuda's sequence: empirically optimized gap sequence
+        ReadOnlySpan<int> tokudaSequence = [1, 4, 9, 20, 46, 103, 233, 525, 1182, 2660, 5985, 13467, 30301, 68178, 153401, 345152, 776591];
 
-        // Decrease gap until it goes to 0.
-        while (h > 0)
+        // Find the largest gap index where gap <= (length/2)
+        int gapIndex = tokudaSequence.Length - 1;
+        while (gapIndex >= 0 && tokudaSequence[gapIndex] > length / 2)
+            gapIndex--;
+
+        // Decrease gap by moving to previous index
+        for (; gapIndex >= 0; gapIndex--)
         {
+            var h = tokudaSequence[gapIndex];
+            
             // Swap based Insertion sort with gap h.
             for (int i = first + h; i < last; i++)
             {
@@ -220,92 +266,6 @@ public static class ShellSort
                     s.Swap(j, j - h);
                 }
             }
-
-            // Decrease h via (4*h - 1)/9. Make sure it doesn't go negative.
-            h = (4 * h - 1) / 9;
-            if (h < 1)
-                h = 0;
-        }
-    }
-
-    /// <summary>
-    /// Shell sort using a typical Sedgewick sequence (h = 4^k + 3*2^(k-1) + 1).
-    /// Note that Sedgewick also has various formula-based sequences.
-    /// Concrete sequence: 1, 5, 19, 41, 109, 209, 505, 929, 2161, 3905, ...
-    /// </summary>
-    /// <param name="span"></param>
-    /// <param name="first"></param>
-    /// <param name="last"></param>
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private static void SortSedgewick1986<T>(Span<T> span, int first, int last, ISortContext context) where T : IComparable<T>
-    {
-        var length = last - first;
-        // Only 1 or 0 elements
-        if (length < 2)
-            return;
-
-        var s = new SortSpan<T>(span, context);
-
-        // A partial Sedgewick sequence. Different references may show slightly different numbers.
-        Span<int> sedgewickSequence = [1, 5, 19, 41, 109, 209, 505, 929, 2161, 3905];
-
-        // Find the largest gap <= (length/2)
-        var h = 1;
-        for (int i = 0; i < sedgewickSequence.Length; i++)
-        {
-            if (sedgewickSequence[i] > length / 2)
-                break;
-            h = sedgewickSequence[i];
-        }
-
-        // Decrease gap by going to the previous step in the Sedgewick array.
-        for (; h > 0; h = GetPreviousSedgewickGap(h))
-        {
-            // Swap based Insertion sort with gap h.
-            for (var i = first + h; i < last; i++)
-            {
-                // Ensure j >= first + h to stay within the subrange.
-                for (var j = i; j >= first + h && s.Compare(j - h, j) > 0; j -= h)
-                {
-                    s.Swap(j, j - h);
-                }
-            }
-        }
-
-        /// <summary>
-        /// Finds the next smaller gap in the Sedgewick sequence by searching backward.
-        /// If 'current' is not found in the array, we simply return 0 as a fallback.
-        /// </summary>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        static int GetPreviousSedgewickGap(int current)
-        {
-            // A partial Sedgewick sequence. Different references may show slightly different numbers. (Should be same as SortCoreSedgewick)
-            Span<int> sedgewickSequence = [1, 5, 19, 41, 109, 209, 505, 929, 2161, 3905];
-
-            // If current is not in array, return 0
-            int prev = 0;
-            for (int i = 0; i < sedgewickSequence.Length; i++)
-            {
-                if (sedgewickSequence[i] == current)
-                {
-                    // i-1 exists
-                    if (i > 0)
-                    {
-                        prev = sedgewickSequence[i - 1];
-                    }
-                    break;
-                }
-                else if (sedgewickSequence[i] > current)
-                {
-                    // 'current' might be outside this sequence subset.
-                    break;
-                }
-                else
-                {
-                    prev = sedgewickSequence[i];
-                }
-            }
-            return prev;
         }
     }
 
@@ -330,20 +290,18 @@ public static class ShellSort
         var s = new SortSpan<T>(span, context);
 
         // Ciura's empirically determined sequence (extended for larger arrays)
-        Span<int> ciuraSequence = [1, 4, 10, 23, 57, 132, 301, 701, 1750, 3937, 8858, 19930, 44844, 100899];
+        ReadOnlySpan<int> ciuraSequence = [1, 4, 10, 23, 57, 132, 301, 701, 1750, 3937, 8858, 19930, 44844, 100899];
 
-        // Find the largest gap <= (length/2)
-        var h = 1;
-        for (int i = 0; i < ciuraSequence.Length; i++)
-        {
-            if (ciuraSequence[i] > length / 2)
-                break;
-            h = ciuraSequence[i];
-        }
+        // Find the largest gap index where gap <= (length/2)
+        int gapIndex = ciuraSequence.Length - 1;
+        while (gapIndex >= 0 && ciuraSequence[gapIndex] > length / 2)
+            gapIndex--;
 
-        // Decrease gap by going to the previous step in the Ciura array.
-        for (; h > 0; h = GetPreviousCiuraGap(h))
+        // Decrease gap by moving to previous index
+        for (; gapIndex >= 0; gapIndex--)
         {
+            var h = ciuraSequence[gapIndex];
+            
             // Swap based Insertion sort with gap h.
             for (var i = first + h; i < last; i++)
             {
@@ -353,42 +311,6 @@ public static class ShellSort
                     s.Swap(j, j - h);
                 }
             }
-        }
-
-        /// <summary>
-        /// Finds the next smaller gap in the Ciura sequence by searching backward.
-        /// If 'current' is not found in the array, we simply return 0 as a fallback.
-        /// </summary>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        static int GetPreviousCiuraGap(int current)
-        {
-            // Ciura's sequence (extended). Should match SortCoreCiura2001
-            Span<int> ciuraSequence = [1, 4, 10, 23, 57, 132, 301, 701, 1750, 3937, 8858, 19930, 44844, 100899];
-
-            // If current is not in array, return 0
-            int prev = 0;
-            for (int i = 0; i < ciuraSequence.Length; i++)
-            {
-                if (ciuraSequence[i] == current)
-                {
-                    // i-1 exists
-                    if (i > 0)
-                    {
-                        prev = ciuraSequence[i - 1];
-                    }
-                    break;
-                }
-                else if (ciuraSequence[i] > current)
-                {
-                    // 'current' might be outside this sequence subset.
-                    break;
-                }
-                else
-                {
-                    prev = ciuraSequence[i];
-                }
-            }
-            return prev;
         }
     }
 
@@ -415,20 +337,18 @@ public static class ShellSort
 
         // Lee's empirically determined sequence based on gamma = 2.243609061420001
         // Formula: h_k = ceil((gamma^k - 1) / (gamma - 1))
-        Span<int> leeSequence = [1, 4, 9, 20, 45, 102, 230, 516, 1158, 2599, 5831, 13082, 29351, 65853, 147748, 331490, 743735];
+        ReadOnlySpan<int> leeSequence = [1, 4, 9, 20, 45, 102, 230, 516, 1158, 2599, 5831, 13082, 29351, 65853, 147748, 331490, 743735];
 
-        // Find the largest gap <= (length/2)
-        var h = 1;
-        for (int i = 0; i < leeSequence.Length; i++)
-        {
-            if (leeSequence[i] > length / 2)
-                break;
-            h = leeSequence[i];
-        }
+        // Find the largest gap index where gap <= (length/2)
+        int gapIndex = leeSequence.Length - 1;
+        while (gapIndex >= 0 && leeSequence[gapIndex] > length / 2)
+            gapIndex--;
 
-        // Decrease gap by going to the previous step in the Lee array.
-        for (; h > 0; h = GetPreviousLeeGap(h))
+        // Decrease gap by moving to previous index
+        for (; gapIndex >= 0; gapIndex--)
         {
+            var h = leeSequence[gapIndex];
+            
             // Swap based Insertion sort with gap h.
             for (var i = first + h; i < last; i++)
             {
@@ -439,50 +359,17 @@ public static class ShellSort
                 }
             }
         }
-
-        /// <summary>
-        /// Finds the next smaller gap in the Lee sequence by searching backward.
-        /// If 'current' is not found in the array, we simply return 0 as a fallback.
-        /// </summary>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        static int GetPreviousLeeGap(int current)
-        {
-            // Lee's sequence (extended). Should match SortLee2021
-            Span<int> leeSequence = [1, 4, 9, 20, 45, 102, 230, 516, 1158, 2599, 5831, 13082, 29351, 65853, 147748, 331490, 743735];
-
-            // If current is not in array, return 0
-            int prev = 0;
-            for (int i = 0; i < leeSequence.Length; i++)
-            {
-                if (leeSequence[i] == current)
-                {
-                    // i-1 exists
-                    if (i > 0)
-                    {
-                        prev = leeSequence[i - 1];
-                    }
-                    break;
-                }
-                else if (leeSequence[i] > current)
-                {
-                    // 'current' might be outside this sequence subset.
-                    break;
-                }
-                else
-                {
-                    prev = leeSequence[i];
-                }
-            }
-            return prev;
-        }
     }
+
 
     internal enum GapType
     {
         Knuth1973,
-        Tokuda1992,
         Sedgewick1986,
+        Tokuda1992,
         Ciura2001,
         Lee2021,
     }
+
 }
+
