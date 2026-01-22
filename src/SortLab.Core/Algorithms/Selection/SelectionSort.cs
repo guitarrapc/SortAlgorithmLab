@@ -29,6 +29,7 @@ Span ...
 /// Iterates through each position in the array, finding the minimum element in the unsorted portion and swapping it with the current position. Swapping elements based on indices makes Selection Sort an unstable sorting algorithm.
 /// </summary>
 /// <remarks>
+/// family  : selection
 /// stable  : no
 /// inplace : yes
 /// Compare : O(n^2)     (Performs approximately n(n-1)/2 comparisons) 
@@ -39,7 +40,7 @@ Span ...
 ///         * worst case: O(n^2)
 /// </remarks>
 /// <typeparam name="T"></typeparam>
-public  static class SelectionSort
+public static class SelectionSort
 {
     /// <summary>
     /// Sorts the elements in the specified span in ascending order using the default comparer.

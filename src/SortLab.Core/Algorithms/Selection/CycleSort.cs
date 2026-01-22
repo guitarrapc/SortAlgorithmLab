@@ -28,6 +28,7 @@ Span ...
 /// Checks for elements smaller than the current element further in the array, calculates the insertion index based on the number of such elements, and swaps. This process is repeated. The number of swaps is always minimal, but the number of comparisons becomes enormous.
 /// </summary>
 /// <remarks>
+/// family  : selection
 /// stable  : no 
 /// inplace : yes
 /// Compare : O(n^2)     (Always performs approximately n(n-1)/2 comparisons)

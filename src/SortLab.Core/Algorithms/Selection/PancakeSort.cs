@@ -31,6 +31,7 @@ PancakeSort ...
 /// Finds the maximum element in the unsorted portion, flips (reverses) the array to bring it to the front, and then flips the array up to the last unsorted element to place the maximum element in its correct position. This process is repeated until the array is sorted. The number of flips corresponds to the count, and fewer flips result in faster performance, while more flips can slow down the process.
 /// </summary>
 /// <remarks>
+/// family  : selection
 /// stable  : no
 /// inplace : yes
 /// Compare : O(n^2)     (Performs approximately n(n-1)/2 comparisons)  
