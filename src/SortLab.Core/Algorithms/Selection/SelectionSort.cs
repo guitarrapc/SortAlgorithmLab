@@ -103,7 +103,6 @@ public static class SelectionSort
     /// <param name="last">The exclusive upper bound of the range to sort. Must be less than or equal to the length of <paramref
     /// name="span"/>.</param>
     /// <param name="context">The sort context to use during the sorting operation.</param>
-    /// <exception cref="ArgumentOutOfRangeException">Thrown when <paramref name="first"/> is less than 0, <paramref name="last"/> is greater than the length of
     /// <paramref name="span"/>, or <paramref name="first"/> is greater than or equal to <paramref name="last"/>.</exception>
     internal static void Sort<T>(Span<T> span, int first, int last, ISortContext context) where T : IComparable<T>
     {
