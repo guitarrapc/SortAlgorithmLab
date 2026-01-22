@@ -55,38 +55,43 @@ Span (Sedgewick) ...
  */
 
 /// <summary>
-/// <see cref="InsertionSort"/>にギャップ付き挿入ソートの概念を適用したシェルソートアルゴリズム。
-/// この例では、一般的だが必須ではない初期の h の制限として 'length / 9' を使用します。
-/// h_{i+1} = 3h_i + 1 となる h で配列を分割し、分割された各部分配列ごとに挿入ソート <see cref="InsertionSort"/> を行う。
-/// 次の h を /3 で求め、h が 1 になるまでこの操作を繰り返す。各 h ごとに部分配列がソートされているため、最後の h=1 のときは通常の挿入ソートと同じだが、既に部分的にソートされているため高速に動作する。
-/// ギャップ付き挿入ソートを使用するため不安定なソートである。（ギャップを使って要素を大きく飛ばしながらソートするため、同値要素の相対順序が保たれない）
-/// <see cref="BubbleSort"/> に同様の概念を適用したものが <see cref="CombSort"/> である。
+/// シェルソートアルゴリズム - ギャップベースの比較を使用した改良版挿入ソート。
+/// 配列を「ギャップ」で区切られたサブ配列に分割し、各サブ配列を挿入ソートでソートします。
+/// ギャップが1に減少すると配列はほぼソート済みになり、最終的な挿入ソートパスが非常に効率的になります。
 /// <br/>
-/// <see cref="InsertionSort"/> with gap concept applied is Shell sort algorithm.
-/// In this example, we use 'length / 9' as an initial limit for h, which is common but not mandatory.
-/// The array is logically divided according to the gap 'h', and each sub-array is sorted　using insertion-sort-like steps (<see cref="InsertionSort"/>).
-/// Then we reduce 'h' by dividing by 3 and repeat this process until h=1. By the time h=1, the data is already partially sorted, so the final pass (which is effectively an insertion sort) is very efficient.
-/// This approach is a "gap-based insertion sort," so it is inherently unstable.
-/// <see cref="CombSort"/> is a similar concept applied to <see cref="BubbleSort"/>.
+/// この実装はKnuthのギャップシーケンス（1973）を使用: h = 3h + 1
+/// ギャップシーケンス: 1, 4, 13, 40, 121, 364, 1093, 3280, 9841, ...
+/// 最も有名で広く使われているギャップシーケンス。
 /// <br/>
-/// Knuth's sequence: h = 3*h + 1
-/// Concrete sequence: [1, 4, 13, 40, 121, 364, 1093, 3280, 9841, 29524, 88573, 265720, 797161, 2391484]
+/// Shell sort algorithm - an improved insertion sort using gap-based comparisons.
+/// Shell sort divides the array into sub-arrays separated by a "gap" and sorts each sub-array using insertion sort.
+/// As the gap reduces to 1, the array becomes nearly sorted, making the final insertion sort pass very efficient.
+/// <br/>
+/// This implementation uses Knuth's gap sequence (1973): h = 3h + 1
+/// Gap sequence: 1, 4, 13, 40, 121, 364, 1093, 3280, 9841, ...
+/// This is the most well-known and widely used gap sequence for shell sort.
 /// </summary>
 /// <remarks>
 /// family  : insertion
 /// stable  : no  (gap-based insertion sorting does not preserve the order of equal elements)
 /// inplace : yes
-/// Compare : Depends on gap sequence (often around O(n^1.3) ~ O(n^1.5))
-/// Swap    : O(n^1.3) ~ O(n^2) (Potentially multiple swaps per insertion)
-/// Index   : O(n^2)   (Each element may be accessed multiple times during swaps) 
-/// Order   : Typically sub-quadratic
-///         * average   : O(n^1.3 ~ n^1.5)
-///         * best case : O(n) (nearly sorted)
-///         * worst case: O(n^2)
+/// Compare : O(n^1.5) ~ O(n^1.25) (Knuth sequence has well-studied complexity)
+/// Swap    : O(n^1.5) ~ O(n^1.25) (Similar to comparison count)
+/// Index   : O(n^1.5) (Each element accessed during gap-based insertion)
+/// Order   : Sub-quadratic
+///         * average   : O(n^1.5) ~ O(n^1.25)
+///         * best case : O(n log n) (nearly sorted)
+///         * worst case: O(n^1.5)
 /// </remarks>
 /// <typeparam name="T"></typeparam>
 public static class ShellSortKnuth1973
 {
+    // Characteristics:
+    // - Most famous and classic gap sequence
+    // - Easy to implement with simple formula
+    // - Good general-purpose performance
+    // - Well-studied theoretical properties
+
     public static void Sort<T>(Span<T> span) where T : IComparable<T>
     {
         Sort(span, 0, span.Length, NullContext.Default);
@@ -134,35 +139,43 @@ public static class ShellSortKnuth1973
 }
 
 /// <summary>
-/// <see cref="InsertionSort"/>にギャップ付き挿入ソートの概念を適用したシェルソートアルゴリズム。
-/// Sedgewickのシーケンスを使用：h = 4^k + 3*2^(k-1) + 1
-/// この例では、一般的だが必須ではない初期の h の制限として 'length / 9' を使用します。
-/// ギャップ付き挿入ソートを使用するため不安定なソートである。（ギャップを使って要素を大きく飛ばしながらソートするため、同値要素の相対順序が保たれない）
-/// <see cref="BubbleSort"/> に同様の概念を適用したものが <see cref="CombSort"/> である。
+/// シェルソートアルゴリズム - ギャップベースの比較を使用した改良版挿入ソート。
+/// 配列を「ギャップ」で区切られたサブ配列に分割し、各サブ配列を挿入ソートでソートします。
+/// ギャップが1に減少すると配列はほぼソート済みになり、最終的な挿入ソートパスが非常に効率的になります。
 /// <br/>
-/// <see cref="InsertionSort"/> with gap concept applied is Shell sort algorithm.
-/// Shell sort using a typical Sedgewick sequence (h = 4^k + 3*2^(k-1) + 1).
-/// Note that Sedgewick also has various formula-based sequences.
-/// This approach is a "gap-based insertion sort," so it is inherently unstable.
-/// <see cref="CombSort"/> is a similar concept applied to <see cref="BubbleSort"/>.
+/// この実装はSedgewickのギャップシーケンス（1986）を使用: h_k = 4^k + 3·2^(k-1) + 1
+/// ギャップシーケンス: 1, 5, 19, 41, 109, 209, 505, 929, 2161, 3905, ...
+/// 理論的に優れた特性を持つ数式ベースのシーケンス。
 /// <br/>
-/// Concrete sequence: 1, 5, 19, 41, 109, 209, 505, 929, 2161, 3905, ...
+/// Shell sort algorithm - an improved insertion sort using gap-based comparisons.
+/// Shell sort divides the array into sub-arrays separated by a "gap" and sorts each sub-array using insertion sort.
+/// As the gap reduces to 1, the array becomes nearly sorted, making the final insertion sort pass very efficient.
+/// <br/>
+/// This implementation uses Sedgewick's gap sequence (1986): h_k = 4^k + 3·2^(k-1) + 1
+/// Gap sequence: 1, 5, 19, 41, 109, 209, 505, 929, 2161, 3905, ...
+/// This formula-based sequence has better theoretical complexity bounds than Knuth.
 /// </summary>
 /// <remarks>
 /// family  : insertion
 /// stable  : no  (gap-based insertion sorting does not preserve the order of equal elements)
 /// inplace : yes
-/// Compare : Depends on gap sequence (often around O(n^1.3) ~ O(n^1.5))
-/// Swap    : O(n^1.3) ~ O(n^2) (Potentially multiple swaps per insertion)
-/// Index   : O(n^2)   (Each element may be accessed multiple times during swaps) 
-/// Order   : Typically sub-quadratic
-///         * average   : O(n^1.3 ~ n^1.5)
-///         * best case : O(n) (nearly sorted)
-///         * worst case: O(n^2)
+/// Compare : O(n^1.33) ~ O(n^1.25) (Sedgewick sequence has good theoretical bounds)
+/// Swap    : O(n^1.33) ~ O(n^1.25) (Similar to comparison count)
+/// Index   : O(n^1.33) (Each element accessed during gap-based insertion)
+/// Order   : Sub-quadratic with good theoretical properties
+///         * average   : O(n^1.33) ~ O(n^1.25)
+///         * best case : O(n log n) (nearly sorted)
+///         * worst case: O(n^1.33)
 /// </remarks>
 /// <typeparam name="T"></typeparam>
 public static class ShellSortSedgewick1986
 {
+    // Characteristics:
+    // - Formula-based gap sequence
+    // - Good theoretical complexity bounds
+    // - Better than Knuth in many cases
+    // - Predictable performance characteristics
+
     public static void Sort<T>(Span<T> span) where T : IComparable<T>
     {
         Sort(span, 0, span.Length, NullContext.Default);
@@ -209,36 +222,44 @@ public static class ShellSortSedgewick1986
     }
 }
 
-
 /// <summary>
-/// <see cref="InsertionSort"/>にギャップ付き挿入ソートの概念を適用したシェルソートアルゴリズム。
-/// h を (4*h - 1)/9 で減少させるループも使用する。
-/// ギャップ付き挿入ソートを使用するため不安定なソートである。（ギャップを使って要素を大きく飛ばしながらソートするため、同値要素の相対順序が保たれない）
-/// <see cref="BubbleSort"/> に同様の概念を適用したものが <see cref="CombSort"/> である。
+/// シェルソートアルゴリズム - ギャップベースの比較を使用した改良版挿入ソート。
+/// 配列を「ギャップ」で区切られたサブ配列に分割し、各サブ配列を挿入ソートでソートします。
+/// ギャップが1に減少すると配列はほぼソート済みになり、最終的な挿入ソートパスが非常に効率的になります。
 /// <br/>
-/// <see cref="InsertionSort"/> with gap concept applied is Shell sort algorithm, with Tokuda (1992) sequence.
-/// We also shrink h by (4*h - 1)/9 in the loop.
-/// This approach is a "gap-based insertion sort," so it is inherently unstable.
-/// <see cref="CombSort"/> is a similar concept applied to <see cref="BubbleSort"/>.
+/// この実装はTokudaのギャップシーケンス（1992）を使用: h_k = ⌈(9/4)^k⌉ or h_{k+1} = ⌊(9h_k + 1)/4⌋
+/// ギャップシーケンス: 1, 4, 9, 20, 46, 103, 233, 525, 1182, 2660, 5985, ...
+/// 実験的に最適化されたシーケンスで、優れた実用性能を持つ。
 /// <br/>
-/// Tokuda's sequence: h_{n+1} = floor((9*h_n + 1)/4)
-/// Concrete sequence: [1, 4, 9, 20, 46, 103, 233, 525, 1182, 2660, 5985, 13467, 30301, 68178, 153401, 345152, 776591]
+/// Shell sort algorithm - an improved insertion sort using gap-based comparisons.
+/// Shell sort divides the array into sub-arrays separated by a "gap" and sorts each sub-array using insertion sort.
+/// As the gap reduces to 1, the array becomes nearly sorted, making the final insertion sort pass very efficient.
+/// <br/>
+/// This implementation uses Tokuda's gap sequence (1992): h_k = ⌈(9/4)^k⌉ or h_{k+1} = ⌊(9h_k + 1)/4⌋
+/// Gap sequence: 1, 4, 9, 20, 46, 103, 233, 525, 1182, 2660, 5985, ...
+/// This empirically optimized sequence offers better practical performance than Knuth.
 /// </summary>
 /// <remarks>
 /// family  : insertion
 /// stable  : no  (gap-based insertion sorting does not preserve the order of equal elements)
 /// inplace : yes
-/// Compare : Depends on gap sequence (often around O(n^1.3) ~ O(n^1.5))
-/// Swap    : O(n^1.3) ~ O(n^2) (Potentially multiple swaps per insertion)
-/// Index   : O(n^2)   (Each element may be accessed multiple times during swaps) 
-/// Order   : Typically sub-quadratic
-///         * average   : O(n^1.3 ~ n^1.5)
-///         * best case : O(n) (nearly sorted)
-///         * worst case: O(n^2)
+/// Compare : O(n^1.25) (Empirically optimized, better than Knuth)
+/// Swap    : O(n^1.25) (Similar to comparison count)
+/// Index   : O(n^1.25) (Each element accessed during gap-based insertion)
+/// Order   : Sub-quadratic with excellent practical performance
+///         * average   : O(n^1.25)
+///         * best case : O(n log n) (nearly sorted)
+///         * worst case: O(n^1.5)
 /// </remarks>
 /// <typeparam name="T"></typeparam>
 public static class ShellSortTokuda1992
 {
+    // Characteristics:
+    // - Empirically optimized gap sequence
+    // - Better practical performance than Knuth
+    // - Good balance between theory and practice
+    // - Widely used in production systems
+
     public static void Sort<T>(Span<T> span) where T : IComparable<T>
     {
         Sort(span, 0, span.Length, NullContext.Default);
@@ -285,39 +306,45 @@ public static class ShellSortTokuda1992
     }
 }
 
-
 /// <summary>
-/// <see cref="InsertionSort"/>にギャップ付き挿入ソートの概念を適用したCiura (2001)のシェルソートアルゴリズム。
-/// それ以降は h_{k+1} = floor(2.25 * h_k) を使用してシーケンスを拡張できる。
-/// シェルソートにおける最もよく知られたギャップシーケンスの1つと考えられている。
-/// 参考文献: Marcin Ciura, "Best Increments for the Average Case of Shellsort" (2001)
-/// ギャップ付き挿入ソートを使用するため不安定なソートである。（ギャップを使って要素を大きく飛ばしながらソートするため、同値要素の相対順序が保たれない）
-/// <see cref="BubbleSort"/> に同様の概念を適用したものが <see cref="CombSort"/> である。
+/// シェルソートアルゴリズム - ギャップベースの比較を使用した改良版挿入ソート。
+/// 配列を「ギャップ」で区切られたサブ配列に分割し、各サブ配列を挿入ソートでソートします。
+/// ギャップが1に減少すると配列はほぼソート済みになり、最終的な挿入ソートパスが非常に効率的になります。
 /// <br/>
-/// <see cref="InsertionSort"/> with gap concept applied is Shell sort algorithm, with Ciura (2001) sequence.
-/// This is considered one of the best-known gap sequences for shell sort.
-/// Reference: Marcin Ciura, "Best Increments for the Average Case of Shellsort" (2001)
-/// This approach is a "gap-based insertion sort," so it is inherently unstable.
-/// <see cref="CombSort"/> is a similar concept applied to <see cref="BubbleSort"/>.
+/// この実装はCiuraのギャップシーケンス（2001）を使用: 実験的に決定された最適ギャップ
+/// ギャップシーケンス: 1, 4, 10, 23, 57, 132, 301, 701, 1750, ... (h_{k+1} = ⌊2.25h_k⌋で拡張)
+/// 平均ケース性能において最良のギャップシーケンスの一つ。
 /// <br/>
-/// Ciura's sequence: practically optimized gap sequence for first 8 gaps, beyond that, the sequence can be extended using h_{k+1} = floor(2.25 * h_k).
-/// Concrete sequence: [1, 4, 10, 23, 57, 132, 301, 701] + [1750, 3937, 8858, 19930, 44844, 100899]
+/// Shell sort algorithm - an improved insertion sort using gap-based comparisons.
+/// Shell sort divides the array into sub-arrays separated by a "gap" and sorts each sub-array using insertion sort.
+/// As the gap reduces to 1, the array becomes nearly sorted, making the final insertion sort pass very efficient.
+/// <br/>
+/// This implementation uses Ciura's gap sequence (2001): empirically determined optimal gaps
+/// Gap sequence: 1, 4, 10, 23, 57, 132, 301, 701, 1750, ... (extended by h_{k+1} = ⌊2.25h_k⌋)
+/// This is widely considered one of the best gap sequences for average-case performance.
 /// </summary>
 /// <remarks>
 /// family  : insertion
 /// stable  : no  (gap-based insertion sorting does not preserve the order of equal elements)
 /// inplace : yes
-/// Compare : Depends on gap sequence (often around O(n^1.3) ~ O(n^1.5))
-/// Swap    : O(n^1.3) ~ O(n^2) (Potentially multiple swaps per insertion)
-/// Index   : O(n^2)   (Each element may be accessed multiple times during swaps) 
-/// Order   : Typically sub-quadratic
-///         * average   : O(n^1.3 ~ n^1.5)
-///         * best case : O(n) (nearly sorted)
-///         * worst case: O(n^2)
+/// Compare : O(n^1.3) (One of the best known gap sequences for average case)
+/// Swap    : O(n^1.3) (Similar to comparison count)
+/// Index   : O(n^1.3) (Each element accessed during gap-based insertion)
+/// Order   : Sub-quadratic with best known practical performance
+///         * average   : O(n^1.3) (empirically best)
+///         * best case : O(n log n) (nearly sorted)
+///         * worst case: O(n^1.5)
 /// </remarks>
 /// <typeparam name="T"></typeparam>
 public static class ShellSortCiura2001
 {
+    // Characteristics:
+    // - Experimentally optimized for best average-case performance
+    // - Considered one of the best gap sequences known
+    // - First 8 gaps are empirically determined (1, 4, 10, 23, 57, 132, 301, 701)
+    // - Extended gaps use formula h_{k+1} = ⌊2.25h_k⌋
+    // - Recommended for general-purpose use
+
     public static void Sort<T>(Span<T> span) where T : IComparable<T>
     {
         Sort(span, 0, span.Length, NullContext.Default);
@@ -365,25 +392,27 @@ public static class ShellSortCiura2001
 }
 
 /// <summary>
-/// <see cref="InsertionSort"/>にギャップ付き挿入ソートの概念を適用したLee (2021)のシェルソートアルゴリズム。
-/// Tokudaシーケンスを改良した最新のシーケンスで、平均比較回数がさらに少ない。
-/// ギャップ付き挿入ソートを使用するため不安定なソート。
+/// シェルソートアルゴリズム - ギャップベースの比較を使用した改良版挿入ソート。
+/// 配列を「ギャップ」で区切られたサブ配列に分割し、各サブ配列を挿入ソートでソートします。
+/// ギャップが1に減少すると配列はほぼソート済みになり、最終的な挿入ソートパスが非常に効率的になります。
 /// <br/>
-/// <see cref="InsertionSort"/> with gap concept applied is Shell sort algorithm, with Lee (2021) sequence.
-/// Lee improved upon Tokuda's sequence using γ = 2.243609061420001 with formula h_k = ⌈(γ^k - 1)/(γ - 1)⌉.
-/// This sequence: 1, 4, 9, 20, 45, 102, 230, 516, 1158, 2599, 5831, 13082, ...
+/// この実装はLeeのギャップシーケンス（2021）を使用: h_k = ⌈(γ^k - 1)/(γ - 1)⌉ (γ = 2.243609061420001)
+/// ギャップシーケンス: 1, 4, 9, 20, 45, 102, 230, 516, 1158, 2599, 5831, 13082, ...
+/// Tokudaシーケンスの改良版で、平均比較回数がより少ない。
+/// <br/>
+/// Shell sort algorithm - an improved insertion sort using gap-based comparisons.
+/// Shell sort divides the array into sub-arrays separated by a "gap" and sorts each sub-array using insertion sort.
+/// As the gap reduces to 1, the array becomes nearly sorted, making the final insertion sort pass very efficient.
+/// <br/>
+/// This implementation uses Lee's gap sequence (2021): h_k = ⌈(γ^k - 1)/(γ - 1)⌉ where γ = 2.243609061420001
+/// Gap sequence: 1, 4, 9, 20, 45, 102, 230, 516, 1158, 2599, 5831, 13082, ...
+/// This is an improved version of Tokuda's sequence with fewer average comparisons.
 /// Reference: Ying Wai Lee, "Empirically Improved Tokuda Gap Sequence in Shellsort" (arXiv:2112.11112, 2021)
-/// This approach is a "gap-based insertion sort," so it is inherently unstable.
-/// <see cref="CombSort"/> is a similar concept applied to <see cref="BubbleSort"/>.
-/// <br/>
-/// Lee's sequence: h_k = ceil((gamma^k - 1) / (gamma - 1))
-/// Concrete sequence: [1, 4, 9, 20, 45, 102, 230, 516, 1158, 2599, 5831, 13082, 29351, 65853, 147748, 331490, 743735]
 /// </summary>
 /// <remarks>
 /// family  : insertion
 /// stable  : no  (gap-based insertion sorting does not preserve the order of equal elements)
 /// inplace : yes
-/// sequence: Lee (2021) - h_k = ⌈(γ^k - 1)/(γ - 1)⌉ where γ = 2.243609061420001
 /// Compare : O(n^1.25) (Empirically improved Tokuda, fewer comparisons on average)
 /// Swap    : O(n^1.25) (Similar to comparison count)
 /// Index   : O(n^1.25) (Each element accessed during gap-based insertion)
@@ -391,17 +420,17 @@ public static class ShellSortCiura2001
 ///         * average   : O(n^1.25) (improved over Tokuda)
 ///         * best case : O(n log n) (nearly sorted)
 ///         * worst case: O(n^1.5)
-/// 
-/// Characteristics:
-/// - Most recent improvement (2021) of Tokuda's sequence
-/// - Empirically yields fewer average comparisons than Tokuda
-/// - Uses optimal γ value found through extensive experiments
-/// - State-of-the-art gap sequence
-/// - Recommended for research and modern implementations
 /// </remarks>
 /// <typeparam name="T"></typeparam>
 public static class ShellSortLee2021
 {
+    // Characteristics:
+    // - Most recent improvement (2021) of Tokuda's sequence
+    // - Empirically yields fewer average comparisons than Tokuda
+    // - Uses optimal γ value found through extensive experiments
+    // - State-of-the-art gap sequence
+    // - Recommended for research and modern implementations
+
     public static void Sort<T>(Span<T> span) where T : IComparable<T>
     {
         Sort(span, 0, span.Length, NullContext.Default);
