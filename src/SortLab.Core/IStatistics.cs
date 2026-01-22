@@ -1,4 +1,6 @@
-﻿namespace SortLab.Core;
+﻿using System.Runtime.CompilerServices;
+
+namespace SortLab.Core;
 
 public class SortStatistics : IStatistics
 {

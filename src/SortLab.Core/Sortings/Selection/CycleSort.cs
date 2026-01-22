@@ -1,4 +1,6 @@
-﻿namespace SortLab.Core.Sortings;
+﻿using System.Runtime.CompilerServices;
+
+namespace SortLab.Core.Sortings;
 
 /*
 

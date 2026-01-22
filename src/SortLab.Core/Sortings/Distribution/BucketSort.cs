@@ -1,4 +1,6 @@
-﻿namespace SortLab.Core.Sortings;
+﻿using System.Runtime.CompilerServices;
+
+namespace SortLab.Core.Sortings;
 
 /// <summary>
 /// 値の範囲に応じたバケットを用意し、各要素をキーに基づいてバケットに配置します。

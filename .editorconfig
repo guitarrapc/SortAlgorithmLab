@@ -87,3 +87,5 @@ dotnet_diagnostic.IDE0051.severity = none # Remove unused private member
 dotnet_diagnostic.IDE0052.severity = none # Remove unread private member
 dotnet_diagnostic.IDE0079.severity = none # Remove unnecessary suppression
 dotnet_diagnostic.IDE0090.severity = none # Simplify new expression
+
+dotnet_diagnostic.xUnit3003.severity = none # It should include a public constructor for source information.
