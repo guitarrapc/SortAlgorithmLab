@@ -1,4 +1,4 @@
-using SortLab.Core.Contexts;
+﻿using SortLab.Core.Contexts;
 using System.Diagnostics;
 
 namespace SortLab.Core.Algorithms;
@@ -95,7 +95,7 @@ public static class ShellSort
     }
 
     /// <summary>
-    /// Main entry to switch gap sequences (Knuth, Tokuda, Sedgewick, Ciura)
+    /// Main entry to switch gap sequences (Knuth, Tokuda, Sedgewick, Ciura, Lee)
     /// </summary>
     /// <param name="span"></param>
     /// <param name="first"></param>
@@ -128,6 +128,11 @@ public static class ShellSort
             case GapType.Ciura2001:
                 {
                     SortCiura2001(span, first, last, context);
+                    break;
+                }
+            case GapType.Lee2021:
+                {
+                    SortLee2021(span, first, last, context);
                     break;
                 }
             default:
@@ -387,11 +392,97 @@ public static class ShellSort
         }
     }
 
+    /// <summary>
+    /// Shell sort using the Lee (2021) sequence.
+    /// Based on the paper "Empirically Improved Tokuda Gap Sequence in Shellsort" (arXiv:2112.11112).
+    /// The k-th increment h_k is given by: h_k = ceil((gamma^k - 1) / (gamma - 1))
+    /// where gamma = 2.243609061420001...
+    /// Reference: Ying Wai Lee, "Empirically Improved Tokuda Gap Sequence in Shellsort" (2021)
+    /// Concrete sequence: 1, 4, 9, 20, 45, 102, 230, 516, 1158, 2599, 5831, 13082, 29351, 65853, ...
+    /// </summary>
+    /// <param name="span"></param>
+    /// <param name="first"></param>
+    /// <param name="last"></param>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private static void SortLee2021<T>(Span<T> span, int first, int last, ISortContext context) where T : IComparable<T>
+    {
+        var length = last - first;
+        // Only 1 or 0 elements
+        if (length < 2)
+            return;
+
+        var s = new SortSpan<T>(span, context);
+
+        // Lee's empirically determined sequence based on gamma = 2.243609061420001
+        // Formula: h_k = ceil((gamma^k - 1) / (gamma - 1))
+        Span<int> leeSequence = [1, 4, 9, 20, 45, 102, 230, 516, 1158, 2599, 5831, 13082, 29351, 65853, 147748, 331490, 743735];
+
+        // Find the largest gap <= (length/2)
+        var h = 1;
+        for (int i = 0; i < leeSequence.Length; i++)
+        {
+            if (leeSequence[i] > length / 2)
+                break;
+            h = leeSequence[i];
+        }
+
+        // Decrease gap by going to the previous step in the Lee array.
+        for (; h > 0; h = GetPreviousLeeGap(h))
+        {
+            // Swap based Insertion sort with gap h.
+            for (var i = first + h; i < last; i++)
+            {
+                // Ensure j >= first + h to stay within the subrange.
+                for (var j = i; j >= first + h && s.Compare(j - h, j) > 0; j -= h)
+                {
+                    s.Swap(j, j - h);
+                }
+            }
+        }
+
+        /// <summary>
+        /// Finds the next smaller gap in the Lee sequence by searching backward.
+        /// If 'current' is not found in the array, we simply return 0 as a fallback.
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        static int GetPreviousLeeGap(int current)
+        {
+            // Lee's sequence (extended). Should match SortLee2021
+            Span<int> leeSequence = [1, 4, 9, 20, 45, 102, 230, 516, 1158, 2599, 5831, 13082, 29351, 65853, 147748, 331490, 743735];
+
+            // If current is not in array, return 0
+            int prev = 0;
+            for (int i = 0; i < leeSequence.Length; i++)
+            {
+                if (leeSequence[i] == current)
+                {
+                    // i-1 exists
+                    if (i > 0)
+                    {
+                        prev = leeSequence[i - 1];
+                    }
+                    break;
+                }
+                else if (leeSequence[i] > current)
+                {
+                    // 'current' might be outside this sequence subset.
+                    break;
+                }
+                else
+                {
+                    prev = leeSequence[i];
+                }
+            }
+            return prev;
+        }
+    }
+
     internal enum GapType
     {
         Knuth1973,
         Tokuda1992,
         Sedgewick1986,
         Ciura2001,
+        Lee2021,
     }
 }
