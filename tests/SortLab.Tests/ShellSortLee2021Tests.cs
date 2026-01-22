@@ -3,8 +3,8 @@ using SortLab.Core.Contexts;
 
 namespace SortLab.Tests;
 
-// Tests using Ciura2001 as it's considered one of the best gap sequences
-public class ShellSortCiura2001Tests
+// Tests using Lee2021 - state-of-the-art improved Tokuda sequence
+public class ShellSortLee2021Tests
 {
     [Theory]
     [ClassData(typeof(MockRandomData))]
@@ -18,7 +18,7 @@ public class ShellSortCiura2001Tests
     public void SortResultOrderTest(IInputSample<int> inputSample)
     {
         var array = inputSample.Samples.ToArray();
-        ShellSortCiura2001.Sort(array.AsSpan());
+        ShellSortLee2021.Sort(array.AsSpan());
         Assert.Equal(inputSample.Samples.OrderBy(x => x), array);
     }
 
@@ -34,7 +34,7 @@ public class ShellSortCiura2001Tests
     {
         var stats = new StatisticsContext();
         var array = inputSample.Samples.ToArray();
-        ShellSortCiura2001.Sort(array.AsSpan(), stats);
+        ShellSortLee2021.Sort(array.AsSpan(), stats);
 
         Assert.Equal((ulong)inputSample.Samples.Length, (ulong)array.Length);
         Assert.NotEqual(0UL, stats.IndexReadCount);
@@ -49,7 +49,7 @@ public class ShellSortCiura2001Tests
     {
         var stats = new StatisticsContext();
         var array = inputSample.Samples.ToArray();
-        ShellSortCiura2001.Sort(array.AsSpan(), stats);
+        ShellSortLee2021.Sort(array.AsSpan(), stats);
 
         Assert.Equal((ulong)inputSample.Samples.Length, (ulong)array.Length);
         Assert.NotEqual(0UL, stats.IndexReadCount);
@@ -64,7 +64,7 @@ public class ShellSortCiura2001Tests
     {
         var stats = new StatisticsContext();
         var array = inputSample.Samples.ToArray();
-        ShellSortCiura2001.Sort(array.AsSpan(), stats);
+        ShellSortLee2021.Sort(array.AsSpan(), stats);
 
         stats.Reset();
         Assert.Equal(0UL, stats.IndexReadCount);
@@ -82,7 +82,7 @@ public class ShellSortCiura2001Tests
     {
         var stats = new StatisticsContext();
         var sorted = Enumerable.Range(0, n).ToArray();
-        ShellSortCiura2001.Sort(sorted.AsSpan(), stats);
+        ShellSortLee2021.Sort(sorted.AsSpan(), stats);
 
         // Shell Sort with sorted data:
         // - No swaps needed (all elements already in correct positions)
@@ -111,15 +111,14 @@ public class ShellSortCiura2001Tests
     {
         var stats = new StatisticsContext();
         var reversed = Enumerable.Range(0, n).Reverse().ToArray();
-        ShellSortCiura2001.Sort(reversed.AsSpan(), stats);
+        ShellSortLee2021.Sort(reversed.AsSpan(), stats);
 
         // Shell Sort with reversed data (worst case):
         // - Gap sequence determines exact behavior
-        // - With Knuth sequence (1, 4, 13, 40, ...):
-        //   * Many swaps needed at each gap level
-        //   * Comparisons: O(n^1.5) typically
-        //   * Swaps: O(n^1.5) typically
-        // - Each swap writes 2 elements
+        // - With Lee sequence (improved Tokuda):
+        //   * Comparisons: O(n^1.25) typically
+        //   * Swaps: O(n^1.25) typically
+        // - Fewer comparisons on average than Tokuda
         var minSwaps = 1UL; // At least 1 swap is needed
         var maxSwaps = (ulong)(n * n); // Upper bound (pessimistic)
         var minCompares = (ulong)n; // At least n comparisons
@@ -146,14 +145,14 @@ public class ShellSortCiura2001Tests
     {
         var stats = new StatisticsContext();
         var random = Enumerable.Range(0, n).OrderBy(_ => Guid.NewGuid()).ToArray();
-        ShellSortCiura2001.Sort(random.AsSpan(), stats);
+        ShellSortLee2021.Sort(random.AsSpan(), stats);
 
         // Shell Sort with random data (average case):
         // - Gap sequence determines performance
-        // - With good gap sequences (Knuth, Tokuda, Ciura):
-        //   * Comparisons: O(n log n) to O(n^1.3)
+        // - With Lee sequence (state-of-the-art):
+        //   * Comparisons: O(n^1.25) with fewer average comparisons than Tokuda
         //   * Swaps: Similar to comparisons
-        // - Performance is better than O(n^2) but depends on gap sequence
+        // - Best empirical performance among tested sequences
         var minSwaps = 0UL; // Could be sorted by chance
         var maxSwaps = (ulong)(n * n); // Upper bound
         var minCompares = (ulong)(n - 1); // At least n-1 comparisons in final pass
