@@ -1,4 +1,4 @@
-﻿using SortLab.Core.Contexts;
+using SortLab.Core.Contexts;
 using System.Diagnostics;
 
 namespace SortLab.Core.Algorithms;
@@ -112,22 +112,22 @@ public static class ShellSort
         {
             case GapType.Knuth1973:
                 {
-                    SortCoreKnuth1973(span, first, last, context);
+                    SortKnuth1973(span, first, last, context);
                     break;
                 }
             case GapType.Tokuda1992:
                 {
-                    SortCoreTokuda1992(span, first, last, context);
+                    SortTokuda1992(span, first, last, context);
                     break;
                 }
             case GapType.Sedgewick1986:
                 {
-                    SortCoreSedgewick1986(span, first, last, context);
+                    SortSedgewick1986(span, first, last, context);
                     break;
                 }
             case GapType.Ciura2001:
                 {
-                    SortCoreCiura2001(span, first, last, context);
+                    SortCiura2001(span, first, last, context);
                     break;
                 }
             default:
@@ -145,7 +145,7 @@ public static class ShellSort
     /// <param name="first"></param>
     /// <param name="last"></param>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private static void SortCoreKnuth1973<T>(Span<T> span, int first, int last, ISortContext context) where T : IComparable<T>
+    private static void SortKnuth1973<T>(Span<T> span, int first, int last, ISortContext context) where T : IComparable<T>
     {
         var length = last - first;
         // Only 1 or 0 elements
@@ -187,7 +187,7 @@ public static class ShellSort
     /// <param name="first"></param>
     /// <param name="last"></param>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private static void SortCoreTokuda1992<T>(Span<T> span, int first, int last, ISortContext context) where T : IComparable<T>
+    private static void SortTokuda1992<T>(Span<T> span, int first, int last, ISortContext context) where T : IComparable<T>
     {
         var length = last - first;
         // Only 1 or 0 elements
@@ -232,7 +232,7 @@ public static class ShellSort
     /// <param name="first"></param>
     /// <param name="last"></param>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private static void SortCoreSedgewick1986<T>(Span<T> span, int first, int last, ISortContext context) where T : IComparable<T>
+    private static void SortSedgewick1986<T>(Span<T> span, int first, int last, ISortContext context) where T : IComparable<T>
     {
         var length = last - first;
         // Only 1 or 0 elements
@@ -266,11 +266,47 @@ public static class ShellSort
                 }
             }
         }
+
+        /// <summary>
+        /// Finds the next smaller gap in the Sedgewick sequence by searching backward.
+        /// If 'current' is not found in the array, we simply return 0 as a fallback.
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        static int GetPreviousSedgewickGap(int current)
+        {
+            // A partial Sedgewick sequence. Different references may show slightly different numbers. (Should be same as SortCoreSedgewick)
+            Span<int> sedgewickSequence = [1, 5, 19, 41, 109, 209, 505, 929, 2161, 3905];
+
+            // If current is not in array, return 0
+            int prev = 0;
+            for (int i = 0; i < sedgewickSequence.Length; i++)
+            {
+                if (sedgewickSequence[i] == current)
+                {
+                    // i-1 exists
+                    if (i > 0)
+                    {
+                        prev = sedgewickSequence[i - 1];
+                    }
+                    break;
+                }
+                else if (sedgewickSequence[i] > current)
+                {
+                    // 'current' might be outside this sequence subset.
+                    break;
+                }
+                else
+                {
+                    prev = sedgewickSequence[i];
+                }
+            }
+            return prev;
+        }
     }
 
     /// <summary>
     /// Shell sort using the Ciura (2001) sequence.
-    /// The first 8 gaps are empirically determined: 1, 4, 10, 23, 57, 132, 301, 701, 1750.
+    /// The first 8 gaps are empirically determined: 1, 4, 10, 23, 57, 132, 301, 701 ....
     /// Beyond that, the sequence can be extended using h_{k+1} = floor(2.25 * h_k).
     /// This is considered one of the best-known gap sequences for shell sort.
     /// Reference: Marcin Ciura, "Best Increments for the Average Case of Shellsort" (2001)
@@ -279,7 +315,7 @@ public static class ShellSort
     /// <param name="first"></param>
     /// <param name="last"></param>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private static void SortCoreCiura2001<T>(Span<T> span, int first, int last, ISortContext context) where T : IComparable<T>
+    private static void SortCiura2001<T>(Span<T> span, int first, int last, ISortContext context) where T : IComparable<T>
     {
         var length = last - first;
         // Only 1 or 0 elements
@@ -313,76 +349,42 @@ public static class ShellSort
                 }
             }
         }
-    }
 
-    /// <summary>
-    /// Finds the next smaller gap in the Ciura sequence by searching backward.
-    /// If 'current' is not found in the array, we simply return 0 as a fallback.
-    /// </summary>
-    private static int GetPreviousCiuraGap(int current)
-    {
-        // Ciura's sequence (extended). Should match SortCoreCiura2001
-        Span<int> ciuraSequence = [1, 4, 10, 23, 57, 132, 301, 701, 1750, 3937, 8858, 19930, 44844, 100899];
-
-        // If current is not in array, return 0
-        int prev = 0;
-        for (int i = 0; i < ciuraSequence.Length; i++)
+        /// <summary>
+        /// Finds the next smaller gap in the Ciura sequence by searching backward.
+        /// If 'current' is not found in the array, we simply return 0 as a fallback.
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        static int GetPreviousCiuraGap(int current)
         {
-            if (ciuraSequence[i] == current)
-            {
-                // i-1 exists
-                if (i > 0)
-                {
-                    prev = ciuraSequence[i - 1];
-                }
-                break;
-            }
-            else if (ciuraSequence[i] > current)
-            {
-                // 'current' might be outside this sequence subset.
-                break;
-            }
-            else
-            {
-                prev = ciuraSequence[i];
-            }
-        }
-        return prev;
-    }
+            // Ciura's sequence (extended). Should match SortCoreCiura2001
+            Span<int> ciuraSequence = [1, 4, 10, 23, 57, 132, 301, 701, 1750, 3937, 8858, 19930, 44844, 100899];
 
-    /// <summary>
-    /// Finds the next smaller gap in the Sedgewick sequence by searching backward.
-    /// If 'current' is not found in the array, we simply return 0 as a fallback.
-    /// </summary>
-    private static int GetPreviousSedgewickGap(int current)
-    {
-        // A partial Sedgewick sequence. Different references may show slightly different numbers. (Should be same as SortCoreSedgewick)
-        Span<int> sedgewickSequence = [1, 5, 19, 41, 109, 209, 505, 929, 2161, 3905];
-
-        // If current is not in array, return 0
-        int prev = 0;
-        for (int i = 0; i < sedgewickSequence.Length; i++)
-        {
-            if (sedgewickSequence[i] == current)
+            // If current is not in array, return 0
+            int prev = 0;
+            for (int i = 0; i < ciuraSequence.Length; i++)
             {
-                // i-1 exists
-                if (i > 0)
+                if (ciuraSequence[i] == current)
                 {
-                    prev = sedgewickSequence[i - 1];
+                    // i-1 exists
+                    if (i > 0)
+                    {
+                        prev = ciuraSequence[i - 1];
+                    }
+                    break;
                 }
-                break;
+                else if (ciuraSequence[i] > current)
+                {
+                    // 'current' might be outside this sequence subset.
+                    break;
+                }
+                else
+                {
+                    prev = ciuraSequence[i];
+                }
             }
-            else if (sedgewickSequence[i] > current)
-            {
-                // 'current' might be outside this sequence subset.
-                break;
-            }
-            else
-            {
-                prev = sedgewickSequence[i];
-            }
+            return prev;
         }
-        return prev;
     }
 
     internal enum GapType
