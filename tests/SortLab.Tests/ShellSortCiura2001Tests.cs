@@ -1,10 +1,10 @@
-using SortLab.Core.Algorithms;
+﻿using SortLab.Core.Algorithms;
 using SortLab.Core.Contexts;
 
 namespace SortLab.Tests;
 
 // Tests using Ciura2001 as it's considered one of the best gap sequences
-public class ShellSortTests
+public class ShellSortCiura2001Tests
 {
     [Theory]
     [ClassData(typeof(MockRandomData))]
