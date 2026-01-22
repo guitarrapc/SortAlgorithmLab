@@ -58,6 +58,21 @@ public class SelectionSortTests
     }
 
     [Theory]
+    [ClassData(typeof(MockRandomData))]
+    public void StatisticsResetTest(IInputSample<int> inputSample)
+    {
+        var stats = new StatisticsContext();
+        var array = inputSample.Samples.ToArray();
+        SelectionSort.Sort(array.AsSpan(), stats);
+
+        stats.Reset();
+        Assert.Equal(0UL, stats.IndexReadCount);
+        Assert.Equal(0UL, stats.IndexWriteCount);
+        Assert.Equal(0UL, stats.CompareCount);
+        Assert.Equal(0UL, stats.SwapCount);
+    }
+
+    [Theory]
     [InlineData(10)]
     [InlineData(20)]
     [InlineData(50)]
@@ -145,21 +160,6 @@ public class SelectionSortTests
         Assert.InRange(stats.SwapCount, minSwaps, maxSwaps);
         Assert.True(stats.IndexReadCount >= minIndexReads,
             $"IndexReadCount ({stats.IndexReadCount}) should be >= {minIndexReads}");
-    }
-
-    [Theory]
-    [ClassData(typeof(MockRandomData))]
-    public void StatisticsResetTest(IInputSample<int> inputSample)
-    {
-        var stats = new StatisticsContext();
-        var array = inputSample.Samples.ToArray();
-        SelectionSort.Sort(array.AsSpan(), stats);
-
-        stats.Reset();
-        Assert.Equal(0UL, stats.IndexReadCount);
-        Assert.Equal(0UL, stats.IndexWriteCount);
-        Assert.Equal(0UL, stats.CompareCount);
-        Assert.Equal(0UL, stats.SwapCount);
     }
 }
 
