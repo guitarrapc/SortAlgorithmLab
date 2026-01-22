@@ -93,80 +93,59 @@ public static class BalancedBinaryTreeSort
             return new Node<T>(value);
         }
 
-        // We'll track the path in a stack so we can rebalance on the way back up.
-        var stack = new Stack<Node<T>>();
+        // Track the path: (node, wentLeft) where wentLeft indicates which child we followed
+        var path = new Stack<(Node<T> node, bool wentLeft)>();
         Node<T> current = root;
 
+        // Navigate to insertion point
         while (true)
         {
-            // push the current node to the stack
-            stack.Push(current);
-
-            // Go left
-            if (s.Compare(value, current.Item) < 0)
+            bool goLeft = s.Compare(value, current.Item) < 0;
+            
+            if (goLeft)
             {
                 if (current.Left is null)
                 {
                     current.Left = new Node<T>(value);
-                    // Inserted a new node, so we need to rebalance on the way back up.
-                    stack.Push(current.Left);
                     break;
                 }
+                path.Push((current, true));
                 current = current.Left;
             }
             else
             {
-                // Go right
                 if (current.Right is null)
                 {
                     current.Right = new Node<T>(value);
-                    stack.Push(current.Right);
                     break;
                 }
+                path.Push((current, false));
                 current = current.Right;
             }
         }
 
-        // After insertion, pop from the stack and rebalance each node if needed.
-        Node<T>? newRoot = root;
-
-        // pop the last node from the stack
-        var childNode = stack.Pop();
-
-        while (stack.Count > 0)
+        // Start rebalancing from the parent of the inserted node
+        UpdateHeight(current);
+        var balanced = Balance(current);
+        
+        // Rebalance upward along the insertion path
+        while (path.Count > 0)
         {
-            var parent = stack.Pop();
-
-            UpdateHeight(parent);
-            var balanced = Balance(parent);
-
-            // The parent's subtree might have changed to 'balanced' node
-            // Stack is not empty => parent of node should exist => update parent's Left or Right
-            if (stack.Count > 0)
-            {
-                // There is a parent node, update its child
-                var upper = stack.Pop();
-                if (ReferenceEquals(upper.Left, parent))
-                {
-                    upper.Left = balanced;
-                }
-                else
-                {
-                    upper.Right = balanced;
-                }
-
-                stack.Push(upper);
-            }
+            var (parent, wentLeft) = path.Pop();
+            
+            // Connect the balanced child to its parent
+            if (wentLeft)
+                parent.Left = balanced;
             else
-            {
-                newRoot = balanced;
-            }
-
-            // This balanced node is now the 'child' in the upper level
-            childNode = balanced;
+                parent.Right = balanced;
+            
+            // Update and balance the parent
+            UpdateHeight(parent);
+            balanced = Balance(parent);
         }
 
-        return newRoot;
+        // Return the new root (which might have changed due to rotations)
+        return balanced;
     }
 
     /// <summary>
