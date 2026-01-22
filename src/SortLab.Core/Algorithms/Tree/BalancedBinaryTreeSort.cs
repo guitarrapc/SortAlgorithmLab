@@ -1,4 +1,5 @@
-﻿using SortLab.Core.Contexts;
+﻿using System.Runtime.CompilerServices;
+using SortLab.Core.Contexts;
 
 namespace SortLab.Core.Algorithms;
 
@@ -31,26 +32,63 @@ Span (Iterative) ...
 */
 
 /// <summary>
-/// 平衡二分木を用いた二分木ソート。挿入時に回転を行って常に高さが O(log n) に保たれ、木を中順巡回することで配列に要素を昇順で再割り当てします。
-/// 平衡二分木（AVL木）は、左の子ノードが親ノードより小さく、右の子ノードが大きいという性質を持ちます。  
-/// 二分木ソートに比べて、平均および最悪ケースでも O(n log n) のソートが期待できます。
+/// 平衡二分木（AVL木）を用いた二分木ソート。挿入時に回転を行って常に高さが O(log n) に保たれ、木を中順巡回することで配列に要素を昇順で再割り当てします。
+/// 二分木ソートに比べて、平均および最悪ケースでも O(n log n) のソートが保証されます。
 /// <br/>
-/// Balanced binary tree sort algorithm. During insertion, rotations are performed to maintain a height of O(log n), and an in-order traversal of the tree reassigns the array elements in ascending order. Compared to binary tree sort, it can achieve O(n log n) sorting in both average and worst cases.
-/// Balanced binary trees (AVL trees) have the property that the left child node is smaller than the parent node and the right child node is larger.
-/// Compared to binary tree sort, it can achieve O(n log n) sorting in both average and worst cases.
+/// Balanced binary tree sort using AVL tree. Rotations are performed during insertion to maintain a height of O(log n), and an in-order traversal reassigns array elements in ascending order.
+/// Compared to binary tree sort, it guarantees O(n log n) sorting in both average and worst cases.
 /// </summary>
 /// <remarks>
-/// family  : tree
-/// stable  : no  (Binary Tree Sort is not stable as it does not preserve the relative order of equal elements)  
-/// inplace : no  (Requires additional memory for the tree structure)
-/// Compare : O(n log n)  
-/// Swap    : 0        (No swaps are performed in the array itself)  
-/// Index   : O(n)     (Each element is accessed once during in-order traversal)  
-/// Order   : O(n log n)
-///         * average   : O(n log n)
-///         * worst case: O(n log n) (due to tree balancing)
+/// <para><strong>Theoretical Conditions for Correct AVL Tree Sort:</strong></para>
+/// <list type="number">
+/// <item><description><strong>Binary Search Tree Property:</strong> For every node, all values in the left subtree must be less than the node's value,
+/// and all values in the right subtree must be greater than or equal to the node's value.
+/// This property is maintained by comparing values during insertion (lines 165-171, 187-193).</description></item>
+/// <item><description><strong>AVL Balance Property:</strong> For every node, the height difference between left and right subtrees (balance factor) must be at most 1.
+/// Balance factor = height(left subtree) - height(right subtree) ∈ {-1, 0, 1}.
+/// This is enforced by the Balance() method after every insertion (lines 229-261).</description></item>
+/// <item><description><strong>Height Maintenance:</strong> Each node stores its height, which is updated after any structural change.
+/// Height = 1 + max(height(left), height(right)).
+/// This is computed by UpdateHeight() after insertions and rotations (lines 215-223).</description></item>
+/// <item><description><strong>Rotation Correctness:</strong> When the balance factor violates the AVL property (|balance| > 1), rotations restore balance while preserving BST property:
+/// <list type="bullet">
+/// <item><description>Left-Left case (balance > 1, left child balanced): Single right rotation</description></item>
+/// <item><description>Left-Right case (balance > 1, left child right-heavy): Left rotation on left child, then right rotation</description></item>
+/// <item><description>Right-Right case (balance &lt; -1, right child balanced): Single left rotation</description></item>
+/// <item><description>Right-Left case (balance &lt; -1, right child left-heavy): Right rotation on right child, then left rotation</description></item>
+/// </list>
+/// All rotations preserve the in-order traversal sequence (lines 263-303).</description></item>
+/// <item><description><strong>In-order Traversal Correctness:</strong> Visiting nodes in left-root-right order produces elements in sorted ascending order.
+/// This is guaranteed by the BST property and implemented recursively (lines 205-211).</description></item>
+/// </list>
+/// <para><strong>Mathematical Proof of O(log n) Height:</strong></para>
+/// <list type="bullet">
+/// <item><description>Let N(h) = minimum number of nodes in an AVL tree of height h</description></item>
+/// <item><description>N(h) = N(h-1) + N(h-2) + 1 (Fibonacci-like recurrence)</description></item>
+/// <item><description>N(h) ≥ F(h+2) - 1, where F is the Fibonacci sequence</description></item>
+/// <item><description>Therefore, h ≤ 1.44 × log₂(n + 2) - 0.328 ≈ O(log n)</description></item>
+/// </list>
+/// <para><strong>Performance Characteristics:</strong></para>
+/// <list type="bullet">
+/// <item><description>Family      : Tree</description></item>
+/// <item><description>Stable      : No (does not preserve relative order of equal elements)</description></item>
+/// <item><description>In-place    : No (requires O(n) auxiliary space for tree structure)</description></item>
+/// <item><description>Best case   : Θ(n log n) - Already sorted or reversed, still requires building balanced tree</description></item>
+/// <item><description>Average case: Θ(n log n) - Each of n insertions takes O(log n) comparisons</description></item>
+/// <item><description>Worst case  : O(n log n) - Guaranteed by AVL balancing property</description></item>
+/// <item><description>Comparisons : O(n log n) - Each insertion performs at most log₂(n) comparisons</description></item>
+/// <item><description>Index Reads : Θ(n) - Each element is read once during insertion</description></item>
+/// <item><description>Index Writes: Θ(n) - Each element is written once during in-order traversal</description></item>
+/// <item><description>Swaps       : 0 - No swaps performed; only tree node manipulations</description></item>
+/// <item><description>Rotations   : O(n log n) worst case - At most 2 rotations per insertion (amortized O(1))</description></item>
+/// </list>
+/// <para><strong>Advantages over unbalanced BST:</strong></para>
+/// <list type="bullet">
+/// <item><description>Guaranteed O(n log n) time complexity even on sorted/reversed input (BST degrades to O(n²))</description></item>
+/// <item><description>Predictable performance regardless of input distribution</description></item>
+/// <item><description>Height always bounded by 1.44 × log₂(n)</description></item>
+/// </list>
 /// </remarks>
-/// <typeparam name="T"></typeparam>
 public static class BalancedBinaryTreeSort
 {
     public static void Sort<T>(Span<T> span) where T : IComparable<T>
@@ -191,6 +229,7 @@ public static class BalancedBinaryTreeSort
     /// <summary>
     /// Update the node's height based on the heights of its children.
     /// </summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private static void UpdateHeight<T>(Node<T> node) where T : IComparable<T>
     {
         // Get the heights of the left and right children.
@@ -204,6 +243,7 @@ public static class BalancedBinaryTreeSort
     /// <summary>
     /// Returns the balance factor (left height - right height).
     /// </summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private static int GetBalance<T>(Node<T> node) where T : IComparable<T>
     {
         int leftHeight = (node.Left is null) ? 0 : node.Left.Height;
