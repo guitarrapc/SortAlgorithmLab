@@ -84,6 +84,21 @@ internal ref struct SortSpan<T>(Span<T> span, ISortContext ccontext) where T: IC
     }
 
     /// <summary>
+    /// Compares two values directly (not from the span). (Equivalent to a.CompareTo(b).)
+    /// </summary>
+    /// <param name="a">The first value to compare.</param>
+    /// <param name="b">The second value to compare.</param>
+    /// <returns>A signed integer that indicates the relative order: less than zero if a is
+    /// less than b; zero if they are equal; greater than zero if a is greater than b.</returns>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public int Compare(T a, T b)
+    {
+        var result = a.CompareTo(b);
+        _context.OnCompare(-1, -1, result);
+        return result;
+    }
+
+    /// <summary>
     /// Exchanges the values at the specified indices within the collection. (Equivalent to swapping span[i] and span[j].)
     /// </summary>
     /// <remarks>This method notifies the underlying context of the swap operation before updating the values.
