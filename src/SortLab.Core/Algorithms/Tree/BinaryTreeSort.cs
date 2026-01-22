@@ -31,25 +31,51 @@ Span (Itelative) ...
 */
 
 /// <summary>
-/// バイナリ検索木(Binary Search Tree, BST)を使用したソートアルゴリズム、二分木ソートとも呼ばれる。バイナリ検索木では、左の子ノードは親ノードより小さく、右の子ノードは親ノードより大きいことが保証される。
+/// バイナリ検索木(Binary Search Tree, BST)を使用したソートアルゴリズム、二分木ソートとも呼ばれる。
+/// バイナリ検索木では、左の子ノードは親ノードより小さく、右の子ノードは親ノードより大きいことが保証される。
 /// この特性により、木の中間順序走査 (in-order traversal) を行うことで配列がソートされる。
-/// 外部ソートとしても利用可能であり、高速なソートが可能となる。
-/// ただし、木が不均衡になると最悪ケースでO(n^2)の時間がかかる可能性がある。また、クラスを多用するためメモリアロケーションが多く、現実的なソートとしてはQuickSortやMergeSortを用いることが多い
+/// ただし、木が不均衡になると最悪ケースでO(n²)の時間がかかる可能性がある。また、ノードごとにクラスインスタンスを生成するためメモリアロケーションが多く、現実的なソートとしてはQuickSortやMergeSortを用いることが多い。
 /// <br/>
-/// A sorting algorithm that uses a binary search tree. In a binary search tree, the left child node is guaranteed to be smaller than the parent node, and the right child node is guaranteed to be larger. This property ensures that performing an in-order traversal of the tree results in a sorted array. It can also be used as an external sort, enabling fast sorting.
+/// A sorting algorithm that uses a binary search tree. In a binary search tree, the left child node is guaranteed to be smaller than the parent node, and the right child node is guaranteed to be larger.
+/// This property ensures that performing an in-order traversal of the tree results in a sorted array.
+/// However, an unbalanced tree can lead to O(n²) worst-case time complexity. Additionally, because each node allocates a class instance, memory allocations are high, making QuickSort or MergeSort more practical for real-world sorting.
 /// </summary>
 /// <remarks>
-/// family  : tree
-/// stable  : no  (Typically, Binary Tree Sort is not stable unless additional mechanisms are used.)
-/// inplace : no  (Requires additional memory for the tree structure)
-/// Compare : O(n log n)  (on average)
-/// Swap    : 0        (Swaps are not used; instead, tree node assignments)
-/// Index   : O(n)     (Accesses each element once during in-order traversal)
-/// Order   : O(n log n)
-///         * average   : O(n log n)
-///         * worst case: O(n^2) (if the tree becomes unbalanced)
+/// <para><strong>Theoretical Conditions for Correct Binary Tree Sort:</strong></para>
+/// <list type="number">
+/// <item><description><strong>Binary Search Tree Property:</strong> For every node, all values in the left subtree must be less than the node's value, and all values in the right subtree must be greater than or equal to the node's value.
+/// This implementation maintains this invariant during insertion (value &lt; current goes left, value ≥ current goes right).</description></item>
+/// <item><description><strong>Complete Tree Construction:</strong> All n elements must be inserted into the BST.
+/// Each insertion reads one element from the array (n reads total).</description></item>
+/// <item><description><strong>In-Order Traversal:</strong> The tree must be traversed in in-order (left → root → right) to produce sorted output.
+/// This traversal visits each node exactly once, writing n elements back to the array.</description></item>
+/// <item><description><strong>Comparison Consistency:</strong> The comparison operation must be consistent and transitive.
+/// For all elements a, b, c: if a &lt; b and b &lt; c, then a &lt; c.</description></item>
+/// </list>
+/// <para><strong>Performance Characteristics:</strong></para>
+/// <list type="bullet">
+/// <item><description>Family      : Tree-based sorting</description></item>
+/// <item><description>Stable      : No (equal elements may be reordered based on insertion order)</description></item>
+/// <item><description>In-place    : No (Requires O(n) auxiliary space for tree nodes)</description></item>
+/// <item><description>Best case   : Θ(n log n) - Balanced tree (e.g., random input or middle-out insertion)</description></item>
+/// <item><description>Average case: Θ(n log n) - Tree height is O(log n), each insertion takes O(log n) comparisons</description></item>
+/// <item><description>Worst case  : Θ(n²) - Completely unbalanced tree (e.g., sorted or reverse-sorted input forms a linear chain)</description></item>
+/// <item><description>Comparisons : Best Θ(n log n), Average Θ(n log n), Worst Θ(n²)</description></item>
+/// <item><description>  - Sorted input: n(n-1)/2 comparisons (each insertion compares with all previous elements)</description></item>
+/// <item><description>  - Random input: ~1.39n log n comparisons (empirically, for balanced trees)</description></item>
+/// <item><description>Index Reads : Θ(n) - Each element is read once during tree construction</description></item>
+/// <item><description>Index Writes: Θ(n) - Each element is written once during in-order traversal</description></item>
+/// <item><description>Swaps       : 0 (No swapping; elements are copied to tree nodes and then back to array)</description></item>
+/// <item><description>Space       : O(n) - One node allocated per element (worst case: n allocations of ~24-32 bytes each)</description></item>
+/// </list>
+/// <para><strong>Implementation Notes:</strong></para>
+/// <list type="bullet">
+/// <item><description>Uses iterative insertion instead of recursive insertion to reduce call stack overhead</description></item>
+/// <item><description>Tree nodes are implemented as reference types (class) because C# structs cannot contain self-referencing fields</description></item>
+/// <item><description>Equal elements are inserted to the right subtree (value ≥ current), making the sort unstable</description></item>
+/// <item><description>No tree balancing is performed; for guaranteed O(n log n) performance, consider using AVL or Red-Black tree variants</description></item>
+/// </list>
 /// </remarks>
-/// <typeparam name="T"></typeparam>
 public static class BinaryTreeSort
 {
     public static void Sort<T>(Span<T> span) where T : IComparable<T>
