@@ -1,4 +1,5 @@
 ﻿using SortLab.Core.Contexts;
+using System.Diagnostics;
 
 namespace SortLab.Core.Algorithms;
 
@@ -84,7 +85,7 @@ public static class BinaryInsertSort
     /// <param name="context"></param>
     internal static void Sort<T>(Span<T> span, int first, int last, int start, ISortContext context) where T : IComparable<T>
     {
-        if (last - first <= 1) return;
+        Debug.Assert(first >= 0 && last <= span.Length && first < last, "Invalid range for sorting.");
 
         if (span.Length <= 1) return;
 
