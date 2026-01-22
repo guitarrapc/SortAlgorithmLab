@@ -1,8 +1,9 @@
-﻿using SortLab.Core.Algorithms;
+using SortLab.Core.Algorithms;
 using SortLab.Core.Contexts;
 
 namespace SortLab.Tests;
 
+// Tests using Ciura2001 as it's considered one of the best gap sequences
 public class ShellSortTests
 {
     [Theory]
@@ -17,7 +18,7 @@ public class ShellSortTests
     public void SortResultOrderTest(IInputSample<int> inputSample)
     {
         var array = inputSample.Samples.ToArray();
-        ShellSort.Sort(array.AsSpan());
+        ShellSortCiura2001.Sort(array.AsSpan());
         Assert.Equal(inputSample.Samples.OrderBy(x => x), array);
     }
 
@@ -33,7 +34,7 @@ public class ShellSortTests
     {
         var stats = new StatisticsContext();
         var array = inputSample.Samples.ToArray();
-        ShellSort.Sort(array.AsSpan(), stats);
+        ShellSortCiura2001.Sort(array.AsSpan(), stats);
 
         Assert.Equal((ulong)inputSample.Samples.Length, (ulong)array.Length);
         Assert.NotEqual(0UL, stats.IndexReadCount);
@@ -48,7 +49,7 @@ public class ShellSortTests
     {
         var stats = new StatisticsContext();
         var array = inputSample.Samples.ToArray();
-        ShellSort.Sort(array.AsSpan(), stats);
+        ShellSortCiura2001.Sort(array.AsSpan(), stats);
 
         Assert.Equal((ulong)inputSample.Samples.Length, (ulong)array.Length);
         Assert.NotEqual(0UL, stats.IndexReadCount);
@@ -63,7 +64,7 @@ public class ShellSortTests
     {
         var stats = new StatisticsContext();
         var array = inputSample.Samples.ToArray();
-        ShellSort.Sort(array.AsSpan(), stats);
+        ShellSortCiura2001.Sort(array.AsSpan(), stats);
 
         stats.Reset();
         Assert.Equal(0UL, stats.IndexReadCount);
@@ -81,7 +82,7 @@ public class ShellSortTests
     {
         var stats = new StatisticsContext();
         var sorted = Enumerable.Range(0, n).ToArray();
-        ShellSort.Sort(sorted.AsSpan(), stats);
+        ShellSortCiura2001.Sort(sorted.AsSpan(), stats);
 
         // Shell Sort with sorted data:
         // - No swaps needed (all elements already in correct positions)
@@ -110,7 +111,7 @@ public class ShellSortTests
     {
         var stats = new StatisticsContext();
         var reversed = Enumerable.Range(0, n).Reverse().ToArray();
-        ShellSort.Sort(reversed.AsSpan(), stats);
+        ShellSortCiura2001.Sort(reversed.AsSpan(), stats);
 
         // Shell Sort with reversed data (worst case):
         // - Gap sequence determines exact behavior
@@ -145,7 +146,7 @@ public class ShellSortTests
     {
         var stats = new StatisticsContext();
         var random = Enumerable.Range(0, n).OrderBy(_ => Guid.NewGuid()).ToArray();
-        ShellSort.Sort(random.AsSpan(), stats);
+        ShellSortCiura2001.Sort(random.AsSpan(), stats);
 
         // Shell Sort with random data (average case):
         // - Gap sequence determines performance
@@ -179,7 +180,7 @@ public class ShellSortTests
     {
         var stats = new StatisticsContext();
         var random = Enumerable.Range(0, n).OrderBy(_ => Guid.NewGuid()).ToArray();
-        ShellSort.Sort(random.AsSpan(), stats);
+        ShellSortCiura2001.Sort(random.AsSpan(), stats);
 
         // Verify relationships between statistics:
         // 1. IndexWriteCount = SwapCount * 2 (each swap writes 2 elements)
@@ -204,7 +205,7 @@ public class ShellSortTests
     {
         var stats = new StatisticsContext();
         var random = Enumerable.Range(0, n).OrderBy(_ => Guid.NewGuid()).ToArray();
-        ShellSort.Sort(random.AsSpan(), stats);
+        ShellSortCiura2001.Sort(random.AsSpan(), stats);
 
         // Shell Sort with good gap sequences should perform much better than O(n^2)
         // For random data with Knuth/Ciura sequence:
@@ -234,7 +235,7 @@ public class ShellSortTests
     {
         var stats = new StatisticsContext();
         var data = Enumerable.Range(0, n).OrderBy(_ => Guid.NewGuid()).ToArray();
-        ShellSort.Sort(data.AsSpan(), stats);
+        ShellSortCiura2001.Sort(data.AsSpan(), stats);
 
         // Verify that the array is actually sorted
         Assert.Equal(Enumerable.Range(0, n), data);
@@ -260,7 +261,7 @@ public class ShellSortTests
     {
         var stats = new StatisticsContext();
         var empty = Array.Empty<int>();
-        ShellSort.Sort(empty.AsSpan(), stats);
+        ShellSortCiura2001.Sort(empty.AsSpan(), stats);
 
         Assert.Empty(empty);
         Assert.Equal(0UL, stats.CompareCount);
@@ -274,7 +275,7 @@ public class ShellSortTests
     {
         var stats = new StatisticsContext();
         var single = new[] { 42 };
-        ShellSort.Sort(single.AsSpan(), stats);
+        ShellSortCiura2001.Sort(single.AsSpan(), stats);
 
         Assert.Equal(new[] { 42 }, single);
         Assert.Equal(0UL, stats.CompareCount);
@@ -288,7 +289,7 @@ public class ShellSortTests
     {
         var stats = new StatisticsContext();
         var two = new[] { 1, 2 };
-        ShellSort.Sort(two.AsSpan(), stats);
+        ShellSortCiura2001.Sort(two.AsSpan(), stats);
 
         Assert.Equal(new[] { 1, 2 }, two);
         Assert.Equal(1UL, stats.CompareCount); // Only 1 comparison needed
@@ -302,7 +303,7 @@ public class ShellSortTests
     {
         var stats = new StatisticsContext();
         var two = new[] { 2, 1 };
-        ShellSort.Sort(two.AsSpan(), stats);
+        ShellSortCiura2001.Sort(two.AsSpan(), stats);
 
         Assert.Equal(new[] { 1, 2 }, two);
         Assert.Equal(1UL, stats.CompareCount); // Only 1 comparison needed

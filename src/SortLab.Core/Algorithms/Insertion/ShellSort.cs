@@ -56,18 +56,21 @@ Span (Sedgewick) ...
 
 /// <summary>
 /// <see cref="InsertionSort"/>にギャップ付き挿入ソートの概念を適用したシェルソートアルゴリズム。
-/// シェルソートはクイックソートよりも多くの操作を行い、キャッシュミス率も高い。
+/// この例では、一般的だが必須ではない初期の h の制限として 'length / 9' を使用します。
 /// h_{i+1} = 3h_i + 1 となる h で配列を分割し、分割された各部分配列ごとに挿入ソート <see cref="InsertionSort"/> を行う。
 /// 次の h を /3 で求め、h が 1 になるまでこの操作を繰り返す。各 h ごとに部分配列がソートされているため、最後の h=1 のときは通常の挿入ソートと同じだが、既に部分的にソートされているため高速に動作する。
 /// ギャップ付き挿入ソートを使用するため不安定なソートである。（ギャップを使って要素を大きく飛ばしながらソートするため、同値要素の相対順序が保たれない）
 /// <see cref="BubbleSort"/> に同様の概念を適用したものが <see cref="CombSort"/> である。
 /// <br/>
 /// <see cref="InsertionSort"/> with gap concept applied is Shell sort algorithm.
-/// Shellsort performs more operations and has higher cache miss ratio than quicksort.
+/// In this example, we use 'length / 9' as an initial limit for h, which is common but not mandatory.
 /// The array is logically divided according to the gap 'h', and each sub-array is sorted　using insertion-sort-like steps (<see cref="InsertionSort"/>).
 /// Then we reduce 'h' by dividing by 3 and repeat this process until h=1. By the time h=1, the data is already partially sorted, so the final pass (which is effectively an insertion sort) is very efficient.
 /// This approach is a "gap-based insertion sort," so it is inherently unstable.
 /// <see cref="CombSort"/> is a similar concept applied to <see cref="BubbleSort"/>.
+/// <br/>
+/// Knuth's sequence: h = 3*h + 1
+/// Concrete sequence: [1, 4, 13, 40, 121, 364, 1093, 3280, 9841, 29524, 88573, 265720, 797161, 2391484]
 /// </summary>
 /// <remarks>
 /// family  : insertion
@@ -82,79 +85,25 @@ Span (Sedgewick) ...
 ///         * worst case: O(n^2)
 /// </remarks>
 /// <typeparam name="T"></typeparam>
-public static class ShellSort
+public static class ShellSortKnuth1973
 {
     public static void Sort<T>(Span<T> span) where T : IComparable<T>
     {
-        Sort(span, 0, span.Length, GapType.Knuth1973, NullContext.Default);
+        Sort(span, 0, span.Length, NullContext.Default);
     }
 
     public static void Sort<T>(Span<T> span, ISortContext context) where T : IComparable<T>
     {
-        Sort(span, 0, span.Length, GapType.Knuth1973, context);
+        Sort(span, 0, span.Length, context);
     }
 
-    /// <summary>
-    /// Main entry to switch gap sequences (Knuth, Tokuda, Sedgewick, Ciura, Lee)
-    /// </summary>
-    /// <param name="span"></param>
-    /// <param name="first"></param>
-    /// <param name="last"></param>
-    /// <param name="gapType"></param>
-    /// <exception cref="NotImplementedException"></exception>
-    internal static void Sort<T>(Span<T> span, int first, int last, GapType gapType, ISortContext context) where T : IComparable<T>
-    {
-        Debug.Assert(first >= 0 && last <= span.Length && first <= last, "Invalid range for sorting.");
-
-        if (span.Length <= 1) return;
-
-        switch (gapType)
-        {
-            case GapType.Knuth1973:
-                {
-                    SortKnuth1973(span, first, last, context);
-                    break;
-                }
-            case GapType.Sedgewick1986:
-                {
-                    SortSedgewick1986(span, first, last, context);
-                    break;
-                }
-            case GapType.Tokuda1992:
-                {
-                    SortTokuda1992(span, first, last, context);
-                    break;
-                }
-            case GapType.Ciura2001:
-                {
-                    SortCiura2001(span, first, last, context);
-                    break;
-                }
-            case GapType.Lee2021:
-                {
-                    SortLee2021(span, first, last, context);
-                    break;
-                }
-            default:
-                throw new NotImplementedException(gapType.ToString());
-        }
-    }
-
-    /// <summary>
-    /// Shell sort using the Knuth sequence: h = 3*h + 1
-    /// In this example, we use 'length / 9' as an initial limit for h, which is common but not mandatory.
-    /// Concrete sequence: 1, 4, 13, 40, 121, 364, 1093, ...
-    /// </summary>
-    /// <param name="span"></param>
-    /// <param name="first"></param>
-    /// <param name="last"></param>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private static void SortKnuth1973<T>(Span<T> span, int first, int last, ISortContext context) where T : IComparable<T>
+    internal static void Sort<T>(Span<T> span, int first, int last, ISortContext context) where T : IComparable<T>
     {
         var length = last - first;
-        // Only 1 or 0 elements
-        if (length < 2)
-            return;
+        Debug.Assert(first >= 0 && last <= span.Length && first <= last, "Invalid range for sorting.");
+
+        if (length < 2) return;
 
         var s = new SortSpan<T>(span, context);
 
@@ -182,22 +131,55 @@ public static class ShellSort
             }
         }
     }
+}
 
-    /// <summary>
-    /// Shell sort using a typical Sedgewick sequence (h = 4^k + 3*2^(k-1) + 1).
-    /// Note that Sedgewick also has various formula-based sequences.
-    /// Concrete sequence: 1, 5, 19, 41, 109, 209, 505, 929, 2161, 3905, ...
-    /// </summary>
-    /// <param name="span"></param>
-    /// <param name="first"></param>
-    /// <param name="last"></param>
+/// <summary>
+/// <see cref="InsertionSort"/>にギャップ付き挿入ソートの概念を適用したシェルソートアルゴリズム。
+/// Sedgewickのシーケンスを使用：h = 4^k + 3*2^(k-1) + 1
+/// この例では、一般的だが必須ではない初期の h の制限として 'length / 9' を使用します。
+/// ギャップ付き挿入ソートを使用するため不安定なソートである。（ギャップを使って要素を大きく飛ばしながらソートするため、同値要素の相対順序が保たれない）
+/// <see cref="BubbleSort"/> に同様の概念を適用したものが <see cref="CombSort"/> である。
+/// <br/>
+/// <see cref="InsertionSort"/> with gap concept applied is Shell sort algorithm.
+/// Shell sort using a typical Sedgewick sequence (h = 4^k + 3*2^(k-1) + 1).
+/// Note that Sedgewick also has various formula-based sequences.
+/// This approach is a "gap-based insertion sort," so it is inherently unstable.
+/// <see cref="CombSort"/> is a similar concept applied to <see cref="BubbleSort"/>.
+/// <br/>
+/// Concrete sequence: 1, 5, 19, 41, 109, 209, 505, 929, 2161, 3905, ...
+/// </summary>
+/// <remarks>
+/// family  : insertion
+/// stable  : no  (gap-based insertion sorting does not preserve the order of equal elements)
+/// inplace : yes
+/// Compare : Depends on gap sequence (often around O(n^1.3) ~ O(n^1.5))
+/// Swap    : O(n^1.3) ~ O(n^2) (Potentially multiple swaps per insertion)
+/// Index   : O(n^2)   (Each element may be accessed multiple times during swaps) 
+/// Order   : Typically sub-quadratic
+///         * average   : O(n^1.3 ~ n^1.5)
+///         * best case : O(n) (nearly sorted)
+///         * worst case: O(n^2)
+/// </remarks>
+/// <typeparam name="T"></typeparam>
+public static class ShellSortSedgewick1986
+{
+    public static void Sort<T>(Span<T> span) where T : IComparable<T>
+    {
+        Sort(span, 0, span.Length, NullContext.Default);
+    }
+
+    public static void Sort<T>(Span<T> span, ISortContext context) where T : IComparable<T>
+    {
+        Sort(span, 0, span.Length, context);
+    }
+
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private static void SortSedgewick1986<T>(Span<T> span, int first, int last, ISortContext context) where T : IComparable<T>
+    internal static void Sort<T>(Span<T> span, int first, int last, ISortContext context) where T : IComparable<T>
     {
         var length = last - first;
-        // Only 1 or 0 elements
-        if (length < 2)
-            return;
+        Debug.Assert(first >= 0 && last <= span.Length && first <= last, "Invalid range for sorting.");
+
+        if (length < 2) return;
 
         var s = new SortSpan<T>(span, context);
 
@@ -213,7 +195,7 @@ public static class ShellSort
         for (; gapIndex >= 0; gapIndex--)
         {
             var h = sedgewickSequence[gapIndex];
-            
+
             // Swap based Insertion sort with gap h.
             for (var i = first + h; i < last; i++)
             {
@@ -225,22 +207,55 @@ public static class ShellSort
             }
         }
     }
+}
 
-    /// <summary>
-    /// Shell sort using the Tokuda sequence: h_{n+1} = floor((9*h_n + 1)/4).
-    /// We also shrink h by (4*h - 1)/9 in the loop.
-    /// Concrete sequence: 1, 4, 9, 20, 46, 103, 233, 525, 1182, 2660, ...
-    /// </summary>
-    /// <param name="span"></param>
-    /// <param name="first"></param>
-    /// <param name="last"></param>
+
+/// <summary>
+/// <see cref="InsertionSort"/>にギャップ付き挿入ソートの概念を適用したシェルソートアルゴリズム。
+/// h を (4*h - 1)/9 で減少させるループも使用する。
+/// ギャップ付き挿入ソートを使用するため不安定なソートである。（ギャップを使って要素を大きく飛ばしながらソートするため、同値要素の相対順序が保たれない）
+/// <see cref="BubbleSort"/> に同様の概念を適用したものが <see cref="CombSort"/> である。
+/// <br/>
+/// <see cref="InsertionSort"/> with gap concept applied is Shell sort algorithm, with Tokuda (1992) sequence.
+/// We also shrink h by (4*h - 1)/9 in the loop.
+/// This approach is a "gap-based insertion sort," so it is inherently unstable.
+/// <see cref="CombSort"/> is a similar concept applied to <see cref="BubbleSort"/>.
+/// <br/>
+/// Tokuda's sequence: h_{n+1} = floor((9*h_n + 1)/4)
+/// Concrete sequence: [1, 4, 9, 20, 46, 103, 233, 525, 1182, 2660, 5985, 13467, 30301, 68178, 153401, 345152, 776591]
+/// </summary>
+/// <remarks>
+/// family  : insertion
+/// stable  : no  (gap-based insertion sorting does not preserve the order of equal elements)
+/// inplace : yes
+/// Compare : Depends on gap sequence (often around O(n^1.3) ~ O(n^1.5))
+/// Swap    : O(n^1.3) ~ O(n^2) (Potentially multiple swaps per insertion)
+/// Index   : O(n^2)   (Each element may be accessed multiple times during swaps) 
+/// Order   : Typically sub-quadratic
+///         * average   : O(n^1.3 ~ n^1.5)
+///         * best case : O(n) (nearly sorted)
+///         * worst case: O(n^2)
+/// </remarks>
+/// <typeparam name="T"></typeparam>
+public static class ShellSortTokuda1992
+{
+    public static void Sort<T>(Span<T> span) where T : IComparable<T>
+    {
+        Sort(span, 0, span.Length, NullContext.Default);
+    }
+
+    public static void Sort<T>(Span<T> span, ISortContext context) where T : IComparable<T>
+    {
+        Sort(span, 0, span.Length, context);
+    }
+
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private static void SortTokuda1992<T>(Span<T> span, int first, int last, ISortContext context) where T : IComparable<T>
+    internal static void Sort<T>(Span<T> span, int first, int last, ISortContext context) where T : IComparable<T>
     {
         var length = last - first;
-        // Only 1 or 0 elements
-        if (length < 2)
-            return;
+        Debug.Assert(first >= 0 && last <= span.Length && first <= last, "Invalid range for sorting.");
+
+        if (length < 2) return;
 
         var s = new SortSpan<T>(span, context);
 
@@ -256,7 +271,7 @@ public static class ShellSort
         for (; gapIndex >= 0; gapIndex--)
         {
             var h = tokudaSequence[gapIndex];
-            
+
             // Swap based Insertion sort with gap h.
             for (int i = first + h; i < last; i++)
             {
@@ -268,24 +283,58 @@ public static class ShellSort
             }
         }
     }
+}
 
-    /// <summary>
-    /// Shell sort using the Ciura (2001) sequence.
-    /// The first 8 gaps are empirically determined: 1, 4, 10, 23, 57, 132, 301, 701 ....
-    /// Beyond that, the sequence can be extended using h_{k+1} = floor(2.25 * h_k).
-    /// This is considered one of the best-known gap sequences for shell sort.
-    /// Reference: Marcin Ciura, "Best Increments for the Average Case of Shellsort" (2001)
-    /// </summary>
-    /// <param name="span"></param>
-    /// <param name="first"></param>
-    /// <param name="last"></param>
+
+/// <summary>
+/// <see cref="InsertionSort"/>にギャップ付き挿入ソートの概念を適用したCiura (2001)のシェルソートアルゴリズム。
+/// それ以降は h_{k+1} = floor(2.25 * h_k) を使用してシーケンスを拡張できる。
+/// シェルソートにおける最もよく知られたギャップシーケンスの1つと考えられている。
+/// 参考文献: Marcin Ciura, "Best Increments for the Average Case of Shellsort" (2001)
+/// ギャップ付き挿入ソートを使用するため不安定なソートである。（ギャップを使って要素を大きく飛ばしながらソートするため、同値要素の相対順序が保たれない）
+/// <see cref="BubbleSort"/> に同様の概念を適用したものが <see cref="CombSort"/> である。
+/// <br/>
+/// <see cref="InsertionSort"/> with gap concept applied is Shell sort algorithm, with Ciura (2001) sequence.
+/// This is considered one of the best-known gap sequences for shell sort.
+/// Reference: Marcin Ciura, "Best Increments for the Average Case of Shellsort" (2001)
+/// This approach is a "gap-based insertion sort," so it is inherently unstable.
+/// <see cref="CombSort"/> is a similar concept applied to <see cref="BubbleSort"/>.
+/// <br/>
+/// Ciura's sequence: practically optimized gap sequence for first 8 gaps, beyond that, the sequence can be extended using h_{k+1} = floor(2.25 * h_k).
+/// Concrete sequence: [1, 4, 10, 23, 57, 132, 301, 701] + [1750, 3937, 8858, 19930, 44844, 100899]
+/// </summary>
+/// <remarks>
+/// family  : insertion
+/// stable  : no  (gap-based insertion sorting does not preserve the order of equal elements)
+/// inplace : yes
+/// Compare : Depends on gap sequence (often around O(n^1.3) ~ O(n^1.5))
+/// Swap    : O(n^1.3) ~ O(n^2) (Potentially multiple swaps per insertion)
+/// Index   : O(n^2)   (Each element may be accessed multiple times during swaps) 
+/// Order   : Typically sub-quadratic
+///         * average   : O(n^1.3 ~ n^1.5)
+///         * best case : O(n) (nearly sorted)
+///         * worst case: O(n^2)
+/// </remarks>
+/// <typeparam name="T"></typeparam>
+public static class ShellSortCiura2001
+{
+    public static void Sort<T>(Span<T> span) where T : IComparable<T>
+    {
+        Sort(span, 0, span.Length, NullContext.Default);
+    }
+
+    public static void Sort<T>(Span<T> span, ISortContext context) where T : IComparable<T>
+    {
+        Sort(span, 0, span.Length, context);
+    }
+
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private static void SortCiura2001<T>(Span<T> span, int first, int last, ISortContext context) where T : IComparable<T>
+    internal static void Sort<T>(Span<T> span, int first, int last, ISortContext context) where T : IComparable<T>
     {
         var length = last - first;
-        // Only 1 or 0 elements
-        if (length < 2)
-            return;
+        Debug.Assert(first >= 0 && last <= span.Length && first <= last, "Invalid range for sorting.");
+
+        if (length < 2) return;
 
         var s = new SortSpan<T>(span, context);
 
@@ -301,7 +350,7 @@ public static class ShellSort
         for (; gapIndex >= 0; gapIndex--)
         {
             var h = ciuraSequence[gapIndex];
-            
+
             // Swap based Insertion sort with gap h.
             for (var i = first + h; i < last; i++)
             {
@@ -313,25 +362,63 @@ public static class ShellSort
             }
         }
     }
+}
 
-    /// <summary>
-    /// Shell sort using the Lee (2021) sequence.
-    /// Based on the paper "Empirically Improved Tokuda Gap Sequence in Shellsort" (arXiv:2112.11112).
-    /// The k-th increment h_k is given by: h_k = ceil((gamma^k - 1) / (gamma - 1))
-    /// where gamma = 2.243609061420001...
-    /// Reference: Ying Wai Lee, "Empirically Improved Tokuda Gap Sequence in Shellsort" (2021)
-    /// Concrete sequence: 1, 4, 9, 20, 45, 102, 230, 516, 1158, 2599, 5831, 13082, 29351, 65853, ...
-    /// </summary>
-    /// <param name="span"></param>
-    /// <param name="first"></param>
-    /// <param name="last"></param>
+/// <summary>
+/// <see cref="InsertionSort"/>にギャップ付き挿入ソートの概念を適用したLee (2021)のシェルソートアルゴリズム。
+/// Tokudaシーケンスを改良した最新のシーケンスで、平均比較回数がさらに少ない。
+/// ギャップ付き挿入ソートを使用するため不安定なソート。
+/// <br/>
+/// <see cref="InsertionSort"/> with gap concept applied is Shell sort algorithm, with Lee (2021) sequence.
+/// Lee improved upon Tokuda's sequence using γ = 2.243609061420001 with formula h_k = ⌈(γ^k - 1)/(γ - 1)⌉.
+/// This sequence: 1, 4, 9, 20, 45, 102, 230, 516, 1158, 2599, 5831, 13082, ...
+/// Reference: Ying Wai Lee, "Empirically Improved Tokuda Gap Sequence in Shellsort" (arXiv:2112.11112, 2021)
+/// This approach is a "gap-based insertion sort," so it is inherently unstable.
+/// <see cref="CombSort"/> is a similar concept applied to <see cref="BubbleSort"/>.
+/// <br/>
+/// Lee's sequence: h_k = ceil((gamma^k - 1) / (gamma - 1))
+/// Concrete sequence: [1, 4, 9, 20, 45, 102, 230, 516, 1158, 2599, 5831, 13082, 29351, 65853, 147748, 331490, 743735]
+/// </summary>
+/// <remarks>
+/// family  : insertion
+/// stable  : no  (gap-based insertion sorting does not preserve the order of equal elements)
+/// inplace : yes
+/// sequence: Lee (2021) - h_k = ⌈(γ^k - 1)/(γ - 1)⌉ where γ = 2.243609061420001
+/// Compare : O(n^1.25) (Empirically improved Tokuda, fewer comparisons on average)
+/// Swap    : O(n^1.25) (Similar to comparison count)
+/// Index   : O(n^1.25) (Each element accessed during gap-based insertion)
+/// Order   : Sub-quadratic with state-of-the-art performance
+///         * average   : O(n^1.25) (improved over Tokuda)
+///         * best case : O(n log n) (nearly sorted)
+///         * worst case: O(n^1.5)
+/// 
+/// Characteristics:
+/// - Most recent improvement (2021) of Tokuda's sequence
+/// - Empirically yields fewer average comparisons than Tokuda
+/// - Uses optimal γ value found through extensive experiments
+/// - State-of-the-art gap sequence
+/// - Recommended for research and modern implementations
+/// </remarks>
+/// <typeparam name="T"></typeparam>
+public static class ShellSortLee2021
+{
+    public static void Sort<T>(Span<T> span) where T : IComparable<T>
+    {
+        Sort(span, 0, span.Length, NullContext.Default);
+    }
+
+    public static void Sort<T>(Span<T> span, ISortContext context) where T : IComparable<T>
+    {
+        Sort(span, 0, span.Length, context);
+    }
+
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private static void SortLee2021<T>(Span<T> span, int first, int last, ISortContext context) where T : IComparable<T>
+    internal static void Sort<T>(Span<T> span, int first, int last, ISortContext context) where T : IComparable<T>
     {
         var length = last - first;
-        // Only 1 or 0 elements
-        if (length < 2)
-            return;
+        Debug.Assert(first >= 0 && last <= span.Length && first <= last, "Invalid range for sorting.");
+
+        if (length < 2) return;
 
         var s = new SortSpan<T>(span, context);
 
@@ -348,7 +435,7 @@ public static class ShellSort
         for (; gapIndex >= 0; gapIndex--)
         {
             var h = leeSequence[gapIndex];
-            
+
             // Swap based Insertion sort with gap h.
             for (var i = first + h; i < last; i++)
             {
@@ -360,16 +447,5 @@ public static class ShellSort
             }
         }
     }
-
-
-    internal enum GapType
-    {
-        Knuth1973,
-        Sedgewick1986,
-        Tokuda1992,
-        Ciura2001,
-        Lee2021,
-    }
-
 }
 
