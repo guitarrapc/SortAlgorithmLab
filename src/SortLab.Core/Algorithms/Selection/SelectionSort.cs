@@ -24,20 +24,50 @@ Span ...
  */
 
 /// <summary>
-/// 配列の各位置に対して、未ソート部分から最小の要素を見つけて現在の位置と交換することでソートを行います。値をインデックスベースで交換するため、不安定なソートアルゴリズムです。
+/// 配列を境界で2つの部分（ソート済み部分と未ソート部分）に分割し、未ソート部分から最小要素を見つけて境界位置と交換します。
+/// この操作を境界を進めながら繰り返すことでソートを完了します。インデックスベースの交換により不安定なソートアルゴリズムです。
 /// <br/>
-/// Iterates through each position in the array, finding the minimum element in the unsorted portion and swapping it with the current position. Swapping elements based on indices makes Selection Sort an unstable sorting algorithm.
+/// Divides the array into two parts (sorted and unsorted) at a boundary, finds the minimum element in the unsorted portion,
+/// and swaps it with the element at the boundary position. Repeats this operation while advancing the boundary to complete sorting.
+/// Index-based swapping makes this an unstable sorting algorithm.
 /// </summary>
 /// <remarks>
-/// family  : selection
-/// stable  : no
-/// inplace : yes
-/// Compare : O(n^2)     (Performs approximately n(n-1)/2 comparisons) 
-/// Swap    : O(n)       (Performs n-1 swaps)
-/// Order   : O(n^2)
-///         * average   : O(n^2)
-///         * best case : O(n^2)     (comparisons are always needed)
-///         * worst case: O(n^2)
+/// <para><strong>Theoretical Conditions for Correct Selection Sort:</strong></para>
+/// <list type="number">
+/// <item><description><strong>Partition Invariant:</strong> Maintain two regions in the array: a sorted prefix [0..i) and an unsorted suffix [i..n).
+/// After iteration k, the first k elements contain the k smallest elements in sorted order.
+/// This invariant must hold at the start and end of each iteration.</description></item>
+/// <item><description><strong>Minimum Selection:</strong> For each position i in [0..n-1), correctly identify the minimum element
+/// in the unsorted region [i..n). This requires comparing the candidate minimum with every element in the unsorted portion,
+/// ensuring no smaller element is overlooked.</description></item>
+/// <item><description><strong>Swap Operation:</strong> Exchange the minimum element from the unsorted region with the element at position i.
+/// This places the (i+1)-th smallest element at index i, extending the sorted region by one.
+/// Skip the swap if the minimum is already at position i (optimization that doesn't affect correctness).</description></item>
+/// <item><description><strong>Boundary Advancement:</strong> After each swap, increment the boundary index i by 1.
+/// This shrinks the unsorted region and grows the sorted region until the entire array is sorted.
+/// Terminate when i reaches n-1 (only one element remains, which is automatically in place).</description></item>
+/// <item><description><strong>Comparison Consistency:</strong> All element comparisons must use a total order relation (transitive, antisymmetric, total).
+/// The IComparable&lt;T&gt;.CompareTo implementation must satisfy these properties for correctness.</description></item>
+/// </list>
+/// <para><strong>Performance Characteristics:</strong></para>
+/// <list type="bullet">
+/// <item><description>Family      : Selection</description></item>
+/// <item><description>Stable      : No (swapping non-adjacent elements can change relative order of equal elements)</description></item>
+/// <item><description>In-place    : Yes (O(1) auxiliary space)</description></item>
+/// <item><description>Best case   : Θ(n²) - Always performs n(n-1)/2 comparisons regardless of input order</description></item>
+/// <item><description>Average case: Θ(n²) - Same comparison count; swap count varies but doesn't dominate</description></item>
+/// <item><description>Worst case  : Θ(n²) - Same comparison count; maximum n-1 swaps when reverse sorted</description></item>
+/// <item><description>Comparisons : Θ(n²) - Exactly n(n-1)/2 comparisons in all cases (input-independent)</description></item>
+/// <item><description>Swaps       : O(n) - At most n-1 swaps; best case 0 (already sorted), worst case n-1</description></item>
+/// <item><description>Writes      : O(n) - 2 writes per swap (via tuple deconstruction or temp variable)</description></item>
+/// </list>
+/// <para><strong>Use Cases:</strong></para>
+/// <list type="bullet">
+/// <item><description>Small datasets where simplicity is valued over performance</description></item>
+/// <item><description>Situations where write operations are expensive (minimizes swaps compared to bubble sort)</description></item>
+/// <item><description>Educational purposes to teach fundamental sorting concepts</description></item>
+/// <item><description>When memory writes are costly but comparisons are cheap</description></item>
+/// </list>
 /// </remarks>
 /// <typeparam name="T"></typeparam>
 public static class SelectionSort
