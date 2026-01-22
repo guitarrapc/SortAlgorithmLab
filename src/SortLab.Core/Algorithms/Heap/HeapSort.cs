@@ -54,18 +54,37 @@ Span ...
 /// Then, the root element is moved to the end of the sorted array, the last element is moved to the root, and the heap structure is re-established. Repeating this process ensures that the maximum value in the heap is always at the root, allowing elements to be naturally sorted as they are moved to the sorted array.
 /// </summary>
 /// <remarks>
-/// family  : heap
-/// stable  : no
-/// inplace : yes
-/// Compare : O(n log n)  
-/// Swap    : O(n log n)  
-/// Index   : O(n log n)     (Each element is accessed O(log n) times during heap operations)  
-/// Order   : O(n log n)
-///         * average   : O(n log n)
-///         * best case : O(n log n)
-///         * worst case: O(n log n)
+/// <para><strong>Theoretical Conditions for Correct Heapsort:</strong></para>
+/// <list type="number">
+/// <item><description><strong>Heap Property Maintenance:</strong> For a max-heap, every parent node must be greater than or equal to its children.
+/// For array index i, left child is at 2i+1 and right child is at 2i+2. This implementation correctly maintains this property through the iterative heapify operation.</description></item>
+/// <item><description><strong>Build Heap Phase:</strong> The initial heap construction starts from the last non-leaf node (n/2 - 1) and heapifies downward to index 0.
+/// This bottom-up approach runs in O(n) time, which is more efficient than the naive O(n log n) top-down construction.</description></item>
+/// <item><description><strong>Extract Max Phase:</strong> Repeatedly swap the root (maximum element) with the last element, reduce heap size, and re-heapify.
+/// This phase performs n-1 extractions, each requiring O(log n) heapify operations, totaling O(n log n).</description></item>
+/// <item><description><strong>Heapify Operation:</strong> Uses an iterative (non-recursive) sift-down approach to restore heap property.
+/// Compares parent with both children, swaps with the larger child if needed, and continues down the tree until heap property is satisfied.</description></item>
+/// </list>
+/// <para><strong>Performance Characteristics:</strong></para>
+/// <list type="bullet">
+/// <item><description>Family      : Heap / Selection</description></item>
+/// <item><description>Stable      : No (swapping elements by index breaks relative order)</description></item>
+/// <item><description>In-place    : Yes (O(1) auxiliary space)</description></item>
+/// <item><description>Best case   : Ω(n log n) - Even for sorted input, heap construction and extraction are required</description></item>
+/// <item><description>Average case: Θ(n log n) - Build heap O(n) + n-1 extractions with O(log n) heapify each</description></item>
+/// <item><description>Worst case  : O(n log n) - Guaranteed upper bound regardless of input distribution</description></item>
+/// <item><description>Comparisons : ~2n log n - Approximately 2 comparisons per heapify (left and right child checks)</description></item>
+/// <item><description>Swaps       : ~n log n - One swap per level during heapify, averaged across all operations</description></item>
+/// <item><description>Cache       : Poor locality - Heap structure causes frequent cache misses due to non-sequential access</description></item>
+/// </list>
+/// <para><strong>Implementation Notes:</strong></para>
+/// <list type="bullet">
+/// <item><description>Uses iterative heapify (loop) instead of recursive for better performance and stack safety</description></item>
+/// <item><description>Builds max-heap for ascending sort (min-heap would produce descending order)</description></item>
+/// <item><description>Comparison-based algorithm: requires O(n log n) comparisons in all cases</description></item>
+/// <item><description>Despite O(n log n) guarantee, often slower than Quicksort in practice due to poor cache performance</description></item>
+/// </list>
 /// </remarks>
-/// <typeparam name="T"></typeparam>
 
 public static class HeapSort
 {
@@ -91,11 +110,20 @@ public static class HeapSort
     }
 
     /// <summary>
-    /// Sort a portion of the span from index first to last-1.
+    /// Sorts a portion of the span from index <paramref name="first"/> to <paramref name="last"/>-1 using heap sort.
     /// </summary>
-    /// <param name="span"></param>
-    /// <param name="first"></param>
-    /// <param name="last"></param>
+    /// <typeparam name="T">The type of elements in the span. Must implement <see cref="IComparable{T}"/>.</typeparam>
+    /// <param name="span">The span containing the elements to sort.</param>
+    /// <param name="first">The zero-based index of the first element in the range to sort.</param>
+    /// <param name="last">The exclusive upper bound of the range to sort (one past the last element).</param>
+    /// <param name="context">The sort context to use during the sorting operation for tracking statistics and visualization.</param>
+    /// <remarks>
+    /// This method implements the classical heapsort algorithm in two phases:
+    /// <list type="number">
+    /// <item><description>Build Phase: Constructs a max-heap from the unsorted data in O(n) time.</description></item>
+    /// <item><description>Extract Phase: Repeatedly extracts the maximum element and rebuilds the heap, taking O(n log n) time.</description></item>
+    /// </list>
+    /// </remarks>
     internal static void Sort<T>(Span<T> span, int first, int last, ISortContext context) where T : IComparable<T>
     {
         Debug.Assert(first >= 0 && last <= span.Length && first < last, "Invalid range for sorting.");
@@ -124,12 +152,20 @@ public static class HeapSort
     }
 
     /// <summary>
-    /// To heapify a subtree rooted with node i which is an index in span[]. n is size of heap.
+    /// Restores the heap property for a subtree rooted at the specified index using iterative sift-down.
     /// </summary>
-    /// <param name="s"></param>
-    /// <param name="root"></param>
-    /// <param name="size"></param>
-    /// <param name="offset"></param>
+    /// <typeparam name="T">The type of elements in the span. Must implement <see cref="IComparable{T}"/>.</typeparam>
+    /// <param name="s">The SortSpan containing the elements and context for tracking operations.</param>
+    /// <param name="root">The index of the root node of the subtree to heapify.</param>
+    /// <param name="size">The size of the heap (number of elements to consider).</param>
+    /// <param name="offset">The starting index offset for the heap within the span.</param>
+    /// <remarks>
+    /// This method implements the sift-down operation to maintain the max-heap property.
+    /// It iteratively compares the parent node with its left and right children, swapping with the larger child if needed,
+    /// and continues down the tree until the heap property is satisfied or a leaf node is reached.
+    /// <para>Time Complexity: O(log n) - Worst case traverses from root to leaf (height of the tree).</para>
+    /// <para>Space Complexity: O(1) - Uses iteration instead of recursion.</para>
+    /// </remarks>
     private static void Heapify<T>(SortSpan<T> s, int root, int size, int offset) where T : IComparable<T>
     {
         while (true)
