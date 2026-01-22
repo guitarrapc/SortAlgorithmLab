@@ -24,45 +24,98 @@ Span ...
 */
 
 /// <summary>
-/// 最適化版挿入ソート。ソート済みとなる先頭に並ぶ部分を維持します。ソート済み部分の末尾から配列の末尾に向かって進み、各要素と比較し、値が小さい限りソート済み部分と交換します。(つまり、新しい要素の値が小さい限り前方に移動します。) 
-/// <see cref="IComparable"/> の性質により、x.CompareTo(y) > 0 の場合は元の順序が保持されるため、安定ソートです。
-/// すでにソートされた配列では高速に動作しますが、逆順の配列では遅くなります。  
+/// シンプルで効率的な挿入ソートアルゴリズムです。配列の先頭部分をソート済み領域として維持し、
+/// 未ソート領域の各要素を適切な位置に挿入していきます。シフト操作により安定性を保ちながら効率的にソートします。
 /// <br/>
-/// Maintains a sorted portion of the array at the beginning. Progresses from the end of the sorted portion towards the end of the array, Compares each element and swaps it with the sorted portion as long as it is smaller. (In other words, new elements are moved forward as long as their value is smaller.)
-/// Due to the properties of <see cref="IComparable"/>, where x.CompareTo(y) > 0 ensures the original order is preserved, this is a stable sort.
-/// Performs well on already sorted arrays but is slow on reverse-sorted arrays.
+/// A simple and efficient insertion sort algorithm that maintains a sorted region at the beginning of the array,
+/// inserting each element from the unsorted region into its appropriate position. Uses shift operations to maintain stability efficiently.
 /// </summary>
 /// <remarks>
-/// family  : insertion
-/// stable  : yes
-/// inplace : yes
-/// Compare : O(n^2)     (strictly n(n-1) / 2)
-/// Swap    : O(n^2)     (strictly n^2/2)
-/// Index   : O(n^2)     (Each element may be accessed multiple times during swaps)
-/// Order   : O(n^2)
-///         * average   : O(n^2) 
-///         * best case : O(n) (nearly sorted)
-///         * worst case: O(n^2)
+/// <para><strong>Theoretical Conditions for Correct Insertion Sort:</strong></para>
+/// <list type="number">
+/// <item><description><strong>Maintain Sorted Invariant:</strong> For each position i (from 1 to n-1), 
+/// the subarray [0..i-1] must remain sorted before inserting element at position i.
+/// This invariant is established initially (single element is sorted) and preserved through each iteration.</description></item>
+/// <item><description><strong>Linear Search and Shift:</strong> For each element at position i, 
+/// compare it with elements in the sorted region [0..i-1] from right to left.
+/// Shift elements greater than the current element one position to the right until finding the correct insertion position.
+/// This ensures all elements remain in order.</description></item>
+/// <item><description><strong>Stable Insertion via Comparison:</strong> Use strict inequality (Compare(j, tmp) &gt; 0) 
+/// to determine if an element should be shifted. Equal elements are NOT shifted, preserving their original relative order.
+/// This guarantees stability of the sort.</description></item>
+/// <item><description><strong>Optimization for Already-Sorted Elements:</strong> If no elements were shifted (j == i-1),
+/// the element is already in the correct position, so skip the write operation.
+/// This optimization achieves O(n) best case for sorted arrays with zero writes.</description></item>
+/// </list>
+/// <para><strong>Performance Characteristics:</strong></para>
+/// <list type="bullet">
+/// <item><description>Family      : Insertion</description></item>
+/// <item><description>Stable      : Yes (strict inequality &gt; preserves order of equal elements)</description></item>
+/// <item><description>In-place    : Yes (O(1) auxiliary space, only temp variable for element being inserted)</description></item>
+/// <item><description>Best case   : O(n) - Already sorted array, only n-1 comparisons, zero writes</description></item>
+/// <item><description>Average case: O(n²) - On average, each element shifts halfway back (n²/4 comparisons and writes)</description></item>
+/// <item><description>Worst case  : O(n²) - Reverse sorted array, maximum shifts: n(n-1)/2 comparisons and writes</description></item>
+/// <item><description>Comparisons : O(n²) - Sum of comparisons for each insertion, worst case: n(n-1)/2</description></item>
+/// <item><description>Writes      : O(n²) - Each shift writes one element, worst case: n(n-1)/2 shifts + (n-1) final insertions</description></item>
+/// <item><description>Reads       : O(n²) - Each comparison reads one element, each shift reads the element being moved</description></item>
+/// </list>
+/// <para><strong>Advantages of Insertion Sort:</strong></para>
+/// <list type="bullet">
+/// <item><description>Simple implementation - Easy to understand and code correctly</description></item>
+/// <item><description>Efficient for small datasets - Lower constant factors than O(n log n) algorithms</description></item>
+/// <item><description>Adaptive - Runs in O(n) time for nearly sorted data</description></item>
+/// <item><description>Stable - Preserves relative order of equal elements</description></item>
+/// <item><description>In-place - Requires only O(1) additional memory</description></item>
+/// <item><description>Online - Can sort data as it arrives (streaming)</description></item>
+/// </list>
+/// <para><strong>Use Cases:</strong></para>
+/// <list type="bullet">
+/// <item><description>Small arrays (typically n &lt; 10-50, depending on hardware)</description></item>
+/// <item><description>Nearly sorted data (append operations, slightly shuffled data)</description></item>
+/// <item><description>As the final step in hybrid algorithms (e.g., Timsort, Introsort)</description></item>
+/// <item><description>When stability is required with minimal memory overhead</description></item>
+/// </list>
 /// </remarks>
 /// <typeparam name="T"></typeparam>
 public static class InsertionSort
 {
+    /// <summary>
+    /// Sorts the elements in the specified span in ascending order using the default comparer.
+    /// </summary>
+    /// <typeparam name="T">The type of elements in the span. Must implement <see cref="IComparable{T}"/>.</typeparam>
+    /// <param name="span">The span of elements to sort in place.</param>
     public static void Sort<T>(Span<T> span) where T : IComparable<T>
     {
         Sort(span, 0, span.Length, NullContext.Default);
     }
 
+    /// <summary>
+    /// Sorts the elements in the specified span using the provided sort context.
+    /// </summary>
+    /// <typeparam name="T">The type of elements in the span. Must implement <see cref="IComparable{T}"/>.</typeparam>
+    /// <param name="span">The span of elements to sort. The elements within this span will be reordered in place.</param>
+    /// <param name="context">The sort context for tracking statistics and observations during sorting. Cannot be null.</param>
     public static void Sort<T>(Span<T> span, ISortContext context) where T : IComparable<T>
     {
         Sort(span, 0, span.Length, context);
     }
 
     /// <summary>
-    /// Optimized insertion sort using shift operations
+    /// Sorts the subrange [first..last) using optimized insertion sort with shift operations.
+    /// This overload is used internally for range-based sorting (e.g., by hybrid sort algorithms like Timsort).
     /// </summary>
-    /// <param name="span"></param>
-    /// <param name="first"></param>
-    /// <param name="last"></param>
+    /// <typeparam name="T">The type of elements in the span. Must implement <see cref="IComparable{T}"/>.</typeparam>
+    /// <param name="span">The span containing elements to sort.</param>
+    /// <param name="first">The inclusive start index of the range to sort.</param>
+    /// <param name="last">The exclusive end index of the range to sort.</param>
+    /// <param name="context">The sort context for tracking statistics and observations.</param>
+    /// <remarks>
+    /// This implementation uses shift operations instead of swaps for better performance:
+    /// - Reads the element to be inserted into a temporary variable
+    /// - Shifts larger elements one position to the right
+    /// - Writes the element to its correct position
+    /// This reduces the number of writes compared to swap-based insertion sort.
+    /// </remarks>
     internal static void Sort<T>(Span<T> span, int first, int last, ISortContext context) where T : IComparable<T>
     {
         Debug.Assert(first >= 0 && last <= span.Length && first < last, "Invalid range for sorting.");
@@ -76,7 +129,8 @@ public static class InsertionSort
             // Temporarily store the value to be inserted
             var tmp = s.Read(i);
 
-            // Shift the elements larger than tmp to the right
+            // Shift elements larger than tmp to the right
+            // Use strict inequality (>) to maintain stability
             var j = i - 1;
             while (j >= first && s.Compare(j, tmp) > 0)
             {
@@ -85,6 +139,7 @@ public static class InsertionSort
             }
 
             // Insert tmp into the correct position only if elements were shifted
+            // Optimization: if j == i-1, element is already in correct position
             if (j != i - 1)
             {
                 s.Write(j + 1, tmp);
@@ -94,45 +149,108 @@ public static class InsertionSort
 }
 
 /// <summary>
-/// 最適化されていない純粋な挿入ソート。ソート済みとなる先頭に並ぶ部分を維持します。ソート済み部分の末尾から配列の末尾に向かって進み、各要素と比較し、値が小さい限りソート済み部分と交換します。(つまり、新しい要素の値が小さい限り前方に移動します。) 
-/// <see cref="IComparable"/> の性質により、x.CompareTo(y) > 0 の場合は元の順序が保持されるため、安定ソートです。
-/// すでにソートされた配列では高速に動作しますが、逆順の配列では遅くなります。  
+/// 教育目的の非最適化版挿入ソートです。シフト操作の代わりに隣接要素のスワップを繰り返す古典的な実装で、
+/// アルゴリズムの基本原理を理解しやすい反面、最適化版に比べて約2倍の書き込み操作が発生します。
 /// <br/>
-/// Maintains a sorted portion of the array at the beginning. Progresses from the end of the sorted portion towards the end of the array, Compares each element and swaps it with the sorted portion as long as it is smaller. (In other words, new elements are moved forward as long as their value is smaller.)
-/// Due to the properties of <see cref="IComparable"/>, where x.CompareTo(y) > 0 ensures the original order is preserved, this is a stable sort.
-/// Performs well on already sorted arrays but is slow on reverse-sorted arrays.
+/// Educational non-optimized insertion sort implementation using adjacent element swaps instead of shifts.
+/// This classical approach makes the algorithm's basic principles easier to understand, but performs approximately
+/// twice as many write operations compared to the optimized version.
 /// </summary>
 /// <remarks>
-/// family  : insertion
-/// stable  : yes
-/// inplace : yes
-/// Compare : O(n^2), strictly n(n-1) / 2
-/// Swap    : O(n^2), strictly n^2/2
-/// Index   : O(n^2) (Each element may be accessed multiple times during swaps)
-/// Order   : O(n^2)
-///         * average:                   O(n^2) 
-///         * best case (nearly sorted): O(n)
-///         * worst case can approach  : O(n^2)
+/// <para><strong>Theoretical Conditions for Correct Non-Optimized Insertion Sort:</strong></para>
+/// <list type="number">
+/// <item><description><strong>Maintain Sorted Invariant:</strong> For each position i (from 1 to n-1), 
+/// the subarray [0..i-1] must remain sorted before processing element at position i.
+/// This invariant is established initially (single element is sorted) and preserved through each iteration.</description></item>
+/// <item><description><strong>Backward Bubble via Adjacent Swaps:</strong> For each element at position i,
+/// repeatedly swap it with its left neighbor while it is smaller than that neighbor.
+/// This "bubbles" the element backward to its correct position in the sorted region [0..i-1].
+/// Continue until element is in correct position (no longer smaller than left neighbor).</description></item>
+/// <item><description><strong>Stable Swap via Comparison:</strong> Use strict inequality (Compare(j-1, j) &gt; 0)
+/// to determine if adjacent elements should be swapped. Equal elements are NOT swapped, preserving their original relative order.
+/// This guarantees stability of the sort.</description></item>
+/// <item><description><strong>No Optimization:</strong> Unlike optimized insertion sort, this version does NOT:
+/// - Use shift operations (always uses swaps, even when element needs to move multiple positions)
+/// - Skip writes for already-sorted elements (no optimization check)
+/// This results in more write operations but simpler, more intuitive code.</description></item>
+/// </list>
+/// <para><strong>Performance Characteristics:</strong></para>
+/// <list type="bullet">
+/// <item><description>Family      : Insertion</description></item>
+/// <item><description>Stable      : Yes (strict inequality &gt; preserves order of equal elements)</description></item>
+/// <item><description>In-place    : Yes (O(1) auxiliary space, no temporary variables needed for element storage)</description></item>
+/// <item><description>Best case   : O(n) - Already sorted array, only n-1 comparisons, zero swaps</description></item>
+/// <item><description>Average case: O(n²) - On average, each element swaps halfway back (n²/4 comparisons and swaps)</description></item>
+/// <item><description>Worst case  : O(n²) - Reverse sorted array, maximum swaps: n(n-1)/2 comparisons and swaps</description></item>
+/// <item><description>Comparisons : O(n²) - Same as optimized version: worst case n(n-1)/2</description></item>
+/// <item><description>Swaps       : O(n²) - Each swap involves 2 reads + 2 writes = 4 operations total</description></item>
+/// <item><description>Writes      : O(n²) - Approximately 2x optimized version (swaps use 2 writes vs shift's 1 write)</description></item>
+/// </list>
+/// <para><strong>Comparison with Optimized Insertion Sort:</strong></para>
+/// <list type="bullet">
+/// <item><description>Optimized Version: Uses shift operations - reads element, shifts larger elements right, writes once</description></item>
+/// <item><description>Non-Optimized (This): Uses swaps - repeatedly exchanges adjacent elements</description></item>
+/// <item><description>Write Operations: Non-optimized performs ~2x writes (each swap = 2 writes vs shift = 1 write)</description></item>
+/// <item><description>Code Simplicity: Non-optimized is more intuitive - clearly shows element "bubbling" backward</description></item>
+/// <item><description>Educational Value: Better for learning algorithm fundamentals before optimization techniques</description></item>
+/// </list>
+/// <para><strong>Educational Purpose:</strong></para>
+/// <list type="bullet">
+/// <item><description>Demonstrates classic insertion sort as taught in textbooks and courses</description></item>
+/// <item><description>Shows clear connection between insertion sort and bubble sort (backward bubbling)</description></item>
+/// <item><description>Makes the sorting process visually intuitive - element swaps backward step-by-step</description></item>
+/// <item><description>Helps understand trade-offs between code simplicity and performance optimization</description></item>
+/// <item><description>Useful for benchmarking impact of shift optimization (compare with InsertionSort class)</description></item>
+/// </list>
+/// <para><strong>Use Cases:</strong></para>
+/// <list type="bullet">
+/// <item><description>Educational purposes - teaching basic sorting algorithms</description></item>
+/// <item><description>Algorithm visualization - easier to animate swap-by-swap movement</description></item>
+/// <item><description>Performance comparison - baseline to measure optimization benefits</description></item>
+/// <item><description>Code readability - when clarity is more important than performance</description></item>
+/// </list>
 /// </remarks>
 /// <typeparam name="T"></typeparam>
 public static class InsertionNonOptimizedSort
 {
+    /// <summary>
+    /// Sorts the elements in the specified span in ascending order using the default comparer.
+    /// </summary>
+    /// <typeparam name="T">The type of elements in the span. Must implement <see cref="IComparable{T}"/>.</typeparam>
+    /// <param name="span">The span of elements to sort in place.</param>
     public static void Sort<T>(Span<T> span) where T : IComparable<T>
     {
         Sort(span, 0, span.Length, NullContext.Default);
     }
 
+    /// <summary>
+    /// Sorts the elements in the specified span using the provided sort context.
+    /// </summary>
+    /// <typeparam name="T">The type of elements in the span. Must implement <see cref="IComparable{T}"/>.</typeparam>
+    /// <param name="span">The span of elements to sort. The elements within this span will be reordered in place.</param>
+    /// <param name="context">The sort context for tracking statistics and observations during sorting. Cannot be null.</param>
     public static void Sort<T>(Span<T> span, ISortContext context) where T : IComparable<T>
     {
         Sort(span, 0, span.Length, context);
     }
 
     /// <summary>
-    /// Insertion sort using swaps (non-optimized)
+    /// Sorts the subrange [first..last) using non-optimized insertion sort with adjacent swaps.
+    /// This overload is used internally for range-based sorting and performance comparison studies.
     /// </summary>
-    /// <param name="span"></param>
-    /// <param name="first"></param>
-    /// <param name="last"></param>
+    /// <typeparam name="T">The type of elements in the span. Must implement <see cref="IComparable{T}"/>.</typeparam>
+    /// <param name="span">The span containing elements to sort.</param>
+    /// <param name="first">The inclusive start index of the range to sort.</param>
+    /// <param name="last">The exclusive end index of the range to sort.</param>
+    /// <param name="context">The sort context for tracking statistics and observations.</param>
+    /// <remarks>
+    /// This implementation uses adjacent element swaps instead of shift operations:
+    /// - For each element at position i, compare with left neighbor
+    /// - If smaller, swap with left neighbor and move pointer left
+    /// - Repeat until element is in correct position (no longer smaller than left neighbor)
+    /// This approach is intuitive but performs more write operations than the optimized shift-based version.
+    /// Each swap requires 2 reads + 2 writes, while a shift requires 1 read + 1 write.
+    /// </remarks>
     internal static void Sort<T>(Span<T> span, int first, int last, ISortContext context) where T : IComparable<T>
     {
         Debug.Assert(first >= 0 && last <= span.Length && first < last, "Invalid range for sorting.");
@@ -144,6 +262,7 @@ public static class InsertionNonOptimizedSort
         for (var i = first + 1; i < last; i++)
         {
             // Move the element at position i backward until it's in the correct position
+            // Use strict inequality (>) to maintain stability - equal elements are not swapped
             var j = i;
             while (j > first && s.Compare(j - 1, j) > 0)
             {
