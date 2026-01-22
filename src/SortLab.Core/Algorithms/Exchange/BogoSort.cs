@@ -21,21 +21,45 @@ Span ...
 /// 10 elements is about the limit for completing in a realistic time.
 /// </summary>
 /// <remarks>
-/// stable  : no
-/// inplace : yes
-/// Compare : -    (Comparison operations are performed to check if the array is sorted, but their count is not fixed)  
-/// Swap    : -    (Shuffle operations perform swaps or random permutations of the array elements)  
-/// Index   : -    (Access frequency depends on the implementation of shuffle and sorted-checking routines)  
-/// Order   : O((n+1)!) on average (Worst case: unbounded runtime)
+/// <para><strong>Theoretical Conditions for Correct Bogosort:</strong></para>
+/// <list type="number">
+/// <item><description><strong>Uniform Permutation Generation:</strong> Each of the n! permutations must be generated with equal probability (1/n!).
+/// This implementation uses the Fisher-Yates shuffle algorithm, which guarantees uniform distribution.</description></item>
+/// <item><description><strong>Sortedness Verification:</strong> After each shuffle, the algorithm must verify if the array is sorted.
+/// This is done by comparing adjacent elements in O(n) time.</description></item>
+/// <item><description><strong>Probabilistic Termination:</strong> The algorithm terminates when a sorted permutation is found.
+/// Expected number of shuffles: (e-1) × n! ≈ 1.718 × n!</description></item>
+/// </list>
+/// <para><strong>Performance Characteristics:</strong></para>
+/// <list type="bullet">
+/// <item><description>Family      : Exchange</description></item>
+/// <item><description>Stable      : No (random shuffling does not preserve relative order)</description></item>
+/// <item><description>In-place    : Yes (O(1) auxiliary space)</description></item>
+/// <item><description>Best case   : Ω(n) - Already sorted, only one verification pass needed</description></item>
+/// <item><description>Average case: Θ(n × n!) - Expected (e-1) × n! shuffles, each taking O(n) time and swaps</description></item>
+/// <item><description>Worst case  : Unbounded - Theoretically could run forever (though probability diminishes exponentially)</description></item>
+/// <item><description>Comparisons : (e-1) × n × (n-1) / 2 on average - Each verification performs n-1 comparisons</description></item>
+/// <item><description>Swaps       : (n-1) × n! on average - Each shuffle performs n-1 swaps via Fisher-Yates</description></item>
+/// </list>
 /// </remarks>
-/// <typeparam name="T"></typeparam>
 public static class BogoSort
 {
+    /// <summary>
+    /// Sorts the elements in the specified span in ascending order using the default comparer.
+    /// </summary>
+    /// <typeparam name="T">The type of elements in the span. Must implement <see cref="IComparable{T}"/>.</typeparam>
+    /// <param name="span">The span of elements to sort in place.</param>
     public static void Sort<T>(Span<T> span) where T : IComparable<T>
     {
         Sort(span, NullContext.Default);
     }
 
+    /// <summary>
+    /// Sorts the elements in the specified span using the provided sort context.
+    /// </summary>
+    /// <typeparam name="T">The type of elements in the span. Must implement <see cref="IComparable{T}"/>.</typeparam>
+    /// <param name="span">The span of elements to sort. The elements within this span will be reordered in place.</param>
+    /// <param name="context">The sort context that defines the sorting strategy or options to use during the operation. Cannot be null.</param>
     public static void Sort<T>(Span<T> span, ISortContext context) where T : IComparable<T>
     {
         if (span.Length <= 1) return;
