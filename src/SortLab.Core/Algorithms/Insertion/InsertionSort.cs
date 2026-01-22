@@ -83,8 +83,11 @@ public static class InsertionSort
                 j--;
             }
 
-            // Insert tmp into the correct position
-            s.Write(j + 1, tmp);
+            // Insert tmp into the correct position only if elements were shifted
+            if (j != i - 1)
+            {
+                s.Write(j + 1, tmp);
+            }
         }
     }
 }
