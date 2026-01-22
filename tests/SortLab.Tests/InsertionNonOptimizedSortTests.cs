@@ -1,83 +1,11 @@
-﻿using SortLab.Tests.Attributes;
+﻿using SortLab.Core.Algorithms;
+using SortLab.Core.Contexts;
 
 namespace SortLab.Tests;
 
 public class InsertionNonOptimizedSortTests
 {
-    private ISort<int> sort;
-    private string algorithm;
-    private SortMethod method;
-
-    public InsertionNonOptimizedSortTests()
-    {
-        sort = new InsertionNonOptimizedSort<int>();
-        algorithm = nameof(InsertionNonOptimizedSort<int>);
-        method = SortMethod.Insertion;
-    }
-
-    [CISkippableFact]
-    public void SortMethodTest()
-    {
-        Assert.Equal(method, sort.SortType);
-    }
-
-    [CISkippableTheory]
-    [ClassData(typeof(MockRandomData))]
-    public void RandomInputTypeTest(IInputSample<int> inputSample)
-    {
-        Assert.Equal(InputType.Random, inputSample.InputType);
-    }
-
-    [CISkippableTheory]
-    [ClassData(typeof(MockNegativePositiveRandomData))]
-    public void MixRandomInputTypeTest(IInputSample<int> inputSample)
-    {
-        Assert.Equal(InputType.MixRandom, inputSample.InputType);
-    }
-
-    [CISkippableTheory]
-    [ClassData(typeof(MockNegativeRandomData))]
-    public void NegativeRandomInputTypeTest(IInputSample<int> inputSample)
-    {
-        Assert.Equal(InputType.NegativeRandom, inputSample.InputType);
-    }
-
-    [CISkippableTheory]
-    [ClassData(typeof(MockReversedData))]
-    public void ReverseInputTypeTest(IInputSample<int> inputSample)
-    {
-        Assert.Equal(InputType.Reversed, inputSample.InputType);
-    }
-
-    [CISkippableTheory]
-    [ClassData(typeof(MockMountainData))]
-    public void MountainInputTypeTest(IInputSample<int> inputSample)
-    {
-        Assert.Equal(InputType.Mountain, inputSample.InputType);
-    }
-
-    [CISkippableTheory]
-    [ClassData(typeof(MockNearlySortedData))]
-    public void NearlySortedInputTypeTest(IInputSample<int> inputSample)
-    {
-        Assert.Equal(InputType.NearlySorted, inputSample.InputType);
-    }
-
-    [CISkippableTheory]
-    [ClassData(typeof(MockSortedData))]
-    public void SortedInputTypeTest(IInputSample<int> inputSample)
-    {
-        Assert.Equal(InputType.Sorted, inputSample.InputType);
-    }
-
-    [CISkippableTheory]
-    [ClassData(typeof(MockSameValuesData))]
-    public void SameValuesInputTypeTest(IInputSample<int> inputSample)
-    {
-        Assert.Equal(InputType.SameValues, inputSample.InputType);
-    }
-
-    [CISkippableTheory]
+    [Theory]
     [ClassData(typeof(MockRandomData))]
     [ClassData(typeof(MockNegativePositiveRandomData))]
     [ClassData(typeof(MockNegativeRandomData))]
@@ -89,11 +17,11 @@ public class InsertionNonOptimizedSortTests
     public void SortResultOrderTest(IInputSample<int> inputSample)
     {
         var array = inputSample.Samples.ToArray();
-        sort.Sort(array);
+        InsertionNonOptimizedSort.Sort(array.AsSpan());
         Assert.Equal(inputSample.Samples.OrderBy(x => x), array);
     }
 
-    [CISkippableTheory]
+    [Theory]
     [ClassData(typeof(MockRandomData))]
     [ClassData(typeof(MockNegativePositiveRandomData))]
     [ClassData(typeof(MockNegativeRandomData))]
@@ -103,73 +31,143 @@ public class InsertionNonOptimizedSortTests
     [ClassData(typeof(MockSameValuesData))]
     public void StatisticsTest(IInputSample<int> inputSample)
     {
-        sort.Sort(inputSample.Samples);
-        Assert.Equal(algorithm, sort.Statistics.Algorithm);
-        Assert.Equal(inputSample.Samples.Length, sort.Statistics.ArraySize);
-        Assert.NotEqual((ulong)0, sort.Statistics.IndexAccessCount);
-        Assert.NotEqual((ulong)0, sort.Statistics.CompareCount);
-        Assert.NotEqual((ulong)0, sort.Statistics.SwapCount);
+        var stats = new StatisticsContext();
+        var array = inputSample.Samples.ToArray();
+        InsertionNonOptimizedSort.Sort(array.AsSpan(), stats);
+
+        Assert.Equal((ulong)inputSample.Samples.Length, (ulong)array.Length);
+        Assert.NotEqual(0UL, stats.IndexReadCount);
+        Assert.NotEqual(0UL, stats.IndexWriteCount);
+        Assert.NotEqual(0UL, stats.CompareCount);
+        Assert.NotEqual(0UL, stats.SwapCount); // Non-optimized version uses swaps
     }
 
-    [CISkippableTheory]
+    [Theory]
     [ClassData(typeof(MockSortedData))]
     public void StatisticsSortedTest(IInputSample<int> inputSample)
     {
-        sort.Sort(inputSample.Samples);
-        Assert.Equal(algorithm, sort.Statistics.Algorithm);
-        Assert.Equal(inputSample.Samples.Length, sort.Statistics.ArraySize);
-        Assert.NotEqual(0UL, sort.Statistics.IndexAccessCount);
-        Assert.Equal((ulong)inputSample.Samples.Length - 1, sort.Statistics.CompareCount);
-        Assert.Equal(0UL, sort.Statistics.SwapCount);
+        var stats = new StatisticsContext();
+        var array = inputSample.Samples.ToArray();
+        InsertionNonOptimizedSort.Sort(array.AsSpan(), stats);
+
+        Assert.Equal((ulong)inputSample.Samples.Length, (ulong)array.Length);
+        Assert.NotEqual(0UL, stats.IndexReadCount);
+        Assert.Equal(0UL, stats.IndexWriteCount); // Already sorted, no writes needed
+        Assert.Equal((ulong)(inputSample.Samples.Length - 1), stats.CompareCount);
+        Assert.Equal(0UL, stats.SwapCount);
     }
 
-    [CISkippableTheory]
+    [Theory]
     [ClassData(typeof(MockRandomData))]
-    [ClassData(typeof(MockNegativePositiveRandomData))]
-    [ClassData(typeof(MockNegativeRandomData))]
-    [ClassData(typeof(MockReversedData))]
-    [ClassData(typeof(MockMountainData))]
-    [ClassData(typeof(MockNearlySortedData))]
-    [ClassData(typeof(MockSortedData))]
-    [ClassData(typeof(MockSameValuesData))]
     public void StatisticsResetTest(IInputSample<int> inputSample)
     {
-        sort.Sort(inputSample.Samples);
-        sort.Statistics.Reset();
-        Assert.Equal((ulong)0, sort.Statistics.IndexAccessCount);
-        Assert.Equal((ulong)0, sort.Statistics.CompareCount);
-        Assert.Equal((ulong)0, sort.Statistics.SwapCount);
+        var stats = new StatisticsContext();
+        var array = inputSample.Samples.ToArray();
+        InsertionNonOptimizedSort.Sort(array.AsSpan(), stats);
+
+        stats.Reset();
+        Assert.Equal(0UL, stats.IndexReadCount);
+        Assert.Equal(0UL, stats.IndexWriteCount);
+        Assert.Equal(0UL, stats.CompareCount);
+        Assert.Equal(0UL, stats.SwapCount);
     }
 
-    [CISkippableTheory]
+    [Theory]
     [InlineData(10)]
     [InlineData(20)]
     [InlineData(50)]
     [InlineData(100)]
     public void TheoreticalValuesSortedTest(int n)
     {
+        var stats = new StatisticsContext();
         var sorted = Enumerable.Range(0, n).ToArray();
-        sort.Sort(sorted);
+        InsertionNonOptimizedSort.Sort(sorted.AsSpan(), stats);
 
+        // Insertion Sort (Non-Optimized) on sorted data: best case O(n)
+        // - For each position i (from 1 to n-1), we compare once with the previous element
+        // - Since the current element is >= the previous element, no swapping occurs
+        // - Total comparisons: n-1
+        // - Total swaps: 0 (already sorted)
+        // - Total writes: 0 (no swaps = no writes)
         var expectedCompares = (ulong)(n - 1);
-        Assert.Equal(expectedCompares, sort.Statistics.CompareCount);
-        Assert.Equal(0UL, sort.Statistics.SwapCount);
+        var expectedSwaps = 0UL;
+        var expectedWrites = 0UL;
+
+        // Each comparison reads 2 elements
+        var minIndexReads = expectedCompares * 2;
+
+        Assert.Equal(expectedCompares, stats.CompareCount);
+        Assert.Equal(expectedSwaps, stats.SwapCount);
+        Assert.Equal(expectedWrites, stats.IndexWriteCount);
+        Assert.True(stats.IndexReadCount >= minIndexReads,
+            $"IndexReadCount ({stats.IndexReadCount}) should be >= {minIndexReads}");
     }
 
-    [CISkippableTheory]
+    [Theory]
     [InlineData(10)]
     [InlineData(20)]
     [InlineData(50)]
     [InlineData(100)]
     public void TheoreticalValuesReversedTest(int n)
     {
+        var stats = new StatisticsContext();
         var reversed = Enumerable.Range(0, n).Reverse().ToArray();
-        sort.Sort(reversed);
+        InsertionNonOptimizedSort.Sort(reversed.AsSpan(), stats);
 
+        // Insertion Sort (Non-Optimized) on reversed data: worst case O(n^2)
+        // - Position 1: 1 comparison, 1 swap
+        // - Position 2: 2 comparisons, 2 swaps
+        // - ...
+        // - Position n-1: (n-1) comparisons, (n-1) swaps
+        // - Total comparisons: 1 + 2 + ... + (n-1) = n(n-1)/2
+        // - Total swaps: same as comparisons = n(n-1)/2
+        // - Each swap writes 2 elements, so total writes = 2 * swaps = n(n-1)
         var expectedCompares = (ulong)(n * (n - 1) / 2);
         var expectedSwaps = (ulong)(n * (n - 1) / 2);
-        Assert.Equal(expectedCompares, sort.Statistics.CompareCount);
-        Assert.Equal(expectedSwaps, sort.Statistics.SwapCount);
+        var expectedWrites = (ulong)(n * (n - 1)); // 2 writes per swap
+
+        // Each comparison reads 2 elements, each swap reads 2 elements
+        // Total reads = 2 * compares + 2 * swaps = 2 * (compares + swaps)
+        var minIndexReads = 2 * (expectedCompares + expectedSwaps);
+
+        Assert.Equal(expectedCompares, stats.CompareCount);
+        Assert.Equal(expectedSwaps, stats.SwapCount);
+        Assert.Equal(expectedWrites, stats.IndexWriteCount);
+        Assert.True(stats.IndexReadCount >= minIndexReads,
+            $"IndexReadCount ({stats.IndexReadCount}) should be >= {minIndexReads}");
+    }
+
+    [Theory]
+    [InlineData(10)]
+    [InlineData(20)]
+    [InlineData(50)]
+    [InlineData(100)]
+    public void TheoreticalValuesRandomTest(int n)
+    {
+        var stats = new StatisticsContext();
+        var random = Enumerable.Range(0, n).OrderBy(_ => Guid.NewGuid()).ToArray();
+        InsertionNonOptimizedSort.Sort(random.AsSpan(), stats);
+
+        // Insertion Sort (Non-Optimized) on random data: average case O(n^2)
+        // - Average comparisons: approximately n(n-1)/4
+        // - Average swaps: approximately n(n-1)/4
+        // - For random data, on average, each element moves halfway through the sorted portion
+        var minCompares = (ulong)(n - 1); // Best case (already sorted by chance)
+        var maxCompares = (ulong)(n * (n - 1) / 2); // Worst case (reverse sorted by chance)
+        
+        var minSwaps = 0UL; // Best case
+        var maxSwaps = (ulong)(n * (n - 1) / 2); // Worst case
+
+        // Each comparison reads 2 elements
+        var minIndexReads = minCompares * 2;
+
+        Assert.InRange(stats.CompareCount, minCompares, maxCompares);
+        Assert.InRange(stats.SwapCount, minSwaps, maxSwaps);
+        Assert.True(stats.IndexReadCount >= minIndexReads,
+            $"IndexReadCount ({stats.IndexReadCount}) should be >= {minIndexReads}");
+        
+        // Each swap writes 2 elements
+        Assert.Equal(stats.SwapCount * 2, stats.IndexWriteCount);
     }
 }
 
