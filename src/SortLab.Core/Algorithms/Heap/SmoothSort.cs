@@ -146,12 +146,10 @@ public static class SmoothSort
                 {
                     Down(ref b, ref c);
                     p <<= 1;
-
-                    ArgumentOutOfRangeException.ThrowIfZero(p);
                 }
                 ++p;
 
-                ArgumentOutOfRangeException.ThrowIfZero(p);
+                Debug.Assert(p != 0, "p should not be zero after increment");
             }
 
             ++q;
