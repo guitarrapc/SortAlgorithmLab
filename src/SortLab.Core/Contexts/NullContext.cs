@@ -11,19 +11,19 @@ public sealed class NullContext : ISortContext
     {
     }
 
-    public void OnCompare(int i, int j, int result)
+    public void OnCompare(int i, int j, int result, int bufferIdI, int bufferIdJ)
     {
     }
 
-    public void OnSwap(int i, int j)
+    public void OnSwap(int i, int j, int bufferId)
     {
     }
 
-    public void OnIndexRead(int index)
+    public void OnIndexRead(int index, int bufferId)
     {
     }
 
-    public void OnIndexWrite(int index)
+    public void OnIndexWrite(int index, int bufferId)
     {
     }
 }

@@ -22,10 +22,10 @@ public sealed class StatisticsContext : ISortContext
     public ulong IndexWriteCount => _indexWriteCount;
     private ulong _indexWriteCount;
 
-    public void OnCompare(int i, int j, int result) => Interlocked.Increment(ref _compareCount);
-    public void OnSwap(int i, int j) => Interlocked.Increment(ref _swapCount);
-    public void OnIndexRead(int index) => Interlocked.Increment(ref _indexReadCount);
-    public void OnIndexWrite(int index) => Interlocked.Increment(ref _indexWriteCount);
+    public void OnCompare(int i, int j, int result, int bufferIdI, int bufferIdJ) => Interlocked.Increment(ref _compareCount);
+    public void OnSwap(int i, int j, int bufferId) => Interlocked.Increment(ref _swapCount);
+    public void OnIndexRead(int index, int bufferId) => Interlocked.Increment(ref _indexReadCount);
+    public void OnIndexWrite(int index, int bufferId) => Interlocked.Increment(ref _indexWriteCount);
 
     /// <summary>
     /// Resets all operation counters to zero.

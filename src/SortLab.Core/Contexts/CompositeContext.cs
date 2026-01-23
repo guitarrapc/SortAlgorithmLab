@@ -20,33 +20,33 @@ public sealed class CompositeContext : ISortContext
         _contexts = contexts;
     }
 
-    public void OnCompare(int i, int j, int result)
+    public void OnCompare(int i, int j, int result, int bufferIdI, int bufferIdJ)
     {
         foreach (var context in _contexts)
         {
-            context.OnCompare(i, j, result);
+            context.OnCompare(i, j, result, bufferIdI, bufferIdJ);
         }
     }
-    public void OnSwap(int i, int j)
+    public void OnSwap(int i, int j, int bufferId)
     {
         foreach (var context in _contexts)
         {
-            context.OnSwap(i, j);
+            context.OnSwap(i, j, bufferId);
         }
     }
-    public void OnIndexRead(int index)
+    public void OnIndexRead(int index, int bufferId)
     {
         foreach (var context in _contexts)
         {
-            context.OnIndexRead(index);
+            context.OnIndexRead(index, bufferId);
         }
     }
 
-    public void OnIndexWrite(int index)
+    public void OnIndexWrite(int index, int bufferId)
     {
         foreach (var context in _contexts)
         {
-            context.OnIndexWrite(index);
+            context.OnIndexWrite(index, bufferId);
         }
     }
 }

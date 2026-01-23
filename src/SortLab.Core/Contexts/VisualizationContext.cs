@@ -11,16 +11,16 @@
 /// </remarks>
 public sealed class VisualizationContext : ISortContext
 {
-    private readonly Action<int, int, int>? _onCompare;
-    private readonly Action<int, int>? _onSwap;
-    private readonly Action<int>? _onIndexRead;
-    private readonly Action<int>? _onIndexWrite;
+    private readonly Action<int, int, int, int, int>? _onCompare;
+    private readonly Action<int, int, int>? _onSwap;
+    private readonly Action<int, int>? _onIndexRead;
+    private readonly Action<int, int>? _onIndexWrite;
 
     public VisualizationContext(
-        Action<int, int, int>? onCompare = null,
-        Action<int, int>? onSwap = null,
-        Action<int>? onIndexRead = null,
-        Action<int>? onIndexWrite = null)
+        Action<int, int, int, int, int>? onCompare = null,
+        Action<int, int, int>? onSwap = null,
+        Action<int, int>? onIndexRead = null,
+        Action<int, int>? onIndexWrite = null)
     {
         _onCompare = onCompare;
         _onSwap = onSwap;
@@ -28,8 +28,8 @@ public sealed class VisualizationContext : ISortContext
         _onIndexWrite = onIndexWrite;
     }
 
-    public void OnCompare(int i, int j, int result) => _onCompare?.Invoke(i, j, result);
-    public void OnSwap(int i, int j) => _onSwap?.Invoke(i, j);
-    public void OnIndexRead(int index) => _onIndexRead?.Invoke(index);
-    public void OnIndexWrite(int index) => _onIndexWrite?.Invoke(index);
+    public void OnCompare(int i, int j, int result, int bufferIdI, int bufferIdJ) => _onCompare?.Invoke(i, j, result, bufferIdI, bufferIdJ);
+    public void OnSwap(int i, int j, int bufferId) => _onSwap?.Invoke(i, j, bufferId);
+    public void OnIndexRead(int index, int bufferId) => _onIndexRead?.Invoke(index, bufferId);
+    public void OnIndexWrite(int index, int bufferId) => _onIndexWrite?.Invoke(index, bufferId);
 }
