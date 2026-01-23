@@ -148,7 +148,7 @@ public static class QuickSortDualPivot
 
         // Phase 2. Sort left, middle, and right regions recursively
         SortCore(s, left, l - 1);
-        if (s.Compare(left, right) < 0)
+        if (s.Compare(l, g) < 0)
         {
             SortCore(s, l + 1, g - 1);
         }
