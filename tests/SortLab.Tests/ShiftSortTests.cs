@@ -232,118 +232,6 @@ public class ShiftSortTests
         Assert.NotEqual(0UL, stats.IndexReadCount);
     }
 
-    [Fact]
-    public void StabilityTest()
-    {
-        // Test stability: equal elements should maintain relative order
-        // ShiftSort is a stable sort algorithm - equal elements preserve their original order
-        var stats = new StatisticsContext();
-        
-        var items = new[]
-        {
-            new StabilityTestItem(1, 0),
-            new StabilityTestItem(2, 1),
-            new StabilityTestItem(1, 2),
-            new StabilityTestItem(3, 3),
-            new StabilityTestItem(1, 4),
-            new StabilityTestItem(2, 5),
-        };
-
-        var array = items.ToArray();
-        ShiftSort.Sort(array.AsSpan(), stats);
-
-        // Verify sorting correctness - values should be in ascending order
-        Assert.Equal([1, 1, 1, 2, 2, 3], array.Select(x => x.Value).ToArray());
-        
-        // Verify stability: for each group of equal values, original order is preserved
-        var value1Indices = array.Where(x => x.Value == 1).Select(x => x.OriginalIndex).ToArray();
-        var value2Indices = array.Where(x => x.Value == 2).Select(x => x.OriginalIndex).ToArray();
-        var value3Indices = array.Where(x => x.Value == 3).Select(x => x.OriginalIndex).ToArray();
-        
-        // Value 1 appeared at original indices 0, 2, 4 - should remain in this order
-        Assert.Equal([0, 2, 4], value1Indices);
-        
-        // Value 2 appeared at original indices 1, 5 - should remain in this order
-        Assert.Equal([1, 5], value2Indices);
-        
-        // Value 3 appeared at original index 3
-        Assert.Equal([3], value3Indices);
-    }
-
-    [Fact]
-    public void StabilityTestWithComplex()
-    {
-        // Test stability with more complex scenario - multiple equal values
-        var stats = new StatisticsContext();
-        
-        var items = new[]
-        {
-            new StabilityTestItemWithId(5, "A"),
-            new StabilityTestItemWithId(2, "B"),
-            new StabilityTestItemWithId(5, "C"),
-            new StabilityTestItemWithId(2, "D"),
-            new StabilityTestItemWithId(8, "E"),
-            new StabilityTestItemWithId(2, "F"),
-            new StabilityTestItemWithId(5, "G"),
-        };
-
-        var array = items.ToArray();
-        ShiftSort.Sort(array.AsSpan(), stats);
-
-        // Expected: [2:B, 2:D, 2:F, 5:A, 5:C, 5:G, 8:E]
-        // Keys are sorted, and elements with the same key maintain original order
-        
-        Assert.Equal(2, array[0].Key);
-        Assert.Equal("B", array[0].Id);
-        
-        Assert.Equal(2, array[1].Key);
-        Assert.Equal("D", array[1].Id);
-        
-        Assert.Equal(2, array[2].Key);
-        Assert.Equal("F", array[2].Id);
-        
-        Assert.Equal(5, array[3].Key);
-        Assert.Equal("A", array[3].Id);
-        
-        Assert.Equal(5, array[4].Key);
-        Assert.Equal("C", array[4].Id);
-        
-        Assert.Equal(5, array[5].Key);
-        Assert.Equal("G", array[5].Id);
-        
-        Assert.Equal(8, array[6].Key);
-        Assert.Equal("E", array[6].Id);
-    }
-
-    [Fact]
-    public void StabilityTestWithAllEqual()
-    {
-        // Edge case: all elements have the same value
-        // They should remain in original order
-        var stats = new StatisticsContext();
-        
-        var items = new[]
-        {
-            new StabilityTestItem(1, 0),
-            new StabilityTestItem(1, 1),
-            new StabilityTestItem(1, 2),
-            new StabilityTestItem(1, 3),
-            new StabilityTestItem(1, 4),
-        };
-
-        var array = items.ToArray();
-        ShiftSort.Sort(array.AsSpan(), stats);
-
-        // All values are 1
-        Assert.All(array, item => Assert.Equal(1, item.Value));
-        
-        // Original order should be preserved: 0, 1, 2, 3, 4
-        Assert.Equal([0, 1, 2, 3, 4], array.Select(x => x.OriginalIndex).ToArray());
-        
-        // For sorted data with all equal elements, no writes should occur
-        Assert.Equal(0UL, stats.IndexWriteCount);
-    }
-
     [Theory]
     [InlineData(256)]  // Stackalloc threshold
     [InlineData(257)]  // Just over threshold (should use ArrayPool)
@@ -357,10 +245,76 @@ public class ShiftSortTests
 
         // Verify sorting correctness
         Assert.Equal(Enumerable.Range(0, n), array);
-        
+
         // Verify statistics are tracked
         Assert.NotEqual(0UL, stats.IndexReadCount);
         Assert.NotEqual(0UL, stats.IndexWriteCount);
         Assert.NotEqual(0UL, stats.CompareCount);
+    }
+
+    [Theory]
+    [ClassData(typeof(MockStabilityData))]
+    public void StabilityTest(StabilityTestItem[] items)
+    {
+        // Test stability: equal elements should maintain relative order
+        var stats = new StatisticsContext();
+
+        ShiftSort.Sort(items.AsSpan(), stats);
+
+        // Verify sorting correctness - values should be in ascending order
+        Assert.Equal(MockStabilityData.Sorted, items.Select(x => x.Value).ToArray());
+
+        // Verify stability: for each group of equal values, original order is preserved
+        var value1Indices = items.Where(x => x.Value == 1).Select(x => x.OriginalIndex).ToArray();
+        var value2Indices = items.Where(x => x.Value == 2).Select(x => x.OriginalIndex).ToArray();
+        var value3Indices = items.Where(x => x.Value == 3).Select(x => x.OriginalIndex).ToArray();
+
+        // Value 1 appeared at original indices 0, 2, 4 - should remain in this order
+        Assert.Equal(MockStabilityData.Sorted1, value1Indices);
+
+        // Value 2 appeared at original indices 1, 5 - should remain in this order
+        Assert.Equal(MockStabilityData.Sorted2, value2Indices);
+
+        // Value 3 appeared at original index 3
+        Assert.Equal(MockStabilityData.Sorted3, value3Indices);
+    }
+
+    [Theory]
+    [ClassData(typeof(MockStabilityWithIdData))]
+    public void StabilityTestWithComplex(StabilityTestItemWithId[] items)
+    {
+        // Test stability with more complex scenario - multiple equal values
+        var stats = new StatisticsContext();
+
+        ShiftSort.Sort(items.AsSpan(), stats);
+
+        // Expected: [2:B, 2:D, 2:F, 5:A, 5:C, 5:G, 8:E]
+        // Keys are sorted, and elements with the same key maintain original order
+
+        for (var i = 0; i < items.Length; i++)
+        {
+            Assert.Equal(MockStabilityWithIdData.Sorted[i].Key, items[i].Key);
+            Assert.Equal(MockStabilityWithIdData.Sorted[i].Id, items[i].Id);
+        }
+    }
+
+    [Theory]
+    [ClassData(typeof(MockStabilityAllEqualsData))]
+    public void StabilityTestWithAllEqual(StabilityTestItem[] items)
+    {
+        // Edge case: all elements have the same value
+        // They should remain in original order
+        var stats = new StatisticsContext();
+
+        ShiftSort.Sort(items.AsSpan(), stats);
+
+        // All values are 1
+        Assert.All(items, item => Assert.Equal(1, item.Value));
+
+        // Original order should be preserved: 0, 1, 2, 3, 4
+        Assert.Equal(MockStabilityAllEqualsData.Sorted, items.Select(x => x.OriginalIndex).ToArray());
+
+        // For sorted data with all equal elements, no swaps should occur
+        Assert.Equal(0UL, stats.IndexWriteCount);
     }
 }

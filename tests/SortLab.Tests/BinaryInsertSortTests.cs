@@ -90,7 +90,7 @@ public class BinaryInsertSortTests
         // The actual count depends on the binary search implementation and can vary
         // based on the comparison results. We use a wide tolerance to account for this.
         var expectedCompares = CalculateBinaryInsertSortComparisons(n);
-        
+
         // Binary search can vary significantly based on data, allow ±50% tolerance
         var minCompares = expectedCompares / 2;
         var maxCompares = (expectedCompares * 3) / 2;
@@ -121,7 +121,7 @@ public class BinaryInsertSortTests
         // Binary Insertion Sort comparisons: at most ceiling(log2(i+1)) per search
         // For reversed data, binary search may take more comparisons than sorted data
         var expectedCompares = CalculateBinaryInsertSortComparisons(n);
-        
+
         // Reversed data can cause more comparisons, allow wider range (50% to 200%)
         var minCompares = expectedCompares / 2;
         var maxCompares = expectedCompares * 2;
@@ -196,116 +196,70 @@ public class BinaryInsertSortTests
         return totalCompares;
     }
 
-    [Fact]
-    public void StabilityTest()
+    [Theory]
+    [ClassData(typeof(MockStabilityData))]
+    public void StabilityTest(StabilityTestItem[] items)
     {
         // Test stability: equal elements should maintain relative order
-        // Binary Insertion Sort uses <= in binary search to ensure stability
         var stats = new StatisticsContext();
-        
-        // Create items with same value but different original indices
-        var items = new[]
-        {
-            new StabilityTestItem(1, 0),
-            new StabilityTestItem(2, 1),
-            new StabilityTestItem(1, 2),
-            new StabilityTestItem(3, 3),
-            new StabilityTestItem(1, 4),
-            new StabilityTestItem(2, 5),
-        };
 
-        var array = items.ToArray();
-        BinaryInsertSort.Sort(array.AsSpan(), stats);
+        BinaryInsertSort.Sort(items.AsSpan(), stats);
 
         // Verify sorting correctness - values should be in ascending order
-        Assert.Equal([1, 1, 1, 2, 2, 3], array.Select(x => x.Value).ToArray());
-        
+        Assert.Equal(MockStabilityData.Sorted, items.Select(x => x.Value).ToArray());
+
         // Verify stability: for each group of equal values, original order is preserved
-        var value1Indices = array.Where(x => x.Value == 1).Select(x => x.OriginalIndex).ToArray();
-        var value2Indices = array.Where(x => x.Value == 2).Select(x => x.OriginalIndex).ToArray();
-        var value3Indices = array.Where(x => x.Value == 3).Select(x => x.OriginalIndex).ToArray();
-        
+        var value1Indices = items.Where(x => x.Value == 1).Select(x => x.OriginalIndex).ToArray();
+        var value2Indices = items.Where(x => x.Value == 2).Select(x => x.OriginalIndex).ToArray();
+        var value3Indices = items.Where(x => x.Value == 3).Select(x => x.OriginalIndex).ToArray();
+
         // Value 1 appeared at original indices 0, 2, 4 - should remain in this order
-        Assert.Equal([0, 2, 4], value1Indices);
-        
+        Assert.Equal(MockStabilityData.Sorted1, value1Indices);
+
         // Value 2 appeared at original indices 1, 5 - should remain in this order
-        Assert.Equal([1, 5], value2Indices);
-        
+        Assert.Equal(MockStabilityData.Sorted2, value2Indices);
+
         // Value 3 appeared at original index 3
-        Assert.Equal([3], value3Indices);
+        Assert.Equal(MockStabilityData.Sorted3, value3Indices);
     }
 
-    [Fact]
-    public void StabilityTestWithComplex()
+    [Theory]
+    [ClassData(typeof(MockStabilityWithIdData))]
+    public void StabilityTestWithComplex(StabilityTestItemWithId[] items)
     {
         // Test stability with more complex scenario - multiple equal values
         var stats = new StatisticsContext();
-        
-        var items = new[]
-        {
-            new StabilityTestItemWithId(5, "A"),
-            new StabilityTestItemWithId(2, "B"),
-            new StabilityTestItemWithId(5, "C"),
-            new StabilityTestItemWithId(2, "D"),
-            new StabilityTestItemWithId(8, "E"),
-            new StabilityTestItemWithId(2, "F"),
-            new StabilityTestItemWithId(5, "G"),
-        };
 
-        var array = items.ToArray();
-        BinaryInsertSort.Sort(array.AsSpan(), stats);
+        BinaryInsertSort.Sort(items.AsSpan(), stats);
 
         // Expected: [2:B, 2:D, 2:F, 5:A, 5:C, 5:G, 8:E]
         // Keys are sorted, and elements with the same key maintain original order
-        
-        Assert.Equal(2, array[0].Key);
-        Assert.Equal("B", array[0].Id);
-        
-        Assert.Equal(2, array[1].Key);
-        Assert.Equal("D", array[1].Id);
-        
-        Assert.Equal(2, array[2].Key);
-        Assert.Equal("F", array[2].Id);
-        
-        Assert.Equal(5, array[3].Key);
-        Assert.Equal("A", array[3].Id);
-        
-        Assert.Equal(5, array[4].Key);
-        Assert.Equal("C", array[4].Id);
-        
-        Assert.Equal(5, array[5].Key);
-        Assert.Equal("G", array[5].Id);
-        
-        Assert.Equal(8, array[6].Key);
-        Assert.Equal("E", array[6].Id);
+
+        for (var i = 0; i < items.Length; i++)
+        {
+            Assert.Equal(MockStabilityWithIdData.Sorted[i].Key, items[i].Key);
+            Assert.Equal(MockStabilityWithIdData.Sorted[i].Id, items[i].Id);
+        }
     }
 
-    [Fact]
-    public void StabilityTestWithAllEqual()
+    [Theory]
+    [ClassData(typeof(MockStabilityAllEqualsData))]
+    public void StabilityTestWithAllEqual(StabilityTestItem[] items)
     {
         // Edge case: all elements have the same value
         // They should remain in original order
         var stats = new StatisticsContext();
-        
-        var items = new[]
-        {
-            new StabilityTestItem(1, 0),
-            new StabilityTestItem(1, 1),
-            new StabilityTestItem(1, 2),
-            new StabilityTestItem(1, 3),
-            new StabilityTestItem(1, 4),
-        };
 
-        var array = items.ToArray();
-        BinaryInsertSort.Sort(array.AsSpan(), stats);
+        BinaryInsertSort.Sort(items.AsSpan(), stats);
 
         // All values are 1
-        Assert.All(array, item => Assert.Equal(1, item.Value));
-        
+        Assert.All(items, item => Assert.Equal(1, item.Value));
+
         // Original order should be preserved: 0, 1, 2, 3, 4
-        Assert.Equal([0, 1, 2, 3, 4], array.Select(x => x.OriginalIndex).ToArray());
-        
-        // For sorted data with all equal elements, no writes should occur
+        Assert.Equal(MockStabilityAllEqualsData.Sorted, items.Select(x => x.OriginalIndex).ToArray());
+
+        // For sorted data with all equal elements, no swaps should occur
+        Assert.Equal(0UL, stats.SwapCount);
         Assert.Equal(0UL, stats.IndexWriteCount);
     }
 }

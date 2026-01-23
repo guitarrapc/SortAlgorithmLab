@@ -8,6 +8,7 @@ public enum InputType
     NearlySorted,
     Sorted,
     SameValues,
+    Stability,
 
     MixRandom,
     NegativeRandom,
