@@ -174,8 +174,8 @@ public static class QuickSortDualPivotInsertion
 
         // phase 2. Recursively sort left, middle, and right regions
         SortCore(s, left, l - 1);
-        // Only sort middle region if there are elements between the pivots
-        if (l + 1 < g)
+        // Check if middle region needs sorting (pivots are distinct AND elements exist)
+        if (s.Compare(l, g) < 0 && l + 1 < g)
         {
             SortCore(s, l + 1, g - 1);
         }
