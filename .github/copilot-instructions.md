@@ -4,7 +4,7 @@
 
 This is a C# sorting algorithm laboratory for educational and performance analysis purposes. It implements various sorting algorithms with comprehensive statistics tracking and visualization support.
 
-**Tech Stack:** C# (.NET 9+), xUnit, BenchmarkDotNet
+**Tech Stack:** C# (.NET 10+), xUnit, BenchmarkDotNet
 
 ## Project Structure
 
