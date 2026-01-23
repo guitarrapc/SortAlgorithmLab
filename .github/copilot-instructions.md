@@ -69,14 +69,14 @@ public static class MySort
     private const int InsertionSortThreshold = 16;
 
     public static void Sort<T>(Span<T> span) where T : IComparable<T>
-        => Sort(span, NullSortContext.Default);
+        => Sort(span, NullContext.Default);
 
     public static void Sort<T>(Span<T> span, ISortContext context) where T : IComparable<T>
     {
         if (span.Length <= 1) return;
-        
+
         var s = new SortSpan<T>(span, context);
-        
+
         if (s.Length <= InsertionSortThreshold)
         {
             InsertionSort(s);
@@ -97,7 +97,7 @@ public static class MySort
 
 - Test with BenchmarkDotNet
 - Verify zero allocations in Release builds
-- Ensure Context overhead is minimal with `NullSortContext.Default`
+- Ensure Context overhead is minimal with `NullContext.Default`
 
 ## SortSpan Usage Guidelines
 
@@ -107,7 +107,7 @@ This approach provides:
 
 - **Accurate statistics** for algorithm analysis via ISortContext
 - **Clean abstraction** for tracking operations
-- **Minimal performance impact** with NullSortContext (empty method calls)
+- **Minimal performance impact** with NullContext (empty method calls)
 - **Consistent code style** across all sorting implementations
 - **Separation of concerns** - algorithm logic vs observation
 
@@ -120,7 +120,7 @@ Use `SortSpan<T>` helper methods for all array/span operations:
    - Example:
      ```csharp
      var s = new SortSpan<T>(span, context);
-     
+
      // ✅ Correct - uses Read
      var value = s.Read(i);
 
@@ -149,14 +149,14 @@ Use `SortSpan<T>` helper methods for all array/span operations:
      // ❌ Incorrect - bypasses context
      if (span[i].CompareTo(span[j]) < 0) { ... }
      ```
-   
+
    - For comparing with a value (not an index):
      ```csharp
      var value = s.Read(someIndex);
-     
+
      // ✅ Correct - comparing index with value
      if (s.Compare(i, value) < 0) { ... }
-     
+
      // ✅ Correct - comparing value with index
      if (s.Compare(value, i) < 0) { ... }
 
@@ -182,7 +182,7 @@ Use `SortSpan<T>` helper methods for all array/span operations:
 
 | Context | Purpose | Overhead |
 |---------|---------|----------|
-| `NullSortContext.Default` | No statistics (production) | Minimal (empty methods) |
+| `NullContext.Default` | No statistics (production) | Minimal (empty methods) |
 | `StatisticsContext` | Collect operation counts | Small (Interlocked.Increment) |
 | `VisualizationContext` | Animation/rendering callbacks | Medium (callback invocation) |
 | `CompositeSortContext` | Combine multiple contexts | Medium-Large |
