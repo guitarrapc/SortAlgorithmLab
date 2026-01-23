@@ -33,24 +33,33 @@ public static class QuickSortDualPivotInsertion
 
     /// <summary>
     /// Sorts the subrange [first..last) using the provided sort context.
-    /// This overload is used internally for range-based sorting (e.g., by hybrid sort algorithms).
     /// </summary>
     /// <typeparam name="T">The type of elements in the span. Must implement <see cref="IComparable{T}"/>.</typeparam>
     /// <param name="span">The span containing elements to sort.</param>
     /// <param name="first">The inclusive start index of the range to sort.</param>
     /// <param name="last">The exclusive end index of the range to sort.</param>
     /// <param name="context">The sort context for tracking statistics and observations.</param>
-    internal static void Sort<T>(Span<T> span, int first, int last, ISortContext context) where T : IComparable<T>
+    public static void Sort<T>(Span<T> span, int first, int last, ISortContext context) where T : IComparable<T>
     {
-        Debug.Assert(first >= 0 && last <= span.Length && first <= last, "Invalid range for sorting.");
+        ArgumentOutOfRangeException.ThrowIfNegative(first);
+        ArgumentOutOfRangeException.ThrowIfGreaterThan(last, span.Length);
+        ArgumentOutOfRangeException.ThrowIfGreaterThan(first, last);
 
         if (last - first <= 1) return;
-        
+
         var s = new SortSpan<T>(span, context, BUFFER_MAIN);
         SortCore(s, first, last - 1);
     }
 
-    private static void SortCore<T>(SortSpan<T> s, int left, int right) where T : IComparable<T>
+    /// <summary>
+    /// Sorts the subrange [first..last) using the provided sort context.
+    /// This overload accepts a SortSpan directly for use by other algorithms that already have a SortSpan instance.
+    /// </summary>
+    /// <typeparam name="T">The type of elements in the span. Must implement <see cref="IComparable{T}"/>.</typeparam>
+    /// <param name="s">The SortSpan wrapping the span to sort.</param>
+    /// <param name="left">The inclusive start index of the range to sort.</param>
+    /// <param name="right">The exclusive end index of the range to sort.</param>
+    internal static void SortCore<T>(SortSpan<T> s, int left, int right) where T : IComparable<T>
     {
         if (right <= left) return;
 

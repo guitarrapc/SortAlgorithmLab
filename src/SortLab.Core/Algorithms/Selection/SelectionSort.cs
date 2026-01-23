@@ -97,24 +97,36 @@ public static class SelectionSort
     }
 
     /// <summary>
-    /// Sorts the elements in the specified range of a span using the provided sort context.
+    /// Sorts the subrange [first..last) using the provided sort context.
+    /// Elements in [first..start) are assumed to already be sorted.
     /// </summary>
     /// <typeparam name="T">The type of elements in the span. Must implement <see cref="IComparable{T}"/>.</typeparam>
     /// <param name="span">The span containing the elements to sort.</param>
-    /// <param name="first">The zero-based index of the first element in the range to sort. Must be greater than or equal to 0 and less than
-    /// <paramref name="last"/>.</param>
-    /// <param name="last">The exclusive upper bound of the range to sort. Must be less than or equal to the length of <paramref
-    /// name="span"/>.</param>
-    /// <param name="context">The sort context to use during the sorting operation.</param>
-    /// <paramref name="span"/>, or <paramref name="first"/> is greater than or equal to <paramref name="last"/>.</exception>
-    internal static void Sort<T>(Span<T> span, int first, int last, ISortContext context) where T : IComparable<T>
+    /// <param name="first">The zero-based index of the first element in the range to sort.</param>
+    /// <param name="last">The exclusive upper bound of the range to sort (one past the last element).</param>
+    /// <param name="context">The sort context to use during the sorting operation for tracking statistics and visualization.</param>
+    public static void Sort<T>(Span<T> span, int first, int last, ISortContext context) where T : IComparable<T>
     {
-        Debug.Assert(first >= 0 && last <= span.Length && first < last, "Invalid range for sorting.");
+        ArgumentOutOfRangeException.ThrowIfNegative(first);
+        ArgumentOutOfRangeException.ThrowIfGreaterThan(last, span.Length);
+        ArgumentOutOfRangeException.ThrowIfGreaterThanOrEqual(first, last);
 
         if (span.Length <= 1) return;
 
         var s = new SortSpan<T>(span, context, BUFFER_MAIN);
+        SortCore(s, first, last);
+    }
 
+    /// <summary>
+    /// Sorts the subrange [first..last) using the provided sort context.
+    /// This overload accepts a SortSpan directly for use by other algorithms that already have a SortSpan instance.
+    /// </summary>
+    /// <typeparam name="T">The type of elements in the span. Must implement <see cref="IComparable{T}"/>.</typeparam>
+    /// <param name="s">The SortSpan wrapping the span to sort.</param>
+    /// <param name="first">The inclusive start index of the range to sort.</param>
+    /// <param name="last">The exclusive end index of the range to sort.</param>
+    internal static void SortCore<T>(SortSpan<T> s, int first, int last) where T : IComparable<T>
+    {
         for (var i = first; i < last - 1; i++)
         {
             var min = i;

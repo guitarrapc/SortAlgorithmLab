@@ -169,4 +169,70 @@ public class ShellSortLee2021Tests
         var expectedReads = stats.CompareCount * 2 + stats.SwapCount * 2;
         Assert.Equal(expectedReads, stats.IndexReadCount);
     }
+
+    [Fact]
+    public void RangeSortTest()
+    {
+        var stats = new StatisticsContext();
+        var array = new[] { 5, 3, 8, 1, 9, 2, 7, 4, 6 };
+
+        // Sort only the range [2, 6) -> indices 2, 3, 4, 5
+        ShellSortLee2021.Sort(array.AsSpan(), 2, 6, stats);
+
+        // Expected: first 2 elements unchanged, middle 4 sorted, last 3 unchanged
+        Assert.Equal(new[] { 5, 3, 1, 2, 8, 9, 7, 4, 6 }, array);
+    }
+
+    [Fact]
+    public void RangeSortFullArrayTest()
+    {
+        var stats = new StatisticsContext();
+        var array = new[] { 5, 3, 8, 1, 9, 2, 7, 4, 6 };
+
+        // Sort the entire array using range API
+        ShellSortLee2021.Sort(array.AsSpan(), 0, array.Length, stats);
+
+        Assert.Equal(new[] { 1, 2, 3, 4, 5, 6, 7, 8, 9 }, array);
+    }
+
+    [Fact]
+    public void RangeSortSingleElementTest()
+    {
+        var stats = new StatisticsContext();
+        var array = new[] { 5, 3, 8, 1, 9 };
+
+        // Sort a single element range [2, 3)
+        ShellSortLee2021.Sort(array.AsSpan(), 2, 3, stats);
+
+        // Array should be unchanged (single element is already sorted)
+        Assert.Equal(new[] { 5, 3, 8, 1, 9 }, array);
+        Assert.Equal(0UL, stats.CompareCount);
+        Assert.Equal(0UL, stats.SwapCount);
+    }
+
+    [Fact]
+    public void RangeSortBeginningTest()
+    {
+        var stats = new StatisticsContext();
+        var array = new[] { 9, 7, 5, 3, 1, 2, 4, 6, 8 };
+
+        // Sort only the first 5 elements [0, 5)
+        ShellSortLee2021.Sort(array.AsSpan(), 0, 5, stats);
+
+        // Expected: first 5 sorted, last 4 unchanged
+        Assert.Equal(new[] { 1, 3, 5, 7, 9, 2, 4, 6, 8 }, array);
+    }
+
+    [Fact]
+    public void RangeSortEndTest()
+    {
+        var stats = new StatisticsContext();
+        var array = new[] { 1, 3, 5, 7, 9, 8, 6, 4, 2 };
+
+        // Sort only the last 4 elements [5, 9)
+        ShellSortLee2021.Sort(array.AsSpan(), 5, 9, stats);
+
+        // Expected: first 5 unchanged, last 4 sorted
+        Assert.Equal(new[] { 1, 3, 5, 7, 9, 2, 4, 6, 8 }, array);
+    }
 }

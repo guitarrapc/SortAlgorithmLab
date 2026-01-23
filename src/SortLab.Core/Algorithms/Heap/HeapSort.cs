@@ -127,28 +127,35 @@ public static class HeapSort
     }
 
     /// <summary>
-    /// Sorts a portion of the span from index <paramref name="first"/> to <paramref name="last"/>-1 using heap sort.
+    /// Sorts the subrange [first..last) using the provided sort context.
     /// </summary>
     /// <typeparam name="T">The type of elements in the span. Must implement <see cref="IComparable{T}"/>.</typeparam>
     /// <param name="span">The span containing the elements to sort.</param>
     /// <param name="first">The zero-based index of the first element in the range to sort.</param>
     /// <param name="last">The exclusive upper bound of the range to sort (one past the last element).</param>
     /// <param name="context">The sort context to use during the sorting operation for tracking statistics and visualization.</param>
-    /// <remarks>
-    /// This method implements the classical heapsort algorithm in two phases:
-    /// <list type="number">
-    /// <item><description>Build Phase: Constructs a max-heap from the unsorted data in O(n) time.</description></item>
-    /// <item><description>Extract Phase: Repeatedly extracts the maximum element and rebuilds the heap, taking O(n log n) time.</description></item>
-    /// </list>
-    /// </remarks>
-    internal static void Sort<T>(Span<T> span, int first, int last, ISortContext context) where T : IComparable<T>
+    public static void Sort<T>(Span<T> span, int first, int last, ISortContext context) where T : IComparable<T>
     {
-        Debug.Assert(first >= 0 && last <= span.Length && first < last, "Invalid range for sorting.");
+        ArgumentOutOfRangeException.ThrowIfNegative(first);
+        ArgumentOutOfRangeException.ThrowIfGreaterThan(last, span.Length);
+        ArgumentOutOfRangeException.ThrowIfGreaterThan(first, last);
 
-        if (span.Length <= 1) return;
+        if (last - first <= 1) return;
 
         var s = new SortSpan<T>(span, context, BUFFER_MAIN);
+        SortCore(s, first, last);
+    }
 
+    /// <summary>
+    /// Sorts the subrange [first..last) using the provided sort context.
+    /// This overload accepts a SortSpan directly for use by other algorithms that already have a SortSpan instance.
+    /// </summary>
+    /// <typeparam name="T">The type of elements in the span. Must implement <see cref="IComparable{T}"/>.</typeparam>
+    /// <param name="s">The SortSpan wrapping the span to sort.</param>
+    /// <param name="first">The inclusive start index of the range to sort.</param>
+    /// <param name="last">The exclusive end index of the range to sort.</param>
+    internal static void SortCore<T>(SortSpan<T> s, int first, int last) where T : IComparable<T>
+    {
         var n = last - first;
 
         // Build heap

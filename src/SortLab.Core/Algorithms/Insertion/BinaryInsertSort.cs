@@ -95,38 +95,37 @@ public static class BinaryInsertSort
     }
 
     /// <summary>
-    /// Sorts the subrange [first..last) using binary insertion sort.
-    /// This overload is used internally for range-based sorting (e.g., by hybrid sort algorithms).
+    /// Sorts the subrange [first..last) using the provided sort context.
     /// </summary>
     /// <typeparam name="T">The type of elements in the span. Must implement <see cref="IComparable{T}"/>.</typeparam>
     /// <param name="span">The span containing elements to sort.</param>
     /// <param name="first">The inclusive start index of the range to sort.</param>
     /// <param name="last">The exclusive end index of the range to sort.</param>
     /// <param name="context">The sort context for tracking statistics and observations.</param>
-    internal static void Sort<T>(Span<T> span, int first, int last, ISortContext context) where T : IComparable<T>
+    public static void Sort<T>(Span<T> span, int first, int last, ISortContext context) where T : IComparable<T>
     {
-        Sort(span, first, last, first, context);
+        ArgumentOutOfRangeException.ThrowIfNegative(first);
+        ArgumentOutOfRangeException.ThrowIfGreaterThan(last, span.Length);
+        ArgumentOutOfRangeException.ThrowIfGreaterThan(first, last);
+
+        if (last - first <= 1) return;
+
+        var s = new SortSpan<T>(span, context, BUFFER_MAIN);
+        SortCore(s, first, last, first);
     }
 
     /// <summary>
-    /// Sorts the subrange [first..last) starting from the specified start position.
+    /// Sorts the subrange [first..last) using the provided sort context.
     /// Elements in [first..start) are assumed to already be sorted.
     /// This is useful for hybrid algorithms that pre-sort a portion of the array.
     /// </summary>
     /// <typeparam name="T">The type of elements in the span. Must implement <see cref="IComparable{T}"/>.</typeparam>
-    /// <param name="span">The span containing elements to sort.</param>
+    /// <param name="s">The SortSpan wrapping the span to sort.</param>
     /// <param name="first">The inclusive start index of the sorted range.</param>
     /// <param name="last">The exclusive end index of the range to sort.</param>
     /// <param name="start">The position from which to start inserting elements. Elements before this are already sorted.</param>
-    /// <param name="context">The sort context for tracking statistics and observations.</param>
-    internal static void Sort<T>(Span<T> span, int first, int last, int start, ISortContext context) where T : IComparable<T>
+    internal static void SortCore<T>(SortSpan<T> s, int first, int last, int start) where T : IComparable<T>
     {
-        Debug.Assert(first >= 0 && last <= span.Length && first < last, "Invalid range for sorting.");
-
-        if (span.Length <= 1) return;
-
-        var s = new SortSpan<T>(span, context, BUFFER_MAIN);
-
         // If 'start' equals 'first', move it forward to begin insertion from the next element
         if (start == first)
             start++;

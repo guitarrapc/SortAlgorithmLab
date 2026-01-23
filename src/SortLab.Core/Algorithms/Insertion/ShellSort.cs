@@ -129,15 +129,38 @@ public static class ShellSortKnuth1973
         Sort(span, 0, span.Length, context);
     }
 
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    internal static void Sort<T>(Span<T> span, int first, int last, ISortContext context) where T : IComparable<T>
+    /// <summary>
+    /// Sorts the subrange [first..last) using the provided sort context.
+    /// </summary>
+    /// <typeparam name="T">The type of elements in the span. Must implement <see cref="IComparable{T}"/>.</typeparam>
+    /// <param name="span">The span containing the elements to sort.</param>
+    /// <param name="first">The zero-based index of the first element in the range to sort.</param>
+    /// <param name="last">The exclusive upper bound of the range to sort (one past the last element).</param>
+    /// <param name="context">The sort context to use during the sorting operation for tracking statistics and visualization.</param>
+    public static void Sort<T>(Span<T> span, int first, int last, ISortContext context) where T : IComparable<T>
     {
-        var length = last - first;
-        Debug.Assert(first >= 0 && last <= span.Length && first <= last, "Invalid range for sorting.");
+        ArgumentOutOfRangeException.ThrowIfNegative(first);
+        ArgumentOutOfRangeException.ThrowIfGreaterThan(last, span.Length);
+        ArgumentOutOfRangeException.ThrowIfGreaterThan(first, last);
 
-        if (length < 2) return;
+        if (last - first <= 1) return;
 
         var s = new SortSpan<T>(span, context, BUFFER_MAIN);
+        SortCore(s, first, last);
+    }
+
+    /// <summary>
+    /// Sorts the subrange [first..last) using the provided sort context.
+    /// </summary>
+    /// <typeparam name="T">The type of elements in the span. Must implement <see cref="IComparable{T}"/>.</typeparam>
+    /// <param name="s">The SortSpan wrapping the span to sort.</param>
+    /// <param name="first">The zero-based index of the first element in the range to sort.</param>
+    /// <param name="last">The exclusive upper bound of the range to sort (one past the last element).</param>
+    /// <remarks>
+    internal static void SortCore<T>(SortSpan<T> s, int first, int last) where T : IComparable<T>
+    {
+        var length = last - first;
+        if (length < 2) return;
 
         // Knuth's sequence: h = 3*h + 1
         ReadOnlySpan<int> knuthSequence = [1, 4, 13, 40, 121, 364, 1093, 3280, 9841, 29524, 88573, 265720, 797161, 2391484];
@@ -234,15 +257,38 @@ public static class ShellSortSedgewick1986
         Sort(span, 0, span.Length, context);
     }
 
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    internal static void Sort<T>(Span<T> span, int first, int last, ISortContext context) where T : IComparable<T>
+    /// <summary>
+    /// Sorts the subrange [first..last) using the provided sort context.
+    /// </summary>
+    /// <typeparam name="T">The type of elements in the span. Must implement <see cref="IComparable{T}"/>.</typeparam>
+    /// <param name="span">The span containing the elements to sort.</param>
+    /// <param name="first">The zero-based index of the first element in the range to sort.</param>
+    /// <param name="last">The exclusive upper bound of the range to sort (one past the last element).</param>
+    /// <param name="context">The sort context to use during the sorting operation for tracking statistics and visualization.</param>
+    public static void Sort<T>(Span<T> span, int first, int last, ISortContext context) where T : IComparable<T>
     {
-        var length = last - first;
-        Debug.Assert(first >= 0 && last <= span.Length && first <= last, "Invalid range for sorting.");
+        ArgumentOutOfRangeException.ThrowIfNegative(first);
+        ArgumentOutOfRangeException.ThrowIfGreaterThan(last, span.Length);
+        ArgumentOutOfRangeException.ThrowIfGreaterThan(first, last);
 
-        if (length < 2) return;
+        if (last - first <= 1) return;
 
         var s = new SortSpan<T>(span, context, BUFFER_MAIN);
+        SortCore(s, first, last);
+    }
+
+    /// <summary>
+    /// Sorts the subrange [first..last) using the provided sort context.
+    /// </summary>
+    /// <typeparam name="T">The type of elements in the span. Must implement <see cref="IComparable{T}"/>.</typeparam>
+    /// <param name="s">The SortSpan wrapping the span to sort.</param>
+    /// <param name="first">The zero-based index of the first element in the range to sort.</param>
+    /// <param name="last">The exclusive upper bound of the range to sort (one past the last element).</param>
+    /// <remarks>
+    internal static void SortCore<T>(SortSpan<T> s, int first, int last) where T : IComparable<T>
+    {
+        var length = last - first;
+        if (length < 2) return;
 
         // A partial Sedgewick sequence. Different references may show slightly different numbers.
         ReadOnlySpan<int> sedgewickSequence = [1, 5, 19, 41, 109, 209, 505, 929, 2161, 3905];
@@ -343,15 +389,38 @@ public static class ShellSortTokuda1992
         Sort(span, 0, span.Length, context);
     }
 
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    internal static void Sort<T>(Span<T> span, int first, int last, ISortContext context) where T : IComparable<T>
+    /// <summary>
+    /// Sorts the subrange [first..last) using the provided sort context.
+    /// </summary>
+    /// <typeparam name="T">The type of elements in the span. Must implement <see cref="IComparable{T}"/>.</typeparam>
+    /// <param name="span">The span containing the elements to sort.</param>
+    /// <param name="first">The zero-based index of the first element in the range to sort.</param>
+    /// <param name="last">The exclusive upper bound of the range to sort (one past the last element).</param>
+    /// <param name="context">The sort context to use during the sorting operation for tracking statistics and visualization.</param>
+    public static void Sort<T>(Span<T> span, int first, int last, ISortContext context) where T : IComparable<T>
     {
-        var length = last - first;
-        Debug.Assert(first >= 0 && last <= span.Length && first <= last, "Invalid range for sorting.");
+        ArgumentOutOfRangeException.ThrowIfNegative(first);
+        ArgumentOutOfRangeException.ThrowIfGreaterThan(last, span.Length);
+        ArgumentOutOfRangeException.ThrowIfGreaterThan(first, last);
 
-        if (length < 2) return;
+        if (last - first <= 1) return;
 
         var s = new SortSpan<T>(span, context, BUFFER_MAIN);
+        SortCore(s, first, last);
+    }
+
+    /// <summary>
+    /// Sorts the subrange [first..last) using the provided sort context.
+    /// </summary>
+    /// <typeparam name="T">The type of elements in the span. Must implement <see cref="IComparable{T}"/>.</typeparam>
+    /// <param name="s">The SortSpan wrapping the span to sort.</param>
+    /// <param name="first">The zero-based index of the first element in the range to sort.</param>
+    /// <param name="last">The exclusive upper bound of the range to sort (one past the last element).</param>
+    /// <remarks>
+    internal static void SortCore<T>(SortSpan<T> s, int first, int last) where T : IComparable<T>
+    {
+        var length = last - first;
+        if (length < 2) return;
 
         // Tokuda's sequence: empirically optimized gap sequence
         ReadOnlySpan<int> tokudaSequence = [1, 4, 9, 20, 46, 103, 233, 525, 1182, 2660, 5985, 13467, 30301, 68178, 153401, 345152, 776591];
@@ -452,15 +521,38 @@ public static class ShellSortCiura2001
         Sort(span, 0, span.Length, context);
     }
 
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    internal static void Sort<T>(Span<T> span, int first, int last, ISortContext context) where T : IComparable<T>
+    /// <summary>
+    /// Sorts the subrange [first..last) using the provided sort context.
+    /// </summary>
+    /// <typeparam name="T">The type of elements in the span. Must implement <see cref="IComparable{T}"/>.</typeparam>
+    /// <param name="span">The span containing the elements to sort.</param>
+    /// <param name="first">The zero-based index of the first element in the range to sort.</param>
+    /// <param name="last">The exclusive upper bound of the range to sort (one past the last element).</param>
+    /// <param name="context">The sort context to use during the sorting operation for tracking statistics and visualization.</param>
+    public static void Sort<T>(Span<T> span, int first, int last, ISortContext context) where T : IComparable<T>
     {
-        var length = last - first;
-        Debug.Assert(first >= 0 && last <= span.Length && first <= last, "Invalid range for sorting.");
+        ArgumentOutOfRangeException.ThrowIfNegative(first);
+        ArgumentOutOfRangeException.ThrowIfGreaterThan(last, span.Length);
+        ArgumentOutOfRangeException.ThrowIfGreaterThan(first, last);
 
-        if (length < 2) return;
+        if (last - first <= 1) return;
 
         var s = new SortSpan<T>(span, context, BUFFER_MAIN);
+        SortCore(s, first, last);
+    }
+
+    /// <summary>
+    /// Sorts the subrange [first..last) using the provided sort context.
+    /// </summary>
+    /// <typeparam name="T">The type of elements in the span. Must implement <see cref="IComparable{T}"/>.</typeparam>
+    /// <param name="s">The SortSpan wrapping the span to sort.</param>
+    /// <param name="first">The zero-based index of the first element in the range to sort.</param>
+    /// <param name="last">The exclusive upper bound of the range to sort (one past the last element).</param>
+    /// <remarks>
+    internal static void SortCore<T>(SortSpan<T> s, int first, int last) where T : IComparable<T>
+    {
+        var length = last - first;
+        if (length < 2) return;
 
         // Ciura's empirically determined sequence (extended for larger arrays)
         ReadOnlySpan<int> ciuraSequence = [1, 4, 10, 23, 57, 132, 301, 701, 1750, 3937, 8858, 19930, 44844, 100899];
@@ -560,15 +652,38 @@ public static class ShellSortLee2021
         Sort(span, 0, span.Length, context);
     }
 
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    internal static void Sort<T>(Span<T> span, int first, int last, ISortContext context) where T : IComparable<T>
+    /// <summary>
+    /// Sorts the subrange [first..last) using the provided sort context.
+    /// </summary>
+    /// <typeparam name="T">The type of elements in the span. Must implement <see cref="IComparable{T}"/>.</typeparam>
+    /// <param name="span">The span containing the elements to sort.</param>
+    /// <param name="first">The zero-based index of the first element in the range to sort.</param>
+    /// <param name="last">The exclusive upper bound of the range to sort (one past the last element).</param>
+    /// <param name="context">The sort context to use during the sorting operation for tracking statistics and visualization.</param>
+    public static void Sort<T>(Span<T> span, int first, int last, ISortContext context) where T : IComparable<T>
     {
-        var length = last - first;
-        Debug.Assert(first >= 0 && last <= span.Length && first <= last, "Invalid range for sorting.");
+        ArgumentOutOfRangeException.ThrowIfNegative(first);
+        ArgumentOutOfRangeException.ThrowIfGreaterThan(last, span.Length);
+        ArgumentOutOfRangeException.ThrowIfGreaterThan(first, last);
 
-        if (length < 2) return;
+        if (last - first <= 1) return;
 
         var s = new SortSpan<T>(span, context, BUFFER_MAIN);
+        SortCore(s, first, last);
+    }
+
+    /// <summary>
+    /// Sorts the subrange [first..last) using the provided sort context.
+    /// This overload accepts a SortSpan directly for use by other algorithms that already have a SortSpan instance.
+    /// </summary>
+    /// <typeparam name="T">The type of elements in the span. Must implement <see cref="IComparable{T}"/>.</typeparam>
+    /// <param name="s">The SortSpan wrapping the span to sort.</param>
+    /// <param name="first">The inclusive start index of the range to sort.</param>
+    /// <param name="last">The exclusive end index of the range to sort.</param>
+    internal static void SortCore<T>(SortSpan<T> s, int first, int last) where T : IComparable<T>
+    {
+        var length = last - first;
+        if (length < 2) return;
 
         // Lee's empirically determined sequence based on gamma = 2.243609061420001
         // Formula: h_k = ceil((gamma^k - 1) / (gamma - 1))

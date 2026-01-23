@@ -104,8 +104,7 @@ public static class InsertionSort
     }
 
     /// <summary>
-    /// Sorts the subrange [first..last) using optimized insertion sort with shift operations.
-    /// This overload is used internally for range-based sorting (e.g., by hybrid sort algorithms like Timsort).
+    /// Sorts the subrange [first..last) using the provided sort context.
     /// </summary>
     /// <typeparam name="T">The type of elements in the span. Must implement <see cref="IComparable{T}"/>.</typeparam>
     /// <param name="span">The span containing elements to sort.</param>
@@ -119,14 +118,28 @@ public static class InsertionSort
     /// - Writes the element to its correct position
     /// This reduces the number of writes compared to swap-based insertion sort.
     /// </remarks>
-    internal static void Sort<T>(Span<T> span, int first, int last, ISortContext context) where T : IComparable<T>
+    public static void Sort<T>(Span<T> span, int first, int last, ISortContext context) where T : IComparable<T>
     {
-        Debug.Assert(first >= 0 && last <= span.Length && first < last, "Invalid range for sorting.");
+        ArgumentOutOfRangeException.ThrowIfNegative(first);
+        ArgumentOutOfRangeException.ThrowIfGreaterThan(last, span.Length);
+        ArgumentOutOfRangeException.ThrowIfGreaterThan(first, last);
 
-        if (span.Length <= 1) return;
+        if (last - first <= 1) return;
 
         var s = new SortSpan<T>(span, context, BUFFER_MAIN);
+        SortCore(s, first, last);
+    }
 
+    /// <summary>
+    /// Sorts the subrange [first..last) using the provided sort context.
+    /// This overload accepts a SortSpan directly for use by other algorithms that already have a SortSpan instance.
+    /// </summary>
+    /// <typeparam name="T">The type of elements in the span. Must implement <see cref="IComparable{T}"/>.</typeparam>
+    /// <param name="s">The SortSpan wrapping the span to sort.</param>
+    /// <param name="first">The inclusive start index of the range to sort.</param>
+    /// <param name="last">The exclusive end index of the range to sort.</param>
+    internal static void SortCore<T>(SortSpan<T> s, int first, int last) where T : IComparable<T>
+    {
         for (var i = first + 1; i < last; i++)
         {
             // Temporarily store the value to be inserted
@@ -241,8 +254,8 @@ public static class InsertionSortNonOptimized
     }
 
     /// <summary>
-    /// Sorts the subrange [first..last) using non-optimized insertion sort with adjacent swaps.
-    /// This overload is used internally for range-based sorting and performance comparison studies.
+    /// Sorts the subrange [first..last) using the provided sort context.
+    /// Elements in [first..start) are assumed to already be sorted.
     /// </summary>
     /// <typeparam name="T">The type of elements in the span. Must implement <see cref="IComparable{T}"/>.</typeparam>
     /// <param name="span">The span containing elements to sort.</param>
@@ -257,14 +270,28 @@ public static class InsertionSortNonOptimized
     /// This approach is intuitive but performs more write operations than the optimized shift-based version.
     /// Each swap requires 2 reads + 2 writes, while a shift requires 1 read + 1 write.
     /// </remarks>
-    internal static void Sort<T>(Span<T> span, int first, int last, ISortContext context) where T : IComparable<T>
+    public static void Sort<T>(Span<T> span, int first, int last, ISortContext context) where T : IComparable<T>
     {
-        Debug.Assert(first >= 0 && last <= span.Length && first < last, "Invalid range for sorting.");
+        ArgumentOutOfRangeException.ThrowIfNegative(first);
+        ArgumentOutOfRangeException.ThrowIfGreaterThan(last, span.Length);
+        ArgumentOutOfRangeException.ThrowIfGreaterThanOrEqual(first, last);
 
         if (span.Length <= 1) return;
 
         var s = new SortSpan<T>(span, context, BUFFER_MAIN);
+        SortCore(s, first, last);
+    }
 
+    /// <summary>
+    /// Sorts the subrange [first..last) using the provided sort context.
+    /// This overload accepts a SortSpan directly for use by other algorithms that already have a SortSpan instance.
+    /// </summary>
+    /// <typeparam name="T">The type of elements in the span. Must implement <see cref="IComparable{T}"/>.</typeparam>
+    /// <param name="s">The SortSpan wrapping the span to sort.</param>
+    /// <param name="first">The inclusive start index of the range to sort.</param>
+    /// <param name="last">The exclusive end index of the range to sort.</param>
+    internal static void SortCore<T>(SortSpan<T> s, int first, int last) where T : IComparable<T>
+    {
         for (var i = first + 1; i < last; i++)
         {
             // Move the element at position i backward until it's in the correct position

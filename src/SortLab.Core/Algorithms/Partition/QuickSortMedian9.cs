@@ -108,7 +108,7 @@ public static class QuickSortMedian9
     /// <param name="span">The span of elements to sort in place.</param>
     public static void Sort<T>(Span<T> span) where T : IComparable<T>
     {
-        Sort<T>(span, 0, span.Length, NullContext.Default);
+        Sort(span, 0, span.Length, NullContext.Default);
     }
 
     /// <summary>
@@ -119,27 +119,38 @@ public static class QuickSortMedian9
     /// <param name="context">The sort context that tracks statistics and provides sorting operations. Cannot be null.</param>
     public static void Sort<T>(Span<T> span, ISortContext context) where T : IComparable<T>
     {
-        Sort<T>(span, 0, span.Length, context);
+        Sort(span, 0, span.Length, context);
     }
 
     /// <summary>
     /// Sorts the subrange [first..last) using the provided sort context.
-    /// This overload is used internally for range-based sorting (e.g., by hybrid sort algorithms).
     /// </summary>
     /// <typeparam name="T">The type of elements in the span. Must implement <see cref="IComparable{T}"/>.</typeparam>
     /// <param name="span">The span containing elements to sort.</param>
     /// <param name="first">The inclusive start index of the range to sort.</param>
     /// <param name="last">The exclusive end index of the range to sort.</param>
     /// <param name="context">The sort context for tracking statistics and observations.</param>
-    internal static void Sort<T>(Span<T> span, int first, int last, ISortContext context) where T : IComparable<T>
+    public static void Sort<T>(Span<T> span, int first, int last, ISortContext context) where T : IComparable<T>
     {
+        ArgumentOutOfRangeException.ThrowIfNegative(first);
+        ArgumentOutOfRangeException.ThrowIfGreaterThan(last, span.Length);
+        ArgumentOutOfRangeException.ThrowIfGreaterThan(first, last);
+
         if (last - first <= 1) return;
 
         var s = new SortSpan<T>(span, context, BUFFER_MAIN);
         SortCore(s, first, last - 1, context);
     }
 
-    private static void SortCore<T>(SortSpan<T> s, int left, int right, ISortContext context) where T : IComparable<T>
+    /// <summary>
+    /// Sorts the subrange [first..last) using the provided sort context.
+    /// This overload accepts a SortSpan directly for use by other algorithms that already have a SortSpan instance.
+    /// </summary>
+    /// <typeparam name="T">The type of elements in the span. Must implement <see cref="IComparable{T}"/>.</typeparam>
+    /// <param name="s">The SortSpan wrapping the span to sort.</param>
+    /// <param name="left">The inclusive start index of the range to sort.</param>
+    /// <param name="right">The exclusive end index of the range to sort.</param>
+    internal static void SortCore<T>(SortSpan<T> s, int left, int right, ISortContext context) where T : IComparable<T>
     {
         if (left >= right) return;
 

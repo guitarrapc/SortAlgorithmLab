@@ -89,14 +89,36 @@ public static class PancakeSort
         Sort(span, 0, span.Length, context);
     }
 
-    internal static void Sort<T>(Span<T> span, int first, int last, ISortContext context) where T : IComparable<T>
+    /// <summary>
+    /// Sorts the subrange [first..last) using the provided sort context.
+    /// </summary>
+    /// <typeparam name="T">The type of elements in the span. Must implement <see cref="IComparable{T}"/>.</typeparam>
+    /// <param name="span">The span containing elements to sort.</param>
+    /// <param name="first">The inclusive start index of the range to sort.</param>
+    /// <param name="last">The exclusive end index of the range to sort.</param>
+    /// <param name="context">The sort context for tracking statistics and observations.</param>
+    public static void Sort<T>(Span<T> span, int first, int last, ISortContext context) where T : IComparable<T>
     {
-        Debug.Assert(first >= 0 && last <= span.Length && first < last, "Invalid range for sorting.");
+        ArgumentOutOfRangeException.ThrowIfNegative(first);
+        ArgumentOutOfRangeException.ThrowIfGreaterThan(last, span.Length);
+        ArgumentOutOfRangeException.ThrowIfGreaterThan(first, last);
 
-        if (span.Length <= 1) return;
+        if (last - first <= 1) return;
 
         var s = new SortSpan<T>(span, context, BUFFER_MAIN);
+        SortCore(s, first, last);
+    }
 
+    /// <summary>
+    /// Sorts the subrange [first..last) using the provided sort context.
+    /// This overload accepts a SortSpan directly for use by other algorithms that already have a SortSpan instance.
+    /// </summary>
+    /// <typeparam name="T">The type of elements in the span. Must implement <see cref="IComparable{T}"/>.</typeparam>
+    /// <param name="s">The SortSpan wrapping the span to sort.</param>
+    /// <param name="first">The inclusive start index of the range to sort.</param>
+    /// <param name="last">The exclusive end index of the range to sort.</param>
+    internal static void SortCore<T>(SortSpan<T> s, int first, int last) where T : IComparable<T>
+    {
         for (var currentSize = last; currentSize > first; currentSize--)
         {
             var maxIndex = MaxIndex(s, first, currentSize);
