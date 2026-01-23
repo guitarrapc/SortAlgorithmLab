@@ -67,7 +67,7 @@ Sorting algorithms follow the **Class-based Context + SortSpan** pattern:
 public static class MySort
 {
     private const int InsertionSortThreshold = 16;
-    
+
     // Buffer identifiers for visualization
     private const int BUFFER_MAIN = 0;       // Main input array
 
@@ -200,34 +200,55 @@ public static class MySort
     private const int BUFFER_MAIN = 0;       // Main input array
     private const int BUFFER_TEMP = 1;       // Temporary merge buffer
     private const int BUFFER_AUX = 2;        // Auxiliary buffer
-    
+
+    // Threshold for stackalloc vs ArrayPool
+    private const int StackAllocThreshold = 128;
+
     public static void Sort<T>(Span<T> span, ISortContext context) where T : IComparable<T>
     {
         var s = new SortSpan<T>(span, context, BUFFER_MAIN);
-        
-        var tempArray = new T[span.Length];
-        var temp = new SortSpan<T>(tempArray.AsSpan(), context, BUFFER_TEMP);
-        
-        // All operations on 's' are tracked with BUFFER_MAIN
-        // All operations on 'temp' are tracked with BUFFER_TEMP
+
+        // ✅ For small buffers - use stackalloc (no heap allocation)
+        if (span.Length <= StackAllocThreshold)
+        {
+            Span<T> tempBuffer = stackalloc T[span.Length];
+            var temp = new SortSpan<T>(tempBuffer, context, BUFFER_TEMP);
+            // ...sorting logic...
+        }
+        // ✅ For large buffers - use ArrayPool (reusable, no GC pressure)
+        else
+        {
+            var rentedArray = ArrayPool<T>.Shared.Rent(span.Length);
+            try
+            {
+                var tempBuffer = rentedArray.AsSpan(0, span.Length);
+                var temp = new SortSpan<T>(tempBuffer, context, BUFFER_TEMP);
+                // ...sorting logic...
+            }
+            finally
+            {
+                ArrayPool<T>.Shared.Return(rentedArray);
+            }
+        }
     }
 }
 ```
 
-**Examples:**
+**Memory Allocation Rules:**
 
-- **MergeSort**: BUFFER_MAIN (0), BUFFER_MERGE (1)
-- **RadixSort**: BUFFER_MAIN (0), BUFFER_TEMP (1), BUFFER_NEGATIVE (2), BUFFER_NONNEGATIVE (3)
-- **BucketSort**: BUFFER_MAIN (0), BUFFER_TEMP (1), BUFFER_BUCKET_0..99 (2..101)
-- **CountingSort**: BUFFER_MAIN (0), BUFFER_TEMP (1)
+Avoid use `new T[]` or `new List<T>` for internal buffers. Instead, follow these guidelines:
+
+1. **Small buffers (≤ 128 elements)**: Use `stackalloc`
+2. **Large buffers (> 128 elements)**: Use `ArrayPool<T>.Shared`
 
 **Rules:**
 
 1. ✅ **Always use SortSpan for internal buffers** - even if they're temporary arrays
 2. ✅ **Assign unique bufferIds** - starting from 0 for main array
 3. ✅ **Document buffer purpose** - use clear constant names
-4. ❌ **Never bypass SortSpan** - direct array access loses statistics
-
+4. ✅ **Use stackalloc or ArrayPool** - never `new T[]` or `new List<T>`
+5. ✅ **Return ArrayPool rentals** - always use try-finally
+6. ❌ **Never bypass SortSpan** - direct array access loses statistics
 
 
 ### Context Types
