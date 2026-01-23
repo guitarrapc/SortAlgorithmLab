@@ -77,6 +77,20 @@ Span ...
 /// <item><description>Swaps       : ~n log n - One swap per level during heapify, averaged across all operations</description></item>
 /// <item><description>Cache       : Poor locality - Heap structure causes frequent cache misses due to non-sequential access</description></item>
 /// </list>
+/// <para><strong>Why "Heap / Selection" Family?:</strong></para>
+/// <para>
+/// HeapSort belongs to the Selection sort family. Like Selection Sort, it repeatedly 
+/// selects the maximum element and places it at the end of the sorted portion. 
+/// The key difference is the selection mechanism:
+/// </para>
+/// <list type="bullet">
+/// <item><description>Selection Sort: Linear search O(n) to find maximum</description></item>
+/// <item><description>Heap Sort: Heap structure O(log n) to extract maximum</description></item>
+/// </list>
+/// <para>
+/// Thus, HeapSort is essentially an optimized Selection Sort using a heap data structure,
+/// improving time complexity from O(n²) to O(n log n).
+/// </para>
 /// <para><strong>Implementation Notes:</strong></para>
 /// <list type="bullet">
 /// <item><description>Uses iterative heapify (loop) instead of recursive for better performance and stack safety</description></item>
