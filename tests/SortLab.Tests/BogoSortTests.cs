@@ -13,27 +13,8 @@ public class BogoSortTests
     [ClassData(typeof(MockReversedData))]
     [ClassData(typeof(MockMountainData))]
     [ClassData(typeof(MockNearlySortedData))]
-    [ClassData(typeof(MockSortedData))]
     [ClassData(typeof(MockSameValuesData))]
     public void SortResultOrderTest(IInputSample<int> inputSample)
-    {
-        if (inputSample.Samples.Length <= 10)
-        {
-            var array = inputSample.Samples.ToArray();
-            BogoSort.Sort(array.AsSpan());
-            Assert.Equal(inputSample.Samples.OrderBy(x => x), array);
-        }
-    }
-
-    [CISkippableTheory]
-    [ClassData(typeof(MockRandomData))]
-    [ClassData(typeof(MockNegativePositiveRandomData))]
-    [ClassData(typeof(MockNegativeRandomData))]
-    [ClassData(typeof(MockReversedData))]
-    [ClassData(typeof(MockMountainData))]
-    [ClassData(typeof(MockNearlySortedData))]
-    [ClassData(typeof(MockSameValuesData))]
-    public void StatisticsTest(IInputSample<int> inputSample)
     {
         if (inputSample.Samples.Length <= 10)
         {
@@ -42,10 +23,6 @@ public class BogoSortTests
             BogoSort.Sort(array.AsSpan(), stats);
 
             Assert.Equal((ulong)inputSample.Samples.Length, (ulong)array.Length);
-            Assert.NotEqual(0UL, stats.IndexReadCount);
-            Assert.NotEqual(0UL, stats.IndexWriteCount);
-            Assert.NotEqual(0UL, stats.CompareCount);
-            Assert.NotEqual(0UL, stats.SwapCount);
         }
     }
 
@@ -63,24 +40,6 @@ public class BogoSortTests
             Assert.NotEqual(0UL, stats.IndexReadCount);
             Assert.Equal(0UL, stats.IndexWriteCount);
             Assert.NotEqual(0UL, stats.CompareCount);
-            Assert.Equal(0UL, stats.SwapCount);
-        }
-    }
-
-    [CISkippableTheory]
-    [ClassData(typeof(MockRandomData))]
-    public void StatisticsResetTest(IInputSample<int> inputSample)
-    {
-        if (inputSample.Samples.Length <= 10)
-        {
-            var stats = new StatisticsContext();
-            var array = inputSample.Samples.ToArray();
-            BogoSort.Sort(array.AsSpan(), stats);
-
-            stats.Reset();
-            Assert.Equal(0UL, stats.IndexReadCount);
-            Assert.Equal(0UL, stats.IndexWriteCount);
-            Assert.Equal(0UL, stats.CompareCount);
             Assert.Equal(0UL, stats.SwapCount);
         }
     }

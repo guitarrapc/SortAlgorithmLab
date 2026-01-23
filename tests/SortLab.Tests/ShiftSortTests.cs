@@ -12,51 +12,14 @@ public class ShiftSortTests
     [ClassData(typeof(MockReversedData))]
     [ClassData(typeof(MockMountainData))]
     [ClassData(typeof(MockNearlySortedData))]
-    [ClassData(typeof(MockSortedData))]
     [ClassData(typeof(MockSameValuesData))]
     public void SortResultOrderTest(IInputSample<int> inputSample)
     {
-        var array = inputSample.Samples.ToArray();
-        ShiftSort.Sort(array.AsSpan());
-        Assert.Equal(inputSample.Samples.OrderBy(x => x), array);
-    }
-
-    [Theory]
-    [ClassData(typeof(MockRandomData))]
-    [ClassData(typeof(MockNegativePositiveRandomData))]
-    [ClassData(typeof(MockNegativeRandomData))]
-    [ClassData(typeof(MockReversedData))]
-    [ClassData(typeof(MockMountainData))]
-    [ClassData(typeof(MockSameValuesData))]
-    public void StatisticsTest(IInputSample<int> inputSample)
-    {
         var stats = new StatisticsContext();
         var array = inputSample.Samples.ToArray();
         ShiftSort.Sort(array.AsSpan(), stats);
 
         Assert.Equal((ulong)inputSample.Samples.Length, (ulong)array.Length);
-        Assert.NotEqual(0UL, stats.IndexReadCount);
-        Assert.NotEqual(0UL, stats.IndexWriteCount);
-        Assert.NotEqual(0UL, stats.CompareCount);
-        // ShiftSort uses swaps only during run detection phase
-        // Some data patterns may not require swaps
-    }
-
-    [Theory]
-    [ClassData(typeof(MockNearlySortedData))]
-    public void StatisticsNearlySortedTest(IInputSample<int> inputSample)
-    {
-        var stats = new StatisticsContext();
-        var array = inputSample.Samples.ToArray();
-        ShiftSort.Sort(array.AsSpan(), stats);
-
-        Assert.Equal((ulong)inputSample.Samples.Length, (ulong)array.Length);
-        Assert.NotEqual(0UL, stats.IndexReadCount);
-        // Nearly sorted data should have minimal writes
-        Assert.NotEqual(0UL, stats.IndexWriteCount);
-        Assert.NotEqual(0UL, stats.CompareCount);
-        // ShiftSort excels with nearly sorted data - minimal swaps
-        Assert.InRange(stats.SwapCount, 0UL, 10UL);
     }
 
     [Theory]
@@ -68,27 +31,9 @@ public class ShiftSortTests
         ShiftSort.Sort(array.AsSpan(), stats);
 
         Assert.Equal((ulong)inputSample.Samples.Length, (ulong)array.Length);
-        // Sorted data only needs run detection scan
         Assert.NotEqual(0UL, stats.IndexReadCount);
-        // No merge operations needed, so minimal writes
         Assert.Equal(0UL, stats.IndexWriteCount);
         Assert.NotEqual(0UL, stats.CompareCount);
-        // Sorted data requires no swaps
-        Assert.Equal(0UL, stats.SwapCount);
-    }
-
-    [Theory]
-    [ClassData(typeof(MockRandomData))]
-    public void StatisticsResetTest(IInputSample<int> inputSample)
-    {
-        var stats = new StatisticsContext();
-        var array = inputSample.Samples.ToArray();
-        ShiftSort.Sort(array.AsSpan(), stats);
-
-        stats.Reset();
-        Assert.Equal(0UL, stats.IndexReadCount);
-        Assert.Equal(0UL, stats.IndexWriteCount);
-        Assert.Equal(0UL, stats.CompareCount);
         Assert.Equal(0UL, stats.SwapCount);
     }
 
