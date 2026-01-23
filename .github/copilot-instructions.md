@@ -9,8 +9,9 @@ This is a C# sorting algorithm laboratory for educational and performance analys
 ## Project Structure
 
 - `src/SortLab.Core/` - Core sorting algorithms and interfaces
-  - `Sortings/` - All sorting algorithm implementations
+  - `Algorithms/` - Sorting algorithm implementations
   - `Contexts/` - Statistics and visualization contexts
+  - `Sortings/` - All sorting algorithm implementations (deprecated)
 - `tests/SortLab.Tests/` - Unit tests for all algorithms
 - `sandbox/` - Benchmark and experimental code
 - `.github/agent_docs/` - Detailed implementation guidelines
@@ -53,7 +54,7 @@ When implementing or reviewing sorting algorithms, refer to these detailed guide
 Before implementing a new sorting algorithm or making significant changes:
 
 1. Read the relevant documentation files in `.github/agent_docs/`
-2. Review existing similar implementations in `src/SortLab.Core/Sortings/`
+2. Review existing similar implementations in `src/SortLab.Core/Algorithms/`
 3. Check corresponding tests in `tests/SortLab.Tests/`
 
 Ask which documentation files you need if you're unsure what to read.
