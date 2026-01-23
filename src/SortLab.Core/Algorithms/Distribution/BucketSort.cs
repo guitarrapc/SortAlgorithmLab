@@ -245,6 +245,10 @@ public static class BucketSortInteger
 {
     private const int MaxBucketCount = 1000; // Maximum number of buckets
     private const int MinBucketCount = 2;    // Minimum number of buckets
+    
+    // Buffer identifiers for visualization
+    private const int BUFFER_MAIN = 0;       // Main input array
+    private const int BUFFER_TEMP = 1;       // Temporary buffer
 
     /// <summary>
     /// Sorts the elements in the specified span in ascending order.
@@ -282,7 +286,7 @@ public static class BucketSortInteger
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private static void SortCore(Span<int> span, Span<int> bucketIndices, Span<int> tempArray, ISortContext context)
     {
-        var s = new SortSpan<int>(span, context);
+        var s = new SortSpan<int>(span, context, BUFFER_MAIN);
 
         // Find min and max
         var min = int.MaxValue;

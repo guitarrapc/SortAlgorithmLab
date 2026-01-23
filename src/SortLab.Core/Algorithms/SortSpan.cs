@@ -21,7 +21,7 @@ internal ref struct SortSpan<T> where T: IComparable<T>
     /// <param name="span">The span to wrap</param>
     /// <param name="context">The context for tracking operations</param>
     /// <param name="bufferId">Buffer identifier (0 = main array, 1+ = auxiliary buffers). Default is 0.</param>
-    public SortSpan(Span<T> span, ISortContext context, int bufferId = 0)
+    public SortSpan(Span<T> span, ISortContext context, int bufferId)
     {
         _span = span;
         _context = context;

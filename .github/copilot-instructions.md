@@ -67,6 +67,9 @@ Sorting algorithms follow the **Class-based Context + SortSpan** pattern:
 public static class MySort
 {
     private const int InsertionSortThreshold = 16;
+    
+    // Buffer identifiers for visualization
+    private const int BUFFER_MAIN = 0;       // Main input array
 
     public static void Sort<T>(Span<T> span) where T : IComparable<T>
         => Sort(span, NullContext.Default);
@@ -75,7 +78,7 @@ public static class MySort
     {
         if (span.Length <= 1) return;
 
-        var s = new SortSpan<T>(span, context);
+        var s = new SortSpan<T>(span, context, BUFFER_MAIN);
 
         if (s.Length <= InsertionSortThreshold)
         {
@@ -177,6 +180,55 @@ Use `SortSpan<T>` helper methods for all array/span operations:
      ```
 
 **Important:** Never use `CompareTo()` directly. All comparisons must go through `SortSpan` methods to ensure accurate statistics tracking.
+
+### Buffer Identification for Internal Buffers
+
+When sorting algorithms use internal temporary buffers (for merge operations, distribution, etc.), **always track their operations using SortSpan with a unique bufferId**.
+
+**Why BufferId is Required:**
+
+- **Complete statistics tracking**: Internal buffer operations must be counted for accurate performance analysis
+- **Visualization support**: Different buffers can be rendered separately in sorting animations
+- **Educational value**: Students can see data movement between main array and temporary buffers
+
+**BufferId Convention:**
+
+```csharp
+public static class MySort
+{
+    // Buffer identifiers for visualization
+    private const int BUFFER_MAIN = 0;       // Main input array
+    private const int BUFFER_TEMP = 1;       // Temporary merge buffer
+    private const int BUFFER_AUX = 2;        // Auxiliary buffer
+    
+    public static void Sort<T>(Span<T> span, ISortContext context) where T : IComparable<T>
+    {
+        var s = new SortSpan<T>(span, context, BUFFER_MAIN);
+        
+        var tempArray = new T[span.Length];
+        var temp = new SortSpan<T>(tempArray.AsSpan(), context, BUFFER_TEMP);
+        
+        // All operations on 's' are tracked with BUFFER_MAIN
+        // All operations on 'temp' are tracked with BUFFER_TEMP
+    }
+}
+```
+
+**Examples:**
+
+- **MergeSort**: BUFFER_MAIN (0), BUFFER_MERGE (1)
+- **RadixSort**: BUFFER_MAIN (0), BUFFER_TEMP (1), BUFFER_NEGATIVE (2), BUFFER_NONNEGATIVE (3)
+- **BucketSort**: BUFFER_MAIN (0), BUFFER_TEMP (1), BUFFER_BUCKET_0..99 (2..101)
+- **CountingSort**: BUFFER_MAIN (0), BUFFER_TEMP (1)
+
+**Rules:**
+
+1. ✅ **Always use SortSpan for internal buffers** - even if they're temporary arrays
+2. ✅ **Assign unique bufferIds** - starting from 0 for main array
+3. ✅ **Document buffer purpose** - use clear constant names
+4. ❌ **Never bypass SortSpan** - direct array access loses statistics
+
+
 
 ### Context Types
 
