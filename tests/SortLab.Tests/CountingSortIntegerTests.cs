@@ -83,14 +83,14 @@ public class CountingSortIntegerTests
         var sorted = Enumerable.Range(0, n).ToArray();
         CountingSortInteger.Sort(sorted.AsSpan(), stats);
 
-        // CountingSortInteger optimized version with value caching:
-        // 1. Find min/max and cache values: n reads (s.Read into cachedValues)
-        // 2. Count occurrences: 0 reads (uses cached values)
-        // 3. Build result in reverse: n reads (from cachedValues, which counts as reads in stackalloc context)
-        // 4. Write back: n writes (from result to span)
-        // Total: 2n reads, n writes
-        var expectedReads = (ulong)(2 * n);
-        var expectedWrites = (ulong)n;
+        // CountingSortInteger with temp buffer tracking:
+        // 1. Find min/max: n reads (s.Read)
+        // 2. Count occurrences: n reads (s.Read)
+        // 3. Build result in reverse: n reads (s.Read) + n writes (tempSpan.Write)
+        // 4. Write back: n reads (tempSpan.Read) + n writes (s.Write)
+        //  Total: 4n reads, 2n writes
+        var expectedReads = (ulong)(4 * n);
+        var expectedWrites = (ulong)(2 * n);
 
         Assert.Equal(0UL, stats.CompareCount);
         Assert.Equal(0UL, stats.SwapCount);
@@ -110,9 +110,9 @@ public class CountingSortIntegerTests
         CountingSortInteger.Sort(reversed.AsSpan(), stats);
 
         // CountingSortInteger complexity is O(n + k) regardless of input order
-        // With optimization: 2n reads, n writes
-        var expectedReads = (ulong)(2 * n);
-        var expectedWrites = (ulong)n;
+        // With temp buffer tracking: 4n reads, 2n writes
+        var expectedReads = (ulong)(4 * n);
+        var expectedWrites = (ulong)(2 * n);
 
         Assert.Equal(0UL, stats.CompareCount);
         Assert.Equal(0UL, stats.SwapCount);
@@ -132,8 +132,9 @@ public class CountingSortIntegerTests
         CountingSortInteger.Sort(random.AsSpan(), stats);
 
         // CountingSortInteger has same complexity regardless of input distribution
-        var expectedReads = (ulong)(2 * n);
-        var expectedWrites = (ulong)n;
+        // 4n reads due to temp buffer tracking, 2n writes
+        var expectedReads = (ulong)(4 * n);
+        var expectedWrites = (ulong)(2 * n);
 
         Assert.Equal(0UL, stats.CompareCount);
         Assert.Equal(0UL, stats.SwapCount);
@@ -150,7 +151,7 @@ public class CountingSortIntegerTests
         CountingSortInteger.Sort(allSame.AsSpan(), stats);
 
         // When all values are the same (min == max), early return after min/max scan
-        // Only n reads for finding min/max, then early return
+        // Only n reads for finding min/max, then early return (no writes)
         var expectedReads = (ulong)n;
         var expectedWrites = 0UL;
 
@@ -178,8 +179,8 @@ public class CountingSortIntegerTests
         CountingSortInteger.Sort(array.AsSpan(), stats);
 
         Assert.Equal(new[] { -10, -5, -3, -1, 0, 3 }, array);
-        Assert.Equal((ulong)(2 * n), stats.IndexReadCount);
-        Assert.Equal((ulong)n, stats.IndexWriteCount);
+        Assert.Equal((ulong)(4 * n), stats.IndexReadCount);
+        Assert.Equal((ulong)(2 * n), stats.IndexWriteCount);
         Assert.Equal(0UL, stats.CompareCount);
     }
 
@@ -221,7 +222,7 @@ public class CountingSortIntegerTests
 
         var expected = Enumerable.Repeat(3, duplicateCount).Concat(Enumerable.Repeat(5, duplicateCount)).ToArray();
         Assert.Equal(expected, array);
-        Assert.Equal((ulong)(2 * n), stats.IndexReadCount);
-        Assert.Equal((ulong)n, stats.IndexWriteCount);
+        Assert.Equal((ulong)(4 * n), stats.IndexReadCount);
+        Assert.Equal((ulong)(2 * n), stats.IndexWriteCount);
     }
 }
