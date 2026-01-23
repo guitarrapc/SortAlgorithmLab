@@ -136,15 +136,15 @@ public static class RadixLSD4Sort
 
         if (hasNegative)
         {
-            SortCoreNegative(s, tempBuffer, negativeBuffer, nonNegativeBuffer, bucketData, bucketOffsets, digitCount, context);
+            SortCoreNegative(s, tempBuffer, negativeBuffer, nonNegativeBuffer, bucketOffsets, digitCount, context);
         }
         else
         {
-            SortCorePositive(s, tempBuffer, bucketData, bucketOffsets, digitCount, context);
+            SortCorePositive(s, tempBuffer, bucketOffsets, digitCount, context);
         }
     }
 
-    private static void SortCorePositive<T>(SortSpan<T> s, Span<T> tempBuffer, Span<T> bucketData, Span<int> bucketOffsets, int digitCount, ISortContext context) 
+    private static void SortCorePositive<T>(SortSpan<T> s, Span<T> tempBuffer, Span<int> bucketOffsets, int digitCount, ISortContext context) 
         where T : IBinaryInteger<T>, IMinMaxValue<T>, IComparable<T>
     {
         var temp = new SortSpan<T>(tempBuffer, context, BUFFER_TEMP);
@@ -188,7 +188,7 @@ public static class RadixLSD4Sort
     }
 
     private static void SortCoreNegative<T>(SortSpan<T> s, Span<T> tempBuffer, Span<T> negativeBuffer, Span<T> nonNegativeBuffer, 
-                                             Span<T> bucketData, Span<int> bucketOffsets, int digitCount, ISortContext context) 
+                                             Span<int> bucketOffsets, int digitCount, ISortContext context) 
         where T : IBinaryInteger<T>, IMinMaxValue<T>, IComparable<T>
     {
         // Wrap buffers with SortSpan for statistics tracking
@@ -219,7 +219,7 @@ public static class RadixLSD4Sort
             var negativeSpan = negativeBuffer.Slice(0, negativeCount);
             var negativeSortSpan = new SortSpan<T>(negativeSpan, context, BUFFER_NEGATIVE);
             var negativeTempBuffer = tempBuffer.Slice(0, negativeCount);
-            SortNegativeValues(negativeSortSpan, negativeTempBuffer, bucketData, bucketOffsets, digitCount, context);
+            SortNegativeValues(negativeSortSpan, negativeTempBuffer, bucketOffsets, digitCount, context);
         }
 
         // Sort non-negative numbers normally
@@ -228,12 +228,14 @@ public static class RadixLSD4Sort
             var nonNegativeSpan = nonNegativeBuffer.Slice(0, nonNegativeCount);
             var nonNegativeSortSpan = new SortSpan<T>(nonNegativeSpan, context, BUFFER_NONNEGATIVE);
             var nonNegativeTempBuffer = tempBuffer.Slice(0, nonNegativeCount);
-            SortCorePositive(nonNegativeSortSpan, nonNegativeTempBuffer, bucketData, bucketOffsets, digitCount, context);
+            SortCorePositive(nonNegativeSortSpan, nonNegativeTempBuffer, bucketOffsets, digitCount, context);
         }
 
-        // Merge back: negatives first (already in correct order), then non-negatives
+        // Merge back: negatives in REVERSE order (largest absolute value first), then non-negatives
+        // Negative values are sorted by ascending absolute value: [-1, -2, -3, -5]
+        // We merge them in reverse to get: [-5, -3, -2, -1]
         var writeIndex = 0;
-        for (var i = 0; i < negativeCount; i++)
+        for (var i = negativeCount - 1; i >= 0; i--)
         {
             s.Write(writeIndex++, negBuf.Read(i));
         }
@@ -243,7 +245,7 @@ public static class RadixLSD4Sort
         }
     }
 
-    private static void SortNegativeValues<T>(SortSpan<T> s, Span<T> tempBuffer, Span<T> bucketData, Span<int> bucketOffsets, int digitCount, ISortContext context) 
+    private static void SortNegativeValues<T>(SortSpan<T> s, Span<T> tempBuffer, Span<int> bucketOffsets, int digitCount, ISortContext context) 
         where T : IBinaryInteger<T>, IMinMaxValue<T>, IComparable<T>
     {
         var temp = new SortSpan<T>(tempBuffer, context, BUFFER_TEMP);
@@ -270,20 +272,22 @@ public static class RadixLSD4Sort
                 bucketOffsets[i] += bucketOffsets[i - 1];
             }
             
-            // Distribute elements into temp buffer in reverse order (for descending sort by absolute value)
-            for (var i = s.Length - 1; i >= 0; i--)
+            // Distribute elements into temp buffer in FORWARD order (for ascending sort by absolute value)
+            // This preserves stability and sorts by absolute value in ascending order
+            for (var i = 0; i < s.Length; i++)
             {
                 var value = s.Read(i);
                 var absValue = T.Abs(value);
                 var digit = GetDigit(absValue, shift);
                 var destIndex = bucketOffsets[digit]++;
-                temp.Write(destIndex, value);
+                temp.Write(destIndex, value);  // Via SortSpan for statistics
             }
             
-            // Copy back from temp to source in reverse to get descending order
+            // Copy back in FORWARD order
+            // After all passes, array is sorted by absolute value (ascending)
             for (var i = 0; i < s.Length; i++)
             {
-                s.Write(i, temp.Read(s.Length - 1 - i));
+                s.Write(i, temp.Read(i));  // Via SortSpan for statistics
             }
         }
     }
