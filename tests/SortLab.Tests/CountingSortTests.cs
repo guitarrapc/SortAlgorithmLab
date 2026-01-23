@@ -83,14 +83,16 @@ public class CountingSortTests
         var sorted = Enumerable.Range(0, n).ToArray();
         CountingSort.Sort(sorted.AsSpan(), x => x, stats);
 
-        // Counting Sort with generic key selector:
-        // 1. Find min/max and cache keys: n reads
-        // 2. Count occurrences: 0 reads (uses cached keys)
-        // 3. Build result in reverse: n reads
-        // 4. Write back: n writes
-        // Total: 2n reads, n writes
-        var expectedReads = (ulong)(2 * n);
-        var expectedWrites = (ulong)n;
+        // Counting Sort with internal buffer tracking (via SortSpan):
+        // 1. Find min/max and cache keys: n reads (main buffer)
+        // 2. Count occurrences: 0 reads (uses cached keys array)
+        // 3. Build result in reverse: n reads (main) + n writes (temp buffer)
+        // 4. Write back: n reads (temp buffer) + n writes (main)
+        //
+        // Total reads: n + n + n = 3n
+        // Total writes: n + n = 2n
+        var expectedReads = (ulong)(3 * n);
+        var expectedWrites = (ulong)(2 * n);
 
         Assert.Equal(0UL, stats.CompareCount);
         Assert.Equal(0UL, stats.SwapCount);
@@ -110,9 +112,9 @@ public class CountingSortTests
         CountingSort.Sort(reversed.AsSpan(), x => x, stats);
 
         // Counting Sort complexity is O(n + k) regardless of input order
-        // Same operation counts for reversed as for sorted
-        var expectedReads = (ulong)(2 * n);
-        var expectedWrites = (ulong)n;
+        // Same operation counts for reversed as for sorted (with internal buffer tracking)
+        var expectedReads = (ulong)(3 * n);
+        var expectedWrites = (ulong)(2 * n);
 
         Assert.Equal(0UL, stats.CompareCount);
         Assert.Equal(0UL, stats.SwapCount);
@@ -132,8 +134,9 @@ public class CountingSortTests
         CountingSort.Sort(random.AsSpan(), x => x, stats);
 
         // Counting Sort has same complexity regardless of input distribution
-        var expectedReads = (ulong)(2 * n);
-        var expectedWrites = (ulong)n;
+        // With internal buffer tracking: 3n reads, 2n writes
+        var expectedReads = (ulong)(3 * n);
+        var expectedWrites = (ulong)(2 * n);
 
         Assert.Equal(0UL, stats.CompareCount);
         Assert.Equal(0UL, stats.SwapCount);
@@ -247,8 +250,9 @@ public class CountingSortTests
         CountingSort.Sort(array.AsSpan(), x => x, stats);
 
         Assert.Equal(new[] { -10, -5, -3, -1, 0, 3 }, array);
-        Assert.Equal((ulong)(2 * n), stats.IndexReadCount);
-        Assert.Equal((ulong)n, stats.IndexWriteCount);
+        // With internal buffer tracking: 3n reads, 2n writes
+        Assert.Equal((ulong)(3 * n), stats.IndexReadCount);
+        Assert.Equal((ulong)(2 * n), stats.IndexWriteCount);
         Assert.Equal(0UL, stats.CompareCount);
     }
 }

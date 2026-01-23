@@ -48,6 +48,11 @@ public static class BucketSort
 {
     private const int MaxBucketCount = 1000; // Maximum number of buckets
     private const int MinBucketCount = 2;    // Minimum number of buckets
+    
+    // Buffer identifiers for visualization
+    private const int BUFFER_MAIN = 0;       // Main input array
+    private const int BUFFER_TEMP = 1;       // Temporary buffer for sorted elements
+    private const int BUFFER_BUCKET_BASE = 100; // Base ID for individual buckets (100, 101, 102, ...)
 
     /// <summary>
     /// Sorts the elements in the specified span using a key selector function.
@@ -85,7 +90,7 @@ public static class BucketSort
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private static void SortCore<T>(Span<T> span, Span<int> keys, Span<T> tempArray, Func<T, int> keySelector, ISortContext context) where T : IComparable<T>
     {
-        var s = new SortSpan<T>(span, context);
+        var s = new SortSpan<T>(span, context, BUFFER_MAIN);
 
         // Find min/max and cache keys in single pass
         var min = int.MaxValue;
@@ -157,14 +162,15 @@ public static class BucketSort
             tempArray[pos] = s.Read(i);
         }
 
-        // Sort each bucket using Span slicing
+        // Sort each bucket using Span slicing with SortSpan for tracking
         for (var i = 0; i < bucketCount; i++)
         {
             var count = bucketCounts[i];
             if (count > 1)
             {
                 var start = bucketStarts[i];
-                InsertionSortBucket(tempArray.Slice(start, count));
+                var bucketSpan = new SortSpan<T>(tempArray.Slice(start, count), context, BUFFER_BUCKET_BASE + i);
+                InsertionSortBucket(bucketSpan);
             }
         }
 
@@ -177,21 +183,22 @@ public static class BucketSort
 
     /// <summary>
     /// Insertion sort for bucket contents (stable sort)
+    /// Uses SortSpan to track all operations for statistics and visualization
     /// </summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private static void InsertionSortBucket<T>(Span<T> bucket) where T : IComparable<T>
+    private static void InsertionSortBucket<T>(SortSpan<T> s) where T : IComparable<T>
     {
-        for (var i = 1; i < bucket.Length; i++)
+        for (var i = 1; i < s.Length; i++)
         {
-            var key = bucket[i];
+            var key = s.Read(i);
             var j = i - 1;
 
-            while (j >= 0 && bucket[j].CompareTo(key) > 0)
+            while (j >= 0 && s.Compare(j, key) > 0)
             {
-                bucket[j + 1] = bucket[j];
+                s.Write(j + 1, s.Read(j));
                 j--;
             }
-            bucket[j + 1] = key;
+            s.Write(j + 1, key);
         }
     }
 }

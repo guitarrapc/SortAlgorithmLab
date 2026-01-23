@@ -47,6 +47,13 @@ namespace SortLab.Core.Algorithms;
 public static class RadixLSD10Sort
 {
     private const int RadixBase = 10;       // Decimal base
+    
+    // Buffer identifiers for visualization
+    private const int BUFFER_MAIN = 0;           // Main input array
+    private const int BUFFER_TEMP = 1;           // Temporary buffer for digit redistribution
+    private const int BUFFER_NEGATIVE = 2;       // Negative numbers buffer
+    private const int BUFFER_NONNEGATIVE = 3;    // Non-negative numbers buffer
+
 
     /// <summary>
     /// Sorts the elements in the specified span in ascending order using the default comparer.
@@ -95,7 +102,7 @@ public static class RadixLSD10Sort
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private static void SortCore<T>(Span<T> span, Span<T> tempBuffer, Span<int> bucketCounts, Span<T> negativeBuffer, Span<T> nonNegativeBuffer, ISortContext context) where T : IComparable<T>, IBinaryInteger<T>
     {
-        var s = new SortSpan<T>(span, context);
+        var s = new SortSpan<T>(span, context, BUFFER_MAIN);
 
         // Check if we have negative numbers
         var hasNegative = false;
@@ -203,18 +210,18 @@ public static class RadixLSD10Sort
         }
 
         // Sort negative numbers using their absolute values
-        // Create SortSpan for internal buffer to track statistics
+        // Create SortSpan for internal buffer to track statistics with specific buffer ID
         if (negativeCount > 0)
         {
-            var negativeSpan = new SortSpan<T>(negativeBuffer.Slice(0, negativeCount), context);
+            var negativeSpan = new SortSpan<T>(negativeBuffer.Slice(0, negativeCount), context, BUFFER_NEGATIVE);
             SortNegativeValues(negativeSpan, tempBuffer, bucketCounts);
         }
 
         // Sort non-negative numbers
-        // Create SortSpan for internal buffer to track statistics
+        // Create SortSpan for internal buffer to track statistics with specific buffer ID
         if (nonNegativeCount > 0)
         {
-            var nonNegativeSpan = new SortSpan<T>(nonNegativeBuffer.Slice(0, nonNegativeCount), context);
+            var nonNegativeSpan = new SortSpan<T>(nonNegativeBuffer.Slice(0, nonNegativeCount), context, BUFFER_NONNEGATIVE);
             SortPositiveValues(nonNegativeSpan, tempBuffer, bucketCounts);
         }
 

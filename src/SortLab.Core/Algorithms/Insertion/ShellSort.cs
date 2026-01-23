@@ -99,6 +99,9 @@ Span (Sedgewick) ...
 /// </remarks>
 public static class ShellSortKnuth1973
 {
+    // Buffer identifiers for visualization
+    private const int BUFFER_MAIN = 0;       // Main input array
+    
     // Characteristics:
     // - Most famous and classic gap sequence
     // - Easy to implement with simple formula
@@ -134,7 +137,7 @@ public static class ShellSortKnuth1973
 
         if (length < 2) return;
 
-        var s = new SortSpan<T>(span, context);
+        var s = new SortSpan<T>(span, context, BUFFER_MAIN);
 
         // Knuth's sequence: h = 3*h + 1
         ReadOnlySpan<int> knuthSequence = [1, 4, 13, 40, 121, 364, 1093, 3280, 9841, 29524, 88573, 265720, 797161, 2391484];
@@ -207,6 +210,9 @@ public static class ShellSortKnuth1973
 /// <typeparam name="T"></typeparam>
 public static class ShellSortSedgewick1986
 {
+    // Buffer identifiers for visualization
+    private const int BUFFER_MAIN = 0;       // Main input array
+    
     /// <summary>
     /// Sorts the elements in the specified span in ascending order using the default comparer.
     /// </summary>
@@ -236,7 +242,7 @@ public static class ShellSortSedgewick1986
 
         if (length < 2) return;
 
-        var s = new SortSpan<T>(span, context);
+        var s = new SortSpan<T>(span, context, BUFFER_MAIN);
 
         // A partial Sedgewick sequence. Different references may show slightly different numbers.
         ReadOnlySpan<int> sedgewickSequence = [1, 5, 19, 41, 109, 209, 505, 929, 2161, 3905];
@@ -311,6 +317,9 @@ public static class ShellSortSedgewick1986
 /// <typeparam name="T"></typeparam>
 public static class ShellSortTokuda1992
 {
+    // Buffer identifiers for visualization
+    private const int BUFFER_MAIN = 0;       // Main input array
+    
     // - Widely used in production systems
 
     /// <summary>
@@ -342,7 +351,7 @@ public static class ShellSortTokuda1992
 
         if (length < 2) return;
 
-        var s = new SortSpan<T>(span, context);
+        var s = new SortSpan<T>(span, context, BUFFER_MAIN);
 
         // Tokuda's sequence: empirically optimized gap sequence
         ReadOnlySpan<int> tokudaSequence = [1, 4, 9, 20, 46, 103, 233, 525, 1182, 2660, 5985, 13467, 30301, 68178, 153401, 345152, 776591];
@@ -419,6 +428,9 @@ public static class ShellSortTokuda1992
 /// <typeparam name="T"></typeparam>
 public static class ShellSortCiura2001
 {
+    // Buffer identifiers for visualization
+    private const int BUFFER_MAIN = 0;       // Main input array
+
     /// <summary>
     /// Sorts the elements in the specified span in ascending order using the default comparer.
     /// </summary>
@@ -448,7 +460,7 @@ public static class ShellSortCiura2001
 
         if (length < 2) return;
 
-        var s = new SortSpan<T>(span, context);
+        var s = new SortSpan<T>(span, context, BUFFER_MAIN);
 
         // Ciura's empirically determined sequence (extended for larger arrays)
         ReadOnlySpan<int> ciuraSequence = [1, 4, 10, 23, 57, 132, 301, 701, 1750, 3937, 8858, 19930, 44844, 100899];
@@ -524,6 +536,9 @@ public static class ShellSortCiura2001
 /// <typeparam name="T"></typeparam>
 public static class ShellSortLee2021
 {
+    // Buffer identifiers for visualization
+    private const int BUFFER_MAIN = 0;       // Main input array
+
     /// <summary>
     /// Sorts the elements in the specified span in ascending order using the default comparer.
     /// </summary>
@@ -553,7 +568,7 @@ public static class ShellSortLee2021
 
         if (length < 2) return;
 
-        var s = new SortSpan<T>(span, context);
+        var s = new SortSpan<T>(span, context, BUFFER_MAIN);
 
         // Lee's empirically determined sequence based on gamma = 2.243609061420001
         // Formula: h_k = ceil((gamma^k - 1) / (gamma - 1))

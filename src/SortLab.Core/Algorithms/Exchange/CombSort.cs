@@ -49,6 +49,9 @@ namespace SortLab.Core.Algorithms;
 /// </remarks>
 public static class CombSort
 {
+    // Buffer identifiers for visualization
+    private const int BUFFER_MAIN = 0;       // Main input array
+
     /// <summary>
     /// Sorts the elements in the specified span in ascending order using the default comparer.
     /// </summary>
@@ -69,7 +72,7 @@ public static class CombSort
     {
         if (span.Length <= 1) return;
 
-        var s = new SortSpan<T>(span, context);
+        var s = new SortSpan<T>(span, context, BUFFER_MAIN);
 
         // Initialize gap with shrink factor 1.3 (multiply by 10/13)
         var h = s.Length * 10 / 13;

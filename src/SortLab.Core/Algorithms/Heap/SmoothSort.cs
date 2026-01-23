@@ -77,12 +77,14 @@ Span ...
 /// <item><description>✓ Achieves O(n) performance on sorted data (verified: n=100 → 0 swaps, 188 comparisons vs theoretical ~100)</description></item>
 /// <item><description>✓ Achieves O(n log n) on random/reversed data (verified within expected bounds)</description></item>
 /// </list>
-/// <para><strong>Reference:</strong> Dijkstra, E.W. (1981). "Smoothsort, an alternative for sorting in situ" (EWD796a)</para>
+/// <para><strong>Reference:</strong></para>
+/// <para>Dijkstra, E.W. (1981). "Smoothsort, an alternative for sorting in situ" (EWD796a)</para>
+/// <para>Original implementation: https://www.slideshare.net/habib_786/smooth-sort</para>
 /// </remarks>
-
 public static class SmoothSort
 {
-    // refer : https://www.slideshare.net/habib_786/smooth-sort
+    // Buffer identifiers for visualization
+    private const int BUFFER_MAIN = 0;       // Main input array
 
     /// <summary>
     /// Sorts the elements in the specified span in ascending order using the default comparer.
@@ -104,7 +106,7 @@ public static class SmoothSort
     {
         if (span.Length <= 1) return;
 
-        var s = new SortSpan<T>(span, context);
+        var s = new SortSpan<T>(span, context, BUFFER_MAIN);
 
         int q = 1, r = 0, p = 1, b = 1, c = 1;
         int r1 = 0, b1 = 0, c1 = 0;

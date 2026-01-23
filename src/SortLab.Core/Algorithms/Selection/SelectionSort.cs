@@ -72,6 +72,9 @@ Span ...
 /// <typeparam name="T"></typeparam>
 public static class SelectionSort
 {
+    // Buffer identifiers for visualization
+    private const int BUFFER_MAIN = 0;       // Main input array
+    
     /// <summary>
     /// Sorts the elements in the specified span in ascending order using the default comparer.
     /// </summary>
@@ -110,7 +113,7 @@ public static class SelectionSort
 
         if (span.Length <= 1) return;
 
-        var s = new SortSpan<T>(span, context);
+        var s = new SortSpan<T>(span, context, BUFFER_MAIN);
 
         for (var i = first; i < last - 1; i++)
         {

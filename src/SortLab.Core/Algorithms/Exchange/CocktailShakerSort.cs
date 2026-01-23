@@ -37,6 +37,9 @@ namespace SortLab.Core.Algorithms;
 /// </remarks>
 public static class CocktailShakerSort
 {
+    // Buffer identifiers for visualization
+    private const int BUFFER_MAIN = 0;       // Main input array
+
     /// <summary>
     /// Sorts the elements in the specified span in ascending order using the default comparer.
     /// </summary>
@@ -57,7 +60,7 @@ public static class CocktailShakerSort
     {
         if (span.Length <= 1) return;
 
-        var s = new SortSpan<T>(span, context);
+        var s = new SortSpan<T>(span, context, BUFFER_MAIN);
 
         var min = 0;
         var max = s.Length - 1;
@@ -129,6 +132,9 @@ public static class CocktailShakerSort
 /// </remarks>
 public static class CocktailShakerSortNonOptimized
 {
+    // Buffer identifiers for visualization
+    private const int BUFFER_MAIN = 0;       // Main input array
+
     /// <summary>
     /// Sorts the elements in the specified span in ascending order using the default comparer.
     /// </summary>
@@ -149,7 +155,7 @@ public static class CocktailShakerSortNonOptimized
     {
         if (span.Length <= 1) return;
 
-        var s = new SortSpan<T>(span, context);
+        var s = new SortSpan<T>(span, context, BUFFER_MAIN);
 
         // half calculation
         for (int i = 0; i < s.Length / 2; i++)

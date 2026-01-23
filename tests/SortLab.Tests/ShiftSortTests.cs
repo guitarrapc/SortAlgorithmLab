@@ -103,7 +103,7 @@ public class ShiftSortTests
         var sorted = Enumerable.Range(0, n).ToArray();
         ShiftSort.Sort(sorted.AsSpan(), stats);
 
-        // For sorted data:
+        // For sorted data (with internal buffer tracking):
         // - Run detection: O(n) comparisons (n-1 comparisons in the scan loop)
         // - No run boundaries detected, so no merge operations
         // - No swaps needed
@@ -133,7 +133,7 @@ public class ShiftSortTests
         var reversed = Enumerable.Range(0, n).Reverse().ToArray();
         ShiftSort.Sort(reversed.AsSpan(), stats);
 
-        // For reversed data [n-1, n-2, ..., 1, 0]:
+        // For reversed data [n-1, n-2, ..., 1, 0] (with internal buffer tracking):
         // - Run detection: O(n) comparisons
         //   * Every adjacent pair is out of order (n-1 boundaries detected)
         //   * Each boundary detection checks 2 elements (current and previous)
@@ -144,6 +144,8 @@ public class ShiftSortTests
         //   * The 3-element optimization swaps elements at positions x and x-2
         //   * For reversed data, this creates approximately n/2 swaps
         // - Writes during merge: O(n log k)
+        //   * NOW includes writes to temp buffers (tmp1st or tmp2nd)
+        //   * Each merge: writes to temp buffer + writes back to main
         
         // Run detection comparisons: approximately n
         var minRunDetectionCompares = (ulong)(n - 1);
@@ -158,14 +160,16 @@ public class ShiftSortTests
         var minCompares = minRunDetectionCompares;
         var maxCompares = (ulong)(n * Math.Log(n, 2) * 2); // 2x for safety margin
         
-        // Writes occur only during merge (shift-based, not swap-based)
-        // For reversed data, most elements need to be shifted
+        // Writes occur during merge (shift-based, not swap-based)
+        // With internal buffer tracking: writes to temp buffer + writes back
+        // For reversed data, most elements need to be shifted multiple times
         var minWrites = (ulong)(n - 1);
+        // Allow for higher writes due to temp buffer operations being tracked
+        var maxWrites = (ulong)(n * Math.Log(n, 2) * 3);
         
         Assert.InRange(stats.CompareCount, minCompares, maxCompares);
         Assert.InRange(stats.SwapCount, 0UL, maxSwaps);
-        Assert.True(stats.IndexWriteCount >= minWrites,
-            $"IndexWriteCount ({stats.IndexWriteCount}) should be >= {minWrites}");
+        Assert.InRange(stats.IndexWriteCount, minWrites, maxWrites);
         Assert.True(stats.IndexReadCount >= minCompares * 2,
             $"IndexReadCount ({stats.IndexReadCount}) should be >= {minCompares * 2}");
     }
@@ -181,11 +185,12 @@ public class ShiftSortTests
         var random = Enumerable.Range(0, n).OrderBy(_ => Guid.NewGuid()).ToArray();
         ShiftSort.Sort(random.AsSpan(), stats);
 
-        // For random data:
+        // For random data (with internal buffer tracking):
         // - Number of runs: varies significantly (typically k << n)
         // - Comparisons: O(n log k) where k is number of runs
         // - Swaps during run detection: typically less than n/2
         // - Writes during merge: O(n log k)
+        //   * NOW includes writes to temp buffers
         
         var minCompares = (ulong)(n - 1); // At least run detection
         var maxCompares = (ulong)(n * Math.Log(n, 2) * 2); // At most O(n log n)
@@ -193,12 +198,13 @@ public class ShiftSortTests
         var maxSwaps = (ulong)(n / 2 + 5); // Limited to run detection phase
         
         // Random data typically requires many merges
+        // With internal buffer tracking: writes to temp buffer + writes back
         var minWrites = (ulong)(n / 4);
+        var maxWrites = (ulong)(n * Math.Log(n, 2) * 3);
         
         Assert.InRange(stats.CompareCount, minCompares, maxCompares);
         Assert.InRange(stats.SwapCount, 0UL, maxSwaps);
-        Assert.True(stats.IndexWriteCount >= minWrites,
-            $"IndexWriteCount ({stats.IndexWriteCount}) should be >= {minWrites}");
+        Assert.InRange(stats.IndexWriteCount, minWrites, maxWrites);
         Assert.True(stats.IndexReadCount >= minCompares * 2,
             $"IndexReadCount ({stats.IndexReadCount}) should be >= {minCompares * 2}");
     }

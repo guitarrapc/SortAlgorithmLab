@@ -59,6 +59,10 @@ namespace SortLab.Core.Algorithms;
 /// </remarks>
 public static class MergeSort
 {
+    // Buffer identifiers for visualization
+    private const int BUFFER_MAIN = 0;       // Main input array
+    private const int BUFFER_MERGE = 1;      // Merge buffer (auxiliary space)
+    
     /// <summary>
     /// Sorts the elements in the specified span in ascending order using the default comparer.
     /// </summary>
@@ -120,12 +124,13 @@ public static class MergeSort
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private static void Merge<T>(Span<T> span, Span<T> left, Span<T> right, Span<T> buffer, ISortContext context) where T : IComparable<T>
     {
-        var s = new SortSpan<T>(span, context);
+        var s = new SortSpan<T>(span, context, BUFFER_MAIN);
+        var b = new SortSpan<T>(buffer.Slice(0, left.Length), context, BUFFER_MERGE);
 
         // Copy left partition to buffer to avoid overwriting during merge
         for (var i = 0; i < left.Length; i++)
         {
-            buffer[i] = s.Read(i);
+            b.Write(i, s.Read(i));
         }
 
         var l = 0;           // Index in buffer (left partition copy)
@@ -136,9 +141,11 @@ public static class MergeSort
         while (l < left.Length && r < span.Length)
         {
             // Stability: use <= to take from left when equal
-            if (s.Compare(buffer[l], r) <= 0)
+            // Compare buffer element (b) with main span element (s)
+            var bufferValue = b.Read(l);
+            if (s.Compare(bufferValue, r) <= 0)
             {
-                s.Write(k, buffer[l]);
+                s.Write(k, bufferValue);
                 l++;
             }
             else
@@ -153,7 +160,7 @@ public static class MergeSort
         // Copy remaining elements from buffer (left partition) if any
         while (l < left.Length)
         {
-            s.Write(k, buffer[l]);
+            s.Write(k, b.Read(l));
             l++;
             k++;
         }

@@ -41,6 +41,9 @@ namespace SortLab.Core.Algorithms;
 /// </remarks>
 public static class GnomeSort
 {
+    // Buffer identifiers for visualization
+    private const int BUFFER_MAIN = 0;       // Main input array
+
     /// <summary>
     /// Sorts the elements in the specified span in ascending order using the default comparer.
     /// </summary>
@@ -61,7 +64,7 @@ public static class GnomeSort
     {
         if (span.Length <= 1) return;
 
-        var s = new SortSpan<T>(span, context);
+        var s = new SortSpan<T>(span, context, BUFFER_MAIN);
 
         for (var i = 0; i < s.Length; i++)
         {
@@ -112,6 +115,9 @@ public static class GnomeSort
 /// </remarks>
 public static class GnomeSortNonOptimized
 {
+    // Buffer identifiers for visualization
+    private const int BUFFER_MAIN = 0;       // Main input array
+
     /// <summary>
     /// Sorts the elements in the specified span in ascending order using the default comparer.
     /// </summary>
@@ -126,7 +132,7 @@ public static class GnomeSortNonOptimized
     {
         if (span.Length <= 1) return;
 
-        var s = new SortSpan<T>(span, context);
+        var s = new SortSpan<T>(span, context, BUFFER_MAIN);
 
         var i = 0;
         while (i < s.Length)

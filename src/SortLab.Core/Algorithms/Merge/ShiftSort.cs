@@ -71,6 +71,12 @@ public static class ShiftSort
 {
     // Threshold for using stackalloc vs ArrayPool (128 int = 512 bytes)
     private const int StackallocThreshold = 256; // (128 * 2) - 2 = max span.Length for stackalloc
+    
+    // Buffer identifiers for visualization
+    private const int BUFFER_MAIN = 0;           // Main input array
+    private const int BUFFER_TEMP_FIRST = 1;     // Temporary buffer for first partition
+    private const int BUFFER_TEMP_SECOND = 2;    // Temporary buffer for second partition
+
 
     /// <summary>
     /// Sorts the elements in the specified span in ascending order using the default comparer.
@@ -121,7 +127,7 @@ public static class ShiftSort
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private static void SortCore<T>(Span<T> span, ISortContext context, Span<int> zeroIndices) where T : IComparable<T>
     {
-        var s = new SortSpan<T>(span, context);
+        var s = new SortSpan<T>(span, context, BUFFER_MAIN);
 
         // Phase 1: Run Detection - Identify natural sorted sequences and their boundaries
         zeroIndices[0] = s.Length;
@@ -164,19 +170,19 @@ public static class ShiftSort
         zeroIndices[endTracker] = 0;
 
         // Phase 2: Adaptive Merge - Recursively merge detected runs
-        Split(s, zeroIndices, 0, endTracker);
+        Split(s, zeroIndices, 0, endTracker, context);
     }
 
     /// <summary>
     /// Recursively divides the run index list and merges runs bottom-up.
     /// </summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private static void Split<T>(SortSpan<T> s, Span<int> zeroIndices, int i, int j) where T : IComparable<T>
+    private static void Split<T>(SortSpan<T> s, Span<int> zeroIndices, int i, int j, ISortContext context) where T : IComparable<T>
     {
         // Base case: 2 runs - merge them directly
         if ((j - i) == 2)
         {
-            Merge(s, zeroIndices[j], zeroIndices[j - 1], zeroIndices[i]);
+            Merge(s, zeroIndices[j], zeroIndices[j - 1], zeroIndices[i], context);
             return;
         }
         else if ((j - i) < 2)
@@ -190,13 +196,13 @@ public static class ShiftSort
         var i2 = j2 + 1;
 
         // Recursively sort first half of runs
-        Split(s, zeroIndices, i, j2);
+        Split(s, zeroIndices, i, j2, context);
         // Recursively sort second half of runs
-        Split(s, zeroIndices, i2, j);
+        Split(s, zeroIndices, i2, j, context);
 
         // Merge the two halves
-        Merge(s, zeroIndices[i2], zeroIndices[j2], zeroIndices[i]);
-        Merge(s, zeroIndices[j], zeroIndices[i2], zeroIndices[i]);
+        Merge(s, zeroIndices[i2], zeroIndices[j2], zeroIndices[i], context);
+        Merge(s, zeroIndices[j], zeroIndices[i2], zeroIndices[i], context);
     }
 
     /// <summary>
@@ -204,16 +210,18 @@ public static class ShiftSort
     /// The smaller partition is buffered to minimize memory allocation and write operations.
     /// </summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private static void Merge<T>(SortSpan<T> s, int first, int second, int third) where T : IComparable<T>
+    private static void Merge<T>(SortSpan<T> s, int first, int second, int third, ISortContext context) where T : IComparable<T>
     {
         if (second - first > third - second)
         {
             // Second partition is smaller - buffer it and merge backward
             var tmp2nd = new T[third - second];
+            var tmp2ndSpan = new SortSpan<T>(tmp2nd.AsSpan(), context, BUFFER_TEMP_SECOND);
+            
             var counter = 0;
             for (var y = second; y < third; y++)
             {
-                tmp2nd[counter] = s.Read(y);
+                tmp2ndSpan.Write(counter, s.Read(y));
                 counter++;
             }
 
@@ -223,14 +231,14 @@ public static class ShiftSort
             while (secondCounter > 0)
             {
                 // Stability: >= ensures elements from left partition come first when equal
-                if (left >= first && s.Compare(left, tmp2nd[secondCounter - 1]) >= 0)
+                if (left >= first && s.Compare(left, tmp2ndSpan.Read(secondCounter - 1)) >= 0)
                 {
                     s.Write(left + secondCounter, s.Read(left));
                     left--;
                 }
                 else
                 {
-                    s.Write(left + secondCounter, tmp2nd[secondCounter - 1]);
+                    s.Write(left + secondCounter, tmp2ndSpan.Read(secondCounter - 1));
                     secondCounter--;
                 }
             }
@@ -239,10 +247,12 @@ public static class ShiftSort
         {
             // First partition is smaller - buffer it and merge forward
             var tmp1st = new T[second - first];
+            var tmp1stSpan = new SortSpan<T>(tmp1st.AsSpan(), context, BUFFER_TEMP_FIRST);
+            
             var counter = 0;
             for (var y = first; y < second; y++)
             {
-                tmp1st[counter] = s.Read(y);
+                tmp1stSpan.Write(counter, s.Read(y));
                 counter++;
             }
 
@@ -252,14 +262,14 @@ public static class ShiftSort
             var right = second;
             while (firstCounter < tmp1st.Length)
             {
-                if (right < third && s.Compare(right, tmp1st[firstCounter]) < 0)
+                if (right < third && s.Compare(right, tmp1stSpan.Read(firstCounter)) < 0)
                 {
                     s.Write(right - tmpLength, s.Read(right));
                     right++;
                 }
                 else
                 {
-                    s.Write(right - tmpLength, tmp1st[firstCounter]);
+                    s.Write(right - tmpLength, tmp1stSpan.Read(firstCounter));
                     firstCounter++;
                     tmpLength--;
                 }

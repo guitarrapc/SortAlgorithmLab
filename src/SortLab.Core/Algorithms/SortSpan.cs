@@ -4,12 +4,36 @@ using SortLab.Core.Contexts;
 
 namespace SortLab.Core.Algorithms;
 
-internal ref struct SortSpan<T>(Span<T> span, ISortContext ccontext) where T: IComparable<T>
+/// <summary>
+/// A wrapper around Span&lt;T&gt; that tracks sorting operations through ISortContext.
+/// Supports buffer identification for visualization purposes.
+/// </summary>
+/// <typeparam name="T">The type of elements in the span</typeparam>
+internal ref struct SortSpan<T> where T: IComparable<T>
 {
-    private Span<T> _span = span;
-    private readonly ISortContext _context = ccontext;
+    private Span<T> _span;
+    private readonly ISortContext _context;
+    private readonly int _bufferId;
+
+    /// <summary>
+    /// Initializes a new instance of SortSpan with the specified span and context.
+    /// </summary>
+    /// <param name="span">The span to wrap</param>
+    /// <param name="context">The context for tracking operations</param>
+    /// <param name="bufferId">Buffer identifier (0 = main array, 1+ = auxiliary buffers). Default is 0.</param>
+    public SortSpan(Span<T> span, ISortContext context, int bufferId = 0)
+    {
+        _span = span;
+        _context = context;
+        _bufferId = bufferId;
+    }
 
     public int Length => _span.Length;
+    
+    /// <summary>
+    /// Gets the buffer identifier for this span.
+    /// </summary>
+    public int BufferId => _bufferId;
 
     /// <summary>
     /// Retrieves the element at the specified zero-based index. (Equivalent to span[i].)
@@ -19,7 +43,7 @@ internal ref struct SortSpan<T>(Span<T> span, ISortContext ccontext) where T: IC
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public T Read(int i)
     {
-        _context.OnIndexRead(i);
+        _context.OnIndexRead(i, _bufferId);
         return _span[i];
     }
 
@@ -31,7 +55,7 @@ internal ref struct SortSpan<T>(Span<T> span, ISortContext ccontext) where T: IC
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public void Write(int i, T value)
     {
-        _context.OnIndexWrite(i);
+        _context.OnIndexWrite(i, _bufferId);
         _span[i] = value;
     }
 
@@ -49,7 +73,7 @@ internal ref struct SortSpan<T>(Span<T> span, ISortContext ccontext) where T: IC
         var a = Read(i);
         var b = Read(j);
         var result = a.CompareTo(b);
-        _context.OnCompare(i, j, result);
+        _context.OnCompare(i, j, result, _bufferId, _bufferId);
         return result;
     }
 
@@ -65,7 +89,7 @@ internal ref struct SortSpan<T>(Span<T> span, ISortContext ccontext) where T: IC
     {
         var a = Read(i);
         var result = a.CompareTo(value);
-        _context.OnCompare(i, -1, result);
+        _context.OnCompare(i, -1, result, _bufferId, -1);
         return result;
     }
 
@@ -81,7 +105,7 @@ internal ref struct SortSpan<T>(Span<T> span, ISortContext ccontext) where T: IC
     {
         var b = Read(i);
         var result = value.CompareTo(b);
-        _context.OnCompare(-1, i, result);
+        _context.OnCompare(-1, i, result, -1, _bufferId);
         return result;
     }
 
@@ -96,7 +120,7 @@ internal ref struct SortSpan<T>(Span<T> span, ISortContext ccontext) where T: IC
     public int Compare(T a, T b)
     {
         var result = a.CompareTo(b);
-        _context.OnCompare(-1, -1, result);
+        _context.OnCompare(-1, -1, result, -1, -1);
         return result;
     }
 
@@ -113,9 +137,10 @@ internal ref struct SortSpan<T>(Span<T> span, ISortContext ccontext) where T: IC
         var a = Read(i);
         var b = Read(j);
 
-        _context.OnSwap(i, j);
+        _context.OnSwap(i, j, _bufferId);
 
         Write(i, b);
         Write(j, a);
     }
 }
+

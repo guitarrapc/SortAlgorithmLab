@@ -47,6 +47,10 @@ public static class CountingSort
 {
     private const int MaxCountArraySize = 10_000_000; // Maximum allowed count array size
     private const int StackAllocThreshold = 1024; // Use stackalloc for count arrays smaller than this
+    
+    // Buffer identifiers for visualization
+    private const int BUFFER_MAIN = 0;       // Main input array
+    private const int BUFFER_TEMP = 1;       // Temporary buffer for sorted elements
 
     /// <summary>
     /// Sorts the elements in the specified span using a key selector function.
@@ -63,7 +67,7 @@ public static class CountingSort
     {
         if (span.Length <= 1) return;
 
-        var s = new SortSpan<T>(span, context);
+        var s = new SortSpan<T>(span, context, BUFFER_MAIN);
 
         // Rent arrays from ArrayPool for temporary storage
         var keysArray = ArrayPool<int>.Shared.Rent(span.Length);
@@ -105,7 +109,7 @@ public static class CountingSort
                 : (rentedCountArray = ArrayPool<int>.Shared.Rent(size)).AsSpan(0, size);
             countArray.Clear();
 
-            SortCore(s, keys, tempArray.AsSpan(0, span.Length), countArray, offset);
+            SortCore(s, keys, tempArray.AsSpan(0, span.Length), countArray, offset, context);
         }
         finally
         {
@@ -122,8 +126,11 @@ public static class CountingSort
     /// Core counting sort implementation.
     /// </summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private static void SortCore<T>(SortSpan<T> s, Span<int> keys, Span<T> tempArray, Span<int> countArray, int offset) where T : IComparable<T>
+    private static void SortCore<T>(SortSpan<T> s, Span<int> keys, Span<T> tempArray, Span<int> countArray, int offset, ISortContext context) where T : IComparable<T>
     {
+        // Create SortSpan for temp buffer to track operations
+        var tempSpan = new SortSpan<T>(tempArray, context, BUFFER_TEMP);
+        
         // Count occurrences of each key
         for (var i = 0; i < s.Length; i++)
         {
@@ -142,14 +149,14 @@ public static class CountingSort
             var key = keys[i];
             var index = key + offset;
             var pos = countArray[index] - 1;
-            tempArray[pos] = s.Read(i);
+            tempSpan.Write(pos, s.Read(i));
             countArray[index]--;
         }
 
         // Write sorted data back to original span
         for (var i = 0; i < s.Length; i++)
         {
-            s.Write(i, tempArray[i]);
+            s.Write(i, tempSpan.Read(i));
         }
     }
 }
@@ -180,6 +187,10 @@ public static class CountingSortInteger
 {
     private const int MaxCountArraySize = 10_000_000; // Maximum allowed count array size
     private const int StackAllocThreshold = 1024; // Use stackalloc for count arrays smaller than this
+    
+    // Buffer identifiers for visualization
+    private const int BUFFER_MAIN = 0;       // Main input array
+    private const int BUFFER_TEMP = 1;       // Temporary buffer for sorted elements
 
     public static void Sort(Span<int> span)
     {
@@ -190,7 +201,7 @@ public static class CountingSortInteger
     {
         if (span.Length <= 1) return;
 
-        var s = new SortSpan<int>(span, context);
+        var s = new SortSpan<int>(span, context, BUFFER_MAIN);
 
         // Rent arrays from ArrayPool for temporary storage
         var tempArray = ArrayPool<int>.Shared.Rent(span.Length);
@@ -228,7 +239,7 @@ public static class CountingSortInteger
                 : (rentedCountArray = ArrayPool<int>.Shared.Rent(size)).AsSpan(0, size);
             countArray.Clear();
 
-            SortCore(s, tempArray.AsSpan(0, span.Length), countArray, offset);
+            SortCore(s, tempArray.AsSpan(0, span.Length), countArray, offset, context);
         }
         finally
         {
@@ -241,14 +252,15 @@ public static class CountingSortInteger
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private static void SortCore(SortSpan<int> s, Span<int> tempArray, Span<int> countArray, int offset)
+    private static void SortCore(SortSpan<int> s, Span<int> tempArray, Span<int> countArray, int offset, ISortContext context)
     {
-        // Count occurrences and cache values to avoid redundant reads
-        Span<int> cachedValues = tempArray.Slice(0, s.Length);
+        // Create SortSpan for temp buffer to track operations
+        var tempSpan = new SortSpan<int>(tempArray, context, BUFFER_TEMP);
+        
+        // Count occurrences
         for (var i = 0; i < s.Length; i++)
         {
             var value = s.Read(i);
-            cachedValues[i] = value;
             countArray[value + offset]++;
         }
 
@@ -259,21 +271,19 @@ public static class CountingSortInteger
         }
 
         // Build result array in reverse order to maintain stability
-        // Note: We need a separate temp array because cachedValues uses tempArray
-        Span<int> result = stackalloc int[s.Length];
         for (var i = s.Length - 1; i >= 0; i--)
         {
-            var value = cachedValues[i];
+            var value = s.Read(i);
             var index = value + offset;
             var pos = countArray[index] - 1;
-            result[pos] = value;
+            tempSpan.Write(pos, value);
             countArray[index]--;
         }
 
         // Write sorted data back to original span
         for (var i = 0; i < s.Length; i++)
         {
-            s.Write(i, result[i]);
+            s.Write(i, tempSpan.Read(i));
         }
     }
 }
