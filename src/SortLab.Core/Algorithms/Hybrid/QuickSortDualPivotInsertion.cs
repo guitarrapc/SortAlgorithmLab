@@ -98,7 +98,7 @@ public static class QuickSortDualPivotInsertion
 
         // fase 2. Sort Left, Mid and righ
         SortCore(s, left, l - 1);
-        if (s.Compare(left, right) < 0)
+        if (s.Compare(l, g) < 0)
         {
             SortCore(s, l + 1, g - 1);
         }
