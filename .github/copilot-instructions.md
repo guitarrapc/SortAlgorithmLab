@@ -1,285 +1,59 @@
-# Project Custom Instructions
+# SortAlgorithmLab - Project Instructions
 
-## Coding Review Guidelines
+## What is this project?
 
-When reviewing code, focus on the following points:
+This is a C# sorting algorithm laboratory for educational and performance analysis purposes. It implements various sorting algorithms with comprehensive statistics tracking and visualization support.
 
-- Use of Modern C# Features
-  - Consider using the latest syntax available (C# 13 or later), such as `using` declarations, file-scoped namespaces, and collection literals, etc.
-- Coding Style
-  - Follow general .NET coding guidelines for base conventions (e.g., naming rules).
-    - Use `PascalCase` for constant names.
-  - Inherit specific coding styles from existing code:
-    - Do not use `_` or `s_` prefixes.
-    - Omit the `private` modifier.
-    - Prefer the use of `var`.
-- Unit Tests
-  - Check for the presence of unit tests.
+**Tech Stack:** C# (.NET 9+), xUnit, BenchmarkDotNet
 
-Suggest fixes for any sections that deviate from these points.
+## Project Structure
 
-## Implementation Guidelines
+- `src/SortLab.Core/` - Core sorting algorithms and interfaces
+  - `Sortings/` - All sorting algorithm implementations
+  - `Contexts/` - Statistics and visualization contexts
+- `tests/SortLab.Tests/` - Unit tests for all algorithms
+- `sandbox/` - Benchmark and experimental code
+- `.github/agent_docs/` - Detailed implementation guidelines
 
-All sorting algorithms must be implemented with **maximum attention to performance and memory efficiency**.
+## How to Work on This Project
 
-### Architecture Overview
+### Running Tests
 
-Sorting algorithms follow the **Class-based Context + SortSpan** pattern:
-
-- **Static methods** - Sort algorithms are implemented as static methods (stateless)
-- **ISortContext** - Handles observation (statistics, visualization) via callback interface
-- **SortSpan<T>** - ref struct that wraps `Span<T>` + `ISortContext` for clean API
-
-```
-┌─────────────────────────────────────────────────────────────┐
-│  BubbleSort.Sort<T>(span)                                   │
-│  BubbleSort.Sort<T>(span, context)                          │
-│  ─────────────────────────────────────────────────────────  │
-│  • Static methods (no instance required)                    │
-│  • Stateless (pure functions)                               │
-│  • Context handles statistics/visualization                 │
-└─────────────────────────────────────────────────────────────┘
+```powershell
+dotnet test
 ```
 
-### Core Requirements
+### Running Benchmarks
 
-1. **Zero Allocations**
-   - Never allocate arrays or collections during sorting
-   - Use `Span<T>` and `stackalloc` for temporary storage
-   - For large buffers, consider `ArrayPool<T>.Shared`
-
-2. **Aggressive Inlining**
-   - Mark hot-path methods with `[MethodImpl(MethodImplOptions.AggressiveInlining)]`
-   - Especially for methods called frequently in loops
-
-3. **Loop Optimization**
-   - Cache frequently accessed values outside loops
-   - Use `for` loops with indices instead of `foreach`
-   - Minimize redundant comparisons
-
-4. **Hybrid Approaches**
-   - Use insertion sort for small subarrays (typically < 16-32 elements)
-   - Switch algorithms based on data characteristics when beneficial
-
-### Example Pattern
-
-```csharp
-public static class MySort
-{
-    private const int InsertionSortThreshold = 16;
-
-    // Buffer identifiers for visualization
-    private const int BUFFER_MAIN = 0;       // Main input array
-
-    public static void Sort<T>(Span<T> span) where T : IComparable<T>
-        => Sort(span, NullContext.Default);
-
-    public static void Sort<T>(Span<T> span, ISortContext context) where T : IComparable<T>
-    {
-        if (span.Length <= 1) return;
-
-        var s = new SortSpan<T>(span, context, BUFFER_MAIN);
-
-        if (s.Length <= InsertionSortThreshold)
-        {
-            InsertionSort(s);
-            return;
-        }
-        SortCore(s, 0, s.Length - 1);
-    }
-
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private static void SortCore<T>(SortSpan<T> s, int left, int right) where T : IComparable<T>
-    {
-        // Use s.Read(), s.Write(), s.Compare(), s.Swap() consistently
-    }
-}
+```powershell
+cd sandbox/SandboxBenchmark
+dotnet run -c Release
 ```
 
-### Verification
+### Building the Project
 
-- Test with BenchmarkDotNet
-- Verify zero allocations in Release builds
-- Ensure Context overhead is minimal with `NullContext.Default`
-
-## SortSpan Usage Guidelines
-
-When implementing sorting algorithms, use **SortSpan<T>** for all array/span operations.
-
-This approach provides:
-
-- **Accurate statistics** for algorithm analysis via ISortContext
-- **Clean abstraction** for tracking operations
-- **Minimal performance impact** with NullContext (empty method calls)
-- **Consistent code style** across all sorting implementations
-- **Separation of concerns** - algorithm logic vs observation
-
-### Required Practices
-
-Use `SortSpan<T>` helper methods for all array/span operations:
-
-1. **Use `s.Read(i)` for reading elements**
-   - Notifies context via `OnIndexRead(i)`
-   - Example:
-     ```csharp
-     var s = new SortSpan<T>(span, context);
-
-     // ✅ Correct - uses Read
-     var value = s.Read(i);
-
-     // ❌ Incorrect - bypasses context
-     var value = span[i];
-     ```
-
-2. **Use `s.Write(i, value)` for writing elements**
-   - Notifies context via `OnIndexWrite(i)`
-   - Example:
-     ```csharp
-     // ✅ Correct - uses Write
-     s.Write(i, value);
-
-     // ❌ Incorrect - bypasses context
-     span[i] = value;
-     ```
-
-3. **Use `s.Compare(i, j)` for comparisons**
-   - Reads both elements, compares, and notifies context via `OnCompare(i, j, result)`
-   - Example:
-     ```csharp
-     // ✅ Correct - comparing two indices
-     if (s.Compare(i, j) < 0) { ... }
-
-     // ❌ Incorrect - bypasses context
-     if (span[i].CompareTo(span[j]) < 0) { ... }
-     ```
-
-   - For comparing with a value (not an index):
-     ```csharp
-     var value = s.Read(someIndex);
-
-     // ✅ Correct - comparing index with value
-     if (s.Compare(i, value) < 0) { ... }
-
-     // ✅ Correct - comparing value with index
-     if (s.Compare(value, i) < 0) { ... }
-
-     // ❌ Incorrect - direct CompareTo bypasses context
-     if (s.Read(i).CompareTo(value) < 0) { ... }
-     if (value.CompareTo(s.Read(i)) < 0) { ... }
-     ```
-
-4. **Use `s.Swap(i, j)` for element swapping**
-   - Reads both elements, notifies context via `OnSwap(i, j)`, then writes
-   - Example:
-     ```csharp
-     // ✅ Correct
-     s.Swap(i, j);
-
-     // ❌ Incorrect - bypasses context
-     (span[i], span[j]) = (span[j], span[i]);
-     ```
-
-**Important:** Never use `CompareTo()` directly. All comparisons must go through `SortSpan` methods to ensure accurate statistics tracking.
-
-### Buffer Identification for Internal Buffers
-
-When sorting algorithms use internal temporary buffers (for merge operations, distribution, etc.), **always track their operations using SortSpan with a unique bufferId**.
-
-**Why BufferId is Required:**
-
-- **Complete statistics tracking**: Internal buffer operations must be counted for accurate performance analysis
-- **Visualization support**: Different buffers can be rendered separately in sorting animations
-- **Educational value**: Students can see data movement between main array and temporary buffers
-
-**BufferId Convention:**
-
-```csharp
-public static class MySort
-{
-    // Buffer identifiers for visualization
-    private const int BUFFER_MAIN = 0;       // Main input array
-    private const int BUFFER_TEMP = 1;       // Temporary merge buffer
-    private const int BUFFER_AUX = 2;        // Auxiliary buffer
-
-    // Threshold for stackalloc vs ArrayPool
-    private const int StackAllocThreshold = 128;
-
-    public static void Sort<T>(Span<T> span, ISortContext context) where T : IComparable<T>
-    {
-        var s = new SortSpan<T>(span, context, BUFFER_MAIN);
-
-        // ✅ For small buffers - use stackalloc (no heap allocation)
-        if (span.Length <= StackAllocThreshold)
-        {
-            Span<T> tempBuffer = stackalloc T[span.Length];
-            var temp = new SortSpan<T>(tempBuffer, context, BUFFER_TEMP);
-            // ...sorting logic...
-        }
-        // ✅ For large buffers - use ArrayPool (reusable, no GC pressure)
-        else
-        {
-            var rentedArray = ArrayPool<T>.Shared.Rent(span.Length);
-            try
-            {
-                var tempBuffer = rentedArray.AsSpan(0, span.Length);
-                var temp = new SortSpan<T>(tempBuffer, context, BUFFER_TEMP);
-                // ...sorting logic...
-            }
-            finally
-            {
-                ArrayPool<T>.Shared.Return(rentedArray);
-            }
-        }
-    }
-}
+```powershell
+dotnet build
 ```
 
-**Memory Allocation Rules:**
+## Important Guidelines
 
-Avoid use `new T[]` or `new List<T>` for internal buffers. Instead, follow these guidelines:
+When implementing or reviewing sorting algorithms, refer to these detailed guides:
 
-1. **Small buffers (≤ 128 elements)**: Use `stackalloc`
-2. **Large buffers (> 128 elements)**: Use `ArrayPool<T>.Shared`
+- **[Architecture](.github/agent_docs/architecture.md)** - Understand the Context + SortSpan pattern
+- **[Performance Requirements](.github/agent_docs/performance_requirements.md)** - Zero-allocation, aggressive inlining, and memory management
+- **[SortSpan Usage](.github/agent_docs/sortspan_usage.md)** - How to use SortSpan for all operations
+- **[Implementation Template](.github/agent_docs/implementation_template.md)** - Template for new algorithms
+- **[Coding Style](.github/agent_docs/coding_style.md)** - C# style conventions for this project
 
-**Rules:**
+**Key Rule:** Always use `SortSpan<T>` methods (`Read`, `Write`, `Compare`, `Swap`) instead of direct array access. This ensures accurate statistics tracking.
 
-1. ✅ **Always use SortSpan for internal buffers** - even if they're temporary arrays
-2. ✅ **Assign unique bufferIds** - starting from 0 for main array
-3. ✅ **Document buffer purpose** - use clear constant names
-4. ✅ **Use stackalloc or ArrayPool** - never `new T[]` or `new List<T>`
-5. ✅ **Return ArrayPool rentals** - always use try-finally
-6. ❌ **Never bypass SortSpan** - direct array access loses statistics
+## Progressive Disclosure
 
+Before implementing a new sorting algorithm or making significant changes:
 
-### Context Types
+1. Read the relevant documentation files in `.github/agent_docs/`
+2. Review existing similar implementations in `src/SortLab.Core/Sortings/`
+3. Check corresponding tests in `tests/SortLab.Tests/`
 
-| Context | Purpose | Overhead |
-|---------|---------|----------|
-| `NullContext.Default` | No statistics (production) | Minimal (empty methods) |
-| `StatisticsContext` | Collect operation counts | Small (Interlocked.Increment) |
-| `VisualizationContext` | Animation/rendering callbacks | Medium (callback invocation) |
-| `CompositeSortContext` | Combine multiple contexts | Medium-Large |
-
-### Usage Examples
-
-```csharp
-// Production - no statistics
-MySort.Sort<int>(array);
-
-// With statistics
-var stats = new StatisticsContext();
-MySort.Sort(array.AsSpan(), stats);
-Console.WriteLine($"Compares: {stats.CompareCount}, Swaps: {stats.SwapCount}");
-Console.WriteLine($"Reads: {stats.IndexReadCount}, Writes: {stats.IndexWriteCount}");
-
-// With visualization
-var viz = new VisualizationContext(
-    onSwap: (i, j) => RenderSwap(i, j),
-    onCompare: (i, j, result) => HighlightCompare(i, j)
-);
-MySort.Sort(array.AsSpan(), viz);
-
-// Combined statistics + visualization
-var composite = new CompositeSortContext(stats, viz);
-MySort.Sort(array.AsSpan(), composite);
-```
+Ask which documentation files you need if you're unsure what to read.
