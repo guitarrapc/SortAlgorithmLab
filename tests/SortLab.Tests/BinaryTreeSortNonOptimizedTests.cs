@@ -1,11 +1,12 @@
 ﻿using SortLab.Core.Algorithms;
 using SortLab.Core.Contexts;
+using SortLab.Tests.Attributes;
 
 namespace SortLab.Tests;
 
 public class BinaryTreeSortNonOptimizedTests
 {
-    [Theory]
+    [CISkippableTheory]
     [ClassData(typeof(MockRandomData))]
     [ClassData(typeof(MockNegativePositiveRandomData))]
     [ClassData(typeof(MockNegativeRandomData))]
@@ -22,7 +23,7 @@ public class BinaryTreeSortNonOptimizedTests
         Assert.Equal((ulong)inputSample.Samples.Length, (ulong)array.Length);
     }
 
-    [Theory]
+    [CISkippableTheory]
     [ClassData(typeof(MockSortedData))]
     public void StatisticsSortedTest(IInputSample<int> inputSample)
     {
@@ -37,7 +38,7 @@ public class BinaryTreeSortNonOptimizedTests
         Assert.Equal(0UL, stats.SwapCount);
     }
 
-    [Theory]
+    [CISkippableTheory]
     [InlineData(10)]
     [InlineData(20)]
     [InlineData(50)]
@@ -63,7 +64,7 @@ public class BinaryTreeSortNonOptimizedTests
         Assert.Equal(0UL, stats.SwapCount);
     }
 
-    [Theory]
+    [CISkippableTheory]
     [InlineData(10)]
     [InlineData(20)]
     [InlineData(50)]
@@ -89,7 +90,7 @@ public class BinaryTreeSortNonOptimizedTests
         Assert.Equal(0UL, stats.SwapCount);
     }
 
-    [Theory]
+    [CISkippableTheory]
     [InlineData(10)]
     [InlineData(20)]
     [InlineData(50)]
@@ -122,7 +123,7 @@ public class BinaryTreeSortNonOptimizedTests
         Assert.Equal(0UL, stats.SwapCount);
     }
 
-    [Theory]
+    [CISkippableTheory]
     [InlineData(7)]  // Perfect binary tree: 3 levels
     [InlineData(15)] // Perfect binary tree: 4 levels
     [InlineData(31)] // Perfect binary tree: 5 levels

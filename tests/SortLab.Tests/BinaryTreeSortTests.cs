@@ -51,10 +51,12 @@ public class BinaryTreeSortTests
         // For sorted data [0, 1, 2, ..., n-1], the BST becomes completely unbalanced
         // forming a right-skewed tree (worst case):
         // - Insertion comparisons: 0 + 1 + 2 + ... + (n-1) = n(n-1)/2
-        // - Each insertion reads one element from the array: n reads
-        // - In-order traversal writes all elements back: n writes
+        // With ItemIndex implementation:
+        // - Each comparison reads 2 values (both items being compared)
+        // - In-order traversal reads each element once: n reads
+        // - Total reads: 2 * CompareCount + n
         var expectedCompares = (ulong)(n * (n - 1) / 2);
-        var expectedReads = (ulong)n;  // Reading during insertion
+        var expectedReads = 2 * expectedCompares + (ulong)n;  // 2 reads per comparison + n traversal reads
         var expectedWrites = (ulong)n; // Writing during in-order traversal
         
         Assert.Equal(expectedCompares, stats.CompareCount);
@@ -77,10 +79,12 @@ public class BinaryTreeSortTests
         // For reversed data [n-1, n-2, ..., 1, 0], the BST becomes completely unbalanced
         // forming a left-skewed tree (worst case):
         // - Insertion comparisons: 0 + 1 + 2 + ... + (n-1) = n(n-1)/2
-        // - Each insertion reads one element from the array: n reads
-        // - In-order traversal writes all elements back: n writes
+        // With ItemIndex implementation:
+        // - Each comparison reads 2 values (both items being compared)
+        // - In-order traversal reads each element once: n reads
+        // - Total reads: 2 * CompareCount + n
         var expectedCompares = (ulong)(n * (n - 1) / 2);
-        var expectedReads = (ulong)n;  // Reading during insertion
+        var expectedReads = 2 * expectedCompares + (ulong)n;  // 2 reads per comparison + n traversal reads
         var expectedWrites = (ulong)n; // Writing during in-order traversal
         
         Assert.Equal(expectedCompares, stats.CompareCount);
@@ -113,11 +117,13 @@ public class BinaryTreeSortTests
         var minCompares = (ulong)(avgCompares * 0.4);  // Allow significantly lower for balanced trees
         var maxCompares = (ulong)(n * (n - 1) / 2);    // Worst case (unbalanced)
         
-        var expectedReads = (ulong)n;  // Reading during insertion
+        // With ItemIndex: 2 reads per comparison + n traversal reads
+        var expectedMinReads = 2 * minCompares + (ulong)n;
+        var expectedMaxReads = 2 * maxCompares + (ulong)n;
         var expectedWrites = (ulong)n; // Writing during in-order traversal
         
         Assert.InRange(stats.CompareCount, minCompares, maxCompares);
-        Assert.Equal(expectedReads, stats.IndexReadCount);
+        Assert.InRange(stats.IndexReadCount, expectedMinReads, expectedMaxReads);
         Assert.Equal(expectedWrites, stats.IndexWriteCount);
         Assert.Equal(0UL, stats.SwapCount);
     }
@@ -140,11 +146,13 @@ public class BinaryTreeSortTests
         var minCompares = (ulong)(n * Math.Log2(n) * 0.5);  // Lower bound
         var maxCompares = (ulong)(n * Math.Log2(n) * 2.0);  // Upper bound with some overhead
         
-        var expectedReads = (ulong)n;  // Reading during insertion
+        // With ItemIndex: 2 reads per comparison + n traversal reads
+        var expectedMinReads = 2 * minCompares + (ulong)n;
+        var expectedMaxReads = 2 * maxCompares + (ulong)n;
         var expectedWrites = (ulong)n; // Writing during in-order traversal
         
         Assert.InRange(stats.CompareCount, minCompares, maxCompares);
-        Assert.Equal(expectedReads, stats.IndexReadCount);
+        Assert.InRange(stats.IndexReadCount, expectedMinReads, expectedMaxReads);
         Assert.Equal(expectedWrites, stats.IndexWriteCount);
         Assert.Equal(0UL, stats.SwapCount);
     }

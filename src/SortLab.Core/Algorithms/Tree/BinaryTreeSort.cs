@@ -40,14 +40,29 @@ Non-Optimized (class Node) ...
 /// <remarks>
 /// <para><strong>Theoretical Conditions for Correct Binary Tree Sort:</strong></para>
 /// <list type="number">
-/// <item><description><strong>Binary Search Tree Property:</strong> For every node, all values in the left subtree must be less than the node's value, and all values in the right subtree must be greater than or equal to the node's value.
-/// This implementation maintains this invariant during insertion (value &lt; current goes left, value ≥ current goes right).</description></item>
-/// <item><description><strong>Complete Tree Construction:</strong> All n elements must be inserted into the BST.
-/// Each insertion reads one element from the array (n reads total).</description></item>
-/// <item><description><strong>In-Order Traversal:</strong> The tree must be traversed in in-order (left → root → right) to produce sorted output.
-/// This traversal visits each node exactly once, writing n elements back to the array.</description></item>
-/// <item><description><strong>Comparison Consistency:</strong> The comparison operation must be consistent and transitive.
-/// For all elements a, b, c: if a &lt; b and b &lt; c, then a &lt; c.</description></item>
+/// <item><description><strong>Binary Search Tree Property (BST Invariant):</strong> For every node in the tree, all values in the left subtree must be strictly less than the node's value,
+/// and all values in the right subtree must be greater than or equal to the node's value.
+/// This implementation maintains this invariant during iterative insertion by comparing the new value with the current node and navigating left (value &lt; current) or right (value ≥ current).</description></item>
+/// <item><description><strong>Complete Tree Construction:</strong> All n elements from the input array must be inserted into the BST before traversal.
+/// Each insertion operation locates the correct position in O(h) comparisons, where h is the current tree height.</description></item>
+/// <item><description><strong>In-Order Traversal Correctness:</strong> The tree must be traversed in strict in-order sequence (left subtree → root → right subtree).
+/// This ordering, combined with the BST property, guarantees that elements are visited in ascending sorted order.
+/// This implementation uses iterative in-order traversal with an explicit stack to avoid recursion overhead.</description></item>
+/// <item><description><strong>Comparison Transitivity:</strong> The comparison operation must be consistent and transitive.
+/// For all elements a, b, c: if a &lt; b and b &lt; c, then a &lt; c. This ensures that the BST property is preserved throughout all insertions.</description></item>
+/// <item><description><strong>Tree Height Impact:</strong> The tree height h determines insertion performance.
+/// Balanced tree (random input): h = O(log n), giving O(n log n) total time.
+/// Degenerate tree (sorted/reversed input): h = O(n), degrading to O(n²) total time.</description></item>
+/// </list>
+/// <para><strong>Mathematical Proof of Correctness:</strong></para>
+/// <list type="bullet">
+/// <item><description><strong>BST Property Preservation:</strong> During insertion, if value &lt; current.value, it goes to left subtree, ensuring all left descendants are smaller.
+/// If value ≥ current.value, it goes to right subtree, ensuring all right descendants are larger. This recursively maintains the BST property.</description></item>
+/// <item><description><strong>In-Order Traversal Property:</strong> For any node N with left child L and right child R:
+/// All values in L's subtree &lt; N.value &lt; all values in R's subtree (by BST property).
+/// In-order traversal visits: L's subtree → N → R's subtree, producing ascending sequence.</description></item>
+/// <item><description><strong>Sorted Output Guarantee:</strong> By induction: Base case (1 node) trivially sorted. Inductive step: if left and right subtrees produce sorted sequences,
+/// in-order traversal concatenates them as: sorted_left &lt; root &lt; sorted_right = fully sorted output.</description></item>
 /// </list>
 /// <para><strong>Performance Characteristics:</strong></para>
 /// <list type="bullet">
@@ -60,7 +75,7 @@ Non-Optimized (class Node) ...
 /// <item><description>Comparisons : Best Θ(n log n), Average Θ(n log n), Worst Θ(n²)</description></item>
 /// <item><description>  - Sorted input: n(n-1)/2 comparisons (each insertion compares with all previous elements)</description></item>
 /// <item><description>  - Random input: ~1.39n log n comparisons (empirically, for balanced trees)</description></item>
-/// <item><description>Index Reads : Θ(n) - Each element is read once during tree construction</description></item>
+/// <item><description>Index Reads : Θ(n log n) - With ItemIndex implementation, each comparison reads both values (2 reads per comparison) plus n traversal reads</description></item>
 /// <item><description>Index Writes: Θ(n) - Each element is written once during in-order traversal</description></item>
 /// <item><description>Swaps       : 0 (No swapping; elements are copied to tree nodes and then back to array)</description></item>
 /// <item><description>Space       : O(n) - Arena allocation for n nodes (struct-based, minimal per-node overhead)</description></item>
@@ -103,42 +118,62 @@ public static class BinaryTreeSort
     {
         if (span.Length <= 1) return;
 
-        var s = new SortSpan<T>(span, context, BUFFER_MAIN);
-
-        // Use ArrayPool for arena allocation
-        var arena = ArrayPool<Node<T>>.Shared.Rent(span.Length);
+        // Use stackalloc for small arrays, ArrayPool for large arrays
+        // Node struct size: 12 bytes (3 ints), so 85 nodes ≈ 1020 bytes (safe for stack)
+        Node[]? rentedArena = null;
+        Span<Node> arena = span.Length <= 85
+            ? stackalloc Node[span.Length]
+            : (rentedArena = ArrayPool<Node>.Shared.Rent(span.Length)).AsSpan(0, span.Length);
         try
         {
-            var arenaSpan = arena.AsSpan(0, span.Length);
-            var rootIndex = NULL_INDEX;
-            var nodeCount = 0;
-
-            // Build tree by inserting each element
-            for (var i = 0; i < s.Length; i++)
-            {
-                var value = s.Read(i);
-                InsertIterative(arenaSpan, ref rootIndex, ref nodeCount, value, s);
-            }
-
-            // Traverse tree in-order and write elements back
-            var writeIndex = 0;
-            InorderTraversal(s, arenaSpan, rootIndex, ref writeIndex);
+            SortCore(span, context, arena);
         }
         finally
         {
-            ArrayPool<Node<T>>.Shared.Return(arena);
+            if (rentedArena is not null)
+            {
+                ArrayPool<Node>.Shared.Return(rentedArena);
+            }
         }
     }
 
     /// <summary>
-    /// Iterative insertion using arena-based index references.
+    /// Core binary tree sort implementation.
+    /// Builds a binary search tree iteratively, then performs in-order traversal.
     /// </summary>
-    private static void InsertIterative<T>(Span<Node<T>> arena, ref int rootIndex, ref int nodeCount, T value, SortSpan<T> s) where T : IComparable<T>
+    /// <param name="span">The span to sort</param>
+    /// <param name="context">Sort context for statistics tracking</param>
+    /// <param name="arena">Preallocated arena for tree nodes</param>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private static void SortCore<T>(Span<T> span, ISortContext context, Span<Node> arena) where T : IComparable<T>
+    {
+        var s = new SortSpan<T>(span, context, BUFFER_MAIN);
+        var rootIndex = NULL_INDEX;
+        var nodeCount = 0;
+
+        // Build tree by inserting each element (using ItemIndex)
+        for (var i = 0; i < s.Length; i++)
+        {
+            InsertIterative(arena, ref rootIndex, ref nodeCount, i, s);
+        }
+
+        // Traverse tree in-order and write elements back
+        var writeIndex = 0;
+        InorderTraversal(s, arena, rootIndex, ref writeIndex);
+    }
+
+    /// <summary>
+    /// Iterative insertion using arena-based index references.
+    /// Uses ItemIndex to ensure all data access is tracked via SortSpan.
+    /// </summary>
+    /// <param name="itemIndex">Index in the original span (not the value itself).</param>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private static void InsertIterative<T>(Span<Node> arena, ref int rootIndex, ref int nodeCount, int itemIndex, SortSpan<T> s) where T : IComparable<T>
     {
         // If tree is empty, create root
         if (rootIndex == NULL_INDEX)
         {
-            arena[nodeCount] = new Node<T>(value);
+            arena[nodeCount] = new Node(itemIndex);
             rootIndex = nodeCount;
             nodeCount++;
             return;
@@ -149,14 +184,15 @@ public static class BinaryTreeSort
         while (true)
         {
             ref var current = ref arena[currentIndex];
-            var cmp = s.Compare(value, current.Item);
+            // Compare using ItemIndex - all data access via SortSpan
+            var cmp = s.Compare(itemIndex, current.ItemIndex);
 
             if (cmp < 0)
             {
                 // Go left
                 if (current.Left == NULL_INDEX)
                 {
-                    arena[nodeCount] = new Node<T>(value);
+                    arena[nodeCount] = new Node(itemIndex);
                     current.Left = nodeCount;
                     nodeCount++;
                     break;
@@ -168,7 +204,7 @@ public static class BinaryTreeSort
                 // Go right (includes equal values)
                 if (current.Right == NULL_INDEX)
                 {
-                    arena[nodeCount] = new Node<T>(value);
+                    arena[nodeCount] = new Node(itemIndex);
                     current.Right = nodeCount;
                     nodeCount++;
                     break;
@@ -189,7 +225,7 @@ public static class BinaryTreeSort
     /// For large arrays (>128), uses ArrayPool to avoid GC pressure.
     /// </remarks>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private static void InorderTraversal<T>(SortSpan<T> s, Span<Node<T>> arena, int rootIndex, ref int writeIndex) where T : IComparable<T>
+    private static void InorderTraversal<T>(SortSpan<T> s, Span<Node> arena, int rootIndex, ref int writeIndex) where T : IComparable<T>
     {
         if (rootIndex == NULL_INDEX) return;
 
@@ -197,10 +233,31 @@ public static class BinaryTreeSort
         int[]? rentedStack = null;
         Span<int> stack = arena.Length <= 128
             ? stackalloc int[arena.Length]
-            : (rentedStack = ArrayPool<int>.Shared.Rent(arena.Length)).AsSpan();
+            : (rentedStack = ArrayPool<int>.Shared.Rent(arena.Length)).AsSpan(0, arena.Length);
         try
         {
-            InorderTraversalCore(s, arena, rootIndex, ref writeIndex, stack);
+            var stackTop = 0;
+            var currentIndex = rootIndex;
+
+            // Iterative in-order traversal
+            while (stackTop > 0 || currentIndex != NULL_INDEX)
+            {
+                // Traverse left subtree: push all left nodes onto stack
+                while (currentIndex != NULL_INDEX)
+                {
+                    stack[stackTop++] = currentIndex;
+                    currentIndex = arena[currentIndex].Left;
+                }
+
+                // Process the node at top of stack
+                currentIndex = stack[--stackTop];
+                // Read actual data from original span using ItemIndex (tracked by SortSpan)
+                var value = s.Read(arena[currentIndex].ItemIndex);
+                s.Write(writeIndex++, value);
+
+                // Move to right subtree
+                currentIndex = arena[currentIndex].Right;
+            }
         }
         finally
         {
@@ -212,50 +269,22 @@ public static class BinaryTreeSort
     }
 
     /// <summary>
-    /// Core iterative in-order traversal logic.
-    /// </summary>
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private static void InorderTraversalCore<T>(SortSpan<T> s, Span<Node<T>> arena, int rootIndex, ref int writeIndex, Span<int> stack) where T : IComparable<T>
-    {
-        var stackTop = 0;
-        var currentIndex = rootIndex;
-
-        // Iterative in-order traversal
-        while (stackTop > 0 || currentIndex != NULL_INDEX)
-        {
-            // Traverse left subtree: push all left nodes onto stack
-            while (currentIndex != NULL_INDEX)
-            {
-                stack[stackTop++] = currentIndex;
-                currentIndex = arena[currentIndex].Left;
-            }
-
-            // Process the node at top of stack
-            currentIndex = stack[--stackTop];
-            s.Write(writeIndex++, arena[currentIndex].Item);
-
-            // Move to right subtree
-            currentIndex = arena[currentIndex].Right;
-        }
-    }
-
-    /// <summary>
-    /// Arena-based node structure using index references instead of pointers.
+    /// Arena-based node structure using index references for both tree structure and data.
     /// </summary>
     /// <remarks>
     /// This struct-based node eliminates GC pressure by using value semantics.
     /// Left and Right are indices into the arena array (-1 represents null).
+    /// ItemIndex points to the original span element, ensuring all data access is tracked via SortSpan.
     /// </remarks>
-    /// <typeparam name="T">The type of the value stored in the node.</typeparam>
-    private struct Node<T>
+    private struct Node
     {
-        public T Item;
-        public int Left;   // Index in arena, -1 = null
-        public int Right;  // Index in arena, -1 = null
+        public int ItemIndex; // Index in original span (for accessing actual data)
+        public int Left;      // Index in arena, -1 = null
+        public int Right;     // Index in arena, -1 = null
 
-        public Node(T value)
+        public Node(int itemIndex)
         {
-            Item = value;
+            ItemIndex = itemIndex;
             Left = -1;
             Right = -1;
         }
