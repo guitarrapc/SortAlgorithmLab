@@ -6,9 +6,54 @@ When implementing sorting algorithms, **always use SortSpan<T>** for all array/s
 
 - **Accurate statistics** for algorithm analysis via ISortContext
 - **Clean abstraction** for tracking operations
-- **Minimal performance impact** with NullContext (empty method calls)
+- **Minimal performance impact** with conditional compilation
 - **Consistent code style** across all sorting implementations
 - **Separation of concerns** - algorithm logic vs observation
+
+## Performance: DEBUG vs RELEASE Builds
+
+**SortSpan uses conditional compilation (`#if DEBUG`) to optimize performance:**
+
+### DEBUG Build (Tests)
+- ✅ **Full statistics tracking** - all operations recorded
+- ✅ **Accurate analysis** - perfect for testing and profiling
+- ✅ **Context callbacks** - OnIndexRead, OnIndexWrite, OnCompare, OnSwap
+- ⚠️ **Slight overhead** - acceptable for testing
+
+### RELEASE Build (Production)
+- ✅ **Zero overhead** - context calls are omitted
+- ✅ **Direct Span operations** - `_span[i]` instead of `context.OnIndexRead()`
+- ✅ **Maximum performance** - equivalent to raw Span operations
+- ✅ **Inlined comparisons** - `_span[i].CompareTo(_span[j])`
+
+**Example:**
+
+```csharp
+// SortSpan.Read() implementation
+public T Read(int i)
+{
+#if DEBUG
+    _context.OnIndexRead(i, _bufferId);  // ← Only in DEBUG
+#endif
+    return _span[i];  // ← Always direct access
+}
+
+// SortSpan.Compare() implementation
+public int Compare(int i, int j)
+{
+#if DEBUG
+    var a = Read(i);
+    var b = Read(j);
+    var result = a.CompareTo(b);
+    _context.OnCompare(i, j, result, _bufferId, _bufferId);
+    return result;
+#else
+    return _span[i].CompareTo(_span[j]);  // ← Direct comparison in RELEASE
+#endif
+}
+```
+
+**Result:** In RELEASE builds, SortSpan operations compile to simple Span operations with zero abstraction overhead.
 
 ## Required Operations
 
@@ -75,6 +120,52 @@ s.Swap(i, j);
 
 // ❌ Incorrect - bypasses context
 (span[i], span[j]) = (span[j], span[i]);
+```
+
+## Implementation Guidelines
+
+### Always Use SortSpan Operations
+
+Even though RELEASE builds optimize away the overhead, **always write code using SortSpan methods**:
+
+```csharp
+// ✅ Correct - works efficiently in both DEBUG and RELEASE
+private static void InsertIterative<T>(Span<Node> arena, ..., SortSpan<T> s)
+{
+    // Cache value (reduces Read() calls in DEBUG, direct access in RELEASE)
+    var insertValue = s.Read(itemIndex);
+    var currentValue = s.Read(current.ItemIndex);
+    
+    // Direct comparison (tracked in DEBUG, inlined in RELEASE)
+    var cmp = s.Compare(insertValue, currentValue);
+}
+
+// ❌ Incorrect - bypasses statistics in DEBUG
+private static void InsertIterative<T>(Span<T> span, ...)
+{
+    var insertValue = span[itemIndex];  // No tracking!
+    var cmp = insertValue.CompareTo(span[j]);  // No tracking!
+}
+```
+
+### Value Caching for Performance
+
+When comparing the same value multiple times, cache it:
+
+```csharp
+// ✅ Good - read once, compare many times
+var insertValue = s.Read(itemIndex);  // 1 read
+while (...)
+{
+    var currentValue = s.Read(current.ItemIndex);  // 1 read per iteration
+    if (s.Compare(insertValue, currentValue) < 0) { ... }  // Cached comparison
+}
+
+// ❌ Less efficient - reads twice per comparison in DEBUG
+while (...)
+{
+    if (s.Compare(itemIndex, current.ItemIndex) < 0) { ... }  // 2 reads per comparison
+}
 ```
 
 ## Buffer Management
