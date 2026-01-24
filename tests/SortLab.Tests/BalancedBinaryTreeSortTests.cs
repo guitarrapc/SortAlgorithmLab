@@ -54,19 +54,16 @@ public class BalancedBinaryTreeSortTests
         // Expected comparisons for balanced tree:
         // - Each insertion into a tree of i elements takes ~log2(i) comparisons
         // - Total: approximately n*log2(n) comparisons
-        // With ItemIndex implementation:
-        // - Each comparison reads 2 values (both items being compared)
-        // - In-order traversal reads each element once: n reads
-        // - Total reads: 2 * CompareCount + n
+        // With CachedValue: reads are only for inserts
+        // - Total reads: n-1 (only insert reads)
         var avgCompares = (ulong)(n * Math.Log2(Math.Max(n, 2)));
         var minCompares = avgCompares / 2;  // Allow some variance
         var maxCompares = avgCompares * 2;  // Upper bound for balanced insertions
-        var expectedMinReads = 2 * minCompares + (ulong)n;  // 2 reads per comparison + n traversal reads
-        var expectedMaxReads = 2 * maxCompares + (ulong)n;  // Upper bound
+        var expectedReads = (ulong)(n - 1);  // Only insert reads
         var expectedWrites = (ulong)n; // Writing during in-order traversal
 
         Assert.InRange(stats.CompareCount, minCompares, maxCompares);
-        Assert.InRange(stats.IndexReadCount, expectedMinReads, expectedMaxReads);
+        Assert.Equal(expectedReads, stats.IndexReadCount);
         Assert.Equal(expectedWrites, stats.IndexWriteCount);
         Assert.Equal(0UL, stats.SwapCount);
     }
@@ -86,19 +83,16 @@ public class BalancedBinaryTreeSortTests
         // Expected comparisons for balanced tree:
         // - Each insertion into a tree of i elements takes ~log2(i) comparisons
         // - Total: approximately n*log2(n) comparisons
-        // With ItemIndex implementation:
-        // - Each comparison reads 2 values (both items being compared)
-        // - In-order traversal reads each element once: n reads
-        // - Total reads: 2 * CompareCount + n
+        // With CachedValue: reads are only for inserts
+        // - Total reads: n-1 (only insert reads)
         var avgCompares = (ulong)(n * Math.Log2(Math.Max(n, 2)));
         var minCompares = avgCompares / 2;  // Allow some variance
         var maxCompares = avgCompares * 2;  // Upper bound for balanced insertions
-        var expectedMinReads = 2 * minCompares + (ulong)n;  // 2 reads per comparison + n traversal reads
-        var expectedMaxReads = 2 * maxCompares + (ulong)n;  // Upper bound
+        var expectedReads = (ulong)(n - 1);  // Only insert reads
         var expectedWrites = (ulong)n; // Writing during in-order traversal
 
         Assert.InRange(stats.CompareCount, minCompares, maxCompares);
-        Assert.InRange(stats.IndexReadCount, expectedMinReads, expectedMaxReads);
+        Assert.Equal(expectedReads, stats.IndexReadCount);
         Assert.Equal(expectedWrites, stats.IndexWriteCount);
         Assert.Equal(0UL, stats.SwapCount);
     }
@@ -119,20 +113,16 @@ public class BalancedBinaryTreeSortTests
         // - Each insertion into a balanced tree of i elements takes ~log2(i) comparisons
         // - Total: approximately n*log2(n) comparisons
         // - Balanced tree guarantees O(log n) height, so worst case is better than BST
-        // With ItemIndex implementation (value caching optimization):
-        // - Insert value read once per insertion (except root): (n-1) reads
-        // - Current node value read once per comparison: CompareCount reads
-        // - In-order traversal reads each element once: n reads
-        // - Total reads: (n-1) + CompareCount + n
+        // With ItemIndex + CachedValue: comparisons and traversal use cached values
+        // - Total reads: n-1 (only insert reads, no comparison or traversal reads)
         var avgCompares = (ulong)(n * Math.Log2(Math.Max(n, 2)));
         var minCompares = avgCompares / 2;  // Allow variance for very balanced insertions
         var maxCompares = avgCompares * 2;  // Upper bound (still O(n log n))
-        var expectedMinReads = (ulong)(n - 1) + minCompares + (ulong)n;  // (n-1) insert reads (root has no comparison) + comparison reads + n traversal reads
-        var expectedMaxReads = (ulong)(n - 1) + maxCompares + (ulong)n;  // Upper bound
+        var expectedReads = (ulong)(n - 1);  // Only insert reads
         var expectedWrites = (ulong)n; // Writing during in-order traversal
 
         Assert.InRange(stats.CompareCount, minCompares, maxCompares);
-        Assert.InRange(stats.IndexReadCount, expectedMinReads, expectedMaxReads);
+        Assert.Equal(expectedReads, stats.IndexReadCount);
         Assert.Equal(expectedWrites, stats.IndexWriteCount);
         Assert.Equal(0UL, stats.SwapCount);
     }

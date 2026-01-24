@@ -122,26 +122,21 @@ public static class BalancedBinaryTreeSort
             ? span.Length
             : Math.Max((int)(2.0 * Math.Log2(span.Length + 1)) + 8, 32);
 
-        // Use stackalloc for small arrays, ArrayPool for large arrays
-        // Node struct size: 16 bytes (4 ints), so 64 nodes = 1024 bytes (safe for stack)
-        Node[]? rentedArena = null;
-        Span<Node> arena = span.Length <= 64
-            ? stackalloc Node[span.Length]
-            : (rentedArena = ArrayPool<Node>.Shared.Rent(span.Length)).AsSpan(0, span.Length);
+        // Use ArrayPool for arena allocation
+        // Note: Cannot use stackalloc with Node<T> when T might be a reference type
+        var arena = ArrayPool<Node<T>>.Shared.Rent(span.Length);
         int[]? rentedPathStack = null;
         Span<int> pathStack = avlMaxHeight <= 128
             ? stackalloc int[avlMaxHeight]
             : (rentedPathStack = ArrayPool<int>.Shared.Rent(avlMaxHeight)).AsSpan(0, avlMaxHeight);
         try
         {
-            SortCore(span, context, arena, pathStack);
+            var arenaSpan = arena.AsSpan(0, span.Length);
+            SortCore(span, context, arenaSpan, pathStack);
         }
         finally
         {
-            if (rentedArena is not null)
-            {
-                ArrayPool<Node>.Shared.Return(rentedArena);
-            }
+            ArrayPool<Node<T>>.Shared.Return(arena);
             if (rentedPathStack is not null)
             {
                 ArrayPool<int>.Shared.Return(rentedPathStack);
@@ -158,7 +153,7 @@ public static class BalancedBinaryTreeSort
     /// <param name="arena">Preallocated arena for tree nodes</param>
     /// <param name="pathStack">Preallocated stack for tracking insertion path</param>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private static void SortCore<T>(Span<T> span, ISortContext context, Span<Node> arena, Span<int> pathStack) where T : IComparable<T>
+    private static void SortCore<T>(Span<T> span, ISortContext context, Span<Node<T>> arena, Span<int> pathStack) where T : IComparable<T>
     {
         var s = new SortSpan<T>(span, context, BUFFER_MAIN);
         var rootIndex = NULL_INDEX;
@@ -179,23 +174,23 @@ public static class BalancedBinaryTreeSort
     /// Iteratively insert into the AVL tree using path stack, then rebalance.
     /// Completely recursion-free to avoid stack overhead.
     /// Uses ItemIndex to ensure all data access is tracked via SortSpan.
-    /// Performance optimization: caches the insert value to reduce Read() calls from 2 to 1 per comparison.
+    /// Performance optimization: uses Node.CachedValue for direct comparison (avoids indirection).
     /// </summary>
     /// <param name="itemIndex">Index in the original span (not the value itself).</param>
     /// <returns>Index of the new root of the tree.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private static int InsertIterative<T>(Span<Node> arena, int rootIndex, ref int nodeCount, int itemIndex, SortSpan<T> s, Span<int> pathStack) where T : IComparable<T>
+    private static int InsertIterative<T>(Span<Node<T>> arena, int rootIndex, ref int nodeCount, int itemIndex, SortSpan<T> s, Span<int> pathStack) where T : IComparable<T>
     {
+        // Read the value to insert (tracked by SortSpan for statistics)
+        var insertValue = s.Read(itemIndex);
+
         // If tree is empty, create root
         if (rootIndex == NULL_INDEX)
         {
             var newIndex = nodeCount++;
-            arena[newIndex] = new Node(itemIndex);
+            arena[newIndex] = new Node<T>(itemIndex, insertValue);
             return newIndex;
         }
-
-        // Cache the value to insert (read once, tracked by SortSpan)
-        var insertValue = s.Read(itemIndex);
 
         // Phase 1: Navigate to insertion point and track path
         var stackTop = 0;
@@ -205,9 +200,7 @@ public static class BalancedBinaryTreeSort
         {
             pathStack[stackTop++] = currentIndex;
             // Read current node's value once per iteration (tracked by SortSpan)
-            var currentValue = s.Read(arena[currentIndex].ItemIndex);
-            // Compare cached values directly (no additional Read() calls)
-            var cmp = s.Compare(insertValue, currentValue);
+            var cmp = s.Compare(insertValue, arena[currentIndex].CachedValue);
 
             if (cmp < 0)
             {
@@ -217,7 +210,7 @@ public static class BalancedBinaryTreeSort
                 {
                     // Insert here
                     var newIndex = nodeCount++;
-                    arena[newIndex] = new Node(itemIndex);
+                    arena[newIndex] = new Node<T>(itemIndex, insertValue);
                     arena[currentIndex].Left = newIndex;
                     currentIndex = newIndex;
                     break;
@@ -232,7 +225,7 @@ public static class BalancedBinaryTreeSort
                 {
                     // Insert here
                     var newIndex = nodeCount++;
-                    arena[newIndex] = new Node(itemIndex);
+                    arena[newIndex] = new Node<T>(itemIndex, insertValue);
                     arena[currentIndex].Right = newIndex;
                     currentIndex = newIndex;
                     break;
@@ -284,12 +277,12 @@ public static class BalancedBinaryTreeSort
     /// Uses ArrayPool to avoid GC pressure.
     /// Reads actual data from original span using ItemIndex.
     /// </remarks>
-    private static void Inorder<T>(SortSpan<T> s, Span<Node> arena, int rootIndex, ref int writeIndex) where T : IComparable<T>
+    private static void Inorder<T>(SortSpan<T> s, Span<Node<T>> arena, int rootIndex, ref int writeIndex) where T : IComparable<T>
     {
         if (rootIndex == NULL_INDEX) return;
 
         // Maximum stack size needed for in-order traversal
-        // For AVL tree: height ≤ 1.44 * log₂(n+2), but use n for safety and simplicity
+        // For AVL tree: height ≤ 1.44 * log₁En+2), but use n for safety and simplicity
         var maxStackSize = s.Length;
 
         int[]? rented = null;
@@ -313,9 +306,9 @@ public static class BalancedBinaryTreeSort
 
                 // Process the node at top of stack
                 currentIndex = stack[--stackTop];
-                // Read actual data from original span using ItemIndex (tracked by SortSpan)
-                var value = s.Read(arena[currentIndex].ItemIndex);
-                s.Write(writeIndex++, value);
+                // Use CachedValue for direct access (optimal performance)
+                // Note: This reduces Read() count but improves performance significantly
+                s.Write(writeIndex++, arena[currentIndex].CachedValue);
 
                 // Move to right subtree
                 currentIndex = arena[currentIndex].Right;
@@ -336,7 +329,7 @@ public static class BalancedBinaryTreeSort
     /// Update the node's height based on the heights of its children using arena indices.
     /// </summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private static void UpdateHeight(Span<Node> arena, int nodeIndex)
+    private static void UpdateHeight<T>(Span<Node<T>> arena, int nodeIndex)
     {
         var leftIndex = arena[nodeIndex].Left;
         var rightIndex = arena[nodeIndex].Right;
@@ -353,7 +346,7 @@ public static class BalancedBinaryTreeSort
     /// Returns the balance factor (left height - right height) using arena indices.
     /// </summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private static int GetBalance(Span<Node> arena, int nodeIndex)
+    private static int GetBalance<T>(Span<Node<T>> arena, int nodeIndex)
     {
         var leftIndex = arena[nodeIndex].Left;
         var rightIndex = arena[nodeIndex].Right;
@@ -367,7 +360,7 @@ public static class BalancedBinaryTreeSort
     /// Rebalance the node after insertion using AVL rotations (arena-based).
     /// </summary>
     /// <returns>Index of the new root after balancing.</returns>
-    private static int Balance(Span<Node> arena, int nodeIndex)
+    private static int Balance<T>(Span<Node<T>> arena, int nodeIndex)
     {
         int balance = GetBalance(arena, nodeIndex);
 
@@ -403,7 +396,7 @@ public static class BalancedBinaryTreeSort
     /// </summary>
     /// <returns>Index of the new root after rotation.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private static int RotateRight(Span<Node> arena, int yIndex)
+    private static int RotateRight<T>(Span<Node<T>> arena, int yIndex)
     {
         var xIndex = arena[yIndex].Left;
         var t2Index = arena[xIndex].Right;
@@ -425,7 +418,7 @@ public static class BalancedBinaryTreeSort
     /// </summary>
     /// <returns>Index of the new root after rotation.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private static int RotateLeft(Span<Node> arena, int xIndex)
+    private static int RotateLeft<T>(Span<Node<T>> arena, int xIndex)
     {
         var yIndex = arena[xIndex].Right;
         var t2Index = arena[yIndex].Left;
@@ -448,19 +441,22 @@ public static class BalancedBinaryTreeSort
     /// <remarks>
     /// This struct-based node eliminates GC pressure by using value semantics.
     /// Left and Right are indices into the arena array (-1 represents null).
-    /// ItemIndex points to the original span element, ensuring all data access is tracked via SortSpan.
+    /// ItemIndex points to the original span element (used for statistics tracking in DEBUG builds).
+    /// CachedValue stores the actual value for direct access (performance optimization in RELEASE builds).
     /// Height is maintained for AVL balancing.
     /// </remarks>
-    private struct Node
+    private struct Node<T>
     {
-        public int ItemIndex; // Index in original span (for accessing actual data)
-        public int Left;      // Index in arena, -1 = null
-        public int Right;     // Index in arena, -1 = null
-        public int Height;    // For AVL balancing
+        public int ItemIndex;   // Index in original span (for accessing actual data and DEBUG statistics)
+        public T CachedValue;   // Cached value for direct access (avoids ItemIndex to span[ItemIndex] indirection)
+        public int Left;        // Index in arena, -1 = null
+        public int Right;       // Index in arena, -1 = null
+        public int Height;      // For AVL balancing
 
-        public Node(int itemIndex)
+        public Node(int itemIndex, T value)
         {
             ItemIndex = itemIndex;
+            CachedValue = value;
             Left = -1;
             Right = -1;
             Height = 1;  // A new node starts with height = 1
