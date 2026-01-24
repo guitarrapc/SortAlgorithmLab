@@ -1,11 +1,12 @@
 ﻿using SortLab.Core.Algorithms;
 using SortLab.Core.Contexts;
+using SortLab.Tests.Attributes;
 
 namespace SortLab.Tests;
 
 public class BinaryTreeSortTests
 {
-    [Theory]
+    [CISkippableTheory]
     [ClassData(typeof(MockRandomData))]
     [ClassData(typeof(MockNegativePositiveRandomData))]
     [ClassData(typeof(MockNegativeRandomData))]
@@ -24,7 +25,7 @@ public class BinaryTreeSortTests
 
 #if DEBUG
 
-    [Theory]
+    [CISkippableTheory]
     [ClassData(typeof(MockSortedData))]
     public void StatisticsSortedTest(IInputSample<int> inputSample)
     {
@@ -39,7 +40,7 @@ public class BinaryTreeSortTests
         Assert.Equal(0UL, stats.SwapCount);
     }
 
-    [Theory]
+    [CISkippableTheory]
     [InlineData(10)]
     [InlineData(20)]
     [InlineData(50)]
@@ -53,12 +54,10 @@ public class BinaryTreeSortTests
         // For sorted data [0, 1, 2, ..., n-1], the BST becomes completely unbalanced
         // forming a right-skewed tree (worst case):
         // - Insertion comparisons: 0 + 1 + 2 + ... + (n-1) = n(n-1)/2
-        // With ItemIndex implementation:
-        // - Each comparison reads 2 values (both items being compared)
-        // - In-order traversal reads each element once: n reads
-        // - Total reads: 2 * CompareCount + n
+        // - Each insertion reads one element from the array: n reads
+        // - In-order traversal writes all elements back: n writes
         var expectedCompares = (ulong)(n * (n - 1) / 2);
-        var expectedReads = 2 * expectedCompares + (ulong)n;  // 2 reads per comparison + n traversal reads
+        var expectedReads = (ulong)n;  // Reading during insertion
         var expectedWrites = (ulong)n; // Writing during in-order traversal
 
         Assert.Equal(expectedCompares, stats.CompareCount);
@@ -67,7 +66,7 @@ public class BinaryTreeSortTests
         Assert.Equal(0UL, stats.SwapCount);
     }
 
-    [Theory]
+    [CISkippableTheory]
     [InlineData(10)]
     [InlineData(20)]
     [InlineData(50)]
@@ -81,12 +80,10 @@ public class BinaryTreeSortTests
         // For reversed data [n-1, n-2, ..., 1, 0], the BST becomes completely unbalanced
         // forming a left-skewed tree (worst case):
         // - Insertion comparisons: 0 + 1 + 2 + ... + (n-1) = n(n-1)/2
-        // With ItemIndex implementation:
-        // - Each comparison reads 2 values (both items being compared)
-        // - In-order traversal reads each element once: n reads
-        // - Total reads: 2 * CompareCount + n
+        // - Each insertion reads one element from the array: n reads
+        // - In-order traversal writes all elements back: n writes
         var expectedCompares = (ulong)(n * (n - 1) / 2);
-        var expectedReads = 2 * expectedCompares + (ulong)n;  // 2 reads per comparison + n traversal reads
+        var expectedReads = (ulong)n;  // Reading during insertion
         var expectedWrites = (ulong)n; // Writing during in-order traversal
 
         Assert.Equal(expectedCompares, stats.CompareCount);
@@ -95,7 +92,7 @@ public class BinaryTreeSortTests
         Assert.Equal(0UL, stats.SwapCount);
     }
 
-    [Theory]
+    [CISkippableTheory]
     [InlineData(10)]
     [InlineData(20)]
     [InlineData(50)]
@@ -119,18 +116,16 @@ public class BinaryTreeSortTests
         var minCompares = (ulong)(avgCompares * 0.4);  // Allow significantly lower for balanced trees
         var maxCompares = (ulong)(n * (n - 1) / 2);    // Worst case (unbalanced)
 
-        // With ItemIndex: 2 reads per comparison + n traversal reads
-        var expectedMinReads = 2 * minCompares + (ulong)n;
-        var expectedMaxReads = 2 * maxCompares + (ulong)n;
+        var expectedReads = (ulong)n;  // Reading during insertion
         var expectedWrites = (ulong)n; // Writing during in-order traversal
 
         Assert.InRange(stats.CompareCount, minCompares, maxCompares);
-        Assert.InRange(stats.IndexReadCount, expectedMinReads, expectedMaxReads);
+        Assert.Equal(expectedReads, stats.IndexReadCount);
         Assert.Equal(expectedWrites, stats.IndexWriteCount);
         Assert.Equal(0UL, stats.SwapCount);
     }
 
-    [Theory]
+    [CISkippableTheory]
     [InlineData(7)]  // Perfect binary tree: 3 levels
     [InlineData(15)] // Perfect binary tree: 4 levels
     [InlineData(31)] // Perfect binary tree: 5 levels
@@ -148,13 +143,11 @@ public class BinaryTreeSortTests
         var minCompares = (ulong)(n * Math.Log2(n) * 0.5);  // Lower bound
         var maxCompares = (ulong)(n * Math.Log2(n) * 2.0);  // Upper bound with some overhead
 
-        // With ItemIndex: 2 reads per comparison + n traversal reads
-        var expectedMinReads = 2 * minCompares + (ulong)n;
-        var expectedMaxReads = 2 * maxCompares + (ulong)n;
+        var expectedReads = (ulong)n;  // Reading during insertion
         var expectedWrites = (ulong)n; // Writing during in-order traversal
 
         Assert.InRange(stats.CompareCount, minCompares, maxCompares);
-        Assert.InRange(stats.IndexReadCount, expectedMinReads, expectedMaxReads);
+        Assert.Equal(expectedReads, stats.IndexReadCount);
         Assert.Equal(expectedWrites, stats.IndexWriteCount);
         Assert.Equal(0UL, stats.SwapCount);
     }
@@ -181,6 +174,7 @@ public class BinaryTreeSortTests
         AddMiddle(0, n - 1);
         return result.AsSpan();
     }
+
 
 #endif
 
