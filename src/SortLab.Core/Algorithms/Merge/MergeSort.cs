@@ -1,6 +1,5 @@
 ﻿using System.Buffers;
 using SortLab.Core.Contexts;
-using System.Runtime.CompilerServices;
 
 namespace SortLab.Core.Algorithms;
 
@@ -101,7 +100,6 @@ public static class MergeSort
     /// <param name="span">The span to sort</param>
     /// <param name="buffer">Auxiliary buffer for merging (same size as span)</param>
     /// <param name="context">Sort context for statistics tracking</param>
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private static void SortCore<T>(Span<T> span, Span<T> buffer, ISortContext context) where T : IComparable<T>
     {
         if (span.Length <= 1) return; // Base case: array of size 0 or 1 is sorted
@@ -129,7 +127,6 @@ public static class MergeSort
     /// <summary>
     /// Merges two sorted subarrays (left and right) into span using buffer as auxiliary space.
     /// </summary>
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private static void Merge<T>(Span<T> span, Span<T> left, Span<T> right, Span<T> buffer, ISortContext context) where T : IComparable<T>
     {
         var s = new SortSpan<T>(span, context, BUFFER_MAIN);
