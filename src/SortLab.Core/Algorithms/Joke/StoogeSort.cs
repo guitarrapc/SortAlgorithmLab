@@ -28,7 +28,7 @@ namespace SortLab.Core.Algorithms;
 /// </list>
 /// <para><strong>Performance Characteristics:</strong></para>
 /// <list type="bullet">
-/// <item><description>Family      : Exchange</description></item>
+/// <item><description>Family      : Joke / Exchange</description></item>
 /// <item><description>Stable      : No (swapping non-adjacent elements does not preserve relative order)</description></item>
 /// <item><description>In-place    : Yes (O(log n) recursive stack space only)</description></item>
 /// <item><description>Best case   : Ω(n^(log 3 / log 1.5)) ≈ Ω(n^2.71) - Recurrence relation T(n) = 3T(2n/3) + O(1)</description></item>

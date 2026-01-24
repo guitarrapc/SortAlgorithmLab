@@ -33,7 +33,7 @@ Span ...
 /// </list>
 /// <para><strong>Performance Characteristics:</strong></para>
 /// <list type="bullet">
-/// <item><description>Family      : Exchange</description></item>
+/// <item><description>Family      : Joke / Exchange</description></item>
 /// <item><description>Stable      : No (random shuffling does not preserve relative order)</description></item>
 /// <item><description>In-place    : Yes (O(1) auxiliary space)</description></item>
 /// <item><description>Best case   : Ω(n) - Already sorted, only one verification pass needed</description></item>
