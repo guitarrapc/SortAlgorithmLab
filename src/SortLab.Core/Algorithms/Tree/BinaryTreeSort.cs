@@ -1,5 +1,6 @@
 ﻿using System.Buffers;
 using System.Diagnostics.CodeAnalysis;
+using System.Runtime.CompilerServices;
 using SortLab.Core.Contexts;
 
 namespace SortLab.Core.Algorithms;
@@ -187,6 +188,7 @@ public static class BinaryTreeSort
     /// For small arrays (≤128), uses stackalloc for zero heap allocation.
     /// For large arrays (>128), uses ArrayPool to avoid GC pressure.
     /// </remarks>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private static void InorderTraversal<T>(SortSpan<T> s, Span<Node<T>> arena, int rootIndex, ref int writeIndex) where T : IComparable<T>
     {
         if (rootIndex == NULL_INDEX) return;
@@ -212,6 +214,7 @@ public static class BinaryTreeSort
     /// <summary>
     /// Core iterative in-order traversal logic.
     /// </summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private static void InorderTraversalCore<T>(SortSpan<T> s, Span<Node<T>> arena, int rootIndex, ref int writeIndex, Span<int> stack) where T : IComparable<T>
     {
         var stackTop = 0;

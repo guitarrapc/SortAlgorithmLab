@@ -1,11 +1,20 @@
-﻿using SortLab.Core.Contexts;
+﻿using System.Buffers;
+using SortLab.Core.Contexts;
 using System.Runtime.CompilerServices;
 
 namespace SortLab.Core.Algorithms;
 
 /*
 
-Ref span (Iterative) ...
+Arena-based (struct Node with ArrayPool) ...
+
+| Method           | Number | Mean         | Error        | StdDev      | Median       | Min          | Max          | Allocated |
+|----------------- |------- |-------------:|-------------:|------------:|-------------:|-------------:|-------------:|----------:|
+| BalancedTreeSort | 100    |      TBD us  |      TBD us  |     TBD us  |      TBD us  |      TBD us  |      TBD us  |      TBD B |
+| BalancedTreeSort | 1000   |      TBD us  |      TBD us  |     TBD us  |      TBD us  |      TBD us  |      TBD us  |      TBD B |
+| BalancedTreeSort | 10000  |      TBD us  |      TBD us  |     TBD us  |      TBD us  |      TBD us  |      TBD us  |      TBD B |
+
+Non-Optimized (class Node) ...
 
 | Method           | Number | Mean         | Error        | StdDev      | Median       | Min          | Max          | Allocated |
 |----------------- |------- |-------------:|-------------:|------------:|-------------:|-------------:|-------------:|----------:|
@@ -13,23 +22,445 @@ Ref span (Iterative) ...
 | BalancedTreeSort | 1000   |   433.533 us |    93.762 us |   5.1394 us |   436.400 us |   427.600 us |   436.600 us |  342080 B |
 | BalancedTreeSort | 10000  | 5,281.433 us | 3,870.582 us | 212.1597 us | 5,187.100 us | 5,132.800 us | 5,524.400 us | 3654352 B |
 
-Ref span (Recursive) ...
-
-| Method           | Number | Mean         | Error        | StdDev      | Median       | Min          | Max          | Allocated |
-|----------------- |------- |-------------:|-------------:|------------:|-------------:|-------------:|-------------:|----------:|
-| BalancedTreeSort | 100    |    13.633 us |     8.622 us |   0.4726 us |    13.800 us |    13.100 us |    14.000 us |    4736 B |
-| BalancedTreeSort | 1000   |   187.633 us |   382.550 us |  20.9689 us |   190.700 us |   165.300 us |   206.900 us |   40736 B |
-| BalancedTreeSort | 10000  | 2,028.033 us |   159.111 us |   8.7214 us | 2,032.300 us | 2,018.000 us | 2,033.800 us |  400736 B |
-
-Span (Iterative) ...
-
-| Method                 | Number | Mean          | Error        | StdDev      | Median        | Min           | Max          | Allocated |
-|----------------------- |------- |--------------:|-------------:|------------:|--------------:|--------------:|-------------:|----------:|
-| BalancedBinaryTreeSort | 100    |     13.600 us |    11.963 us |   0.6557 us |     13.700 us |     12.900 us |     14.20 us |    4736 B |
-| BalancedBinaryTreeSort | 1000   |    174.467 us |   199.636 us |  10.9427 us |    170.200 us |    166.300 us |    186.90 us |   40448 B |
-| BalancedBinaryTreeSort | 10000  |  2,074.300 us |   387.592 us |  21.2452 us |  2,084.300 us |  2,049.900 us |  2,088.70 us |  400736 B |
-
 */
+
+/// <summary>
+/// Arena-based balanced binary tree sort (AVL tree) using struct nodes for optimal memory performance.
+/// 平衡二分木（AVL木）を用いた二分木ソート。挿入時に回転を行って常に高さが O(log n) に保たれ、木を中順巡回することで配列に要素を昇順で再割り当てします。
+/// 二分木ソートに比べて、平均および最悪ケースでも O(n log n) のソートが保証されます。
+/// <br/>
+/// Balanced binary tree sort using AVL tree. Rotations are performed during insertion to maintain a height of O(log n), and an in-order traversal reassigns array elements in ascending order.
+/// Compared to binary tree sort, it guarantees O(n log n) sorting in both average and worst cases.
+/// </summary>
+/// <remarks>
+/// <para><strong>Theoretical Conditions for Correct AVL Tree Sort:</strong></para>
+/// <list type="number">
+/// <item><description><strong>Binary Search Tree Property:</strong> For every node, all values in the left subtree must be less than the node's value,
+/// and all values in the right subtree must be greater than or equal to the node's value.
+/// This property is maintained by comparing values during insertion (lines 165-171, 187-193).</description></item>
+/// <item><description><strong>AVL Balance Property:</strong> For every node, the height difference between left and right subtrees (balance factor) must be at most 1.
+/// Balance factor = height(left subtree) - height(right subtree) ∈ {-1, 0, 1}.
+/// This is enforced by the Balance() method after every insertion (lines 229-261).</description></item>
+/// <item><description><strong>Height Maintenance:</strong> Each node stores its height, which is updated after any structural change.
+/// Height = 1 + max(height(left), height(right)).
+/// This is computed by UpdateHeight() after insertions and rotations (lines 215-223).</description></item>
+/// <item><description><strong>Rotation Correctness:</strong> When the balance factor violates the AVL property (|balance| > 1), rotations restore balance while preserving BST property:
+/// <list type="bullet">
+/// <item><description>Left-Left case (balance > 1, left child balanced): Single right rotation</description></item>
+/// <item><description>Left-Right case (balance > 1, left child right-heavy): Left rotation on left child, then right rotation</description></item>
+/// <item><description>Right-Right case (balance &lt; -1, right child balanced): Single left rotation</description></item>
+/// <item><description>Right-Left case (balance &lt; -1, right child left-heavy): Right rotation on right child, then left rotation</description></item>
+/// </list>
+/// All rotations preserve the in-order traversal sequence (lines 263-303).</description></item>
+/// <item><description><strong>In-order Traversal Correctness:</strong> Visiting nodes in left-root-right order produces elements in sorted ascending order.
+/// This is guaranteed by the BST property and implemented iteratively to avoid stack overflow.</description></item>
+/// </list>
+/// <para><strong>Mathematical Proof of O(log n) Height:</strong></para>
+/// <list type="bullet">
+/// <item><description>Let N(h) = minimum number of nodes in an AVL tree of height h</description></item>
+/// <item><description>N(h) = N(h-1) + N(h-2) + 1 (Fibonacci-like recurrence)</description></item>
+/// <item><description>N(h) ≥ F(h+2) - 1, where F is the Fibonacci sequence</description></item>
+/// <item><description>Therefore, h ≤ 1.44 × log₂(n + 2) - 0.328 ≈ O(log n)</description></item>
+/// </list>
+/// <para><strong>Performance Characteristics:</strong></para>
+/// <list type="bullet">
+/// <item><description>Family      : Tree</description></item>
+/// <item><description>Stable      : No (does not preserve relative order of equal elements)</description></item>
+/// <item><description>In-place    : No (requires O(n) auxiliary space for tree structure)</description></item>
+/// <item><description>Best case   : Θ(n log n) - Already sorted or reversed, still requires building balanced tree</description></item>
+/// <item><description>Average case: Θ(n log n) - Each of n insertions takes O(log n) comparisons</description></item>
+/// <item><description>Worst case  : O(n log n) - Guaranteed by AVL balancing property</description></item>
+/// <item><description>Comparisons : O(n log n) - Each insertion performs at most log₂(n) comparisons</description></item>
+/// <item><description>Index Reads : Θ(n log n) - With ItemIndex implementation, each comparison reads both values (2 reads per comparison) plus n traversal reads</description></item>
+/// <item><description>Index Writes: Θ(n) - Each element is written once during in-order traversal</description></item>
+/// <item><description>Swaps       : 0 - No swaps performed; only tree node manipulations</description></item>
+/// <item><description>Rotations   : O(n log n) worst case - At most 2 rotations per insertion (amortized O(1))</description></item>
+/// </list>
+/// <para><strong>Advantages over unbalanced BST:</strong></para>
+/// <list type="bullet">
+/// <item><description>Guaranteed O(n log n) time complexity even on sorted/reversed input (BST degrades to O(n²))</description></item>
+/// <item><description>Predictable performance regardless of input distribution</description></item>
+/// <item><description>Height always bounded by 1.44 × log₂(n)</description></item>
+/// </list>
+/// </remarks>
+public static class BalancedBinaryTreeSort
+{
+    // Buffer identifiers for visualization
+    private const int BUFFER_MAIN = 0;       // Main input array
+    private const int NULL_INDEX = -1;       // Represents null reference in arena
+
+    // Note: Arena (Node array) operations are not tracked via SortSpan because:
+    // 1. Node is an internal implementation detail (stores only indices, not actual data)
+    // 2. Only accesses to the original data array (T[]) need statistics tracking via ItemIndex
+    // 3. Arena operations are auxiliary and don't represent the algorithm's core operations on data
+
+    /// <summary>
+    /// Sorts the elements in the specified span in ascending order using the default comparer.
+    /// </summary>
+    /// <typeparam name="T">The type of elements in the span. Must implement <see cref="IComparable{T}"/>.</typeparam>
+    /// <param name="span">The span of elements to sort in place.</param>
+    public static void Sort<T>(Span<T> span) where T : IComparable<T>
+    {
+        Sort(span, NullContext.Default);
+    }
+
+    /// <summary>
+    /// Sorts the elements in the specified span using the provided sort context.
+    /// </summary>
+    /// <typeparam name="T">The type of elements in the span. Must implement <see cref="IComparable{T}"/>.</typeparam>
+    /// <param name="span">The span of elements to sort. The elements within this span will be reordered in place.</param>
+    /// <param name="context">The sort context that defines the sorting strategy or options to use during the operation. Cannot be null.</param>
+    public static void Sort<T>(Span<T> span, ISortContext context) where T : IComparable<T>
+    {
+        if (span.Length <= 1) return;
+
+        // Allocate path stack for iterative insertion
+        // AVL tree theoretical height: h ≤ 1.44 * log₂(n+2) - 0.328
+        // During construction, use conservative estimate to handle temporary imbalance
+        // Use: max(n, 2 * log₂(n+1) + 8) for small n, logarithmic for large n
+        var avlMaxHeight = span.Length <= 16
+            ? span.Length
+            : Math.Max((int)(2.0 * Math.Log2(span.Length + 1)) + 8, 32);
+
+        // Use stackalloc for small arrays, ArrayPool for large arrays
+        // Node struct size: 16 bytes (4 ints), so 64 nodes = 1024 bytes (safe for stack)
+        Node[]? rentedArena = null;
+        Span<Node> arena = span.Length <= 64
+            ? stackalloc Node[span.Length]
+            : (rentedArena = ArrayPool<Node>.Shared.Rent(span.Length)).AsSpan(0, span.Length);
+        int[]? rentedPathStack = null;
+        Span<int> pathStack = avlMaxHeight <= 128
+            ? stackalloc int[avlMaxHeight]
+            : (rentedPathStack = ArrayPool<int>.Shared.Rent(avlMaxHeight)).AsSpan(0, avlMaxHeight);
+        try
+        {
+            SortCore(span, context, arena, pathStack);
+        }
+        finally
+        {
+            if (rentedArena is not null)
+            {
+                ArrayPool<Node>.Shared.Return(rentedArena);
+            }
+            if (rentedPathStack is not null)
+            {
+                ArrayPool<int>.Shared.Return(rentedPathStack);
+            }
+        }
+    }
+
+    /// <summary>
+    /// Core AVL tree sort implementation.
+    /// Builds a balanced binary search tree iteratively, then performs in-order traversal.
+    /// </summary>
+    /// <param name="span">The span to sort</param>
+    /// <param name="context">Sort context for statistics tracking</param>
+    /// <param name="arena">Preallocated arena for tree nodes</param>
+    /// <param name="pathStack">Preallocated stack for tracking insertion path</param>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private static void SortCore<T>(Span<T> span, ISortContext context, Span<Node> arena, Span<int> pathStack) where T : IComparable<T>
+    {
+        var s = new SortSpan<T>(span, context, BUFFER_MAIN);
+        var rootIndex = NULL_INDEX;
+        var nodeCount = 0;
+
+        // Insert each element into the AVL tree (iteratively with rebalancing)
+        for (int i = 0; i < s.Length; i++)
+        {
+            rootIndex = InsertIterative(arena, rootIndex, ref nodeCount, i, s, pathStack);
+        }
+
+        // Traverse in order and write back into the array (iterative to avoid stack overflow)
+        var writeIndex = 0;
+        Inorder(s, arena, rootIndex, ref writeIndex);
+    }
+
+    /// <summary>
+    /// Iteratively insert into the AVL tree using path stack, then rebalance.
+    /// Completely recursion-free to avoid stack overhead.
+    /// Uses ItemIndex to ensure all data access is tracked via SortSpan.
+    /// </summary>
+    /// <param name="itemIndex">Index in the original span (not the value itself).</param>
+    /// <returns>Index of the new root of the tree.</returns>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private static int InsertIterative<T>(Span<Node> arena, int rootIndex, ref int nodeCount, int itemIndex, SortSpan<T> s, Span<int> pathStack) where T : IComparable<T>
+    {
+        // If tree is empty, create root
+        if (rootIndex == NULL_INDEX)
+        {
+            var newIndex = nodeCount++;
+            arena[newIndex] = new Node(itemIndex);
+            return newIndex;
+        }
+
+        // Phase 1: Navigate to insertion point and track path
+        var stackTop = 0;
+        var currentIndex = rootIndex;
+
+        while (true)
+        {
+            pathStack[stackTop++] = currentIndex;
+            // Compare using ItemIndex - all data access via SortSpan
+            var cmp = s.Compare(itemIndex, arena[currentIndex].ItemIndex);
+
+            if (cmp < 0)
+            {
+                // Go left
+                var leftIndex = arena[currentIndex].Left;
+                if (leftIndex == NULL_INDEX)
+                {
+                    // Insert here
+                    var newIndex = nodeCount++;
+                    arena[newIndex] = new Node(itemIndex);
+                    arena[currentIndex].Left = newIndex;
+                    currentIndex = newIndex;
+                    break;
+                }
+                currentIndex = leftIndex;
+            }
+            else
+            {
+                // Go right
+                var rightIndex = arena[currentIndex].Right;
+                if (rightIndex == NULL_INDEX)
+                {
+                    // Insert here
+                    var newIndex = nodeCount++;
+                    arena[newIndex] = new Node(itemIndex);
+                    arena[currentIndex].Right = newIndex;
+                    currentIndex = newIndex;
+                    break;
+                }
+                currentIndex = rightIndex;
+            }
+        }
+
+        // Phase 2: Rebalance upward along the insertion path
+        // subtreeRoot: the (possibly rotated) root of the subtree we just finished processing
+        // subtreeFrom: the original node index before any rotation (for parent to identify which child)
+        var subtreeRoot = currentIndex;
+        int subtreeFrom = currentIndex;
+
+        while (stackTop > 0)
+        {
+            var nodeIndex = pathStack[--stackTop];
+
+            // Ensure nodeIndex points to the correct child subtree root (propagate up)
+            if (arena[nodeIndex].Left == subtreeFrom)
+            {
+                arena[nodeIndex].Left = subtreeRoot;
+            }
+            else if (arena[nodeIndex].Right == subtreeFrom)
+            {
+                arena[nodeIndex].Right = subtreeRoot;
+            }
+
+            // Update height of current node
+            UpdateHeight(arena, nodeIndex);
+
+            // Balance this subtree - may rotate and return a new subtree root
+            var newRoot = Balance(arena, nodeIndex);
+
+            subtreeFrom = nodeIndex;
+            subtreeRoot = newRoot;
+        }
+
+        // After processing all nodes up to the root, subtreeRoot is the new tree root
+        // (which may have changed if rotations occurred at the top level)
+        return subtreeRoot;
+    }
+
+    /// <summary>
+    /// Iterative in-order traversal using explicit stack to avoid recursion overhead.
+    /// </summary>
+    /// <remarks>
+    /// Uses an explicit stack to track node indices during traversal, avoiding recursion overhead.
+    /// Uses ArrayPool to avoid GC pressure.
+    /// Reads actual data from original span using ItemIndex.
+    /// </remarks>
+    private static void Inorder<T>(SortSpan<T> s, Span<Node> arena, int rootIndex, ref int writeIndex) where T : IComparable<T>
+    {
+        if (rootIndex == NULL_INDEX) return;
+
+        // Maximum stack size needed for in-order traversal
+        // For AVL tree: height ≤ 1.44 * log₂(n+2), but use n for safety and simplicity
+        var maxStackSize = s.Length;
+
+        int[]? rented = null;
+        Span<int> stack = maxStackSize <= 128
+            ? stackalloc int[maxStackSize]
+            : (rented = ArrayPool<int>.Shared.Rent(maxStackSize)).AsSpan(0, maxStackSize);
+        try
+        {
+            var stackTop = 0;
+            var currentIndex = rootIndex;
+
+            // Iterative in-order traversal
+            while (stackTop > 0 || currentIndex != NULL_INDEX)
+            {
+                // Traverse left subtree: push all left nodes onto stack
+                while (currentIndex != NULL_INDEX)
+                {
+                    stack[stackTop++] = currentIndex;
+                    currentIndex = arena[currentIndex].Left;
+                }
+
+                // Process the node at top of stack
+                currentIndex = stack[--stackTop];
+                // Read actual data from original span using ItemIndex (tracked by SortSpan)
+                var value = s.Read(arena[currentIndex].ItemIndex);
+                s.Write(writeIndex++, value);
+
+                // Move to right subtree
+                currentIndex = arena[currentIndex].Right;
+            }
+        }
+        finally
+        {
+            if (rented is not null)
+            {
+                ArrayPool<int>.Shared.Return(rented);
+            }
+        }
+    }
+
+    // methods used to maintain AVL tree balance
+
+    /// <summary>
+    /// Update the node's height based on the heights of its children using arena indices.
+    /// </summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private static void UpdateHeight(Span<Node> arena, int nodeIndex)
+    {
+        var leftIndex = arena[nodeIndex].Left;
+        var rightIndex = arena[nodeIndex].Right;
+
+        // Get the heights of the left and right children.
+        int leftHeight = (leftIndex == NULL_INDEX) ? 0 : arena[leftIndex].Height;
+        int rightHeight = (rightIndex == NULL_INDEX) ? 0 : arena[rightIndex].Height;
+
+        // node's height = max child's height + 1
+        arena[nodeIndex].Height = 1 + Math.Max(leftHeight, rightHeight);
+    }
+
+    /// <summary>
+    /// Returns the balance factor (left height - right height) using arena indices.
+    /// </summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private static int GetBalance(Span<Node> arena, int nodeIndex)
+    {
+        var leftIndex = arena[nodeIndex].Left;
+        var rightIndex = arena[nodeIndex].Right;
+
+        int leftHeight = (leftIndex == NULL_INDEX) ? 0 : arena[leftIndex].Height;
+        int rightHeight = (rightIndex == NULL_INDEX) ? 0 : arena[rightIndex].Height;
+        return leftHeight - rightHeight;
+    }
+
+    /// <summary>
+    /// Rebalance the node after insertion using AVL rotations (arena-based).
+    /// </summary>
+    /// <returns>Index of the new root after balancing.</returns>
+    private static int Balance(Span<Node> arena, int nodeIndex)
+    {
+        int balance = GetBalance(arena, nodeIndex);
+
+        // Left heavy (balance > 1)
+        if (balance > 1)
+        {
+            var leftIndex = arena[nodeIndex].Left;
+            // Left child is right heavy
+            if (GetBalance(arena, leftIndex) < 0)
+            {
+                arena[nodeIndex].Left = RotateLeft(arena, leftIndex);
+            }
+            return RotateRight(arena, nodeIndex);
+        }
+        // Right heavy (balance < -1)
+        else if (balance < -1)
+        {
+            var rightIndex = arena[nodeIndex].Right;
+            // Right child is left heavy
+            if (GetBalance(arena, rightIndex) > 0)
+            {
+                arena[nodeIndex].Right = RotateRight(arena, rightIndex);
+            }
+            return RotateLeft(arena, nodeIndex);
+        }
+
+        // Node is balanced, return as is.
+        return nodeIndex;
+    }
+
+    /// <summary>
+    /// Right rotation on the given node using arena indices.
+    /// </summary>
+    /// <returns>Index of the new root after rotation.</returns>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private static int RotateRight(Span<Node> arena, int yIndex)
+    {
+        var xIndex = arena[yIndex].Left;
+        var t2Index = arena[xIndex].Right;
+
+        // Perform the rotation
+        arena[xIndex].Right = yIndex;
+        arena[yIndex].Left = t2Index;
+
+        // Recompute heights
+        UpdateHeight(arena, yIndex);
+        UpdateHeight(arena, xIndex);
+
+        // Return the new root
+        return xIndex;
+    }
+
+    /// <summary>
+    /// Left rotation on the given node using arena indices.
+    /// </summary>
+    /// <returns>Index of the new root after rotation.</returns>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private static int RotateLeft(Span<Node> arena, int xIndex)
+    {
+        var yIndex = arena[xIndex].Right;
+        var t2Index = arena[yIndex].Left;
+
+        // Perform the rotation
+        arena[yIndex].Left = xIndex;
+        arena[xIndex].Right = t2Index;
+
+        // Recompute heights
+        UpdateHeight(arena, xIndex);
+        UpdateHeight(arena, yIndex);
+
+        // Return the new root
+        return yIndex;
+    }
+
+    /// <summary>
+    /// Arena-based node structure using index references for both tree structure and data.
+    /// </summary>
+    /// <remarks>
+    /// This struct-based node eliminates GC pressure by using value semantics.
+    /// Left and Right are indices into the arena array (-1 represents null).
+    /// ItemIndex points to the original span element, ensuring all data access is tracked via SortSpan.
+    /// Height is maintained for AVL balancing.
+    /// </remarks>
+    private struct Node
+    {
+        public int ItemIndex; // Index in original span (for accessing actual data)
+        public int Left;      // Index in arena, -1 = null
+        public int Right;     // Index in arena, -1 = null
+        public int Height;    // For AVL balancing
+
+        public Node(int itemIndex)
+        {
+            ItemIndex = itemIndex;
+            Left = -1;
+            Right = -1;
+            Height = 1;  // A new node starts with height = 1
+        }
+    }
+}
 
 /// <summary>
 /// 平衡二分木（AVL木）を用いた二分木ソート。挿入時に回転を行って常に高さが O(log n) に保たれ、木を中順巡回することで配列に要素を昇順で再割り当てします。
@@ -89,11 +520,11 @@ Span (Iterative) ...
 /// <item><description>Height always bounded by 1.44 × log₂(n)</description></item>
 /// </list>
 /// </remarks>
-public static class BalancedBinaryTreeSort
+public static class BalancedBinaryTreeSortNonOptimized
 {
     // Buffer identifiers for visualization
     private const int BUFFER_MAIN = 0;       // Main input array
-    
+
     /// <summary>
     /// Sorts the elements in the specified span in ascending order using the default comparer.
     /// </summary>
@@ -150,7 +581,7 @@ public static class BalancedBinaryTreeSort
         while (true)
         {
             bool goLeft = s.Compare(value, current.Item) < 0;
-            
+
             if (goLeft)
             {
                 if (current.Left is null)
@@ -176,18 +607,18 @@ public static class BalancedBinaryTreeSort
         // Start rebalancing from the parent of the inserted node
         UpdateHeight(current);
         var balanced = Balance(current);
-        
+
         // Rebalance upward along the insertion path
         while (path.Count > 0)
         {
             var (parent, wentLeft) = path.Pop();
-            
+
             // Connect the balanced child to its parent
             if (wentLeft)
                 parent.Left = balanced;
             else
                 parent.Right = balanced;
-            
+
             // Update and balance the parent
             UpdateHeight(parent);
             balanced = Balance(parent);
