@@ -179,6 +179,7 @@ public static class BalancedBinaryTreeSort
     /// Iteratively insert into the AVL tree using path stack, then rebalance.
     /// Completely recursion-free to avoid stack overhead.
     /// Uses ItemIndex to ensure all data access is tracked via SortSpan.
+    /// Performance optimization: caches the insert value to reduce Read() calls from 2 to 1 per comparison.
     /// </summary>
     /// <param name="itemIndex">Index in the original span (not the value itself).</param>
     /// <returns>Index of the new root of the tree.</returns>
@@ -193,6 +194,9 @@ public static class BalancedBinaryTreeSort
             return newIndex;
         }
 
+        // Cache the value to insert (read once, tracked by SortSpan)
+        var insertValue = s.Read(itemIndex);
+
         // Phase 1: Navigate to insertion point and track path
         var stackTop = 0;
         var currentIndex = rootIndex;
@@ -200,8 +204,10 @@ public static class BalancedBinaryTreeSort
         while (true)
         {
             pathStack[stackTop++] = currentIndex;
-            // Compare using ItemIndex - all data access via SortSpan
-            var cmp = s.Compare(itemIndex, arena[currentIndex].ItemIndex);
+            // Read current node's value once per iteration (tracked by SortSpan)
+            var currentValue = s.Read(arena[currentIndex].ItemIndex);
+            // Compare cached values directly (no additional Read() calls)
+            var cmp = s.Compare(insertValue, currentValue);
 
             if (cmp < 0)
             {

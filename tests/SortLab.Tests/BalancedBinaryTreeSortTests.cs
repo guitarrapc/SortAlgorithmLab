@@ -117,15 +117,16 @@ public class BalancedBinaryTreeSortTests
         // - Each insertion into a balanced tree of i elements takes ~log2(i) comparisons
         // - Total: approximately n*log2(n) comparisons
         // - Balanced tree guarantees O(log n) height, so worst case is better than BST
-        // With ItemIndex implementation:
-        // - Each comparison reads 2 values (both items being compared)
+        // With ItemIndex implementation (value caching optimization):
+        // - Insert value read once per insertion (except root): (n-1) reads
+        // - Current node value read once per comparison: CompareCount reads
         // - In-order traversal reads each element once: n reads
-        // - Total reads: 2 * CompareCount + n
+        // - Total reads: (n-1) + CompareCount + n
         var avgCompares = (ulong)(n * Math.Log2(Math.Max(n, 2)));
         var minCompares = avgCompares / 2;  // Allow variance for very balanced insertions
         var maxCompares = avgCompares * 2;  // Upper bound (still O(n log n))
-        var expectedMinReads = 2 * minCompares + (ulong)n;  // 2 reads per comparison + n traversal reads
-        var expectedMaxReads = 2 * maxCompares + (ulong)n;  // Upper bound
+        var expectedMinReads = (ulong)(n - 1) + minCompares + (ulong)n;  // (n-1) insert reads (root has no comparison) + comparison reads + n traversal reads
+        var expectedMaxReads = (ulong)(n - 1) + maxCompares + (ulong)n;  // Upper bound
         var expectedWrites = (ulong)n; // Writing during in-order traversal
         
         Assert.InRange(stats.CompareCount, minCompares, maxCompares);
