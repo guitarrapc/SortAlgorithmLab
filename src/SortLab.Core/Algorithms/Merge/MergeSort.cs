@@ -114,6 +114,14 @@ public static class MergeSort
         SortCore(left, buffer.Slice(0, mid), context);
         SortCore(right, buffer.Slice(mid), context);
 
+        // Optimization: Skip merge if already sorted (left[last] <= right[first])
+        // This dramatically improves performance on nearly-sorted data
+        var s = new SortSpan<T>(span, context, BUFFER_MAIN);
+        if (s.Compare(mid - 1, mid) <= 0)
+        {
+            return; // Already sorted, no merge needed
+        }
+
         // Merge: Combine two sorted halves
         Merge(span, left, right, buffer, context);
     }
