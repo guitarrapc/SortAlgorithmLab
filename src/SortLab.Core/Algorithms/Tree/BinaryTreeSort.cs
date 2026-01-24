@@ -1,4 +1,5 @@
 ﻿using System.Buffers;
+using System.Diagnostics.CodeAnalysis;
 using SortLab.Core.Contexts;
 
 namespace SortLab.Core.Algorithms;
@@ -66,12 +67,13 @@ Non-Optimized (class Node) ...
 /// <para><strong>Implementation Notes:</strong></para>
 /// <list type="bullet">
 /// <item><description>Uses iterative insertion instead of recursive insertion to reduce call stack overhead</description></item>
+/// <item><description>Uses iterative in-order traversal with explicit stack to avoid recursion overhead and stack overflow risk</description></item>
 /// <item><description>Tree nodes are struct-based, stored in an arena (array) to eliminate per-node GC pressure</description></item>
 /// <item><description>Node references are index-based (int) instead of pointers, enabling struct usage</description></item>
 /// <item><description>Arena uses ArrayPool for memory efficiency (zero allocations when pooled buffer available)</description></item>
 /// <item><description>Equal elements are inserted to the right subtree (value ≥ current), making the sort unstable</description></item>
 /// <item><description>No tree balancing is performed; for guaranteed O(n log n) performance, consider using AVL or Red-Black tree variants</description></item>
-/// <item><description><strong>Optimized:</strong> This version uses arena-based struct nodes. See <see cref="BinaryTreeSortNonOptimized"/> for comparison with class-based nodes.</description></item>
+/// <item><description><strong>Optimized:</strong> This version uses arena-based struct nodes with iterative traversal. See <see cref="BinaryTreeSortNonOptimized"/> for comparison with class-based nodes.</description></item>
 /// </list>
 /// </remarks>
 public static class BinaryTreeSort
@@ -176,24 +178,62 @@ public static class BinaryTreeSort
     }
 
     /// <summary>
-    /// In-order traversal of the arena-based tree.
+    /// Iterative in-order traversal of the arena-based tree using an explicit stack.
     /// </summary>
-    private static void InorderTraversal<T>(SortSpan<T> s, Span<Node<T>> arena, int nodeIndex, ref int writeIndex) where T : IComparable<T>
+    /// <remarks>
+    /// Iterative implementation avoids recursion overhead and stack overflow risk.
+    /// Uses an explicit stack to track nodes during traversal.
+    /// Worst case requires O(n) stack space for completely unbalanced trees.
+    /// For small arrays (≤128), uses stackalloc for zero heap allocation.
+    /// For large arrays (>128), uses ArrayPool to avoid GC pressure.
+    /// </remarks>
+    private static void InorderTraversal<T>(SortSpan<T> s, Span<Node<T>> arena, int rootIndex, ref int writeIndex) where T : IComparable<T>
     {
-        if (nodeIndex == NULL_INDEX) return;
+        if (rootIndex == NULL_INDEX) return;
 
-        var leftIndex = arena[nodeIndex].Left;
-        var rightIndex = arena[nodeIndex].Right;
-        var item = arena[nodeIndex].Item;
+        // Explicit stack for iterative traversal (worst case: all nodes)
+        int[]? rentedStack = null;
+        Span<int> stack = arena.Length <= 128
+            ? stackalloc int[arena.Length]
+            : (rentedStack = ArrayPool<int>.Shared.Rent(arena.Length)).AsSpan();
+        try
+        {
+            InorderTraversalCore(s, arena, rootIndex, ref writeIndex, stack);
+        }
+        finally
+        {
+            if (rentedStack is not null)
+            {
+                ArrayPool<int>.Shared.Return(rentedStack);
+            }
+        }
+    }
 
-        // Traverse left subtree
-        InorderTraversal(s, arena, leftIndex, ref writeIndex);
+    /// <summary>
+    /// Core iterative in-order traversal logic.
+    /// </summary>
+    private static void InorderTraversalCore<T>(SortSpan<T> s, Span<Node<T>> arena, int rootIndex, ref int writeIndex, Span<int> stack) where T : IComparable<T>
+    {
+        var stackTop = 0;
+        var currentIndex = rootIndex;
 
-        // Write current node value
-        s.Write(writeIndex++, item);
+        // Iterative in-order traversal
+        while (stackTop > 0 || currentIndex != NULL_INDEX)
+        {
+            // Traverse left subtree: push all left nodes onto stack
+            while (currentIndex != NULL_INDEX)
+            {
+                stack[stackTop++] = currentIndex;
+                currentIndex = arena[currentIndex].Left;
+            }
 
-        // Traverse right subtree
-        InorderTraversal(s, arena, rightIndex, ref writeIndex);
+            // Process the node at top of stack
+            currentIndex = stack[--stackTop];
+            s.Write(writeIndex++, arena[currentIndex].Item);
+
+            // Move to right subtree
+            currentIndex = arena[currentIndex].Right;
+        }
     }
 
     /// <summary>
