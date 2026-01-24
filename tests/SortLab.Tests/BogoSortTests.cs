@@ -16,6 +16,7 @@ public class BogoSortTests
     [ClassData(typeof(MockSameValuesData))]
     public void SortResultOrderTest(IInputSample<int> inputSample)
     {
+        // Bogo Sort is extremely slow, so we limit to small arrays
         if (inputSample.Samples.Length <= 10)
         {
             var stats = new StatisticsContext();
@@ -32,6 +33,7 @@ public class BogoSortTests
     [ClassData(typeof(MockSortedData))]
     public void StatisticsSortedTest(IInputSample<int> inputSample)
     {
+        // Bogo Sort is extremely slow, so we limit to small arrays
         if (inputSample.Samples.Length <= 10)
         {
             var stats = new StatisticsContext();
