@@ -22,14 +22,16 @@ namespace SortLab.Core.Algorithms;
 /// </description></item>
 /// <item><description><strong>Pivot Selection and Ordering:</strong> Two pivots (p1, p2) are selected from the leftmost and rightmost positions.
 /// The pivots must satisfy p1 ≤ p2 after initial comparison (line 59-62 ensures this invariant).</description></item>
-/// <item><description><strong>Three-Way Partitioning:</strong> The array is partitioned into three regions:
+/// <item><description><strong>Three-Way Partitioning (Neither Hoare nor Lomuto):</strong> This algorithm uses a specialized 3-way partitioning scheme designed for dual-pivot quicksort.
+/// Unlike Hoare partition (bidirectional scan with two pointers) or Lomuto partition (single-direction scan),
+/// this approach performs a left-to-right scan with three boundary pointers (l, k, g) to partition the array into three regions:
 /// <list type="bullet">
 /// <item><description>Left region: elements &lt; p1 (indices [left, l-1])</description></item>
 /// <item><description>Middle region: elements where p1 ≤ element ≤ p2 (indices [l+1, g-1])</description></item>
 /// <item><description>Right region: elements &gt; p2 (indices [g+1, right])</description></item>
 /// </list>
 /// The partitioning loop (lines 65-82) maintains these invariants by examining each element k and placing it in the appropriate region.
-/// </description></item>
+/// This is the standard dual-pivot partitioning method introduced by Yaroslavskiy.</description></item>
 /// <item><description><strong>Pivot Placement:</strong> After partitioning, pivots are moved to their final positions (lines 84-87):
 /// - p1 is swapped to position l (boundary of left region)
 /// - p2 is swapped to position g (boundary of right region)
@@ -54,6 +56,7 @@ namespace SortLab.Core.Algorithms;
 /// <para><strong>Performance Characteristics:</strong></para>
 /// <list type="bullet">
 /// <item><description>Family      : Hybrid (Partitioning + Insertion)</description></item>
+/// <item><description>Partition   : 3-way partition (Yaroslavskiy's method - neither Hoare nor Lomuto)</description></item>
 /// <item><description>Stable      : No (neither dual-pivot partitioning nor insertion sort in this context preserves stability)</description></item>
 /// <item><description>In-place    : Yes (O(log n) auxiliary space for recursion stack)</description></item>
 /// <item><description>Best case   : Θ(n log n) - Balanced partitions with early cutoff to insertion sort</description></item>
