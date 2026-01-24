@@ -146,20 +146,22 @@ public static class MergeSort
         var k = 0;           // Index in result (span)
 
         // Merge: compare elements from buffer (left) and right partition
+        // Optimization: Read both values once and reuse them to minimize indirect access
         while (l < left.Length && r < span.Length)
         {
+            var leftValue = b.Read(l);
+            var rightValue = s.Read(r);
+            
             // Stability: use <= to take from left when equal
-            // Compare buffer element (b) with main span element (s)
-            var bufferValue = b.Read(l);
-            if (s.Compare(bufferValue, r) <= 0)
+            // Use SortSpan.Compare(T, T) to track statistics while avoiding redundant Read
+            if (s.Compare(leftValue, rightValue) <= 0)
             {
-                s.Write(k, bufferValue);
+                s.Write(k, leftValue);
                 l++;
             }
             else
             {
-                var temp = s.Read(r);
-                s.Write(k, temp);
+                s.Write(k, rightValue);
                 r++;
             }
             k++;
