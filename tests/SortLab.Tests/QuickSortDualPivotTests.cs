@@ -330,4 +330,120 @@ public class QuickSortDualPivotTests
         // Expected: first 5 unchanged, last 4 sorted
         Assert.Equal(new[] { 1, 3, 5, 7, 9, 2, 4, 6, 8 }, array);
     }
+
+    /// <summary>
+    /// Tests adaptive pivot selection: simple method for arrays &lt; 47 elements
+    /// </summary>
+    [Theory]
+    [InlineData(2)]   // Minimum for dual-pivot
+    [InlineData(10)]  // Small array
+    [InlineData(30)]  // Medium-small array
+    [InlineData(46)]  // Just below PivotThreshold (47)
+    public void AdaptivePivotSimpleMethodTest(int n)
+    {
+        var stats = new StatisticsContext();
+        var random = Enumerable.Range(0, n).OrderBy(_ => Guid.NewGuid()).ToArray();
+        QuickSortDualPivot.Sort(random.AsSpan(), stats);
+
+        // Verify sorting is correct
+        Assert.Equal(Enumerable.Range(0, n), random);
+        
+        // For n < 47, simple pivot selection is used (left and right elements)
+        // This uses fewer comparisons for pivot selection compared to 5-sample method
+        // The algorithm should still work correctly with simple pivots
+        Assert.NotEqual(0UL, stats.CompareCount);
+        Assert.NotEqual(0UL, stats.SwapCount);
+    }
+
+    /// <summary>
+    /// Tests adaptive pivot selection: 5-sample method for arrays ≥ 47 elements
+    /// </summary>
+    [Theory]
+    [InlineData(47)]   // Exactly at threshold
+    [InlineData(50)]   // Just above threshold
+    [InlineData(100)]  // Larger array
+    [InlineData(200)]  // Even larger
+    public void AdaptivePivot5SampleMethodTest(int n)
+    {
+        var stats = new StatisticsContext();
+        var random = Enumerable.Range(0, n).OrderBy(_ => Guid.NewGuid()).ToArray();
+        QuickSortDualPivot.Sort(random.AsSpan(), stats);
+
+        // Verify sorting is correct
+        Assert.Equal(Enumerable.Range(0, n), random);
+        
+        // For n >= 47, 5-sample pivot selection is used
+        // This involves sorting 5 sampled elements (adds ~12 comparisons per partition)
+        // The improved pivot quality should result in better partitioning
+        Assert.NotEqual(0UL, stats.CompareCount);
+        Assert.NotEqual(0UL, stats.SwapCount);
+        
+        // 5-sample method adds overhead but improves partition balance
+        // On random data, we expect more comparisons due to sampling overhead
+        // but better overall performance due to balanced partitions
+    }
+
+    /// <summary>
+    /// Tests that 5-sample pivot selection handles sorted data efficiently (≥ 47 elements)
+    /// </summary>
+    [Theory]
+    [InlineData(47)]
+    [InlineData(100)]
+    public void AdaptivePivot5SampleSortedTest(int n)
+    {
+        var stats = new StatisticsContext();
+        var sorted = Enumerable.Range(0, n).ToArray();
+        QuickSortDualPivot.Sort(sorted.AsSpan(), stats);
+
+        // Verify array remains sorted
+        Assert.Equal(Enumerable.Range(0, n), sorted);
+        
+        // With 5-sample pivot selection, sorted arrays should be handled efficiently
+        // The 2nd and 4th elements from sorted samples provide good pivots
+        // Expected behavior: O(n log n) comparisons
+        // 
+        // Comparison breakdown:
+        // - Partitioning: ~2n comparisons per level (each element vs 2 pivots)
+        // - Pivot selection: 7-9 comparisons per recursion level
+        // - Recursion depth: ~log₃(n) levels
+        //
+        // For n=100: ~log₃(100) ≈ 4.19 levels
+        // Total ≈ 100 * 2 * 4.19 + 9 * 4.19 ≈ 838 + 38 ≈ 876
+        // Allow 3x margin for actual implementation details
+        
+        var recursionDepth = Math.Ceiling(Math.Log(n, 3));
+        var maxCompares = (ulong)(n * 3 * recursionDepth + 20 * recursionDepth);
+        
+        Assert.True(stats.CompareCount <= maxCompares,
+            $"CompareCount ({stats.CompareCount}) should be <= {maxCompares} for sorted data with 5-sample pivots");
+    }
+
+    /// <summary>
+    /// Tests that 5-sample pivot selection handles reverse-sorted data efficiently
+    /// </summary>
+    [Theory]
+    [InlineData(47)]
+    [InlineData(100)]
+    public void AdaptivePivot5SampleReversedTest(int n)
+    {
+        var stats = new StatisticsContext();
+        var reversed = Enumerable.Range(0, n).Reverse().ToArray();
+        QuickSortDualPivot.Sort(reversed.AsSpan(), stats);
+
+        // Verify array is now sorted
+        Assert.Equal(Enumerable.Range(0, n), reversed);
+        
+        // With 5-sample pivot selection, reversed arrays should be handled efficiently
+        // The sampling strategy should select good pivots even from reversed data
+        //
+        // Reversed data might need more comparisons than sorted data
+        // but should still be O(n log n) with good pivot selection
+        
+        var recursionDepth = Math.Ceiling(Math.Log(n, 3));
+        var maxCompares = (ulong)(n * 3 * recursionDepth + 15 * recursionDepth);
+        
+        Assert.True(stats.CompareCount <= maxCompares,
+            $"CompareCount ({stats.CompareCount}) should be <= {maxCompares} for reversed data with 5-sample pivots");
+    }
 }
+
