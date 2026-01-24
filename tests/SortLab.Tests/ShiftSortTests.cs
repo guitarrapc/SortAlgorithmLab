@@ -23,6 +23,86 @@ public class ShiftSortTests
     }
 
     [Theory]
+    [InlineData(256)]  // Stackalloc threshold
+    [InlineData(257)]  // Just over threshold (should use ArrayPool)
+    [InlineData(512)]  // ArrayPool
+    [InlineData(1024)] // Large array
+    public void LargeArrayTest(int n)
+    {
+        var stats = new StatisticsContext();
+        var array = Enumerable.Range(0, n).OrderBy(_ => Guid.NewGuid()).ToArray();
+        ShiftSort.Sort(array.AsSpan(), stats);
+
+        // Verify sorting correctness
+        Assert.Equal(Enumerable.Range(0, n), array);
+    }
+
+    [Theory]
+    [ClassData(typeof(MockStabilityData))]
+    public void StabilityTest(StabilityTestItem[] items)
+    {
+        // Test stability: equal elements should maintain relative order
+        var stats = new StatisticsContext();
+
+        ShiftSort.Sort(items.AsSpan(), stats);
+
+        // Verify sorting correctness - values should be in ascending order
+        Assert.Equal(MockStabilityData.Sorted, items.Select(x => x.Value).ToArray());
+
+        // Verify stability: for each group of equal values, original order is preserved
+        var value1Indices = items.Where(x => x.Value == 1).Select(x => x.OriginalIndex).ToArray();
+        var value2Indices = items.Where(x => x.Value == 2).Select(x => x.OriginalIndex).ToArray();
+        var value3Indices = items.Where(x => x.Value == 3).Select(x => x.OriginalIndex).ToArray();
+
+        // Value 1 appeared at original indices 0, 2, 4 - should remain in this order
+        Assert.Equal(MockStabilityData.Sorted1, value1Indices);
+
+        // Value 2 appeared at original indices 1, 5 - should remain in this order
+        Assert.Equal(MockStabilityData.Sorted2, value2Indices);
+
+        // Value 3 appeared at original index 3
+        Assert.Equal(MockStabilityData.Sorted3, value3Indices);
+    }
+
+    [Theory]
+    [ClassData(typeof(MockStabilityWithIdData))]
+    public void StabilityTestWithComplex(StabilityTestItemWithId[] items)
+    {
+        // Test stability with more complex scenario - multiple equal values
+        var stats = new StatisticsContext();
+
+        ShiftSort.Sort(items.AsSpan(), stats);
+
+        // Expected: [2:B, 2:D, 2:F, 5:A, 5:C, 5:G, 8:E]
+        // Keys are sorted, and elements with the same key maintain original order
+
+        for (var i = 0; i < items.Length; i++)
+        {
+            Assert.Equal(MockStabilityWithIdData.Sorted[i].Key, items[i].Key);
+            Assert.Equal(MockStabilityWithIdData.Sorted[i].Id, items[i].Id);
+        }
+    }
+
+    [Theory]
+    [ClassData(typeof(MockStabilityAllEqualsData))]
+    public void StabilityTestWithAllEqual(StabilityTestItem[] items)
+    {
+        // Edge case: all elements have the same value
+        // They should remain in original order
+        var stats = new StatisticsContext();
+
+        ShiftSort.Sort(items.AsSpan(), stats);
+
+        // All values are 1
+        Assert.All(items, item => Assert.Equal(1, item.Value));
+
+        // Original order should be preserved: 0, 1, 2, 3, 4
+        Assert.Equal(MockStabilityAllEqualsData.Sorted, items.Select(x => x.OriginalIndex).ToArray());
+    }
+
+#if DEBUG
+
+    [Theory]
     [ClassData(typeof(MockSortedData))]
     public void StatisticsSortedTest(IInputSample<int> inputSample)
     {
@@ -91,27 +171,27 @@ public class ShiftSortTests
         // - Writes during merge: O(n log k)
         //   * NOW includes writes to temp buffers (tmp1st or tmp2nd)
         //   * Each merge: writes to temp buffer + writes back to main
-        
+
         // Run detection comparisons: approximately n
         var minRunDetectionCompares = (ulong)(n - 1);
-        
+
         // Swaps are limited to run detection phase only (not during merge)
         // Empirically observed: reversed data produces approximately n/2 swaps
         // due to the 3-element optimization pattern
         var maxSwaps = (ulong)(n / 2 + 5); // Allow some margin for edge cases
-        
+
         // Comparisons include both run detection and merge
         // For reversed data, expect O(n log n) total comparisons
         var minCompares = minRunDetectionCompares;
         var maxCompares = (ulong)(n * Math.Log(n, 2) * 2); // 2x for safety margin
-        
+
         // Writes occur during merge (shift-based, not swap-based)
         // With internal buffer tracking: writes to temp buffer + writes back
         // For reversed data, most elements need to be shifted multiple times
         var minWrites = (ulong)(n - 1);
         // Allow for higher writes due to temp buffer operations being tracked
         var maxWrites = (ulong)(n * Math.Log(n, 2) * 3);
-        
+
         Assert.InRange(stats.CompareCount, minCompares, maxCompares);
         Assert.InRange(stats.SwapCount, 0UL, maxSwaps);
         Assert.InRange(stats.IndexWriteCount, minWrites, maxWrites);
@@ -136,17 +216,17 @@ public class ShiftSortTests
         // - Swaps during run detection: typically less than n/2
         // - Writes during merge: O(n log k)
         //   * NOW includes writes to temp buffers
-        
+
         var minCompares = (ulong)(n - 1); // At least run detection
         var maxCompares = (ulong)(n * Math.Log(n, 2) * 2); // At most O(n log n)
-        
+
         var maxSwaps = (ulong)(n / 2 + 5); // Limited to run detection phase
-        
+
         // Random data typically requires many merges
         // With internal buffer tracking: writes to temp buffer + writes back
         var minWrites = (ulong)(n / 4);
         var maxWrites = (ulong)(n * Math.Log(n, 2) * 3);
-        
+
         Assert.InRange(stats.CompareCount, minCompares, maxCompares);
         Assert.InRange(stats.SwapCount, 0UL, maxSwaps);
         Assert.InRange(stats.IndexWriteCount, minWrites, maxWrites);
@@ -171,101 +251,18 @@ public class ShiftSortTests
 
         // Alternating data creates multiple runs that need merging
         // This tests the adaptive merge behavior
-        
+
         var minCompares = (ulong)(n - 1);
         var maxCompares = (ulong)(n * Math.Log(n, 2) * 2);
-        
+
         var maxSwaps = (ulong)(n / 2 + 5);
-        
+
         Assert.InRange(stats.CompareCount, minCompares, maxCompares);
         Assert.InRange(stats.SwapCount, 0UL, maxSwaps);
         Assert.NotEqual(0UL, stats.IndexWriteCount);
         Assert.NotEqual(0UL, stats.IndexReadCount);
     }
 
-    [Theory]
-    [InlineData(256)]  // Stackalloc threshold
-    [InlineData(257)]  // Just over threshold (should use ArrayPool)
-    [InlineData(512)]  // ArrayPool
-    [InlineData(1024)] // Large array
-    public void LargeArrayTest(int n)
-    {
-        var stats = new StatisticsContext();
-        var array = Enumerable.Range(0, n).OrderBy(_ => Guid.NewGuid()).ToArray();
-        ShiftSort.Sort(array.AsSpan(), stats);
+#endif
 
-        // Verify sorting correctness
-        Assert.Equal(Enumerable.Range(0, n), array);
-
-        // Verify statistics are tracked
-        Assert.NotEqual(0UL, stats.IndexReadCount);
-        Assert.NotEqual(0UL, stats.IndexWriteCount);
-        Assert.NotEqual(0UL, stats.CompareCount);
-    }
-
-    [Theory]
-    [ClassData(typeof(MockStabilityData))]
-    public void StabilityTest(StabilityTestItem[] items)
-    {
-        // Test stability: equal elements should maintain relative order
-        var stats = new StatisticsContext();
-
-        ShiftSort.Sort(items.AsSpan(), stats);
-
-        // Verify sorting correctness - values should be in ascending order
-        Assert.Equal(MockStabilityData.Sorted, items.Select(x => x.Value).ToArray());
-
-        // Verify stability: for each group of equal values, original order is preserved
-        var value1Indices = items.Where(x => x.Value == 1).Select(x => x.OriginalIndex).ToArray();
-        var value2Indices = items.Where(x => x.Value == 2).Select(x => x.OriginalIndex).ToArray();
-        var value3Indices = items.Where(x => x.Value == 3).Select(x => x.OriginalIndex).ToArray();
-
-        // Value 1 appeared at original indices 0, 2, 4 - should remain in this order
-        Assert.Equal(MockStabilityData.Sorted1, value1Indices);
-
-        // Value 2 appeared at original indices 1, 5 - should remain in this order
-        Assert.Equal(MockStabilityData.Sorted2, value2Indices);
-
-        // Value 3 appeared at original index 3
-        Assert.Equal(MockStabilityData.Sorted3, value3Indices);
-    }
-
-    [Theory]
-    [ClassData(typeof(MockStabilityWithIdData))]
-    public void StabilityTestWithComplex(StabilityTestItemWithId[] items)
-    {
-        // Test stability with more complex scenario - multiple equal values
-        var stats = new StatisticsContext();
-
-        ShiftSort.Sort(items.AsSpan(), stats);
-
-        // Expected: [2:B, 2:D, 2:F, 5:A, 5:C, 5:G, 8:E]
-        // Keys are sorted, and elements with the same key maintain original order
-
-        for (var i = 0; i < items.Length; i++)
-        {
-            Assert.Equal(MockStabilityWithIdData.Sorted[i].Key, items[i].Key);
-            Assert.Equal(MockStabilityWithIdData.Sorted[i].Id, items[i].Id);
-        }
-    }
-
-    [Theory]
-    [ClassData(typeof(MockStabilityAllEqualsData))]
-    public void StabilityTestWithAllEqual(StabilityTestItem[] items)
-    {
-        // Edge case: all elements have the same value
-        // They should remain in original order
-        var stats = new StatisticsContext();
-
-        ShiftSort.Sort(items.AsSpan(), stats);
-
-        // All values are 1
-        Assert.All(items, item => Assert.Equal(1, item.Value));
-
-        // Original order should be preserved: 0, 1, 2, 3, 4
-        Assert.Equal(MockStabilityAllEqualsData.Sorted, items.Select(x => x.OriginalIndex).ToArray());
-
-        // For sorted data with all equal elements, no swaps should occur
-        Assert.Equal(0UL, stats.IndexWriteCount);
-    }
 }

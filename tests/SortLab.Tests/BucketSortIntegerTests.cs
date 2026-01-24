@@ -22,6 +22,8 @@ public class BucketSortIntegerTests
         Assert.Equal((ulong)inputSample.Samples.Length, (ulong)array.Length);
     }
 
+#if DEBUG
+
     [Theory]
     [ClassData(typeof(MockSortedData))]
     public void StatisticsSortedTest(IInputSample<int> inputSample)
@@ -133,4 +135,7 @@ public class BucketSortIntegerTests
         Assert.Equal(expectedCompares, stats.CompareCount);
         Assert.Equal(0UL, stats.SwapCount);
     }
+
+#endif
+
 }

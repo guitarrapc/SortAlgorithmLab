@@ -23,6 +23,8 @@ public class BalancedBinaryTreeSortNonOptimizedTests
         Assert.Equal((ulong)inputSample.Samples.Length, (ulong)array.Length);
     }
 
+#if DEBUG
+
     [CISkippableTheory]
     [ClassData(typeof(MockSortedData))]
     public void StatisticsSortedTest(IInputSample<int> inputSample)
@@ -60,7 +62,7 @@ public class BalancedBinaryTreeSortNonOptimizedTests
         var maxCompares = avgCompares * 2;  // Upper bound for balanced insertions
         var expectedReads = (ulong)n;  // Reading during insertion
         var expectedWrites = (ulong)n; // Writing during in-order traversal
-        
+
         Assert.InRange(stats.CompareCount, minCompares, maxCompares);
         Assert.Equal(expectedReads, stats.IndexReadCount);
         Assert.Equal(expectedWrites, stats.IndexWriteCount);
@@ -89,7 +91,7 @@ public class BalancedBinaryTreeSortNonOptimizedTests
         var maxCompares = avgCompares * 2;  // Upper bound for balanced insertions
         var expectedReads = (ulong)n;  // Reading during insertion
         var expectedWrites = (ulong)n; // Writing during in-order traversal
-        
+
         Assert.InRange(stats.CompareCount, minCompares, maxCompares);
         Assert.Equal(expectedReads, stats.IndexReadCount);
         Assert.Equal(expectedWrites, stats.IndexWriteCount);
@@ -117,7 +119,7 @@ public class BalancedBinaryTreeSortNonOptimizedTests
         var maxCompares = avgCompares * 2;  // Upper bound (still O(n log n))
         var expectedReads = (ulong)n;  // Reading during insertion
         var expectedWrites = (ulong)n; // Writing during in-order traversal
-        
+
         Assert.InRange(stats.CompareCount, minCompares, maxCompares);
         Assert.Equal(expectedReads, stats.IndexReadCount);
         Assert.Equal(expectedWrites, stats.IndexWriteCount);
@@ -140,7 +142,7 @@ public class BalancedBinaryTreeSortNonOptimizedTests
         // even in worst-case scenarios (unlike unbalanced BST which degrades to O(n^2))
         var worstCaseBST = (ulong)(n * (n - 1) / 2);  // Unbalanced BST worst case
         var balancedUpperBound = (ulong)(n * Math.Log2(Math.Max(n, 2)) * 3);  // 3x safety margin
-        
+
         // Verify that comparisons are within balanced tree bounds (O(n log n))
         // For small n, the difference may not be dramatic, so we use 70% of worst case as threshold
         Assert.True(stats.CompareCount < worstCaseBST * 7 / 10,
@@ -148,4 +150,7 @@ public class BalancedBinaryTreeSortNonOptimizedTests
         Assert.True(stats.CompareCount < balancedUpperBound,
             $"CompareCount ({stats.CompareCount}) should be within balanced tree bounds ({balancedUpperBound})");
     }
+
+#endif
+
 }

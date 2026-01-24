@@ -22,6 +22,8 @@ public class SmoothSortTests
         Assert.Equal((ulong)inputSample.Samples.Length, (ulong)array.Length);
     }
 
+#if DEBUG
+
     [Theory]
     [ClassData(typeof(MockSortedData))]
     public void StatisticsSortedTest(IInputSample<int> inputSample)
@@ -58,7 +60,7 @@ public class SmoothSortTests
         Assert.InRange(stats.CompareCount, minCompares, maxCompares);
         Assert.True(stats.IndexReadCount >= stats.CompareCount,
             $"IndexReadCount ({stats.IndexReadCount}) should be >= CompareCount ({stats.CompareCount})");
-        
+
         // Sorted data should have minimal operations
         Assert.True(stats.CompareCount < (ulong)(n * n / 2),
             $"Sorted data should be O(n), not O(n²). CompareCount: {stats.CompareCount}, n²/2: {n * n / 2}");
@@ -108,4 +110,7 @@ public class SmoothSortTests
         Assert.True(stats.IndexReadCount >= stats.CompareCount,
             $"IndexReadCount ({stats.IndexReadCount}) should be >= CompareCount ({stats.CompareCount})");
     }
+
+#endif
+
 }

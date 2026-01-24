@@ -26,6 +26,8 @@ public class BogoSortTests
         }
     }
 
+#if DEBUG
+
     [CISkippableTheory]
     [ClassData(typeof(MockSortedData))]
     public void StatisticsSortedTest(IInputSample<int> inputSample)
@@ -148,5 +150,7 @@ public class BogoSortTests
         Assert.NotEqual(0UL, stats.IndexWriteCount);
         Assert.NotEqual(0UL, stats.IndexReadCount);
     }
-}
 
+#endif
+
+}

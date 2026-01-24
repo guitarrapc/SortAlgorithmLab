@@ -23,6 +23,8 @@ public class BinaryTreeSortNonOptimizedTests
         Assert.Equal((ulong)inputSample.Samples.Length, (ulong)array.Length);
     }
 
+#if DEBUG
+
     [CISkippableTheory]
     [ClassData(typeof(MockSortedData))]
     public void StatisticsSortedTest(IInputSample<int> inputSample)
@@ -105,7 +107,7 @@ public class BinaryTreeSortNonOptimizedTests
         // Average insertion comparisons for balanced tree:
         // Each insertion into a tree of i elements takes ~log2(i) comparisons
         // Total: sum of log2(i) for i=1 to n
-        // 
+        //
         // Approximation: n*log2(n) - 1.44*n (based on average case analysis)
         // However, random data can vary, so we use a flexible range:
         // - Lower bound: about 50% of n*log2(n) (very lucky balanced insertions)
@@ -172,4 +174,8 @@ public class BinaryTreeSortNonOptimizedTests
         AddMiddle(0, n - 1);
         return result.AsSpan();
     }
+
+
+#endif
+
 }

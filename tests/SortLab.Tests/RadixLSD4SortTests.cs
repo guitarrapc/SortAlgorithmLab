@@ -22,6 +22,8 @@ public class RadixLSD4SortTests
         Assert.Equal((ulong)inputSample.Samples.Length, (ulong)array.Length);
     }
 
+#if DEBUG
+
     [Theory]
     [ClassData(typeof(MockSortedData))]
     public void StatisticsSortedTest(IInputSample<int> inputSample)
@@ -164,7 +166,7 @@ public class RadixLSD4SortTests
             + digitCount * 3 * nonNegativeCount // Sort non-negatives
             + n // Merge (read from buffers)
         );
-        
+
         var expectedWrites = (ulong)(
             n // Separate (write to buffers)
             + digitCount * 2 * negativeCount // Sort negatives
@@ -176,8 +178,11 @@ public class RadixLSD4SortTests
         Assert.Equal(expectedWrites, stats.IndexWriteCount);
         Assert.Equal(0UL, stats.CompareCount);
         Assert.Equal(0UL, stats.SwapCount);
-        
+
         // Verify result is sorted
         Assert.Equal(mixed.OrderBy(x => x), mixed);
     }
+
+#endif
+
 }

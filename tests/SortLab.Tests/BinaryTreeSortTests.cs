@@ -22,6 +22,8 @@ public class BinaryTreeSortTests
         Assert.Equal((ulong)inputSample.Samples.Length, (ulong)array.Length);
     }
 
+#if DEBUG
+
     [Theory]
     [ClassData(typeof(MockSortedData))]
     public void StatisticsSortedTest(IInputSample<int> inputSample)
@@ -58,7 +60,7 @@ public class BinaryTreeSortTests
         var expectedCompares = (ulong)(n * (n - 1) / 2);
         var expectedReads = 2 * expectedCompares + (ulong)n;  // 2 reads per comparison + n traversal reads
         var expectedWrites = (ulong)n; // Writing during in-order traversal
-        
+
         Assert.Equal(expectedCompares, stats.CompareCount);
         Assert.Equal(expectedReads, stats.IndexReadCount);
         Assert.Equal(expectedWrites, stats.IndexWriteCount);
@@ -86,7 +88,7 @@ public class BinaryTreeSortTests
         var expectedCompares = (ulong)(n * (n - 1) / 2);
         var expectedReads = 2 * expectedCompares + (ulong)n;  // 2 reads per comparison + n traversal reads
         var expectedWrites = (ulong)n; // Writing during in-order traversal
-        
+
         Assert.Equal(expectedCompares, stats.CompareCount);
         Assert.Equal(expectedReads, stats.IndexReadCount);
         Assert.Equal(expectedWrites, stats.IndexWriteCount);
@@ -108,7 +110,7 @@ public class BinaryTreeSortTests
         // Average insertion comparisons for balanced tree:
         // Each insertion into a tree of i elements takes ~log2(i) comparisons
         // Total: sum of log2(i) for i=1 to n
-        // 
+        //
         // Approximation: n*log2(n) - 1.44*n (based on average case analysis)
         // However, random data can vary, so we use a flexible range:
         // - Lower bound: about 50% of n*log2(n) (very lucky balanced insertions)
@@ -116,12 +118,12 @@ public class BinaryTreeSortTests
         var avgCompares = n * Math.Log2(n);
         var minCompares = (ulong)(avgCompares * 0.4);  // Allow significantly lower for balanced trees
         var maxCompares = (ulong)(n * (n - 1) / 2);    // Worst case (unbalanced)
-        
+
         // With ItemIndex: 2 reads per comparison + n traversal reads
         var expectedMinReads = 2 * minCompares + (ulong)n;
         var expectedMaxReads = 2 * maxCompares + (ulong)n;
         var expectedWrites = (ulong)n; // Writing during in-order traversal
-        
+
         Assert.InRange(stats.CompareCount, minCompares, maxCompares);
         Assert.InRange(stats.IndexReadCount, expectedMinReads, expectedMaxReads);
         Assert.Equal(expectedWrites, stats.IndexWriteCount);
@@ -145,12 +147,12 @@ public class BinaryTreeSortTests
         // Average height for balanced tree: log2(n)
         var minCompares = (ulong)(n * Math.Log2(n) * 0.5);  // Lower bound
         var maxCompares = (ulong)(n * Math.Log2(n) * 2.0);  // Upper bound with some overhead
-        
+
         // With ItemIndex: 2 reads per comparison + n traversal reads
         var expectedMinReads = 2 * minCompares + (ulong)n;
         var expectedMaxReads = 2 * maxCompares + (ulong)n;
         var expectedWrites = (ulong)n; // Writing during in-order traversal
-        
+
         Assert.InRange(stats.CompareCount, minCompares, maxCompares);
         Assert.InRange(stats.IndexReadCount, expectedMinReads, expectedMaxReads);
         Assert.Equal(expectedWrites, stats.IndexWriteCount);
@@ -166,7 +168,7 @@ public class BinaryTreeSortTests
         var sorted = Enumerable.Range(0, n).ToArray();
         var result = new int[n];
         var index = 0;
-        
+
         void AddMiddle(int left, int right)
         {
             if (left > right) return;
@@ -175,8 +177,11 @@ public class BinaryTreeSortTests
             AddMiddle(left, mid - 1);
             AddMiddle(mid + 1, right);
         }
-        
+
         AddMiddle(0, n - 1);
         return result.AsSpan();
     }
+
+#endif
+
 }

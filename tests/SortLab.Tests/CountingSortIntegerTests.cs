@@ -23,6 +23,64 @@ public class CountingSortIntegerTests
     }
 
     [Theory]
+    [InlineData(10_000_001)]
+    public void RangeLimitTest(int range)
+    {
+        // Test that excessive range throws ArgumentException
+        var array = new[] { 0, range };
+        Assert.Throws<ArgumentException>(() => CountingSortInteger.Sort(array.AsSpan()));
+    }
+
+    [Fact]
+    public void NegativeValuesTest()
+    {
+        var stats = new StatisticsContext();
+        var array = new[] { -5, -1, -10, 3, 0, -3 };
+        var n = array.Length;
+        CountingSortInteger.Sort(array.AsSpan(), stats);
+
+        Assert.Equal(new[] { -10, -5, -3, -1, 0, 3 }, array);
+    }
+
+    [Fact]
+    public void EmptyArrayTest()
+    {
+        var stats = new StatisticsContext();
+        var array = Array.Empty<int>();
+        CountingSortInteger.Sort(array.AsSpan(), stats);
+
+        Assert.Empty(array);
+    }
+
+    [Fact]
+    public void SingleElementTest()
+    {
+        var stats = new StatisticsContext();
+        var array = new[] { 42 };
+        CountingSortInteger.Sort(array.AsSpan(), stats);
+
+        Assert.Single(array);
+        Assert.Equal(42, array[0]);
+    }
+
+    [Theory]
+    [InlineData(2)]
+    [InlineData(5)]
+    [InlineData(10)]
+    public void DuplicateValuesTest(int duplicateCount)
+    {
+        var stats = new StatisticsContext();
+        var array = Enumerable.Repeat(5, duplicateCount).Concat(Enumerable.Repeat(3, duplicateCount)).ToArray();
+        var n = array.Length;
+        CountingSortInteger.Sort(array.AsSpan(), stats);
+
+        var expected = Enumerable.Repeat(3, duplicateCount).Concat(Enumerable.Repeat(5, duplicateCount)).ToArray();
+        Assert.Equal(expected, array);
+    }
+
+#if DEBUG
+
+    [Theory]
     [ClassData(typeof(MockSortedData))]
     public void StatisticsSortedTest(IInputSample<int> inputSample)
     {
@@ -126,68 +184,6 @@ public class CountingSortIntegerTests
         Assert.Equal(expectedWrites, stats.IndexWriteCount);
     }
 
-    [Theory]
-    [InlineData(10_000_001)]
-    public void RangeLimitTest(int range)
-    {
-        // Test that excessive range throws ArgumentException
-        var array = new[] { 0, range };
-        Assert.Throws<ArgumentException>(() => CountingSortInteger.Sort(array.AsSpan()));
-    }
+#endif
 
-    [Fact]
-    public void NegativeValuesTest()
-    {
-        var stats = new StatisticsContext();
-        var array = new[] { -5, -1, -10, 3, 0, -3 };
-        var n = array.Length;
-        CountingSortInteger.Sort(array.AsSpan(), stats);
-
-        Assert.Equal(new[] { -10, -5, -3, -1, 0, 3 }, array);
-        Assert.Equal((ulong)(4 * n), stats.IndexReadCount);
-        Assert.Equal((ulong)(2 * n), stats.IndexWriteCount);
-        Assert.Equal(0UL, stats.CompareCount);
-    }
-
-    [Fact]
-    public void EmptyArrayTest()
-    {
-        var stats = new StatisticsContext();
-        var array = Array.Empty<int>();
-        CountingSortInteger.Sort(array.AsSpan(), stats);
-
-        Assert.Empty(array);
-        Assert.Equal(0UL, stats.IndexReadCount);
-        Assert.Equal(0UL, stats.IndexWriteCount);
-    }
-
-    [Fact]
-    public void SingleElementTest()
-    {
-        var stats = new StatisticsContext();
-        var array = new[] { 42 };
-        CountingSortInteger.Sort(array.AsSpan(), stats);
-
-        Assert.Single(array);
-        Assert.Equal(42, array[0]);
-        Assert.Equal(0UL, stats.IndexReadCount);
-        Assert.Equal(0UL, stats.IndexWriteCount);
-    }
-
-    [Theory]
-    [InlineData(2)]
-    [InlineData(5)]
-    [InlineData(10)]
-    public void DuplicateValuesTest(int duplicateCount)
-    {
-        var stats = new StatisticsContext();
-        var array = Enumerable.Repeat(5, duplicateCount).Concat(Enumerable.Repeat(3, duplicateCount)).ToArray();
-        var n = array.Length;
-        CountingSortInteger.Sort(array.AsSpan(), stats);
-
-        var expected = Enumerable.Repeat(3, duplicateCount).Concat(Enumerable.Repeat(5, duplicateCount)).ToArray();
-        Assert.Equal(expected, array);
-        Assert.Equal((ulong)(4 * n), stats.IndexReadCount);
-        Assert.Equal((ulong)(2 * n), stats.IndexWriteCount);
-    }
 }

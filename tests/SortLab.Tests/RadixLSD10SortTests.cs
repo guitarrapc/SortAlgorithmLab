@@ -22,6 +22,8 @@ public class RadixLSD10SortTests
         Assert.Equal((ulong)inputSample.Samples.Length, (ulong)array.Length);
     }
 
+#if DEBUG
+
     [Theory]
     [ClassData(typeof(MockSortedData))]
     public void StatisticsSortedTest(IInputSample<int> inputSample)
@@ -56,10 +58,10 @@ public class RadixLSD10SortTests
         //      - Count phase: n reads
         //      - Distribute phase: n reads
         //      - Copy back phase: n writes
-        // 
+        //
         // For n elements with max value (n-1):
         // - max = n-1, so digitCount = ⌈log₁₀(n)⌉ (e.g., n=100 → max=99 → 2 digits)
-        // 
+        //
         // Total reads = n (check negatives) + n (find max) + digitCount × 2n (count + distribute)
         // Total writes = digitCount × n (copy back)
         var max = n - 1;
@@ -148,7 +150,7 @@ public class RadixLSD10SortTests
         // For input [-n/2, ..., -1, 0, 1, ..., n/2-1]:
         // - Negative count = n/2 (elements: -n/2, -n/2+1, ..., -1)
         // - Non-negative count = n/2 (elements: 0, 1, ..., n/2-1)
-        // 
+        //
         // Negative subset: max abs value = n/2 → digitCount_neg
         // Non-negative subset: max value = n/2-1 → digitCount_pos
         var negativeCount = n / 2;
@@ -174,7 +176,7 @@ public class RadixLSD10SortTests
             + negativeCount + digitCountNeg * 2 * negativeCount // Sort negatives
             + nonNegativeCount + digitCountPos * 2 * nonNegativeCount // Sort non-negatives
         );
-        
+
         var expectedWrites = (ulong)(
             digitCountNeg * negativeCount // Sort negatives
             + digitCountPos * nonNegativeCount // Sort non-negatives
@@ -185,7 +187,7 @@ public class RadixLSD10SortTests
         Assert.Equal(expectedWrites, stats.IndexWriteCount);
         Assert.Equal(0UL, stats.CompareCount); // Still non-comparison
         Assert.Equal(0UL, stats.SwapCount);
-        
+
         // Verify result is sorted
         Assert.Equal(mixed.OrderBy(x => x), mixed);
     }
@@ -196,7 +198,7 @@ public class RadixLSD10SortTests
     private static int GetDigitCount(int value)
     {
         if (value == 0) return 1;
-        
+
         var count = 0;
         var temp = Math.Abs(value);
         while (temp > 0)
@@ -206,4 +208,7 @@ public class RadixLSD10SortTests
         }
         return count;
     }
+
+#endif
+
 }

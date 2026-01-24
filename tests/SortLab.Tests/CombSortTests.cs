@@ -23,6 +23,26 @@ public class CombSortTests
     }
 
     [Theory]
+    [InlineData(13)]
+    [InlineData(26)]
+    [InlineData(39)]
+    public void GapSequenceTest(int n)
+    {
+        var stats = new StatisticsContext();
+        var data = Enumerable.Range(0, n).Reverse().ToArray();
+        CombSort.Sort(data.AsSpan(), stats);
+
+        // Verify that Comb11 optimization is working:
+        // When gap calculation results in 9 or 10, it should be set to 11
+        // This should result in better performance than standard 1.3 shrink factor
+
+        // All elements should be sorted correctly
+        Assert.Equal(Enumerable.Range(0, n), data);
+    }
+
+#if DEBUG
+
+    [Theory]
     [ClassData(typeof(MockSortedData))]
     public void StatisticsSortedTest(IInputSample<int> inputSample)
     {
@@ -60,7 +80,7 @@ public class CombSortTests
         Assert.NotEqual(0UL, stats.CompareCount);
         Assert.Equal(expectedSwaps, stats.SwapCount);
         Assert.Equal(expectedWrites, stats.IndexWriteCount);
-        
+
         // Each comparison reads 2 elements
         var minIndexReads = stats.CompareCount * 2;
         Assert.True(stats.IndexReadCount >= minIndexReads,
@@ -82,17 +102,17 @@ public class CombSortTests
         // Gap sequence reduces by factor of 1.3 each iteration
         // Each gap h performs (n-h) comparisons
         // Reversed data will require many swaps, especially in early passes
-        
+
         // Comparisons: Sum of (n-h) for all gaps in sequence
         Assert.NotEqual(0UL, stats.CompareCount);
-        
+
         // Swaps: Should be significant for reversed data
         Assert.NotEqual(0UL, stats.SwapCount);
-        
+
         // Each swap writes 2 elements
         var expectedWrites = stats.SwapCount * 2;
         Assert.Equal(expectedWrites, stats.IndexWriteCount);
-        
+
         // Each comparison reads 2 elements
         var minIndexReads = stats.CompareCount * 2;
         Assert.True(stats.IndexReadCount >= minIndexReads,
@@ -114,42 +134,24 @@ public class CombSortTests
         // Gap sequence: n/1.3, n/1.69, ..., down to 1
         // Number of gaps ≈ log₁.₃(n) ≈ 2.4 * log₂(n)
         // For each gap h: (n-h) comparisons
-        
+
         // Conservative estimates:
         var minCompares = (ulong)n; // At minimum, final pass with gap=1
         var maxCompares = (ulong)(n * n); // Upper bound for worst case
-        
+
         Assert.InRange(stats.CompareCount, minCompares, maxCompares);
         Assert.NotEqual(0UL, stats.SwapCount);
-        
+
         // Each swap writes 2 elements
         var expectedWrites = stats.SwapCount * 2;
         Assert.Equal(expectedWrites, stats.IndexWriteCount);
-        
+
         // Each comparison reads 2 elements
         var minIndexReads = stats.CompareCount * 2;
         Assert.True(stats.IndexReadCount >= minIndexReads,
             $"IndexReadCount ({stats.IndexReadCount}) should be >= {minIndexReads}");
     }
 
-    [Theory]
-    [InlineData(13)]
-    [InlineData(26)]
-    [InlineData(39)]
-    public void GapSequenceTest(int n)
-    {
-        var stats = new StatisticsContext();
-        var data = Enumerable.Range(0, n).Reverse().ToArray();
-        CombSort.Sort(data.AsSpan(), stats);
+#endif
 
-        // Verify that Comb11 optimization is working:
-        // When gap calculation results in 9 or 10, it should be set to 11
-        // This should result in better performance than standard 1.3 shrink factor
-        
-        // All elements should be sorted correctly
-        Assert.Equal(Enumerable.Range(0, n), data);
-        
-        // Algorithm should complete successfully
-        Assert.NotEqual(0UL, stats.CompareCount);
-    }
 }

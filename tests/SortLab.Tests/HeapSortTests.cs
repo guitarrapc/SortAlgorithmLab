@@ -22,6 +22,72 @@ public class HeapSortTests
         Assert.Equal((ulong)inputSample.Samples.Length, (ulong)array.Length);
     }
 
+    [Fact]
+    public void RangeSortTest()
+    {
+        var stats = new StatisticsContext();
+        var array = new[] { 5, 3, 8, 1, 9, 2, 7, 4, 6 };
+
+        // Sort only the range [2, 6) -> indices 2, 3, 4, 5
+        HeapSort.Sort(array.AsSpan(), 2, 6, stats);
+
+        // Expected: first 2 elements unchanged, middle 4 sorted, last 3 unchanged
+        Assert.Equal(new[] { 5, 3, 1, 2, 8, 9, 7, 4, 6 }, array);
+    }
+
+    [Fact]
+    public void RangeSortFullArrayTest()
+    {
+        var stats = new StatisticsContext();
+        var array = new[] { 5, 3, 8, 1, 9, 2, 7, 4, 6 };
+
+        // Sort the entire array using range API
+        HeapSort.Sort(array.AsSpan(), 0, array.Length, stats);
+
+        Assert.Equal(new[] { 1, 2, 3, 4, 5, 6, 7, 8, 9 }, array);
+    }
+
+    [Fact]
+    public void RangeSortSingleElementTest()
+    {
+        var stats = new StatisticsContext();
+        var array = new[] { 5, 3, 8, 1, 9 };
+
+        // Sort a single element range [2, 3)
+        HeapSort.Sort(array.AsSpan(), 2, 3, stats);
+
+        // Array should be unchanged (single element is already sorted)
+        Assert.Equal(new[] { 5, 3, 8, 1, 9 }, array);
+    }
+
+    [Fact]
+    public void RangeSortBeginningTest()
+    {
+        var stats = new StatisticsContext();
+        var array = new[] { 9, 7, 5, 3, 1, 2, 4, 6, 8 };
+
+        // Sort only the first 5 elements [0, 5)
+        HeapSort.Sort(array.AsSpan(), 0, 5, stats);
+
+        // Expected: first 5 sorted, last 4 unchanged
+        Assert.Equal(new[] { 1, 3, 5, 7, 9, 2, 4, 6, 8 }, array);
+    }
+
+    [Fact]
+    public void RangeSortEndTest()
+    {
+        var stats = new StatisticsContext();
+        var array = new[] { 1, 3, 5, 7, 9, 8, 6, 4, 2 };
+
+        // Sort only the last 4 elements [5, 9)
+        HeapSort.Sort(array.AsSpan(), 5, 9, stats);
+
+        // Expected: first 5 unchanged, last 4 sorted
+        Assert.Equal(new[] { 1, 3, 5, 7, 9, 2, 4, 6, 8 }, array);
+    }
+
+#if DEBUG
+
     [Theory]
     [ClassData(typeof(MockSortedData))]
     public void StatisticsSortedTest(IInputSample<int> inputSample)
@@ -51,7 +117,7 @@ public class HeapSortTests
         // Heap Sort characteristics:
         // Build heap phase: O(n) comparisons with some swaps even for sorted data
         // Extract phase: (n-1) extractions, each requiring O(log n) heapify
-        // 
+        //
         // Empirical observations for sorted data:
         // n=10:  Compare=41,  Swap=30
         // n=20:  Compare=121, Swap=80
@@ -102,7 +168,7 @@ public class HeapSortTests
         // n=100: Compare=1023, Swap=573
         //
         // Pattern: approximately n * log2(n) for both compares and swaps
-        
+
         var logN = Math.Log(n + 1, 2);
         var minCompares = (ulong)(n * logN * 0.5);
         var maxCompares = (ulong)(n * logN * 2.5 + n);
@@ -145,7 +211,7 @@ public class HeapSortTests
         // n=100: Compare=1031, Swap=581
         //
         // Pattern: approximately n * log2(n), with variation due to randomness
-        
+
         var logN = Math.Log(n + 1, 2);
         var minCompares = (ulong)(n * logN * 0.5);
         var maxCompares = (ulong)(n * logN * 2.5 + n);
@@ -167,70 +233,6 @@ public class HeapSortTests
             $"IndexReadCount ({stats.IndexReadCount}) should be >= {minIndexReads}");
     }
 
-    [Fact]
-    public void RangeSortTest()
-    {
-        var stats = new StatisticsContext();
-        var array = new[] { 5, 3, 8, 1, 9, 2, 7, 4, 6 };
+#endif
 
-        // Sort only the range [2, 6) -> indices 2, 3, 4, 5
-        HeapSort.Sort(array.AsSpan(), 2, 6, stats);
-
-        // Expected: first 2 elements unchanged, middle 4 sorted, last 3 unchanged
-        Assert.Equal(new[] { 5, 3, 1, 2, 8, 9, 7, 4, 6 }, array);
-    }
-
-    [Fact]
-    public void RangeSortFullArrayTest()
-    {
-        var stats = new StatisticsContext();
-        var array = new[] { 5, 3, 8, 1, 9, 2, 7, 4, 6 };
-
-        // Sort the entire array using range API
-        HeapSort.Sort(array.AsSpan(), 0, array.Length, stats);
-
-        Assert.Equal(new[] { 1, 2, 3, 4, 5, 6, 7, 8, 9 }, array);
-    }
-
-    [Fact]
-    public void RangeSortSingleElementTest()
-    {
-        var stats = new StatisticsContext();
-        var array = new[] { 5, 3, 8, 1, 9 };
-
-        // Sort a single element range [2, 3)
-        HeapSort.Sort(array.AsSpan(), 2, 3, stats);
-
-        // Array should be unchanged (single element is already sorted)
-        Assert.Equal(new[] { 5, 3, 8, 1, 9 }, array);
-        Assert.Equal(0UL, stats.CompareCount);
-        Assert.Equal(0UL, stats.SwapCount);
-    }
-
-    [Fact]
-    public void RangeSortBeginningTest()
-    {
-        var stats = new StatisticsContext();
-        var array = new[] { 9, 7, 5, 3, 1, 2, 4, 6, 8 };
-
-        // Sort only the first 5 elements [0, 5)
-        HeapSort.Sort(array.AsSpan(), 0, 5, stats);
-
-        // Expected: first 5 sorted, last 4 unchanged
-        Assert.Equal(new[] { 1, 3, 5, 7, 9, 2, 4, 6, 8 }, array);
-    }
-
-    [Fact]
-    public void RangeSortEndTest()
-    {
-        var stats = new StatisticsContext();
-        var array = new[] { 1, 3, 5, 7, 9, 8, 6, 4, 2 };
-
-        // Sort only the last 4 elements [5, 9)
-        HeapSort.Sort(array.AsSpan(), 5, 9, stats);
-
-        // Expected: first 5 unchanged, last 4 sorted
-        Assert.Equal(new[] { 1, 3, 5, 7, 9, 2, 4, 6, 8 }, array);
-    }
 }
-

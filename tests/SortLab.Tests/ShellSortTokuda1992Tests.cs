@@ -23,6 +23,73 @@ public class ShellSortTokuda1992Tests
         Assert.Equal((ulong)inputSample.Samples.Length, (ulong)array.Length);
     }
 
+
+    [Fact]
+    public void RangeSortTest()
+    {
+        var stats = new StatisticsContext();
+        var array = new[] { 5, 3, 8, 1, 9, 2, 7, 4, 6 };
+
+        // Sort only the range [2, 6) -> indices 2, 3, 4, 5
+        ShellSortTokuda1992.Sort(array.AsSpan(), 2, 6, stats);
+
+        // Expected: first 2 elements unchanged, middle 4 sorted, last 3 unchanged
+        Assert.Equal(new[] { 5, 3, 1, 2, 8, 9, 7, 4, 6 }, array);
+    }
+
+    [Fact]
+    public void RangeSortFullArrayTest()
+    {
+        var stats = new StatisticsContext();
+        var array = new[] { 5, 3, 8, 1, 9, 2, 7, 4, 6 };
+
+        // Sort the entire array using range API
+        ShellSortTokuda1992.Sort(array.AsSpan(), 0, array.Length, stats);
+
+        Assert.Equal(new[] { 1, 2, 3, 4, 5, 6, 7, 8, 9 }, array);
+    }
+
+    [Fact]
+    public void RangeSortSingleElementTest()
+    {
+        var stats = new StatisticsContext();
+        var array = new[] { 5, 3, 8, 1, 9 };
+
+        // Sort a single element range [2, 3)
+        ShellSortTokuda1992.Sort(array.AsSpan(), 2, 3, stats);
+
+        // Array should be unchanged (single element is already sorted)
+        Assert.Equal(new[] { 5, 3, 8, 1, 9 }, array);
+    }
+
+    [Fact]
+    public void RangeSortBeginningTest()
+    {
+        var stats = new StatisticsContext();
+        var array = new[] { 9, 7, 5, 3, 1, 2, 4, 6, 8 };
+
+        // Sort only the first 5 elements [0, 5)
+        ShellSortTokuda1992.Sort(array.AsSpan(), 0, 5, stats);
+
+        // Expected: first 5 sorted, last 4 unchanged
+        Assert.Equal(new[] { 1, 3, 5, 7, 9, 2, 4, 6, 8 }, array);
+    }
+
+    [Fact]
+    public void RangeSortEndTest()
+    {
+        var stats = new StatisticsContext();
+        var array = new[] { 1, 3, 5, 7, 9, 8, 6, 4, 2 };
+
+        // Sort only the last 4 elements [5, 9)
+        ShellSortTokuda1992.Sort(array.AsSpan(), 5, 9, stats);
+
+        // Expected: first 5 unchanged, last 4 sorted
+        Assert.Equal(new[] { 1, 3, 5, 7, 9, 2, 4, 6, 8 }, array);
+    }
+
+#if DEBUG
+
     [Theory]
     [ClassData(typeof(MockSortedData))]
     public void StatisticsSortedTest(IInputSample<int> inputSample)
@@ -61,7 +128,7 @@ public class ShellSortTokuda1992Tests
         Assert.Equal(expectedWrites, stats.IndexWriteCount);
         Assert.True(stats.CompareCount >= minCompares,
             $"CompareCount ({stats.CompareCount}) should be >= {minCompares}");
-        
+
         // Each comparison reads 2 elements, each swap also reads 2 elements
         var expectedReads = stats.CompareCount * 2 + stats.SwapCount * 2;
         Assert.Equal(expectedReads, stats.IndexReadCount);
@@ -87,15 +154,15 @@ public class ShellSortTokuda1992Tests
         var minSwaps = 1UL; // At least 1 swap is needed
         var maxSwaps = (ulong)(n * n); // Upper bound (pessimistic)
         var minCompares = (ulong)n; // At least n comparisons
-        
+
         Assert.InRange(stats.SwapCount, minSwaps, maxSwaps);
         Assert.True(stats.CompareCount >= minCompares,
             $"CompareCount ({stats.CompareCount}) should be >= {minCompares}");
-        
+
         // Each swap writes 2 elements
         var expectedWrites = stats.SwapCount * 2;
         Assert.Equal(expectedWrites, stats.IndexWriteCount);
-        
+
         // Each comparison reads 2 elements, each swap also reads 2 elements
         var expectedReads = stats.CompareCount * 2 + stats.SwapCount * 2;
         Assert.Equal(expectedReads, stats.IndexReadCount);
@@ -121,83 +188,20 @@ public class ShellSortTokuda1992Tests
         var minSwaps = 0UL; // Could be sorted by chance
         var maxSwaps = (ulong)(n * n); // Upper bound
         var minCompares = (ulong)(n - 1); // At least n-1 comparisons in final pass
-        
+
         Assert.InRange(stats.SwapCount, minSwaps, maxSwaps);
         Assert.True(stats.CompareCount >= minCompares,
             $"CompareCount ({stats.CompareCount}) should be >= {minCompares}");
-        
+
         // Each swap writes 2 elements
         var expectedWrites = stats.SwapCount * 2;
         Assert.Equal(expectedWrites, stats.IndexWriteCount);
-        
+
         // Each comparison reads 2 elements, each swap also reads 2 elements
         var expectedReads = stats.CompareCount * 2 + stats.SwapCount * 2;
         Assert.Equal(expectedReads, stats.IndexReadCount);
     }
 
-    [Fact]
-    public void RangeSortTest()
-    {
-        var stats = new StatisticsContext();
-        var array = new[] { 5, 3, 8, 1, 9, 2, 7, 4, 6 };
+#endif
 
-        // Sort only the range [2, 6) -> indices 2, 3, 4, 5
-        ShellSortTokuda1992.Sort(array.AsSpan(), 2, 6, stats);
-
-        // Expected: first 2 elements unchanged, middle 4 sorted, last 3 unchanged
-        Assert.Equal(new[] { 5, 3, 1, 2, 8, 9, 7, 4, 6 }, array);
-    }
-
-    [Fact]
-    public void RangeSortFullArrayTest()
-    {
-        var stats = new StatisticsContext();
-        var array = new[] { 5, 3, 8, 1, 9, 2, 7, 4, 6 };
-
-        // Sort the entire array using range API
-        ShellSortTokuda1992.Sort(array.AsSpan(), 0, array.Length, stats);
-
-        Assert.Equal(new[] { 1, 2, 3, 4, 5, 6, 7, 8, 9 }, array);
-    }
-
-    [Fact]
-    public void RangeSortSingleElementTest()
-    {
-        var stats = new StatisticsContext();
-        var array = new[] { 5, 3, 8, 1, 9 };
-
-        // Sort a single element range [2, 3)
-        ShellSortTokuda1992.Sort(array.AsSpan(), 2, 3, stats);
-
-        // Array should be unchanged (single element is already sorted)
-        Assert.Equal(new[] { 5, 3, 8, 1, 9 }, array);
-        Assert.Equal(0UL, stats.CompareCount);
-        Assert.Equal(0UL, stats.SwapCount);
-    }
-
-    [Fact]
-    public void RangeSortBeginningTest()
-    {
-        var stats = new StatisticsContext();
-        var array = new[] { 9, 7, 5, 3, 1, 2, 4, 6, 8 };
-
-        // Sort only the first 5 elements [0, 5)
-        ShellSortTokuda1992.Sort(array.AsSpan(), 0, 5, stats);
-
-        // Expected: first 5 sorted, last 4 unchanged
-        Assert.Equal(new[] { 1, 3, 5, 7, 9, 2, 4, 6, 8 }, array);
-    }
-
-    [Fact]
-    public void RangeSortEndTest()
-    {
-        var stats = new StatisticsContext();
-        var array = new[] { 1, 3, 5, 7, 9, 8, 6, 4, 2 };
-
-        // Sort only the last 4 elements [5, 9)
-        ShellSortTokuda1992.Sort(array.AsSpan(), 5, 9, stats);
-
-        // Expected: first 5 unchanged, last 4 sorted
-        Assert.Equal(new[] { 1, 3, 5, 7, 9, 2, 4, 6, 8 }, array);
-    }
 }

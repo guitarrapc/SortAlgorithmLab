@@ -25,6 +25,189 @@ public class QuickSortDualPivotInsertionTests
         Assert.Equal((ulong)inputSample.Samples.Length, (ulong)array.Length);
     }
 
+    [Fact]
+    public void EdgeCaseEmptyArrayTest()
+    {
+        var stats = new StatisticsContext();
+        var empty = Array.Empty<int>();
+        QuickSortDualPivotInsertion.Sort(empty.AsSpan(), stats);
+    }
+
+    [Fact]
+    public void EdgeCaseSingleElementTest()
+    {
+        var stats = new StatisticsContext();
+        var single = new[] { 42 };
+        QuickSortDualPivotInsertion.Sort(single.AsSpan(), stats);
+
+        Assert.Equal(42, single[0]);
+    }
+
+    [Fact]
+    public void EdgeCaseTwoElementsSortedTest()
+    {
+        var stats = new StatisticsContext();
+        var twoSorted = new[] { 1, 2 };
+        QuickSortDualPivotInsertion.Sort(twoSorted.AsSpan(), stats);
+
+        Assert.Equal([1, 2], twoSorted);
+    }
+
+    [Fact]
+    public void EdgeCaseTwoElementsReversedTest()
+    {
+        var stats = new StatisticsContext();
+        var twoReversed = new[] { 2, 1 };
+        QuickSortDualPivotInsertion.Sort(twoReversed.AsSpan(), stats);
+
+        Assert.Equal([1, 2], twoReversed);
+    }
+
+    [Fact]
+    public void EdgeCaseThresholdSizeTest()
+    {
+        var stats = new StatisticsContext();
+        var array = Enumerable.Range(0, InsertThreshold).Reverse().ToArray();
+        QuickSortDualPivotInsertion.Sort(array.AsSpan(), stats);
+
+        Assert.Equal(Enumerable.Range(0, InsertThreshold), array);
+    }
+
+    [Fact]
+    public void EdgeCaseThresholdPlusOneTest()
+    {
+        var stats = new StatisticsContext();
+        var array = Enumerable.Range(0, InsertThreshold + 1).Reverse().ToArray();
+        QuickSortDualPivotInsertion.Sort(array.AsSpan(), stats);
+
+        Assert.Equal(Enumerable.Range(0, InsertThreshold + 1), array);
+    }
+
+    [Fact]
+    public void RangeSortTest()
+    {
+        var stats = new StatisticsContext();
+        var array = new[] { 5, 3, 8, 1, 9, 2, 7, 4, 6 };
+
+        // Sort only the range [2, 6) -> indices 2, 3, 4, 5
+        QuickSortDualPivotInsertion.Sort(array.AsSpan(), 2, 6, stats);
+
+        // Expected: first 2 elements unchanged, middle 4 sorted, last 3 unchanged
+        Assert.Equal(new[] { 5, 3, 1, 2, 8, 9, 7, 4, 6 }, array);
+    }
+
+    [Fact]
+    public void RangeSortFullArrayTest()
+    {
+        var stats = new StatisticsContext();
+        var array = new[] { 5, 3, 8, 1, 9, 2, 7, 4, 6 };
+
+        // Sort the entire array using range API
+        QuickSortDualPivotInsertion.Sort(array.AsSpan(), 0, array.Length, stats);
+
+        Assert.Equal(new[] { 1, 2, 3, 4, 5, 6, 7, 8, 9 }, array);
+    }
+
+    [Fact]
+    public void RangeSortSingleElementTest()
+    {
+        var stats = new StatisticsContext();
+        var array = new[] { 5, 3, 8, 1, 9 };
+
+        // Sort a single element range [2, 3)
+        QuickSortDualPivotInsertion.Sort(array.AsSpan(), 2, 3, stats);
+
+        // Array should be unchanged (single element is already sorted)
+        Assert.Equal(new[] { 5, 3, 8, 1, 9 }, array);
+    }
+
+    [Fact]
+    public void RangeSortBeginningTest()
+    {
+        var stats = new StatisticsContext();
+        var array = new[] { 9, 7, 5, 3, 1, 2, 4, 6, 8 };
+
+        // Sort only the first 5 elements [0, 5)
+        QuickSortDualPivotInsertion.Sort(array.AsSpan(), 0, 5, stats);
+
+        // Expected: first 5 sorted, last 4 unchanged
+        Assert.Equal(new[] { 1, 3, 5, 7, 9, 2, 4, 6, 8 }, array);
+    }
+
+    [Fact]
+    public void RangeSortEndTest()
+    {
+        var stats = new StatisticsContext();
+        var array = new[] { 1, 3, 5, 7, 9, 8, 6, 4, 2 };
+
+        // Sort only the last 4 elements [5, 9)
+        QuickSortDualPivotInsertion.Sort(array.AsSpan(), 5, 9, stats);
+
+        // Expected: first 5 unchanged, last 4 sorted
+        Assert.Equal(new[] { 1, 3, 5, 7, 9, 2, 4, 6, 8 }, array);
+    }
+
+    [Theory]
+    [InlineData(10)]
+    [InlineData(20)]
+    [InlineData(50)]
+    public void IndexReadWriteConsistencyTest(int n)
+    {
+        var stats = new StatisticsContext();
+        var array = Enumerable.Range(0, n).OrderBy(_ => Guid.NewGuid()).ToArray();
+        QuickSortDualPivotInsertion.Sort(array.AsSpan(), stats);
+
+        // Verify sorted correctly
+        Assert.Equal(Enumerable.Range(0, n), array);
+    }
+
+    [Fact]
+    public void SmallArrayIndexTrackingTest()
+    {
+        var stats = new StatisticsContext();
+        var array = new[] { 3, 1, 4, 1, 5, 9, 2, 6 }; // 8 elements, uses InsertionSort
+        QuickSortDualPivotInsertion.Sort(array.AsSpan(), stats);
+
+        // Verify sorted correctly
+        Assert.Equal(new[] { 1, 1, 2, 3, 4, 5, 6, 9 }, array);
+    }
+
+    [Fact]
+    public void LargeArrayIndexTrackingTest()
+    {
+        var stats = new StatisticsContext();
+        var array = Enumerable.Range(0, 50).Reverse().ToArray(); // 50 elements, uses hybrid
+        QuickSortDualPivotInsertion.Sort(array.AsSpan(), stats);
+
+        // Verify sorted correctly
+        Assert.Equal(Enumerable.Range(0, 50), array);
+    }
+
+    [Fact]
+    public void CompareWithValueTrackingTest()
+    {
+        var stats = new StatisticsContext();
+        var array = new[] { 5, 2, 8, 1, 9 }; // Small array using InsertionSort
+        QuickSortDualPivotInsertion.Sort(array.AsSpan(), stats);
+
+        Assert.Equal(new[] { 1, 2, 5, 8, 9 }, array);
+    }
+
+    [Theory]
+    [InlineData(5)]
+    [InlineData(15)]
+    [InlineData(16)]
+    public void BoundaryThresholdTest(int n)
+    {
+        var stats = new StatisticsContext();
+        var array = Enumerable.Range(0, n).Reverse().ToArray();
+        QuickSortDualPivotInsertion.Sort(array.AsSpan(), stats);
+
+        Assert.Equal(Enumerable.Range(0, n), array);
+    }
+
+#if DEBUG
+
     [Theory]
     [ClassData(typeof(MockSortedData))]
     public void StatisticsSortedTest(IInputSample<int> inputSample)
@@ -87,9 +270,9 @@ public class QuickSortDualPivotInsertionTests
             // For sorted data, expect O(n²) comparisons in worst case due to unbalanced partitions
             var minCompares = (ulong)(n - 1); // Absolute minimum
             var maxCompares = (ulong)(n * n); // Worst case
-            
+
             Assert.InRange(stats.CompareCount, minCompares, maxCompares);
-            
+
             // For sorted data with InsertionSort on small subarrays, minimal writes
             // But QuickSort swaps may occur
             Assert.True(stats.IndexWriteCount >= 0UL);
@@ -97,7 +280,7 @@ public class QuickSortDualPivotInsertionTests
 
         // Verify sorted correctly
         Assert.Equal(Enumerable.Range(0, n), sorted);
-        
+
         // IndexReads should be at least 2x comparisons (each compare reads 2 elements)
         var minIndexReads = stats.CompareCount * 2;
         Assert.True(stats.IndexReadCount >= minIndexReads,
@@ -139,10 +322,10 @@ public class QuickSortDualPivotInsertionTests
             // Hybrid: more complex behavior
             // QuickSort swaps many elements during partitioning
             // InsertionSort handles small reversed subarrays
-            
+
             var minCompares = (ulong)(n); // At least scan all elements
             var maxCompares = (ulong)(n * n); // Worst case (rare with dual pivot + insertion hybrid)
-            
+
             var minWrites = (ulong)(n / 4); // At least some elements moved
             var maxWrites = (ulong)(n * n); // Worst case
 
@@ -152,7 +335,7 @@ public class QuickSortDualPivotInsertionTests
 
         // Verify sorted correctly
         Assert.Equal(Enumerable.Range(0, n), reversed);
-        
+
         // IndexReads: should be higher due to swaps and writes
         var minIndexReads = stats.CompareCount * 2;
         Assert.True(stats.IndexReadCount >= minIndexReads,
@@ -174,10 +357,10 @@ public class QuickSortDualPivotInsertionTests
         // - Hybrid combines QuickSort's partitioning with InsertionSort for small subarrays
         // - QuickSort part: O(n log3 n) comparisons, O(n log n) swaps
         // - InsertionSort part: O(n²) per subarray, but subarrays are small (16 elements)
-        
+
         var minCompares = (ulong)(n - 1); // Minimum: nearly sorted by chance
         var maxCompares = (ulong)(n * n); // Maximum: worst case (very rare)
-        
+
         // For random data, expect operations between best and worst case
         // Dominated by QuickSort partitioning for large n
         var minWrites = 0UL; // Best case: already sorted by chance
@@ -186,12 +369,12 @@ public class QuickSortDualPivotInsertionTests
         Assert.InRange(stats.CompareCount, minCompares, maxCompares);
         Assert.True(stats.IndexWriteCount >= minWrites,
             $"IndexWriteCount ({stats.IndexWriteCount}) should be >= {minWrites}");
-        
+
         // IndexReads: proportional to comparisons and operations
         var minIndexReads = stats.CompareCount * 2;
         Assert.True(stats.IndexReadCount >= minIndexReads,
             $"IndexReadCount ({stats.IndexReadCount}) should be >= {minIndexReads}");
-        
+
         // Verify sorted correctly
         Assert.Equal(Enumerable.Range(0, n).OrderBy(x => x), random.OrderBy(x => x));
     }
@@ -210,301 +393,19 @@ public class QuickSortDualPivotInsertionTests
         // - InsertionSort (n <= 16): n-1 comparisons, 0 writes
         // - QuickSort + InsertionSort (n > 16): partitioning still occurs
         //   but elements don't move much, middle section contains most elements
-        
+
         var minCompares = (ulong)(n - 1); // At minimum, must compare adjacent elements
         var maxCompares = (ulong)(n * Math.Log(n, 2) * 4); // Allow for partitioning overhead
-        
+
         // Very few writes needed since all values are equal
         var maxWrites = (ulong)(n); // Upper bound: should be much less in practice
 
         Assert.InRange(stats.CompareCount, minCompares, maxCompares);
         Assert.True(stats.IndexWriteCount <= maxWrites,
             $"IndexWriteCount ({stats.IndexWriteCount}) should be <= {maxWrites} for all equal elements");
-        
+
         // Verify the array is still correct (all values unchanged)
         Assert.All(sameValues, val => Assert.Equal(42, val));
-    }
-
-    [Fact]
-    public void EdgeCaseEmptyArrayTest()
-    {
-        var stats = new StatisticsContext();
-        var empty = Array.Empty<int>();
-        QuickSortDualPivotInsertion.Sort(empty.AsSpan(), stats);
-
-        // Empty array: no operations
-        Assert.Equal(0UL, stats.CompareCount);
-        Assert.Equal(0UL, stats.SwapCount);
-        Assert.Equal(0UL, stats.IndexReadCount);
-        Assert.Equal(0UL, stats.IndexWriteCount);
-    }
-
-    [Fact]
-    public void EdgeCaseSingleElementTest()
-    {
-        var stats = new StatisticsContext();
-        var single = new[] { 42 };
-        QuickSortDualPivotInsertion.Sort(single.AsSpan(), stats);
-
-        // Single element: no operations needed
-        Assert.Equal(0UL, stats.CompareCount);
-        Assert.Equal(0UL, stats.SwapCount);
-        Assert.Equal(0UL, stats.IndexReadCount);
-        Assert.Equal(0UL, stats.IndexWriteCount);
-        Assert.Equal(42, single[0]);
-    }
-
-    [Fact]
-    public void EdgeCaseTwoElementsSortedTest()
-    {
-        var stats = new StatisticsContext();
-        var twoSorted = new[] { 1, 2 };
-        QuickSortDualPivotInsertion.Sort(twoSorted.AsSpan(), stats);
-
-        // Two elements (2 <= 16): uses InsertionSort
-        // - Position 1: compare with position 0 (1 comparison)
-        // - 1 >= 0, so no shift needed (0 writes)
-        Assert.Equal(1UL, stats.CompareCount);
-        Assert.Equal(0UL, stats.IndexWriteCount);
-        Assert.Equal([1, 2], twoSorted);
-    }
-
-    [Fact]
-    public void EdgeCaseTwoElementsReversedTest()
-    {
-        var stats = new StatisticsContext();
-        var twoReversed = new[] { 2, 1 };
-        QuickSortDualPivotInsertion.Sort(twoReversed.AsSpan(), stats);
-
-        // Two elements reversed (2 <= 16): uses InsertionSort
-        // - Position 1: compare with position 0 (1 comparison)
-        // - 2 < 1 is false, so shift position 0 to position 1 (1 write)
-        // - Write tmp (1) to position 0 (1 write)
-        // - Total: 1 comparison, 2 writes
-        Assert.Equal(1UL, stats.CompareCount);
-        Assert.Equal(2UL, stats.IndexWriteCount);
-        Assert.Equal([1, 2], twoReversed);
-    }
-
-    [Fact]
-    public void EdgeCaseThresholdSizeTest()
-    {
-        var stats = new StatisticsContext();
-        var array = Enumerable.Range(0, InsertThreshold).Reverse().ToArray();
-        QuickSortDualPivotInsertion.Sort(array.AsSpan(), stats);
-
-        // Exactly InsertThreshold (16) elements: uses InsertionSort only
-        // Reversed data: worst case for InsertionSort
-        // - Comparisons: 16 * 15 / 2 = 120
-        // - Writes: 15 * 18 / 2 = 135
-        var expectedCompares = (ulong)(InsertThreshold * (InsertThreshold - 1) / 2);
-        var expectedWrites = (ulong)((InsertThreshold - 1) * (InsertThreshold + 2) / 2);
-
-        Assert.Equal(expectedCompares, stats.CompareCount);
-        Assert.Equal(expectedWrites, stats.IndexWriteCount);
-        Assert.Equal(Enumerable.Range(0, InsertThreshold), array);
-    }
-
-    [Fact]
-    public void EdgeCaseThresholdPlusOneTest()
-    {
-        var stats = new StatisticsContext();
-        var array = Enumerable.Range(0, InsertThreshold + 1).Reverse().ToArray();
-        QuickSortDualPivotInsertion.Sort(array.AsSpan(), stats);
-
-        // InsertThreshold + 1 (17) elements: uses QuickSort partitioning
-        // QuickSort will partition, creating subarrays <= 16 that use InsertionSort
-        // This is the minimum size that triggers hybrid behavior
-        
-        Assert.True(stats.CompareCount > 0UL);
-        Assert.True(stats.SwapCount > 0UL || stats.IndexWriteCount > 0UL);
-        Assert.Equal(Enumerable.Range(0, InsertThreshold + 1), array);
-    }
-
-    [Fact]
-    public void RangeSortTest()
-    {
-        var stats = new StatisticsContext();
-        var array = new[] { 5, 3, 8, 1, 9, 2, 7, 4, 6 };
-        
-        // Sort only the range [2, 6) -> indices 2, 3, 4, 5
-        QuickSortDualPivotInsertion.Sort(array.AsSpan(), 2, 6, stats);
-
-        // Expected: first 2 elements unchanged, middle 4 sorted, last 3 unchanged
-        Assert.Equal(new[] { 5, 3, 1, 2, 8, 9, 7, 4, 6 }, array);
-    }
-
-    [Fact]
-    public void RangeSortFullArrayTest()
-    {
-        var stats = new StatisticsContext();
-        var array = new[] { 5, 3, 8, 1, 9, 2, 7, 4, 6 };
-        
-        // Sort the entire array using range API
-        QuickSortDualPivotInsertion.Sort(array.AsSpan(), 0, array.Length, stats);
-
-        Assert.Equal(new[] { 1, 2, 3, 4, 5, 6, 7, 8, 9 }, array);
-    }
-
-    [Fact]
-    public void RangeSortSingleElementTest()
-    {
-        var stats = new StatisticsContext();
-        var array = new[] { 5, 3, 8, 1, 9 };
-        
-        // Sort a single element range [2, 3)
-        QuickSortDualPivotInsertion.Sort(array.AsSpan(), 2, 3, stats);
-
-        // Array should be unchanged (single element is already sorted)
-        Assert.Equal(new[] { 5, 3, 8, 1, 9 }, array);
-        Assert.Equal(0UL, stats.CompareCount);
-        Assert.Equal(0UL, stats.SwapCount);
-    }
-
-    [Fact]
-    public void RangeSortBeginningTest()
-    {
-        var stats = new StatisticsContext();
-        var array = new[] { 9, 7, 5, 3, 1, 2, 4, 6, 8 };
-        
-        // Sort only the first 5 elements [0, 5)
-        QuickSortDualPivotInsertion.Sort(array.AsSpan(), 0, 5, stats);
-
-        // Expected: first 5 sorted, last 4 unchanged
-        Assert.Equal(new[] { 1, 3, 5, 7, 9, 2, 4, 6, 8 }, array);
-    }
-
-    [Fact]
-    public void RangeSortEndTest()
-    {
-        var stats = new StatisticsContext();
-        var array = new[] { 1, 3, 5, 7, 9, 8, 6, 4, 2 };
-        
-        // Sort only the last 4 elements [5, 9)
-        QuickSortDualPivotInsertion.Sort(array.AsSpan(), 5, 9, stats);
-
-        // Expected: first 5 unchanged, last 4 sorted
-        Assert.Equal(new[] { 1, 3, 5, 7, 9, 2, 4, 6, 8 }, array);
-    }
-
-    [Theory]
-    [InlineData(10)]
-    [InlineData(20)]
-    [InlineData(50)]
-    public void IndexReadWriteConsistencyTest(int n)
-    {
-        var stats = new StatisticsContext();
-        var array = Enumerable.Range(0, n).OrderBy(_ => Guid.NewGuid()).ToArray();
-        QuickSortDualPivotInsertion.Sort(array.AsSpan(), stats);
-
-        // IndexReads and IndexWrites should be tracked properly
-        // - Each Compare reads 2 elements (minimum)
-        // - Each Swap reads and writes elements
-        // - Each InsertionSort shift reads and writes elements
-        
-        Assert.True(stats.IndexReadCount > 0UL,
-            $"IndexReadCount ({stats.IndexReadCount}) should be > 0");
-        Assert.True(stats.IndexWriteCount >= 0UL,
-            $"IndexWriteCount ({stats.IndexWriteCount}) should be >= 0");
-        
-        // For random data, expect at least some writes
-        Assert.True(stats.IndexWriteCount > 0UL || n == 1,
-            $"IndexWriteCount ({stats.IndexWriteCount}) should be > 0 for random data");
-        
-        // Verify sorted correctly
-        Assert.Equal(Enumerable.Range(0, n), array);
-    }
-
-    [Fact]
-    public void SmallArrayIndexTrackingTest()
-    {
-        var stats = new StatisticsContext();
-        var array = new[] { 3, 1, 4, 1, 5, 9, 2, 6 }; // 8 elements, uses InsertionSort
-        QuickSortDualPivotInsertion.Sort(array.AsSpan(), stats);
-
-        // Small array (8 <= 16): uses InsertionSort exclusively
-        // InsertionSort tracks:
-        // - Read for each comparison (s.Compare reads both elements)
-        // - Read for each shift operation (s.Read)
-        // - Write for each shift (s.Write)
-        // - Write for final placement (s.Write)
-        
-        Assert.True(stats.IndexReadCount > 0UL,
-            $"IndexReadCount ({stats.IndexReadCount}) should be > 0");
-        Assert.True(stats.IndexWriteCount > 0UL,
-            $"IndexWriteCount ({stats.IndexWriteCount}) should be > 0");
-        Assert.Equal(0UL, stats.SwapCount); // InsertionSort doesn't use swaps
-        
-        // Verify sorted correctly
-        Assert.Equal(new[] { 1, 1, 2, 3, 4, 5, 6, 9 }, array);
-    }
-
-    [Fact]
-    public void LargeArrayIndexTrackingTest()
-    {
-        var stats = new StatisticsContext();
-        var array = Enumerable.Range(0, 50).Reverse().ToArray(); // 50 elements, uses hybrid
-        QuickSortDualPivotInsertion.Sort(array.AsSpan(), stats);
-
-        // Large array (50 > 16): uses QuickSort + InsertionSort hybrid
-        // Tracks both:
-        // - QuickSort swaps (s.Swap reads and writes)
-        // - InsertionSort shifts (s.Read and s.Write)
-        // - All comparisons (s.Compare reads)
-        
-        Assert.True(stats.IndexReadCount > 0UL,
-            $"IndexReadCount ({stats.IndexReadCount}) should be > 0");
-        Assert.True(stats.IndexWriteCount > 0UL,
-            $"IndexWriteCount ({stats.IndexWriteCount}) should be > 0");
-        Assert.True(stats.SwapCount > 0UL,
-            $"SwapCount ({stats.SwapCount}) should be > 0 for large array");
-        
-        // Verify sorted correctly
-        Assert.Equal(Enumerable.Range(0, 50), array);
-    }
-
-    [Fact]
-    public void CompareWithValueTrackingTest()
-    {
-        var stats = new StatisticsContext();
-        var array = new[] { 5, 2, 8, 1, 9 }; // Small array using InsertionSort
-        QuickSortDualPivotInsertion.Sort(array.AsSpan(), stats);
-
-        // InsertionSort uses s.Compare(j, tmp) where tmp is a value, not an index
-        // This should still be tracked in statistics
-        
-        Assert.True(stats.CompareCount > 0UL,
-            $"CompareCount ({stats.CompareCount}) should be > 0");
-        
-        // Each comparison with value reads the indexed element
-        // The value itself doesn't require an index read (it's already in tmp)
-        Assert.True(stats.IndexReadCount >= stats.CompareCount,
-            $"IndexReadCount ({stats.IndexReadCount}) should be >= CompareCount ({stats.CompareCount})");
-        
-        Assert.Equal(new[] { 1, 2, 5, 8, 9 }, array);
-    }
-
-    [Theory]
-    [InlineData(5)]
-    [InlineData(15)]
-    [InlineData(16)]
-    public void BoundaryThresholdTest(int n)
-    {
-        var stats = new StatisticsContext();
-        var array = Enumerable.Range(0, n).Reverse().ToArray();
-        QuickSortDualPivotInsertion.Sort(array.AsSpan(), stats);
-
-        // Test behavior at and around the InsertThreshold boundary
-        // n <= 16: should use InsertionSort only (SwapCount = 0)
-        // n > 16: should use hybrid (SwapCount > 0)
-        
-        if (n <= InsertThreshold)
-        {
-            Assert.Equal(0UL, stats.SwapCount);
-            Assert.True(stats.IndexWriteCount > 0UL);
-        }
-        
-        Assert.Equal(Enumerable.Range(0, n), array);
     }
 
     /// <summary>
@@ -514,7 +415,7 @@ public class QuickSortDualPivotInsertionTests
     [InlineData(17)]  // Just above InsertThreshold
     [InlineData(30)]  // Medium-small array
     [InlineData(46)]  // Just below PivotThreshold (47)
-    public void AdaptivePivotSimpleMethodTest(int n)
+    public void StatisticsAdaptivePivotSimpleMethodTest(int n)
     {
         var stats = new StatisticsContext();
         var random = Enumerable.Range(0, n).OrderBy(_ => Guid.NewGuid()).ToArray();
@@ -538,7 +439,7 @@ public class QuickSortDualPivotInsertionTests
     [InlineData(50)]   // Just above threshold
     [InlineData(100)]  // Larger array
     [InlineData(200)]  // Even larger
-    public void AdaptivePivot5SampleMethodTest(int n)
+    public void StatisticsAdaptivePivot5SampleMethodTest(int n)
     {
         var stats = new StatisticsContext();
         var random = Enumerable.Range(0, n).OrderBy(_ => Guid.NewGuid()).ToArray();
@@ -564,7 +465,7 @@ public class QuickSortDualPivotInsertionTests
     [Theory]
     [InlineData(47)]
     [InlineData(100)]
-    public void AdaptivePivot5SampleSortedTest(int n)
+    public void StatisticsAdaptivePivot5SampleSortedTest(int n)
     {
         var stats = new StatisticsContext();
         var sorted = Enumerable.Range(0, n).ToArray();
@@ -593,7 +494,7 @@ public class QuickSortDualPivotInsertionTests
     [Theory]
     [InlineData(47)]
     [InlineData(100)]
-    public void AdaptivePivot5SampleReversedTest(int n)
+    public void StatisticsAdaptivePivot5SampleReversedTest(int n)
     {
         var stats = new StatisticsContext();
         var reversed = Enumerable.Range(0, n).Reverse().ToArray();
@@ -608,10 +509,10 @@ public class QuickSortDualPivotInsertionTests
         //
         // Reversed data might need more comparisons than sorted data
         // but should still be O(n log n) with good pivot selection
-        
+
         var recursionDepth = Math.Ceiling(Math.Log(n, 3));
         var maxCompares = (ulong)(n * 3 * recursionDepth + 15 * recursionDepth);
-        
+
         Assert.True(stats.CompareCount <= maxCompares,
             $"CompareCount ({stats.CompareCount}) should be <= {maxCompares} for reversed data with 5-sample pivots");
     }
@@ -627,7 +528,7 @@ public class QuickSortDualPivotInsertionTests
     [InlineData(46)]   // Boundary: Simple pivot + insertion
     [InlineData(47)]   // Boundary: 5-sample + insertion
     [InlineData(100)]  // 5-sample + insertion
-    public void ThreeTierAdaptiveSelectionTest(int n)
+    public void StatisticsThreeTierAdaptiveSelectionTest(int n)
     {
         var stats = new StatisticsContext();
         var random = Enumerable.Range(0, n).OrderBy(_ => Guid.NewGuid()).ToArray();
@@ -635,7 +536,7 @@ public class QuickSortDualPivotInsertionTests
 
         // Verify sorting is correct
         Assert.Equal(Enumerable.Range(0, n), random);
-        
+
         if (n <= InsertThreshold)
         {
             // Should use InsertionSort only (no swaps, only shifts)
@@ -653,10 +554,12 @@ public class QuickSortDualPivotInsertionTests
             // Should use 5-sample pivot QuickSort + InsertionSort
             Assert.NotEqual(0UL, stats.SwapCount); // From partitioning + sample sorting
             Assert.NotEqual(0UL, stats.CompareCount);
-            
+
             // 5-sample method should have more comparisons than simple pivot
             // due to sorting the 5 samples (7-9 extra comparisons per level)
         }
     }
-}
 
+#endif
+
+}

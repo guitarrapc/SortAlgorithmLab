@@ -22,6 +22,188 @@ public class QuickSortDualPivotTests
         Assert.Equal((ulong)inputSample.Samples.Length, (ulong)array.Length);
     }
 
+    [Fact]
+    public void EdgeCaseEmptyArrayTest()
+    {
+        var stats = new StatisticsContext();
+        var empty = Array.Empty<int>();
+        QuickSortDualPivot.Sort(empty.AsSpan(), stats);
+    }
+
+    [Fact]
+    public void EdgeCaseSingleElementTest()
+    {
+        var stats = new StatisticsContext();
+        var single = new[] { 42 };
+        QuickSortDualPivot.Sort(single.AsSpan(), stats);
+
+        Assert.Equal(42, single[0]);
+    }
+
+    [Fact]
+    public void EdgeCaseTwoElementsSortedTest()
+    {
+        var stats = new StatisticsContext();
+        var twoSorted = new[] { 1, 2 };
+        QuickSortDualPivot.Sort(twoSorted.AsSpan(), stats);
+
+        Assert.Equal([1, 2], twoSorted);
+    }
+
+    [Fact]
+    public void EdgeCaseTwoElementsReversedTest()
+    {
+        var stats = new StatisticsContext();
+        var twoReversed = new[] { 2, 1 };
+        QuickSortDualPivot.Sort(twoReversed.AsSpan(), stats);
+
+        Assert.Equal([1, 2], twoReversed);
+    }
+
+    [Fact]
+    public void EdgeCaseThreeElementsTest()
+    {
+        var stats = new StatisticsContext();
+        var three = new[] { 3, 1, 2 };
+        QuickSortDualPivot.Sort(three.AsSpan(), stats);
+
+        Assert.Equal([1, 2, 3], three);
+    }
+
+    [Fact]
+    public void RangeSortTest()
+    {
+        var stats = new StatisticsContext();
+        var array = new[] { 5, 3, 8, 1, 9, 2, 7, 4, 6 };
+
+        // Sort only the range [2, 6) -> indices 2, 3, 4, 5
+        QuickSortDualPivot.Sort(array.AsSpan(), 2, 6, stats);
+
+        // Expected: first 2 elements unchanged, middle 4 sorted, last 3 unchanged
+        Assert.Equal(new[] { 5, 3, 1, 2, 8, 9, 7, 4, 6 }, array);
+    }
+
+    [Fact]
+    public void RangeSortFullArrayTest()
+    {
+        var stats = new StatisticsContext();
+        var array = new[] { 5, 3, 8, 1, 9, 2, 7, 4, 6 };
+
+        // Sort the entire array using range API
+        QuickSortDualPivot.Sort(array.AsSpan(), 0, array.Length, stats);
+
+        Assert.Equal(new[] { 1, 2, 3, 4, 5, 6, 7, 8, 9 }, array);
+    }
+
+    [Fact]
+    public void RangeSortSingleElementTest()
+    {
+        var stats = new StatisticsContext();
+        var array = new[] { 5, 3, 8, 1, 9 };
+
+        // Sort a single element range [2, 3)
+        QuickSortDualPivot.Sort(array.AsSpan(), 2, 3, stats);
+
+        // Array should be unchanged (single element is already sorted)
+        Assert.Equal(new[] { 5, 3, 8, 1, 9 }, array);
+    }
+
+    [Fact]
+    public void RangeSortBeginningTest()
+    {
+        var stats = new StatisticsContext();
+        var array = new[] { 9, 7, 5, 3, 1, 2, 4, 6, 8 };
+
+        // Sort only the first 5 elements [0, 5)
+        QuickSortDualPivot.Sort(array.AsSpan(), 0, 5, stats);
+
+        // Expected: first 5 sorted, last 4 unchanged
+        Assert.Equal(new[] { 1, 3, 5, 7, 9, 2, 4, 6, 8 }, array);
+    }
+
+    [Fact]
+    public void RangeSortEndTest()
+    {
+        var stats = new StatisticsContext();
+        var array = new[] { 1, 3, 5, 7, 9, 8, 6, 4, 2 };
+
+        // Sort only the last 4 elements [5, 9)
+        QuickSortDualPivot.Sort(array.AsSpan(), 5, 9, stats);
+
+        // Expected: first 5 unchanged, last 4 sorted
+        Assert.Equal(new[] { 1, 3, 5, 7, 9, 2, 4, 6, 8 }, array);
+    }
+
+    /// <summary>
+    /// Tests adaptive pivot selection: simple method for arrays &lt; 47 elements
+    /// </summary>
+    [Theory]
+    [InlineData(2)]   // Minimum for dual-pivot
+    [InlineData(10)]  // Small array
+    [InlineData(30)]  // Medium-small array
+    [InlineData(46)]  // Just below PivotThreshold (47)
+    public void AdaptivePivotSimpleMethodTest(int n)
+    {
+        var stats = new StatisticsContext();
+        var random = Enumerable.Range(0, n).OrderBy(_ => Guid.NewGuid()).ToArray();
+        QuickSortDualPivot.Sort(random.AsSpan(), stats);
+
+        // Verify sorting is correct
+        Assert.Equal(Enumerable.Range(0, n), random);
+    }
+
+    /// <summary>
+    /// Tests adaptive pivot selection: 5-sample method for arrays ≥ 47 elements
+    /// </summary>
+    [Theory]
+    [InlineData(47)]   // Exactly at threshold
+    [InlineData(50)]   // Just above threshold
+    [InlineData(100)]  // Larger array
+    [InlineData(200)]  // Even larger
+    public void AdaptivePivot5SampleMethodTest(int n)
+    {
+        var stats = new StatisticsContext();
+        var random = Enumerable.Range(0, n).OrderBy(_ => Guid.NewGuid()).ToArray();
+        QuickSortDualPivot.Sort(random.AsSpan(), stats);
+
+        // Verify sorting is correct
+        Assert.Equal(Enumerable.Range(0, n), random);
+    }
+
+    /// <summary>
+    /// Tests that 5-sample pivot selection handles sorted data efficiently (≥ 47 elements)
+    /// </summary>
+    [Theory]
+    [InlineData(47)]
+    [InlineData(100)]
+    public void AdaptivePivot5SampleSortedTest(int n)
+    {
+        var stats = new StatisticsContext();
+        var sorted = Enumerable.Range(0, n).ToArray();
+        QuickSortDualPivot.Sort(sorted.AsSpan(), stats);
+
+        // Verify array remains sorted
+        Assert.Equal(Enumerable.Range(0, n), sorted);
+    }
+
+    /// <summary>
+    /// Tests that 5-sample pivot selection handles reverse-sorted data efficiently
+    /// </summary>
+    [Theory]
+    [InlineData(47)]
+    [InlineData(100)]
+    public void AdaptivePivot5SampleReversedTest(int n)
+    {
+        var stats = new StatisticsContext();
+        var reversed = Enumerable.Range(0, n).Reverse().ToArray();
+        QuickSortDualPivot.Sort(reversed.AsSpan(), stats);
+
+        // Verify array is now sorted
+        Assert.Equal(Enumerable.Range(0, n), reversed);
+    }
+
+#if DEBUG
+
     [Theory]
     [ClassData(typeof(MockSortedData))]
     public void StatisticsSortedTest(IInputSample<int> inputSample)
@@ -63,9 +245,9 @@ public class QuickSortDualPivotTests
         //   With 3-way partitioning, depth is approximately log3(n)
         // - Swaps: O(log n) - only pivot placements at each recursion level
         //   2 swaps per level (placing both pivots) * log3(n) levels
-        
+
         var minCompares = (ulong)(n * 2); // At minimum, each element compared with both pivots once
-        
+
         // Swaps: For sorted data, only pivot placements
         // Each recursion level: 2 swaps (left and right pivots)
         // Depth: approximately log3(n)
@@ -76,7 +258,7 @@ public class QuickSortDualPivotTests
             $"CompareCount ({stats.CompareCount}) should be >= {minCompares}");
         Assert.True(stats.SwapCount >= expectedSwaps,
             $"SwapCount ({stats.SwapCount}) should be >= {expectedSwaps}");
-        
+
         // IndexReads: At least as many as comparisons (each compare reads 2 elements)
         var minIndexReads = stats.CompareCount * 2;
         Assert.True(stats.IndexReadCount >= minIndexReads,
@@ -107,16 +289,16 @@ public class QuickSortDualPivotTests
         //   With dual pivots, partitioning is more balanced than single pivot
         // - Swaps: O(n log n) average case
         //   Many elements need to be moved during partitioning
-        
+
         var minCompares = (ulong)(n * 2); // At minimum, each element compared with both pivots
         var maxCompares = (ulong)(n * n); // Worst case (though rare with dual pivot)
-        
+
         var minSwaps = (ulong)(n / 2); // At least half the elements need swapping
         var maxSwaps = (ulong)(n * n); // Worst case
 
         Assert.InRange(stats.CompareCount, minCompares, maxCompares);
         Assert.InRange(stats.SwapCount, minSwaps, maxSwaps);
-        
+
         // IndexReads: Significantly higher due to partitioning and swapping
         var minIndexReads = stats.CompareCount * 2;
         Assert.True(stats.IndexReadCount >= minIndexReads,
@@ -144,17 +326,17 @@ public class QuickSortDualPivotTests
         //   Approximately 2n * log3(n) comparisons
         // - Swaps: O(n log n) average
         //   Varies based on distribution
-        
+
         var minCompares = (ulong)(n * 2); // Minimum: each element compared once
         var maxCompares = (ulong)(n * n); // Maximum: worst case (rare)
-        
+
         var minSwaps = (ulong)Math.Log(n, 3) * 2; // Best case: only pivot placements
         var maxSwaps = (ulong)(n * Math.Log(n, 3) * 2); // Average case estimate
 
         Assert.InRange(stats.CompareCount, minCompares, maxCompares);
         Assert.True(stats.SwapCount >= minSwaps,
             $"SwapCount ({stats.SwapCount}) should be >= {minSwaps}");
-        
+
         // IndexReads: Should be proportional to comparisons and swaps
         var minIndexReads = stats.CompareCount * 2;
         Assert.True(stats.IndexReadCount >= minIndexReads,
@@ -183,9 +365,9 @@ public class QuickSortDualPivotTests
         //   For n elements, that's roughly n-2 comparisons per level
         // - Swaps: 2 swaps per recursion level (final pivot placements at lines 75-76)
         //   Plus the recursive calls on left/middle/right sections
-        
+
         var minCompares = (ulong)(n - 2); // At minimum, partitioning comparisons for one level
-        
+
         // Swaps: Very few needed since all values are equal
         // Only pivot positioning swaps at each level
         var recursionDepth = (int)Math.Ceiling(Math.Log(Math.Max(n, 2), 3));
@@ -195,255 +377,11 @@ public class QuickSortDualPivotTests
             $"CompareCount ({stats.CompareCount}) should be >= {minCompares}");
         Assert.True(stats.SwapCount <= maxSwaps,
             $"SwapCount ({stats.SwapCount}) should be <= {maxSwaps} for all equal elements");
-        
+
         // Verify the array is still correct (all values unchanged)
         Assert.All(sameValues, val => Assert.Equal(42, val));
     }
 
-    [Fact]
-    public void EdgeCaseEmptyArrayTest()
-    {
-        var stats = new StatisticsContext();
-        var empty = Array.Empty<int>();
-        QuickSortDualPivot.Sort(empty.AsSpan(), stats);
+#endif
 
-        // Empty array: no operations
-        Assert.Equal(0UL, stats.CompareCount);
-        Assert.Equal(0UL, stats.SwapCount);
-        Assert.Equal(0UL, stats.IndexReadCount);
-        Assert.Equal(0UL, stats.IndexWriteCount);
-    }
-
-    [Fact]
-    public void EdgeCaseSingleElementTest()
-    {
-        var stats = new StatisticsContext();
-        var single = new[] { 42 };
-        QuickSortDualPivot.Sort(single.AsSpan(), stats);
-
-        // Single element: no operations needed
-        Assert.Equal(0UL, stats.CompareCount);
-        Assert.Equal(0UL, stats.SwapCount);
-        Assert.Equal(0UL, stats.IndexReadCount);
-        Assert.Equal(0UL, stats.IndexWriteCount);
-        Assert.Equal(42, single[0]);
-    }
-
-    [Fact]
-    public void EdgeCaseTwoElementsSortedTest()
-    {
-        var stats = new StatisticsContext();
-        var twoSorted = new[] { 1, 2 };
-        QuickSortDualPivot.Sort(twoSorted.AsSpan(), stats);
-
-        // Two elements already sorted:
-        // - Line 44: Compare(0, 1) -> no swap needed (1st comparison)
-        // - Loop doesn't execute (k=1, g=0, condition false)
-        // - Lines 75-76: Swap(0, 0) and Swap(1, 2) (2 swaps)
-        // - Line 80: Compare(0, 1) to check if middle section needed (2nd comparison)
-        // - Total: 2 comparisons, 2 swaps
-        Assert.Equal(2UL, stats.CompareCount);
-        Assert.Equal(2UL, stats.SwapCount);
-        Assert.Equal([ 1, 2 ], twoSorted);
-    }
-
-    [Fact]
-    public void EdgeCaseTwoElementsReversedTest()
-    {
-        var stats = new StatisticsContext();
-        var twoReversed = new[] { 2, 1 };
-        QuickSortDualPivot.Sort(twoReversed.AsSpan(), stats);
-
-        // Two elements reversed:
-        // - Line 44: Compare(0, 1) -> swap needed (1st comparison, 1 swap)
-        // - Loop doesn't execute (k=1, g=0, condition false)
-        // - Lines 75-76: Swap(0, 0) and Swap(1, 2) (2 more swaps)
-        // - Line 80: Compare(0, 1) to check if middle section needed (2nd comparison)
-        // - Total: 2 comparisons, 3 swaps
-        Assert.Equal(2UL, stats.CompareCount);
-        Assert.Equal(3UL, stats.SwapCount);
-        Assert.Equal([ 1, 2 ], twoReversed);
-    }
-
-    [Fact]
-    public void RangeSortTest()
-    {
-        var stats = new StatisticsContext();
-        var array = new[] { 5, 3, 8, 1, 9, 2, 7, 4, 6 };
-        
-        // Sort only the range [2, 6) -> indices 2, 3, 4, 5
-        QuickSortDualPivot.Sort(array.AsSpan(), 2, 6, stats);
-
-        // Expected: first 2 elements unchanged, middle 4 sorted, last 3 unchanged
-        Assert.Equal(new[] { 5, 3, 1, 2, 8, 9, 7, 4, 6 }, array);
-    }
-
-    [Fact]
-    public void RangeSortFullArrayTest()
-    {
-        var stats = new StatisticsContext();
-        var array = new[] { 5, 3, 8, 1, 9, 2, 7, 4, 6 };
-        
-        // Sort the entire array using range API
-        QuickSortDualPivot.Sort(array.AsSpan(), 0, array.Length, stats);
-
-        Assert.Equal(new[] { 1, 2, 3, 4, 5, 6, 7, 8, 9 }, array);
-    }
-
-    [Fact]
-    public void RangeSortSingleElementTest()
-    {
-        var stats = new StatisticsContext();
-        var array = new[] { 5, 3, 8, 1, 9 };
-        
-        // Sort a single element range [2, 3)
-        QuickSortDualPivot.Sort(array.AsSpan(), 2, 3, stats);
-
-        // Array should be unchanged (single element is already sorted)
-        Assert.Equal(new[] { 5, 3, 8, 1, 9 }, array);
-        Assert.Equal(0UL, stats.CompareCount);
-        Assert.Equal(0UL, stats.SwapCount);
-    }
-
-    [Fact]
-    public void RangeSortBeginningTest()
-    {
-        var stats = new StatisticsContext();
-        var array = new[] { 9, 7, 5, 3, 1, 2, 4, 6, 8 };
-        
-        // Sort only the first 5 elements [0, 5)
-        QuickSortDualPivot.Sort(array.AsSpan(), 0, 5, stats);
-
-        // Expected: first 5 sorted, last 4 unchanged
-        Assert.Equal(new[] { 1, 3, 5, 7, 9, 2, 4, 6, 8 }, array);
-    }
-
-    [Fact]
-    public void RangeSortEndTest()
-    {
-        var stats = new StatisticsContext();
-        var array = new[] { 1, 3, 5, 7, 9, 8, 6, 4, 2 };
-        
-        // Sort only the last 4 elements [5, 9)
-        QuickSortDualPivot.Sort(array.AsSpan(), 5, 9, stats);
-
-        // Expected: first 5 unchanged, last 4 sorted
-        Assert.Equal(new[] { 1, 3, 5, 7, 9, 2, 4, 6, 8 }, array);
-    }
-
-    /// <summary>
-    /// Tests adaptive pivot selection: simple method for arrays &lt; 47 elements
-    /// </summary>
-    [Theory]
-    [InlineData(2)]   // Minimum for dual-pivot
-    [InlineData(10)]  // Small array
-    [InlineData(30)]  // Medium-small array
-    [InlineData(46)]  // Just below PivotThreshold (47)
-    public void AdaptivePivotSimpleMethodTest(int n)
-    {
-        var stats = new StatisticsContext();
-        var random = Enumerable.Range(0, n).OrderBy(_ => Guid.NewGuid()).ToArray();
-        QuickSortDualPivot.Sort(random.AsSpan(), stats);
-
-        // Verify sorting is correct
-        Assert.Equal(Enumerable.Range(0, n), random);
-        
-        // For n < 47, simple pivot selection is used (left and right elements)
-        // This uses fewer comparisons for pivot selection compared to 5-sample method
-        // The algorithm should still work correctly with simple pivots
-        Assert.NotEqual(0UL, stats.CompareCount);
-        Assert.NotEqual(0UL, stats.SwapCount);
-    }
-
-    /// <summary>
-    /// Tests adaptive pivot selection: 5-sample method for arrays ≥ 47 elements
-    /// </summary>
-    [Theory]
-    [InlineData(47)]   // Exactly at threshold
-    [InlineData(50)]   // Just above threshold
-    [InlineData(100)]  // Larger array
-    [InlineData(200)]  // Even larger
-    public void AdaptivePivot5SampleMethodTest(int n)
-    {
-        var stats = new StatisticsContext();
-        var random = Enumerable.Range(0, n).OrderBy(_ => Guid.NewGuid()).ToArray();
-        QuickSortDualPivot.Sort(random.AsSpan(), stats);
-
-        // Verify sorting is correct
-        Assert.Equal(Enumerable.Range(0, n), random);
-        
-        // For n >= 47, 5-sample pivot selection is used
-        // This involves sorting 5 sampled elements (adds ~12 comparisons per partition)
-        // The improved pivot quality should result in better partitioning
-        Assert.NotEqual(0UL, stats.CompareCount);
-        Assert.NotEqual(0UL, stats.SwapCount);
-        
-        // 5-sample method adds overhead but improves partition balance
-        // On random data, we expect more comparisons due to sampling overhead
-        // but better overall performance due to balanced partitions
-    }
-
-    /// <summary>
-    /// Tests that 5-sample pivot selection handles sorted data efficiently (≥ 47 elements)
-    /// </summary>
-    [Theory]
-    [InlineData(47)]
-    [InlineData(100)]
-    public void AdaptivePivot5SampleSortedTest(int n)
-    {
-        var stats = new StatisticsContext();
-        var sorted = Enumerable.Range(0, n).ToArray();
-        QuickSortDualPivot.Sort(sorted.AsSpan(), stats);
-
-        // Verify array remains sorted
-        Assert.Equal(Enumerable.Range(0, n), sorted);
-        
-        // With 5-sample pivot selection, sorted arrays should be handled efficiently
-        // The 2nd and 4th elements from sorted samples provide good pivots
-        // Expected behavior: O(n log n) comparisons
-        // 
-        // Comparison breakdown:
-        // - Partitioning: ~2n comparisons per level (each element vs 2 pivots)
-        // - Pivot selection: 7-9 comparisons per recursion level
-        // - Recursion depth: ~log₃(n) levels
-        //
-        // For n=100: ~log₃(100) ≈ 4.19 levels
-        // Total ≈ 100 * 2 * 4.19 + 9 * 4.19 ≈ 838 + 38 ≈ 876
-        // Allow 3x margin for actual implementation details
-        
-        var recursionDepth = Math.Ceiling(Math.Log(n, 3));
-        var maxCompares = (ulong)(n * 3 * recursionDepth + 20 * recursionDepth);
-        
-        Assert.True(stats.CompareCount <= maxCompares,
-            $"CompareCount ({stats.CompareCount}) should be <= {maxCompares} for sorted data with 5-sample pivots");
-    }
-
-    /// <summary>
-    /// Tests that 5-sample pivot selection handles reverse-sorted data efficiently
-    /// </summary>
-    [Theory]
-    [InlineData(47)]
-    [InlineData(100)]
-    public void AdaptivePivot5SampleReversedTest(int n)
-    {
-        var stats = new StatisticsContext();
-        var reversed = Enumerable.Range(0, n).Reverse().ToArray();
-        QuickSortDualPivot.Sort(reversed.AsSpan(), stats);
-
-        // Verify array is now sorted
-        Assert.Equal(Enumerable.Range(0, n), reversed);
-        
-        // With 5-sample pivot selection, reversed arrays should be handled efficiently
-        // The sampling strategy should select good pivots even from reversed data
-        //
-        // Reversed data might need more comparisons than sorted data
-        // but should still be O(n log n) with good pivot selection
-        
-        var recursionDepth = Math.Ceiling(Math.Log(n, 3));
-        var maxCompares = (ulong)(n * 3 * recursionDepth + 15 * recursionDepth);
-        
-        Assert.True(stats.CompareCount <= maxCompares,
-            $"CompareCount ({stats.CompareCount}) should be <= {maxCompares} for reversed data with 5-sample pivots");
-    }
 }
-

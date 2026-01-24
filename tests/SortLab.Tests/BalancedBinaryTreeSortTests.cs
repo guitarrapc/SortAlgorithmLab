@@ -22,6 +22,8 @@ public class BalancedBinaryTreeSortTests
         Assert.Equal((ulong)inputSample.Samples.Length, (ulong)array.Length);
     }
 
+#if DEBUG
+
     [Theory]
     [ClassData(typeof(MockSortedData))]
     public void StatisticsSortedTest(IInputSample<int> inputSample)
@@ -62,7 +64,7 @@ public class BalancedBinaryTreeSortTests
         var expectedMinReads = 2 * minCompares + (ulong)n;  // 2 reads per comparison + n traversal reads
         var expectedMaxReads = 2 * maxCompares + (ulong)n;  // Upper bound
         var expectedWrites = (ulong)n; // Writing during in-order traversal
-        
+
         Assert.InRange(stats.CompareCount, minCompares, maxCompares);
         Assert.InRange(stats.IndexReadCount, expectedMinReads, expectedMaxReads);
         Assert.Equal(expectedWrites, stats.IndexWriteCount);
@@ -94,7 +96,7 @@ public class BalancedBinaryTreeSortTests
         var expectedMinReads = 2 * minCompares + (ulong)n;  // 2 reads per comparison + n traversal reads
         var expectedMaxReads = 2 * maxCompares + (ulong)n;  // Upper bound
         var expectedWrites = (ulong)n; // Writing during in-order traversal
-        
+
         Assert.InRange(stats.CompareCount, minCompares, maxCompares);
         Assert.InRange(stats.IndexReadCount, expectedMinReads, expectedMaxReads);
         Assert.Equal(expectedWrites, stats.IndexWriteCount);
@@ -128,7 +130,7 @@ public class BalancedBinaryTreeSortTests
         var expectedMinReads = (ulong)(n - 1) + minCompares + (ulong)n;  // (n-1) insert reads (root has no comparison) + comparison reads + n traversal reads
         var expectedMaxReads = (ulong)(n - 1) + maxCompares + (ulong)n;  // Upper bound
         var expectedWrites = (ulong)n; // Writing during in-order traversal
-        
+
         Assert.InRange(stats.CompareCount, minCompares, maxCompares);
         Assert.InRange(stats.IndexReadCount, expectedMinReads, expectedMaxReads);
         Assert.Equal(expectedWrites, stats.IndexWriteCount);
@@ -151,7 +153,7 @@ public class BalancedBinaryTreeSortTests
         // even in worst-case scenarios (unlike unbalanced BST which degrades to O(n^2))
         var worstCaseBST = (ulong)(n * (n - 1) / 2);  // Unbalanced BST worst case
         var balancedUpperBound = (ulong)(n * Math.Log2(Math.Max(n, 2)) * 3);  // 3x safety margin
-        
+
         // Verify that comparisons are within balanced tree bounds (O(n log n))
         // For small n, the difference may not be dramatic, so we use 70% of worst case as threshold
         Assert.True(stats.CompareCount < worstCaseBST * 7 / 10,
@@ -159,4 +161,7 @@ public class BalancedBinaryTreeSortTests
         Assert.True(stats.CompareCount < balancedUpperBound,
             $"CompareCount ({stats.CompareCount}) should be within balanced tree bounds ({balancedUpperBound})");
     }
+
+#endif
+
 }

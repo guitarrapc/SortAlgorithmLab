@@ -24,6 +24,71 @@ public class CocktailShakerSortNonOptimizedTests
     }
 
     [CISkippableTheory]
+    [ClassData(typeof(MockStabilityData))]
+    public void StabilityTest(StabilityTestItem[] items)
+    {
+        // Test stability: equal elements should maintain relative order
+        var stats = new StatisticsContext();
+
+        CocktailShakerSortNonOptimized.Sort(items.AsSpan(), stats);
+
+        // Verify sorting correctness - values should be in ascending order
+        Assert.Equal(MockStabilityData.Sorted, items.Select(x => x.Value).ToArray());
+
+        // Verify stability: for each group of equal values, original order is preserved
+        var value1Indices = items.Where(x => x.Value == 1).Select(x => x.OriginalIndex).ToArray();
+        var value2Indices = items.Where(x => x.Value == 2).Select(x => x.OriginalIndex).ToArray();
+        var value3Indices = items.Where(x => x.Value == 3).Select(x => x.OriginalIndex).ToArray();
+
+        // Value 1 appeared at original indices 0, 2, 4 - should remain in this order
+        Assert.Equal(MockStabilityData.Sorted1, value1Indices);
+
+        // Value 2 appeared at original indices 1, 5 - should remain in this order
+        Assert.Equal(MockStabilityData.Sorted2, value2Indices);
+
+        // Value 3 appeared at original index 3
+        Assert.Equal(MockStabilityData.Sorted3, value3Indices);
+    }
+
+    [CISkippableTheory]
+    [ClassData(typeof(MockStabilityWithIdData))]
+    public void StabilityTestWithComplex(StabilityTestItemWithId[] items)
+    {
+        // Test stability with more complex scenario - multiple equal values
+        var stats = new StatisticsContext();
+
+        CocktailShakerSortNonOptimized.Sort(items.AsSpan(), stats);
+
+        // Expected: [2:B, 2:D, 2:F, 5:A, 5:C, 5:G, 8:E]
+        // Keys are sorted, and elements with the same key maintain original order
+
+        for (var i = 0; i < items.Length; i++)
+        {
+            Assert.Equal(MockStabilityWithIdData.Sorted[i].Key, items[i].Key);
+            Assert.Equal(MockStabilityWithIdData.Sorted[i].Id, items[i].Id);
+        }
+    }
+
+    [CISkippableTheory]
+    [ClassData(typeof(MockStabilityAllEqualsData))]
+    public void StabilityTestWithAllEqual(StabilityTestItem[] items)
+    {
+        // Edge case: all elements have the same value
+        // They should remain in original order
+        var stats = new StatisticsContext();
+
+        CocktailShakerSortNonOptimized.Sort(items.AsSpan(), stats);
+
+        // All values are 1
+        Assert.All(items, item => Assert.Equal(1, item.Value));
+
+        // Original order should be preserved: 0, 1, 2, 3, 4
+        Assert.Equal(MockStabilityAllEqualsData.Sorted, items.Select(x => x.OriginalIndex).ToArray());
+    }
+
+#if DEBUG
+
+    [CISkippableTheory]
     [ClassData(typeof(MockSortedData))]
     public void StatisticsSortedTest(IInputSample<int> inputSample)
     {
@@ -119,7 +184,7 @@ public class CocktailShakerSortNonOptimizedTests
 
         Assert.InRange(stats.CompareCount, minCompares, maxCompares);
         Assert.InRange(stats.SwapCount, 0UL, maxSwaps);
-        
+
         // IndexReadCount = (CompareCount * 2) + (SwapCount * 2)
         // Because both Compare and Swap read 2 elements each
         var expectedReads = (stats.CompareCount * 2) + (stats.SwapCount * 2);
@@ -127,70 +192,6 @@ public class CocktailShakerSortNonOptimizedTests
         Assert.Equal(stats.SwapCount * 2, stats.IndexWriteCount);
     }
 
-    [CISkippableTheory]
-    [ClassData(typeof(MockStabilityData))]
-    public void StabilityTest(StabilityTestItem[] items)
-    {
-        // Test stability: equal elements should maintain relative order
-        var stats = new StatisticsContext();
+#endif
 
-        CocktailShakerSortNonOptimized.Sort(items.AsSpan(), stats);
-
-        // Verify sorting correctness - values should be in ascending order
-        Assert.Equal(MockStabilityData.Sorted, items.Select(x => x.Value).ToArray());
-
-        // Verify stability: for each group of equal values, original order is preserved
-        var value1Indices = items.Where(x => x.Value == 1).Select(x => x.OriginalIndex).ToArray();
-        var value2Indices = items.Where(x => x.Value == 2).Select(x => x.OriginalIndex).ToArray();
-        var value3Indices = items.Where(x => x.Value == 3).Select(x => x.OriginalIndex).ToArray();
-
-        // Value 1 appeared at original indices 0, 2, 4 - should remain in this order
-        Assert.Equal(MockStabilityData.Sorted1, value1Indices);
-
-        // Value 2 appeared at original indices 1, 5 - should remain in this order
-        Assert.Equal(MockStabilityData.Sorted2, value2Indices);
-
-        // Value 3 appeared at original index 3
-        Assert.Equal(MockStabilityData.Sorted3, value3Indices);
-    }
-
-    [CISkippableTheory]
-    [ClassData(typeof(MockStabilityWithIdData))]
-    public void StabilityTestWithComplex(StabilityTestItemWithId[] items)
-    {
-        // Test stability with more complex scenario - multiple equal values
-        var stats = new StatisticsContext();
-
-        CocktailShakerSortNonOptimized.Sort(items.AsSpan(), stats);
-
-        // Expected: [2:B, 2:D, 2:F, 5:A, 5:C, 5:G, 8:E]
-        // Keys are sorted, and elements with the same key maintain original order
-
-        for (var i = 0; i < items.Length; i++)
-        {
-            Assert.Equal(MockStabilityWithIdData.Sorted[i].Key, items[i].Key);
-            Assert.Equal(MockStabilityWithIdData.Sorted[i].Id, items[i].Id);
-        }
-    }
-
-    [CISkippableTheory]
-    [ClassData(typeof(MockStabilityAllEqualsData))]
-    public void StabilityTestWithAllEqual(StabilityTestItem[] items)
-    {
-        // Edge case: all elements have the same value
-        // They should remain in original order
-        var stats = new StatisticsContext();
-
-        CocktailShakerSortNonOptimized.Sort(items.AsSpan(), stats);
-
-        // All values are 1
-        Assert.All(items, item => Assert.Equal(1, item.Value));
-
-        // Original order should be preserved: 0, 1, 2, 3, 4
-        Assert.Equal(MockStabilityAllEqualsData.Sorted, items.Select(x => x.OriginalIndex).ToArray());
-
-        // For sorted data with all equal elements, no swaps should occur
-        Assert.Equal(0UL, stats.SwapCount);
-        Assert.Equal(0UL, stats.IndexWriteCount);
-    }
 }

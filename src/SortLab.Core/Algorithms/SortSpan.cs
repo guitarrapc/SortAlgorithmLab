@@ -43,7 +43,9 @@ internal ref struct SortSpan<T> where T: IComparable<T>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public T Read(int i)
     {
+#if DEBUG
         _context.OnIndexRead(i, _bufferId);
+#endif
         return _span[i];
     }
 
@@ -55,7 +57,9 @@ internal ref struct SortSpan<T> where T: IComparable<T>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public void Write(int i, T value)
     {
+#if DEBUG
         _context.OnIndexWrite(i, _bufferId);
+#endif
         _span[i] = value;
     }
 
@@ -70,11 +74,15 @@ internal ref struct SortSpan<T> where T: IComparable<T>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public int Compare(int i, int j)
     {
+#if DEBUG
         var a = Read(i);
         var b = Read(j);
         var result = a.CompareTo(b);
         _context.OnCompare(i, j, result, _bufferId, _bufferId);
         return result;
+#else
+        return _span[i].CompareTo(_span[j]);
+#endif
     }
 
     /// <summary>
@@ -87,10 +95,14 @@ internal ref struct SortSpan<T> where T: IComparable<T>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public int Compare(int i, T value)
     {
+#if DEBUG
         var a = Read(i);
         var result = a.CompareTo(value);
         _context.OnCompare(i, -1, result, _bufferId, -1);
         return result;
+#else
+        return _span[i].CompareTo(value);
+#endif
     }
 
     /// <summary>
@@ -103,10 +115,14 @@ internal ref struct SortSpan<T> where T: IComparable<T>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public int Compare(T value, int i)
     {
+#if DEBUG
         var b = Read(i);
         var result = value.CompareTo(b);
         _context.OnCompare(-1, i, result, -1, _bufferId);
         return result;
+#else
+        return value.CompareTo(_span[i]);
+#endif
     }
 
     /// <summary>
@@ -119,9 +135,13 @@ internal ref struct SortSpan<T> where T: IComparable<T>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public int Compare(T a, T b)
     {
+#if DEBUG
         var result = a.CompareTo(b);
         _context.OnCompare(-1, -1, result, -1, -1);
         return result;
+#else
+        return a.CompareTo(b);
+#endif
     }
 
     /// <summary>
@@ -134,6 +154,7 @@ internal ref struct SortSpan<T> where T: IComparable<T>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public void Swap(int i, int j)
     {
+#if DEBUG
         var a = Read(i);
         var b = Read(j);
 
@@ -141,6 +162,9 @@ internal ref struct SortSpan<T> where T: IComparable<T>
 
         Write(i, b);
         Write(j, a);
+#else
+        (_span[i], _span[j]) = (_span[j], _span[i]);
+#endif
     }
 }
 

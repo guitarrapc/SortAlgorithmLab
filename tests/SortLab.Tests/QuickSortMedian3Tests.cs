@@ -22,6 +22,120 @@ public class QuickSortMedian3Tests
         Assert.Equal((ulong)inputSample.Samples.Length, (ulong)array.Length);
     }
 
+    [Fact]
+    public void EdgeCaseEmptyArrayTest()
+    {
+        var stats = new StatisticsContext();
+        var empty = Array.Empty<int>();
+        QuickSortMedian3.Sort(empty.AsSpan(), stats);
+    }
+
+    [Fact]
+    public void EdgeCaseSingleElementTest()
+    {
+        var stats = new StatisticsContext();
+        var single = new[] { 42 };
+        QuickSortMedian3.Sort(single.AsSpan(), stats);
+
+        Assert.Equal(42, single[0]);
+    }
+
+    [Fact]
+    public void EdgeCaseTwoElementsSortedTest()
+    {
+        var stats = new StatisticsContext();
+        var twoSorted = new[] { 1, 2 };
+        QuickSortMedian3.Sort(twoSorted.AsSpan(), stats);
+
+        Assert.Equal([1, 2], twoSorted);
+    }
+
+    [Fact]
+    public void EdgeCaseTwoElementsReversedTest()
+    {
+        var stats = new StatisticsContext();
+        var twoReversed = new[] { 2, 1 };
+        QuickSortMedian3.Sort(twoReversed.AsSpan(), stats);
+
+        Assert.Equal([1, 2], twoReversed);
+    }
+
+    [Fact]
+    public void EdgeCaseThreeElementsTest()
+    {
+        var stats = new StatisticsContext();
+        var three = new[] { 3, 1, 2 };
+        QuickSortMedian3.Sort(three.AsSpan(), stats);
+
+        Assert.Equal([1, 2, 3], three);
+    }
+
+    [Fact]
+    public void RangeSortTest()
+    {
+        var stats = new StatisticsContext();
+        var array = new[] { 5, 3, 8, 1, 9, 2, 7, 4, 6 };
+
+        // Sort only the range [2, 6) -> indices 2, 3, 4, 5
+        QuickSortMedian3.Sort(array.AsSpan(), 2, 6, stats);
+
+        // Expected: first 2 elements unchanged, middle 4 sorted, last 3 unchanged
+        Assert.Equal(new[] { 5, 3, 1, 2, 8, 9, 7, 4, 6 }, array);
+    }
+
+    [Fact]
+    public void RangeSortFullArrayTest()
+    {
+        var stats = new StatisticsContext();
+        var array = new[] { 5, 3, 8, 1, 9, 2, 7, 4, 6 };
+
+        // Sort the entire array using range API
+        QuickSortMedian3.Sort(array.AsSpan(), 0, array.Length, stats);
+
+        Assert.Equal(new[] { 1, 2, 3, 4, 5, 6, 7, 8, 9 }, array);
+    }
+
+    [Fact]
+    public void RangeSortSingleElementTest()
+    {
+        var stats = new StatisticsContext();
+        var array = new[] { 5, 3, 8, 1, 9 };
+
+        // Sort a single element range [2, 3)
+        QuickSortMedian3.Sort(array.AsSpan(), 2, 3, stats);
+
+        // Array should be unchanged (single element is already sorted)
+        Assert.Equal(new[] { 5, 3, 8, 1, 9 }, array);
+    }
+
+    [Fact]
+    public void RangeSortBeginningTest()
+    {
+        var stats = new StatisticsContext();
+        var array = new[] { 9, 7, 5, 3, 1, 2, 4, 6, 8 };
+
+        // Sort only the first 5 elements [0, 5)
+        QuickSortMedian3.Sort(array.AsSpan(), 0, 5, stats);
+
+        // Expected: first 5 sorted, last 4 unchanged
+        Assert.Equal(new[] { 1, 3, 5, 7, 9, 2, 4, 6, 8 }, array);
+    }
+
+    [Fact]
+    public void RangeSortEndTest()
+    {
+        var stats = new StatisticsContext();
+        var array = new[] { 1, 3, 5, 7, 9, 8, 6, 4, 2 };
+
+        // Sort only the last 4 elements [5, 9)
+        QuickSortMedian3.Sort(array.AsSpan(), 5, 9, stats);
+
+        // Expected: first 5 unchanged, last 4 sorted
+        Assert.Equal(new[] { 1, 3, 5, 7, 9, 2, 4, 6, 8 }, array);
+    }
+
+#if DEBUG
+
     [Theory]
     [ClassData(typeof(MockSortedData))]
     public void StatisticsSortedTest(IInputSample<int> inputSample)
@@ -52,17 +166,17 @@ public class QuickSortMedian3Tests
         // - Median-of-3 selects median of (left, mid, right) as pivot
         // - For sorted data, median of (first, middle, last) is the middle element
         // - Hoare partition performs bidirectional scanning
-        // 
+        //
         // Best case complexity analysis:
         // - Each partition divides array roughly in half
         // - Recursion depth: O(log n)
         // - At each level, all n elements are processed
-        // 
+        //
         // Comparisons:
         // - Median-of-3: 2-3 comparisons per partition call
         // - Hoare partition: Each element compared with pivot once
         // - Total: approximately 2n log n comparisons
-        // 
+        //
         // Swaps:
         // - For sorted data, Hoare partition still performs swaps when l <= r
         // - Even when elements are in correct relative positions, swaps occur
@@ -82,7 +196,7 @@ public class QuickSortMedian3Tests
         var minIndexReads = stats.CompareCount;
         Assert.True(stats.IndexReadCount >= minIndexReads,
             $"IndexReadCount ({stats.IndexReadCount}) should be >= {minIndexReads}");
-        
+
         // IndexWrites: Each swap writes 2 elements
         var minIndexWrites = stats.SwapCount * 2;
         Assert.True(stats.IndexWriteCount >= minIndexWrites,
@@ -104,7 +218,7 @@ public class QuickSortMedian3Tests
         // - Median-of-3 helps avoid worst-case by selecting better pivots
         // - For reversed data, median of (first, middle, last) is still reasonable
         // - Hoare partition is more efficient than Lomuto for reversed data
-        // 
+        //
         // Average case complexity (median-of-3 avoids O(n²)):
         // - Recursion depth: O(log n) on average
         // - Comparisons: approximately 1.386n log₂ n
@@ -184,7 +298,7 @@ public class QuickSortMedian3Tests
         // - Pivot equals all elements in the array
         // - Hoare partition: elements equal to pivot are distributed between partitions
         // - This causes many swaps even though all elements are equal
-        // 
+        //
         // Expected behavior:
         // - Comparisons: O(n log n) - partitioning still occurs at each level
         // - Swaps: O(n log n) - Hoare partition swaps elements even when equal to pivot
@@ -202,7 +316,7 @@ public class QuickSortMedian3Tests
 
         // Verify array is still correct (all values unchanged)
         Assert.All(sameValues, val => Assert.Equal(42, val));
-        
+
         var minIndexReads = stats.CompareCount;
         Assert.True(stats.IndexReadCount >= minIndexReads,
             $"IndexReadCount ({stats.IndexReadCount}) should be >= {minIndexReads}");
@@ -212,205 +326,6 @@ public class QuickSortMedian3Tests
             $"IndexWriteCount ({stats.IndexWriteCount}) should be >= {minIndexWrites}");
     }
 
+#endif
 
-    [Fact]
-    public void EdgeCaseEmptyArrayTest()
-    {
-        var stats = new StatisticsContext();
-        var empty = Array.Empty<int>();
-        QuickSortMedian3.Sort(empty.AsSpan(), stats);
-
-        // Empty array: no operations
-        Assert.Equal(0UL, stats.CompareCount);
-        Assert.Equal(0UL, stats.SwapCount);
-        Assert.Equal(0UL, stats.IndexReadCount);
-        Assert.Equal(0UL, stats.IndexWriteCount);
-    }
-
-    [Fact]
-    public void EdgeCaseSingleElementTest()
-    {
-        var stats = new StatisticsContext();
-        var single = new[] { 42 };
-        QuickSortMedian3.Sort(single.AsSpan(), stats);
-
-        // Single element: no operations needed
-        Assert.Equal(0UL, stats.CompareCount);
-        Assert.Equal(0UL, stats.SwapCount);
-        Assert.Equal(0UL, stats.IndexReadCount);
-        Assert.Equal(0UL, stats.IndexWriteCount);
-        Assert.Equal(42, single[0]);
-    }
-
-    [Fact]
-    public void EdgeCaseTwoElementsSortedTest()
-    {
-        var stats = new StatisticsContext();
-        var twoSorted = new[] { 1, 2 };
-        QuickSortMedian3.Sort(twoSorted.AsSpan(), stats);
-
-        // Two elements already sorted with Hoare partition:
-        // - Median-of-3: left=0, mid=0, right=1
-        //   Compare(0, 0) = 0, so lowMidCmp <= 0
-        //   Compare(0, 1) and return appropriate median
-        //   Total: 2 comparisons for median selection
-        // - Partition with pivot from median:
-        //   l=0, r=1, pivot = median value
-        //   Inner while loops may execute, then swap at l and r
-        //   Total: varies, but at least 1 swap
-        // - Recursion on subranges
-        // 
-        // Actual behavior depends on pivot value selected and partition logic
-
-        Assert.True(stats.CompareCount >= 1UL,
-            $"CompareCount ({stats.CompareCount}) should be >= 1");
-        Assert.True(stats.SwapCount >= 0UL,
-            $"SwapCount ({stats.SwapCount}) should be >= 0");
-        Assert.Equal([1, 2], twoSorted);
-        
-        // Verify IndexReads and IndexWrites are tracked
-        Assert.True(stats.IndexReadCount >= stats.CompareCount,
-            $"IndexReadCount ({stats.IndexReadCount}) should be >= CompareCount ({stats.CompareCount})");
-        Assert.True(stats.IndexWriteCount >= stats.SwapCount * 2,
-            $"IndexWriteCount ({stats.IndexWriteCount}) should be >= SwapCount * 2 ({stats.SwapCount * 2})");
-    }
-
-    [Fact]
-    public void EdgeCaseTwoElementsReversedTest()
-    {
-        var stats = new StatisticsContext();
-        var twoReversed = new[] { 2, 1 };
-        QuickSortMedian3.Sort(twoReversed.AsSpan(), stats);
-
-        // Two elements reversed with Hoare partition:
-        // - Median-of-3 selection: 2-3 comparisons
-        // - Partition: at least 1 swap needed to fix order
-        // - May recurse on subranges
-
-        Assert.True(stats.CompareCount >= 1UL,
-            $"CompareCount ({stats.CompareCount}) should be >= 1");
-        Assert.True(stats.SwapCount >= 1UL,
-            $"SwapCount ({stats.SwapCount}) should be >= 1 (elements need swapping)");
-        Assert.Equal([1, 2], twoReversed);
-        
-        Assert.True(stats.IndexReadCount >= stats.CompareCount,
-            $"IndexReadCount ({stats.IndexReadCount}) should be >= CompareCount");
-        Assert.True(stats.IndexWriteCount >= stats.SwapCount * 2,
-            $"IndexWriteCount ({stats.IndexWriteCount}) should be >= SwapCount * 2");
-    }
-
-    [Fact]
-    public void EdgeCaseThreeElementsTest()
-    {
-        var stats = new StatisticsContext();
-        var three = new[] { 3, 1, 2 };
-        QuickSortMedian3.Sort(three.AsSpan(), stats);
-
-        // Three elements: median-of-3 selects from all three
-        // - Median-of-3: 2-3 comparisons to find median
-        // - Partition with selected pivot
-        // - Possible recursion on smaller subranges
-
-        Assert.True(stats.CompareCount >= 2UL,
-            $"CompareCount ({stats.CompareCount}) should be >= 2");
-        Assert.True(stats.SwapCount >= 1UL,
-            $"SwapCount ({stats.SwapCount}) should be >= 1");
-        Assert.Equal([1, 2, 3], three);
-        
-        Assert.True(stats.IndexReadCount > 0UL,
-            $"IndexReadCount ({stats.IndexReadCount}) should be > 0");
-        Assert.True(stats.IndexWriteCount >= stats.SwapCount * 2,
-            $"IndexWriteCount ({stats.IndexWriteCount}) should be >= SwapCount * 2");
-    }
-
-    [Fact]
-    public void RangeSortTest()
-    {
-        var stats = new StatisticsContext();
-        var array = new[] { 5, 3, 8, 1, 9, 2, 7, 4, 6 };
-
-        // Sort only the range [2, 6) -> indices 2, 3, 4, 5
-        QuickSortMedian3.Sort(array.AsSpan(), 2, 6, stats);
-
-        // Expected: first 2 elements unchanged, middle 4 sorted, last 3 unchanged
-        Assert.Equal(new[] { 5, 3, 1, 2, 8, 9, 7, 4, 6 }, array);
-        
-        // Verify statistics are tracked for range sort
-        Assert.True(stats.CompareCount > 0UL,
-            $"CompareCount ({stats.CompareCount}) should be > 0");
-        Assert.True(stats.IndexReadCount > 0UL,
-            $"IndexReadCount ({stats.IndexReadCount}) should be > 0");
-    }
-
-    [Fact]
-    public void RangeSortFullArrayTest()
-    {
-        var stats = new StatisticsContext();
-        var array = new[] { 5, 3, 8, 1, 9, 2, 7, 4, 6 };
-
-        // Sort the entire array using range API
-        QuickSortMedian3.Sort(array.AsSpan(), 0, array.Length, stats);
-
-        Assert.Equal(new[] { 1, 2, 3, 4, 5, 6, 7, 8, 9 }, array);
-        
-        Assert.True(stats.CompareCount > 0UL,
-            $"CompareCount ({stats.CompareCount}) should be > 0");
-        Assert.True(stats.SwapCount >= 0UL,
-            $"SwapCount ({stats.SwapCount}) should be >= 0");
-        Assert.True(stats.IndexReadCount > 0UL,
-            $"IndexReadCount ({stats.IndexReadCount}) should be > 0");
-        Assert.True(stats.IndexWriteCount >= 0UL,
-            $"IndexWriteCount ({stats.IndexWriteCount}) should be >= 0");
-    }
-
-    [Fact]
-    public void RangeSortSingleElementTest()
-    {
-        var stats = new StatisticsContext();
-        var array = new[] { 5, 3, 8, 1, 9 };
-
-        // Sort a single element range [2, 3)
-        QuickSortMedian3.Sort(array.AsSpan(), 2, 3, stats);
-
-        // Array should be unchanged (single element is already sorted)
-        Assert.Equal(new[] { 5, 3, 8, 1, 9 }, array);
-        Assert.Equal(0UL, stats.CompareCount);
-        Assert.Equal(0UL, stats.SwapCount);
-        Assert.Equal(0UL, stats.IndexReadCount);
-        Assert.Equal(0UL, stats.IndexWriteCount);
-    }
-
-    [Fact]
-    public void RangeSortBeginningTest()
-    {
-        var stats = new StatisticsContext();
-        var array = new[] { 9, 7, 5, 3, 1, 2, 4, 6, 8 };
-
-        // Sort only the first 5 elements [0, 5)
-        QuickSortMedian3.Sort(array.AsSpan(), 0, 5, stats);
-
-        // Expected: first 5 sorted, last 4 unchanged
-        Assert.Equal(new[] { 1, 3, 5, 7, 9, 2, 4, 6, 8 }, array);
-        
-        Assert.True(stats.CompareCount > 0UL);
-        Assert.True(stats.IndexReadCount > 0UL);
-        Assert.True(stats.IndexWriteCount >= 0UL);
-    }
-
-    [Fact]
-    public void RangeSortEndTest()
-    {
-        var stats = new StatisticsContext();
-        var array = new[] { 1, 3, 5, 7, 9, 8, 6, 4, 2 };
-
-        // Sort only the last 4 elements [5, 9)
-        QuickSortMedian3.Sort(array.AsSpan(), 5, 9, stats);
-
-        // Expected: first 5 unchanged, last 4 sorted
-        Assert.Equal(new[] { 1, 3, 5, 7, 9, 2, 4, 6, 8 }, array);
-        
-        Assert.True(stats.CompareCount > 0UL);
-        Assert.True(stats.IndexReadCount > 0UL);
-        Assert.True(stats.IndexWriteCount >= 0UL);
-    }
 }
