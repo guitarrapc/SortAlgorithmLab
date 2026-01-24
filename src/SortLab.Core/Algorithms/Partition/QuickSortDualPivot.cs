@@ -5,11 +5,13 @@ namespace SortLab.Core.Algorithms;
 /// <summary>
 /// 2つのピボットを使用して配列を3つの領域に分割する分割統治法のソートアルゴリズムです。
 /// 単一ピボットのQuickSortと比較して、より均等な分割により再帰の深さを浅くし、キャッシュ効率を高めることで高速化を実現します。
-/// Java 7以降の標準ソートアルゴリズム（DualPivotQuicksort）として採用されています。
+/// Java 7以降の標準ソートアルゴリズム（Vladimir YaroslavskiyのDualPivotQuicksort）は、本実装より洗練されています。(詳細はRemarks参照)
+/// 本実装は教育的簡略版として、コアとなるDual-Pivot分割機構に焦点を当てています。
 /// <br/>
 /// A divide-and-conquer sorting algorithm that uses two pivots to partition the array into three regions.
 /// Compared to single-pivot QuickSort, it achieves faster performance through more balanced partitioning, reducing recursion depth and improving cache efficiency.
-/// Adopted as the standard sorting algorithm in Java 7 and later (DualPivotQuicksort).
+/// Java's standard sorting algorithm since version 7 (Vladimir Yaroslavskiy's DualPivotQuicksort) is more sophisticated than this implementation (see Remarks for details).
+/// This implementation is a simplified educational version focusing on the core dual-pivot partitioning mechanics.
 /// </summary>
 /// <remarks>
 /// <para><strong>Theoretical Conditions for Correct Dual-Pivot QuickSort:</strong></para>
@@ -59,6 +61,23 @@ namespace SortLab.Core.Algorithms;
 /// <item><description>Fewer comparisons on average: 1.9n ln n vs 2n ln n (≈5% reduction)</description></item>
 /// <item><description>Better cache locality: three regions fit better in CPU cache than two</description></item>
 /// <item><description>Lower probability of worst-case behavior: dual pivots provide better sampling</description></item>
+/// </list>
+/// <para><strong>Differences from Java's DualPivotQuicksort (Vladimir Yaroslavskiy):</strong></para>
+/// <list type="bullet">
+/// <item><description><strong>Adaptive Algorithm Selection:</strong> Java's implementation adaptively selects from multiple algorithms:
+/// <list type="bullet">
+/// <item><description>Insertion Sort: Arrays ≤47 elements</description></item>
+/// <item><description>Merge Sort: 47-286 elements with detected sorted runs (partial ordering)</description></item>
+/// <item><description>Dual-Pivot QuickSort: ≥286 elements (general case)</description></item>
+/// <item><description>Counting Sort: ≥3000 elements with small value range (e.g., byte arrays)</description></item>
+/// </list>
+/// This implementation uses only dual-pivot partitioning with insertion sort cutoff.</description></item>
+/// <item><description><strong>Pivot Selection:</strong> Java uses 5-sample method (sorting 5 elements and choosing 2nd and 4th as pivots).
+/// This implementation uses simple left/right positions as pivots.</description></item>
+/// <item><description><strong>Duplicate Handling:</strong> Java uses 5-way partitioning to segregate elements equal to pivots.
+/// This implementation uses 3-way partitioning.</description></item>
+/// <item><description><strong>Purpose:</strong> This is a simplified educational version focusing on core dual-pivot mechanics.
+/// Java's implementation is production-quality with extensive real-world optimizations.</description></item>
 /// </list>
 /// </remarks>
 public static class QuickSortDualPivot
