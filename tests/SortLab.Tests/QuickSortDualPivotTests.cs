@@ -220,10 +220,10 @@ public class QuickSortDualPivotTests
     }
 
     [Theory]
-    [InlineData(10)]
-    [InlineData(20)]
+    [InlineData(30)]
     [InlineData(50)]
     [InlineData(100)]
+    [InlineData(200)]
     public void TheoreticalValuesSortedTest(int n)
     {
         var stats = new StatisticsContext();
@@ -266,10 +266,10 @@ public class QuickSortDualPivotTests
     }
 
     [Theory]
-    [InlineData(10)]
-    [InlineData(20)]
+    [InlineData(30)]
     [InlineData(50)]
     [InlineData(100)]
+    [InlineData(200)]
     public void TheoreticalValuesReversedTest(int n)
     {
         var stats = new StatisticsContext();
@@ -306,10 +306,10 @@ public class QuickSortDualPivotTests
     }
 
     [Theory]
-    [InlineData(10)]
-    [InlineData(20)]
+    [InlineData(30)]
     [InlineData(50)]
     [InlineData(100)]
+    [InlineData(200)]
     public void TheoreticalValuesRandomTest(int n)
     {
         var stats = new StatisticsContext();

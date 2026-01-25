@@ -5,13 +5,11 @@ namespace SortLab.Core.Algorithms;
 /// <summary>
 /// 2つのピボットを使用して配列を3つの領域に分割する分割統治法のソートアルゴリズムです。
 /// 単一ピボットのQuickSortと比較して、より均等な分割により再帰の深さを浅くし、キャッシュ効率を高めることで高速化を実現します。
-/// Java 7以降の標準ソートアルゴリズム（Vladimir YaroslavskiyのDualPivotQuicksort）は、本実装より洗練されています。(詳細はRemarks参照)
-/// 本実装は教育的簡略版として、コアとなるDual-Pivot分割機構に焦点を当てています。
+/// 本実装はVladimir Yaroslavskiy (2009)のDual-Pivot QuickSort論文に基づいています。
 /// <br/>
 /// A divide-and-conquer sorting algorithm that uses two pivots to partition the array into three regions.
 /// Compared to single-pivot QuickSort, it achieves faster performance through more balanced partitioning, reducing recursion depth and improving cache efficiency.
-/// Java's standard sorting algorithm since version 7 (Vladimir Yaroslavskiy's DualPivotQuicksort) is more sophisticated than this implementation (see Remarks for details).
-/// This implementation is a simplified educational version focusing on the core dual-pivot partitioning mechanics.
+/// This implementation is based on Vladimir Yaroslavskiy's (2009) Dual-Pivot QuickSort paper.
 /// </summary>
 /// <remarks>
 /// <para><strong>Theoretical Conditions for Correct Dual-Pivot QuickSort:</strong></para>
@@ -76,21 +74,28 @@ namespace SortLab.Core.Algorithms;
 /// <item><description>Better cache locality: three regions fit better in CPU cache than two</description></item>
 /// <item><description>Lower probability of worst-case behavior: dual pivots provide better sampling</description></item>
 /// </list>
-/// <para><strong>Differences from Java's DualPivotQuicksort (Vladimir Yaroslavskiy):</strong></para>
+/// <para><strong>Yaroslavskiy 2009 Optimizations Implemented:</strong></para>
 /// <list type="bullet">
-/// <item><description><strong>Pivot Selection:</strong> This implementation uses the same 5-sample method as Java (2nd and 4th elements from sorted samples).</description></item>
+/// <item><description><strong>Insertion Sort Fallback (TINY_SIZE = 17):</strong> Arrays smaller than 17 elements are sorted using insertion sort for better constant-factor performance.</description></item>
+/// <item><description><strong>5-Sample Pivot Selection:</strong> For arrays ≥47 elements, uses 5-sample method to select pivots, reducing worst-case probability.</description></item>
+/// <item><description><strong>Inner While Loop:</strong> Partitioning uses inner while loop to scan from right when element > pivot2, matching Yaroslavskiy's specification.</description></item>
+/// <item><description><strong>Equal Elements Optimization (DIST_SIZE = 13):</strong> When center region is large (> length - 13) and pivots are different, 
+/// segregates elements equal to pivots from the center region before recursing. This improves performance on arrays with many duplicate values.</description></item>
+/// <item><description><strong>Dual-Pivot Partitioning:</strong> Separate handling for equal pivots vs. different pivots cases.</description></item>
+/// </list>
+/// <para><strong>Differences from Java's DualPivotQuicksort (Java 7+):</strong></para>
+/// <list type="bullet">
+/// <item><description><strong>Core Algorithm:</strong> This implementation matches Yaroslavskiy's 2009 paper specification.</description></item>
 /// <item><description><strong>Adaptive Algorithm Selection:</strong> Java's implementation adaptively selects from multiple algorithms:
 /// <list type="bullet">
-/// <item><description>Insertion Sort: Arrays ≤47 elements</description></item>
+/// <item><description>Insertion Sort: Arrays ≤47 elements (we use ≤17)</description></item>
 /// <item><description>Merge Sort: 47-286 elements with detected sorted runs (partial ordering)</description></item>
 /// <item><description>Dual-Pivot QuickSort: ≥286 elements (general case)</description></item>
 /// <item><description>Counting Sort: ≥3000 elements with small value range (e.g., byte arrays)</description></item>
 /// </list>
-/// This implementation uses only dual-pivot partitioning without adaptive selection.</description></item>
+/// This implementation uses Yaroslavskiy's original algorithm without additional adaptive selection.</description></item>
 /// <item><description><strong>Duplicate Handling:</strong> Java uses 5-way partitioning to segregate elements equal to pivots.
-/// This implementation uses 3-way partitioning.</description></item>
-/// <item><description><strong>Purpose:</strong> This is an educational implementation focusing on core dual-pivot mechanics with production-quality pivot selection.
-/// Java's implementation includes additional optimizations for sorted runs, value range analysis, and multiple algorithm fallbacks.</description></item>
+/// This implementation uses Yaroslavskiy's 2009 approach with equal elements optimization.</description></item>
 /// </list>
 /// </remarks>
 public static class QuickSortDualPivot
@@ -99,6 +104,15 @@ public static class QuickSortDualPivot
     // Below this size, simple pivot selection (left, right) is used
     // This value ensures sufficient spacing for 5-sample method (requires ~7 positions)
     private const int PivotThreshold = 47;
+
+    // Threshold for switching to insertion sort (Yaroslavskiy 2009)
+    // Arrays smaller than this size are sorted using insertion sort
+    private const int TINY_SIZE = 17;
+
+    // Threshold for equal elements optimization (Yaroslavskiy 2009)
+    // When center region is larger than (length - DIST_SIZE) and pivots are different,
+    // segregate elements equal to pivots from the center region
+    private const int DIST_SIZE = 13;
 
     // Buffer identifiers for visualization
     private const int BUFFER_MAIN = 0;       // Main input array
@@ -158,6 +172,13 @@ public static class QuickSortDualPivot
 
         int length = right - left + 1;
         
+        // For tiny arrays, use insertion sort (Yaroslavskiy 2009 optimization)
+        if (length < TINY_SIZE)
+        {
+            InsertionSort.SortCore(s, left, right + 1);
+            return;
+        }
+        
         // For small arrays, use simple pivot selection (left and right)
         if (length < PivotThreshold)
         {
@@ -199,41 +220,114 @@ public static class QuickSortDualPivot
         }
 
         // Phase 1. Partition array into three regions using dual pivots
-        var l = left + 1;
-        var k = l;
-        var g = right - 1;
+        var less = left + 1;
+        var great = right - 1;
+        
+        // Check if pivots are different (used for optimization later)
+        var diffPivots = s.Compare(left, right) != 0;
 
-        while (k <= g)
+        if (diffPivots)
         {
-            if (s.Compare(k, left) < 0)
+            // Partitioning with distinct pivots
+            for (int k = less; k <= great; k++)
             {
-                s.Swap(k, l);
-                k++;
-                l++;
+                if (s.Compare(k, left) < 0)
+                {
+                    // Element < pivot1: move to left region
+                    s.Swap(k, less);
+                    less++;
+                }
+                else if (s.Compare(k, right) > 0)
+                {
+                    // Element > pivot2: scan from right to find position
+                    while (s.Compare(great, right) > 0 && k < great)
+                    {
+                        great--;
+                    }
+                    s.Swap(k, great);
+                    great--;
+                    
+                    // Re-check swapped element
+                    if (s.Compare(k, left) < 0)
+                    {
+                        s.Swap(k, less);
+                        less++;
+                    }
+                }
+                // else: pivot1 <= element <= pivot2, stays in middle
             }
-            else if (s.Compare(right, k) < 0)
+        }
+        else
+        {
+            // Partitioning with equal pivots (all elements either < or > pivot)
+            for (int k = less; k <= great; k++)
             {
-                s.Swap(k, g);
-                g--;
-            }
-            else
-            {
-                k++;
+                if (s.Compare(k, left) == 0)
+                {
+                    continue; // Element equals pivot, skip
+                }
+                if (s.Compare(k, left) < 0)
+                {
+                    s.Swap(k, less);
+                    less++;
+                }
+                else // element > pivot
+                {
+                    while (s.Compare(great, right) > 0 && k < great)
+                    {
+                        great--;
+                    }
+                    s.Swap(k, great);
+                    great--;
+                    
+                    if (s.Compare(k, left) < 0)
+                    {
+                        s.Swap(k, less);
+                        less++;
+                    }
+                }
             }
         }
 
-        l--;
-        g++;
-        s.Swap(left, l);
-        s.Swap(right, g);
+        // Swap pivots into their final positions
+        s.Swap(left, less - 1);
+        s.Swap(right, great + 1);
 
-        // Phase 2. Sort left, middle, and right regions recursively
-        SortCore(s, left, l - 1);
-        // Check if middle region needs sorting (pivots are distinct AND elements exist)
-        if (s.Compare(l, g) < 0 && l + 1 < g)
+        // Phase 2. Sort left and right parts
+        SortCore(s, left, less - 2);
+        SortCore(s, great + 2, right);
+
+        // Phase 3. Equal elements optimization (Yaroslavskiy 2009)
+        // When center region is large and pivots are different,
+        // segregate elements equal to pivots
+        if (great - less > length - DIST_SIZE && diffPivots)
         {
-            SortCore(s, l + 1, g - 1);
+            for (int k = less; k <= great; k++)
+            {
+                if (s.Compare(k, less - 1) == 0) // equals pivot1
+                {
+                    s.Swap(k, less);
+                    less++;
+                }
+                else if (s.Compare(k, great + 1) == 0) // equals pivot2
+                {
+                    s.Swap(k, great);
+                    great--;
+                    
+                    // Re-check swapped element
+                    if (s.Compare(k, less - 1) == 0)
+                    {
+                        s.Swap(k, less);
+                        less++;
+                    }
+                }
+            }
         }
-        SortCore(s, g + 1, right);
+
+        // Phase 4. Sort center part (only if pivots are different)
+        if (diffPivots)
+        {
+            SortCore(s, less, great);
+        }
     }
 }
