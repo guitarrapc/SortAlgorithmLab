@@ -15,6 +15,7 @@ public class ShellSortTokuda1992Tests
     [ClassData(typeof(MockNearlySortedData))]
     [ClassData(typeof(MockSameValuesData))]
     [ClassData(typeof(MockAntiQuickSortData))]
+    [ClassData(typeof(MockQuickSortWorstCaseData))]
     public void SortResultOrderTest(IInputSample<int> inputSample)
     {
         var stats = new StatisticsContext();

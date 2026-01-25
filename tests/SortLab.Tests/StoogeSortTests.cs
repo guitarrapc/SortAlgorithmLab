@@ -15,6 +15,7 @@ public class StoogeSortTests
     [ClassData(typeof(MockNearlySortedData))]
     [ClassData(typeof(MockSameValuesData))]
     [ClassData(typeof(MockAntiQuickSortData))]
+    [ClassData(typeof(MockQuickSortWorstCaseData))]
     public void SortResultOrderTest(IInputSample<int> inputSample)
     {
         // Stooge Sort is extremely slow, so we limit to small arrays
