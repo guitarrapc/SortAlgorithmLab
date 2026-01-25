@@ -125,13 +125,13 @@ public class BucketSortTests
         // 4. Write back: n reads (temp buffer via CopyTo) + n writes (main buffer via CopyTo)
         //
         // Actual observations (with CopyTo):
-        // n=10:  44 reads (4.4n), 44 writes (4.4n)
-        // n=20:  92 reads (4.6n), 72 writes (3.6n)
-        // n=50:  236 reads (4.72n), 186 writes (3.72n)
-        // n=100: 480 reads (4.8n), 380 writes (3.8n)
+        // n=10:  44 reads (4.4n), 54 writes (5.4n) - with tempBuffer writes
+        // n=20:  92 reads (4.6n), 112 writes (5.6n)
+        // n=50:  236 reads (4.72n), 286 writes (5.72n)
+        // n=100: 480 reads (4.8n), 580 writes (5.8n)
         //
         // Reads: 2n (find/distribute) + ~2n (insertion sort) + n (CopyTo read from temp)
-        // Writes: ~n to ~2n (insertion sort) + n (CopyTo write to main)
+        // Writes: n (distribute to temp) + ~n to ~2n (insertion sort) + n (CopyTo write to main)
 
         var bucketCount = Math.Max(2, Math.Min(1000, (int)Math.Sqrt(n)));
 
@@ -139,10 +139,10 @@ public class BucketSortTests
         var expectedReadsMin = (ulong)(4.0 * n);
         var expectedReadsMax = (ulong)(5.0 * n);
 
-        // IndexWriteCount: ~n to ~2n (insertion sort) + n (CopyTo)
+        // IndexWriteCount: n (distribute) + ~n to ~2n (insertion sort) + n (CopyTo)
         // For sorted data, minimal shifts but key writes occur
-        var expectedWritesMin = (ulong)(1.5 * n);
-        var expectedWritesMax = (ulong)(3.5 * n);
+        var expectedWritesMin = (ulong)(2.5 * n);
+        var expectedWritesMax = (ulong)(4.5 * n);
 
         // CompareCount: n - bucketCount (one per element except first in each bucket)
         // But with SortSpan Compare(), each comparison involves reads

@@ -155,11 +155,12 @@ public static class BucketSort
         }
 
         // Second pass: distribute elements using cached bucket indices
+        var tempSpan = new SortSpan<T>(tempArray, context, BUFFER_TEMP);
         for (var i = 0; i < span.Length; i++)
         {
             var bucketIndex = keys[i]; // Reuse bucket index (no division)
             var pos = bucketPositions[bucketIndex]++;
-            tempArray[pos] = s.Read(i);
+            tempSpan.Write(pos, s.Read(i));
         }
 
         // Sort each bucket using Span slicing with SortSpan for tracking
@@ -175,7 +176,6 @@ public static class BucketSort
         }
 
         // Write sorted data back to original span using CopyTo for efficiency
-        var tempSpan = new SortSpan<T>(tempArray, context, BUFFER_TEMP);
         tempSpan.CopyTo(0, s, 0, span.Length);
     }
 
@@ -348,11 +348,12 @@ public static class BucketSortInteger
         }
 
         // Second pass: distribute elements using cached bucket indices
+        var tempSpan = new SortSpan<int>(tempArray, context, BUFFER_TEMP);
         for (var i = 0; i < span.Length; i++)
         {
             var bucketIndex = bucketIndices[i]; // Reuse cached index (no division)
             var pos = bucketPositions[bucketIndex]++;
-            tempArray[pos] = s.Read(i);
+            tempSpan.Write(pos, s.Read(i));
         }
 
         // Sort each bucket using Span slicing
@@ -367,7 +368,6 @@ public static class BucketSortInteger
         }
 
         // Write sorted data back to original span using CopyTo for efficiency
-        var tempSpan = new SortSpan<int>(tempArray, context, BUFFER_TEMP);
         tempSpan.CopyTo(0, s, 0, span.Length);
     }
 

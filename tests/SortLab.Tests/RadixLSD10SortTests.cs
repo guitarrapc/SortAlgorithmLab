@@ -56,19 +56,19 @@ public class RadixLSD10SortTests
         //    - Find max to determine digits: n reads
         //    - For each digit d (from 0 to digitCount-1):
         //      - Count phase: n reads
-        //      - Distribute phase: n reads
+        //      - Distribute phase: n reads + n writes (to temp buffer)
         //      - Copy back phase (using CopyTo): n reads (from temp buffer) + n writes (to main buffer)
         //
         // For n elements with max value (n-1):
         // - max = n-1, so digitCount = ⌈log₁₀(n)⌉ (e.g., n=100 → max=99 → 2 digits)
         //
         // Total reads = n (check negatives) + n (find max) + digitCount × 3n (count + distribute + CopyTo read)
-        // Total writes = digitCount × n (CopyTo write)
+        // Total writes = digitCount × 2n (distribute write + CopyTo write)
         var max = n - 1;
         var digitCount = GetDigitCount(max);
 
         var expectedReads = (ulong)(n + n + digitCount * 3 * n); // Check negatives + find max + (count + distribute + CopyTo) per digit
-        var expectedWrites = (ulong)(digitCount * n); // CopyTo write per digit
+        var expectedWrites = (ulong)(digitCount * 2 * n); // (distribute + CopyTo) writes per digit
 
         Assert.Equal(expectedReads, stats.IndexReadCount);
         Assert.Equal(expectedWrites, stats.IndexWriteCount);
@@ -94,7 +94,7 @@ public class RadixLSD10SortTests
         var digitCount = GetDigitCount(max);
 
         var expectedReads = (ulong)(n + n + digitCount * 3 * n); // Check negatives + find max + (count + distribute + CopyTo)
-        var expectedWrites = (ulong)(digitCount * n);
+        var expectedWrites = (ulong)(digitCount * 2 * n); // (distribute + CopyTo) writes
 
         Assert.Equal(expectedReads, stats.IndexReadCount);
         Assert.Equal(expectedWrites, stats.IndexWriteCount);
@@ -120,7 +120,7 @@ public class RadixLSD10SortTests
         var digitCount = GetDigitCount(max);
 
         var expectedReads = (ulong)(n + n + digitCount * 3 * n); // Check negatives + find max + (count + distribute + CopyTo)
-        var expectedWrites = (ulong)(digitCount * n);
+        var expectedWrites = (ulong)(digitCount * 2 * n); // (distribute + CopyTo) writes
 
         Assert.Equal(expectedReads, stats.IndexReadCount);
         Assert.Equal(expectedWrites, stats.IndexWriteCount);
@@ -168,8 +168,8 @@ public class RadixLSD10SortTests
         //   4. Sort non-negatives (with CopyTo): nonNegativeCount (find max) + digitCountPos × 3 × nonNegativeCount (count + distribute + CopyTo)
         //   5. Merge: nonNegativeCount (CopyTo reads non-negative buffer)
         // Writes:
-        //   1. Sort negatives (CopyTo): digitCountNeg × negativeCount
-        //   2. Sort non-negatives (CopyTo): digitCountPos × nonNegativeCount
+        //   1. Sort negatives: digitCountNeg × 2 × negativeCount (distribute + CopyTo)
+        //   2. Sort non-negatives: digitCountPos × 2 × nonNegativeCount (distribute + CopyTo)
         //   3. Merge: negativeCount (reversed writes) + nonNegativeCount (CopyTo writes)
         var expectedReads = (ulong)(
             1 // Check for negatives (early exit)
@@ -180,8 +180,8 @@ public class RadixLSD10SortTests
         );
 
         var expectedWrites = (ulong)(
-            digitCountNeg * negativeCount // Sort negatives (CopyTo writes)
-            + digitCountPos * nonNegativeCount // Sort non-negatives (CopyTo writes)
+            digitCountNeg * 2 * negativeCount // Sort negatives (distribute + CopyTo writes)
+            + digitCountPos * 2 * nonNegativeCount // Sort non-negatives (distribute + CopyTo writes)
             + negativeCount // Merge: reversed writes for negatives
             + nonNegativeCount // Merge: CopyTo writes for non-negatives
         );

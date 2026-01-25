@@ -51,7 +51,7 @@ public class BucketSortIntegerTests
         BucketSortInteger.Sort(sorted.AsSpan(), stats);
 
         var minReads = (ulong)(2 * n);
-        var expectedWrites = (ulong)n;
+        var expectedWrites = (ulong)(2 * n); // n (distribute to temp) + n (CopyTo to main)
         var bucketCount = Math.Max(2, Math.Min(1000, (int)Math.Sqrt(n)));
         var expectedCompares = (ulong)(n - bucketCount);
 
@@ -75,7 +75,7 @@ public class BucketSortIntegerTests
         BucketSortInteger.Sort(reversed.AsSpan(), stats);
 
         var minReads = (ulong)(2 * n);
-        var expectedWrites = (ulong)n;
+        var expectedWrites = (ulong)(2 * n); // n (distribute to temp) + n (CopyTo to main)
         var bucketCount = Math.Max(2, Math.Min(1000, (int)Math.Sqrt(n)));
         var bucketSize = n / bucketCount;
         var maxComparesPerBucket = bucketSize * (bucketSize - 1) / 2;
@@ -101,7 +101,7 @@ public class BucketSortIntegerTests
         BucketSortInteger.Sort(random.AsSpan(), stats);
 
         var minReads = (ulong)(2 * n);
-        var expectedWrites = (ulong)n;
+        var expectedWrites = (ulong)(2 * n); // n (distribute to temp) + n (CopyTo to main)
         var bucketCount = Math.Max(2, Math.Min(1000, (int)Math.Sqrt(n)));
         var minCompares = 0UL;
         var bucketSize = n / bucketCount;

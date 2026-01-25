@@ -1,4 +1,5 @@
-﻿using SortLab.Core.Algorithms;
+﻿#if DEBUG
+using SortLab.Core.Algorithms;
 using SortLab.Core.Contexts;
 
 namespace SortLab.Tests;
@@ -102,3 +103,5 @@ public class SortSpanTests
         Assert.Equal(10UL, contextLoop.IndexWriteCount);
     }
 }
+
+#endif

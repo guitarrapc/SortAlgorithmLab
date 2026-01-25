@@ -148,6 +148,7 @@ public static class RadixLSD10Sort
         Span<int> bucketStarts = stackalloc int[RadixBase];
         var divisor = T.One;
         var ten = T.CreateChecked(10);
+        var tempSpan = new SortSpan<T>(tempBuffer, context, BUFFER_TEMP);
 
         for (var d = 0; d < digitCount; d++)
         {
@@ -176,11 +177,10 @@ public static class RadixLSD10Sort
                 var value = s.Read(i);
                 var digit = GetDecimalDigit(value, divisor);
                 var pos = bucketStarts[digit]++;
-                tempBuffer[pos] = value;
+                tempSpan.Write(pos, value);
             }
 
             // Copy back from temp buffer using CopyTo for efficiency
-            var tempSpan = new SortSpan<T>(tempBuffer, context, BUFFER_TEMP);
             tempSpan.CopyTo(0, s, 0, s.Length);
 
             divisor *= ten;
@@ -262,6 +262,7 @@ public static class RadixLSD10Sort
         Span<int> bucketStarts = stackalloc int[RadixBase];
         var divisor = T.One;
         var ten = T.CreateChecked(10);
+        var tempSpan = new SortSpan<T>(tempBuffer, context, BUFFER_TEMP);
 
         for (var d = 0; d < digitCount; d++)
         {
@@ -290,11 +291,10 @@ public static class RadixLSD10Sort
                 var value = s.Read(i);
                 var digit = GetDecimalDigit(T.Abs(value), divisor);
                 var pos = bucketStarts[digit]++;
-                tempBuffer[pos] = value;
+                tempSpan.Write(pos, value);
             }
 
             // Copy back from temp buffer using CopyTo for efficiency
-            var tempSpan = new SortSpan<T>(tempBuffer, context, BUFFER_TEMP);
             tempSpan.CopyTo(0, s, 0, s.Length);
 
             divisor *= ten;
@@ -325,6 +325,7 @@ public static class RadixLSD10Sort
         Span<int> bucketStarts = stackalloc int[RadixBase];
         var divisor = T.One;
         var ten = T.CreateChecked(10);
+        var tempSpan = new SortSpan<T>(tempBuffer, context, BUFFER_TEMP);
 
         for (var d = 0; d < digitCount; d++)
         {
@@ -353,11 +354,10 @@ public static class RadixLSD10Sort
                 var value = s.Read(i);
                 var digit = GetDecimalDigit(value, divisor);
                 var pos = bucketStarts[digit]++;
-                tempBuffer[pos] = value;
+                tempSpan.Write(pos, value);
             }
 
             // Copy back from temp buffer using CopyTo for efficiency
-            var tempSpan = new SortSpan<T>(tempBuffer, context, BUFFER_TEMP);
             tempSpan.CopyTo(0, s, 0, s.Length);
 
             divisor *= ten;
