@@ -9,66 +9,80 @@ public class InsertionBenchmark
     public int Number { get; set; }
 
     private int[] _balancedbinarytreeArray = default!;
-    private BalancedBinaryTreeSort<int> _balancedbinarytreeSort = default!;
-
     private int[] _binaryinsertArray = default!;
-    private BinaryInsertSort<int> _binaryinsertSort = default!;
-
     private int[] _binarytreeArray = default!;
-    private BinaryTreeSort<int> _binarytreeSort = default!;
-
     private int[] _insertionArray = default!;
-    private InsertionSort<int> _insertionSort = default!;
-
-    private int[] _shellArray = default!;
-    private ShellSort<int> _shellSort = default!;
+    private int[] _shellArrayCiura2001 = default!;
+    private int[] _shellArrayKnuth1973 = default!;
+    private int[] _shellArrayLee2021 = default!;
+    private int[] _shellArraySedgewick1986 = default!;
+    private int[] _shellArrayTokuda1992 = default!;
 
     [IterationSetup]
     public void Setup()
     {
         _balancedbinarytreeArray = BenchmarkData.GenIntArray(Number);
-        _balancedbinarytreeSort = new();
-
         _binaryinsertArray = BenchmarkData.GenIntArray(Number);
-        _binaryinsertSort = new();
-
         _binarytreeArray = BenchmarkData.GenIntArray(Number);
-        _binarytreeSort = new();
-
         _insertionArray = BenchmarkData.GenIntArray(Number);
-        _insertionSort = new();
-
-        _shellArray = BenchmarkData.GenIntArray(Number);
-        _shellSort = new();
+        _shellArrayCiura2001 = BenchmarkData.GenIntArray(Number);
+        _shellArrayKnuth1973 = BenchmarkData.GenIntArray(Number);
+        _shellArrayLee2021 = BenchmarkData.GenIntArray(Number);
+        _shellArraySedgewick1986 = BenchmarkData.GenIntArray(Number);
+        _shellArrayTokuda1992 = BenchmarkData.GenIntArray(Number);
     }
 
     [Benchmark]
     public void BalancedBinaryTreeSort()
     {
-        _balancedbinarytreeSort.Sort(_balancedbinarytreeArray);
+        SortLab.Core.Algorithms.BalancedBinaryTreeSort.Sort(_balancedbinarytreeArray.AsSpan());
     }
 
     [Benchmark]
     public void BinaryInsertSort()
     {
-        _binaryinsertSort.Sort(_binaryinsertArray);
+        SortLab.Core.Algorithms.BinaryInsertSort.Sort(_binaryinsertArray.AsSpan());
     }
 
     [Benchmark]
     public void BinaryTreeSort()
     {
-        _binarytreeSort.Sort(_binarytreeArray);
+        SortLab.Core.Algorithms.BinaryTreeSort.Sort(_binarytreeArray.AsSpan());
     }
 
     [Benchmark]
     public void InsertionSort()
     {
-        _insertionSort.Sort(_insertionArray);
+        SortLab.Core.Algorithms.InsertionSort.Sort(_insertionArray.AsSpan());
     }
 
     [Benchmark]
-    public void ShellSort()
+    public void ShellSortCiura2001()
     {
-        _shellSort.Sort(_shellArray);
+        SortLab.Core.Algorithms.ShellSortCiura2001.Sort(_shellArrayCiura2001.AsSpan());
+    }
+
+    [Benchmark]
+    public void ShellSortKnuth1973()
+    {
+        SortLab.Core.Algorithms.ShellSortKnuth1973.Sort(_shellArrayKnuth1973.AsSpan());
+    }
+
+    [Benchmark]
+    public void ShellSortLee2021()
+    {
+        SortLab.Core.Algorithms.ShellSortLee2021.Sort(_shellArrayLee2021.AsSpan());
+    }
+
+    [Benchmark]
+    public void ShellSortSedgewick1986()
+    {
+        SortLab.Core.Algorithms.ShellSortSedgewick1986.Sort(_shellArraySedgewick1986.AsSpan());
+    }
+
+    [Benchmark]
+    public void ShellSortTokuda1992()
+    {
+        SortLab.Core.Algorithms.ShellSortTokuda1992.Sort(_shellArrayTokuda1992.AsSpan());
     }
 }
