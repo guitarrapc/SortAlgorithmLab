@@ -49,4 +49,12 @@ public sealed class CompositeContext : ISortContext
             context.OnIndexWrite(index, bufferId);
         }
     }
+
+    public void OnRangeCopy(int sourceIndex, int destinationIndex, int length, int sourceBufferId, int destinationBufferId)
+    {
+        foreach (var context in _contexts)
+        {
+            context.OnRangeCopy(sourceIndex, destinationIndex, length, sourceBufferId, destinationBufferId);
+        }
+    }
 }

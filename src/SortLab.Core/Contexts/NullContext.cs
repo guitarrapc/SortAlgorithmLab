@@ -26,4 +26,8 @@ public sealed class NullContext : ISortContext
     public void OnIndexWrite(int index, int bufferId)
     {
     }
+
+    public void OnRangeCopy(int sourceIndex, int destinationIndex, int length, int sourceBufferId, int destinationBufferId)
+    {
+    }
 }

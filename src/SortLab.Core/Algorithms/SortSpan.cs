@@ -166,5 +166,37 @@ internal ref struct SortSpan<T> where T: IComparable<T>
         (_span[i], _span[j]) = (_span[j], _span[i]);
 #endif
     }
+
+    /// <summary>
+    /// Copies a range of elements from this span to another SortSpan. (Equivalent to source.Slice(sourceIndex, length).CopyTo(destination.Slice(destinationIndex)).)
+    /// </summary>
+    /// <param name="sourceIndex">The starting index in the source span.</param>
+    /// <param name="destination">The destination SortSpan to copy to.</param>
+    /// <param name="destinationIndex">The starting index in the destination span.</param>
+    /// <param name="length">The number of elements to copy.</param>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public void CopyTo(int sourceIndex, SortSpan<T> destination, int destinationIndex, int length)
+    {
+#if DEBUG
+        _context.OnRangeCopy(sourceIndex, destinationIndex, length, _bufferId, destination.BufferId);
+#endif
+        _span.Slice(sourceIndex, length).CopyTo(destination._span.Slice(destinationIndex, length));
+    }
+
+    /// <summary>
+    /// Copies a range of elements from this span to a regular Span. (Equivalent to source.Slice(sourceIndex, length).CopyTo(destination.Slice(destinationIndex)).)
+    /// </summary>
+    /// <param name="sourceIndex">The starting index in the source span.</param>
+    /// <param name="destination">The destination Span to copy to.</param>
+    /// <param name="destinationIndex">The starting index in the destination span.</param>
+    /// <param name="length">The number of elements to copy.</param>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public void CopyTo(int sourceIndex, Span<T> destination, int destinationIndex, int length)
+    {
+#if DEBUG
+        _context.OnRangeCopy(sourceIndex, destinationIndex, length, _bufferId, -1);
+#endif
+        _span.Slice(sourceIndex, length).CopyTo(destination.Slice(destinationIndex, length));
+    }
 }
 
