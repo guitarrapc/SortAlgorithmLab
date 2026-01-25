@@ -1,4 +1,4 @@
-﻿namespace SortLab.Core;
+﻿namespace SortLab.Tests;
 
 public enum InputType
 {

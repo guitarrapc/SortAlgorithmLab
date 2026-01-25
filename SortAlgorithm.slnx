@@ -4,8 +4,8 @@
     <File Path="Directory.Packages.props" />
   </Folder>
   <Folder Name="/sandbox/">
+    <Project Path="sandbox/AntiQuickSortDemo/AntiQuickSortDemo.csproj" />
     <Project Path="sandbox/SandboxBenchmark/SandboxBenchmark.csproj" />
-    <Project Path="sandbox/SandboxConsole/SandboxConsole.csproj" />
   </Folder>
   <Folder Name="/src/">
     <Project Path="src/SortLab.Core/SortLab.Core.csproj" />
