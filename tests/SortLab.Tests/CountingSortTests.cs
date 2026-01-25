@@ -105,6 +105,16 @@ public class CountingSortTests
         Assert.Equal(new[] { -10, -5, -3, -1, 0, 3 }, array);
     }
 
+    [Fact]
+    public void EmptyArrayTest()
+    {
+        var stats = new StatisticsContext();
+        var array = Array.Empty<int>();
+        CountingSort.Sort(array.AsSpan(), x => x, stats);
+
+        Assert.Empty(array);
+    }
+
 #if DEBUG
 
     [Theory]

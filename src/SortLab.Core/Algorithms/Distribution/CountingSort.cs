@@ -153,11 +153,8 @@ public static class CountingSort
             countArray[index]--;
         }
 
-        // Write sorted data back to original span
-        for (var i = 0; i < s.Length; i++)
-        {
-            s.Write(i, tempSpan.Read(i));
-        }
+        // Write sorted data back to original span using CopyTo for efficiency
+        tempSpan.CopyTo(0, s, 0, s.Length);
     }
 }
 
@@ -280,10 +277,7 @@ public static class CountingSortInteger
             countArray[index]--;
         }
 
-        // Write sorted data back to original span
-        for (var i = 0; i < s.Length; i++)
-        {
-            s.Write(i, tempSpan.Read(i));
-        }
+        // Write sorted data back to original span using CopyTo for efficiency
+        tempSpan.CopyTo(0, s, 0, s.Length);
     }
 }
