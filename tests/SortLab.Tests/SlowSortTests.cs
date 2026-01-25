@@ -14,6 +14,7 @@ public class SlowSortTests
     [ClassData(typeof(MockMountainData))]
     [ClassData(typeof(MockNearlySortedData))]
     [ClassData(typeof(MockSameValuesData))]
+    [ClassData(typeof(MockAntiQuickSortData))]
     public void SortResultOrderTest(IInputSample<int> inputSample)
     {
         // Slow Sort is extremely slow, so we limit to small arrays
@@ -157,7 +158,7 @@ public class SlowSortTests
         Assert.Equal((ulong)expectedComparisons, stats.CompareCount);
         Assert.Equal(0UL, stats.SwapCount); // Sorted data has no swaps
         Assert.Equal(0UL, stats.IndexWriteCount); // No swaps means no writes
-        
+
         // IndexReadCount = CompareCount * 2 (each comparison reads 2 elements)
         var expectedReads = (ulong)(expectedComparisons * 2);
         Assert.Equal(expectedReads, stats.IndexReadCount);
@@ -266,7 +267,7 @@ public class SlowSortTests
         // The exact number depends on the recursive structure, but it should be > 0
         Assert.True(stats.SwapCount > 0, $"Expected swaps for reversed data of size {n}, got {stats.SwapCount}");
         Assert.True(stats.IndexWriteCount > 0, "Expected writes for reversed data");
-        
+
         // Verify consistency: each swap = 2 writes
         Assert.Equal(stats.SwapCount * 2, stats.IndexWriteCount);
     }
@@ -312,4 +313,3 @@ public class SlowSortTests
         return true;
     }
 }
-

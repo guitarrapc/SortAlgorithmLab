@@ -9,6 +9,7 @@ public enum InputType
     Sorted,
     SameValues,
     Stability,
+    AntiQuickSort,
 
     MixRandom,
     NegativeRandom,

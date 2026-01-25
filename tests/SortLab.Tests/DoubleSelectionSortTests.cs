@@ -13,6 +13,7 @@ public class DoubleSelectionSortTests
     [ClassData(typeof(MockMountainData))]
     [ClassData(typeof(MockNearlySortedData))]
     [ClassData(typeof(MockSameValuesData))]
+    [ClassData(typeof(MockAntiQuickSortData))]
     public void SortResultOrderTest(IInputSample<int> inputSample)
     {
         var stats = new StatisticsContext();
@@ -193,7 +194,7 @@ public class DoubleSelectionSortTests
         // i=3: left=3, right=6, compares=2*3=6
         // i=4: left=4, right=5, compares=2*1=2
         // Total = 50
-        
+
         ulong expectedCompares = 0;
         int iterations = n / 2;
         for (int i = 0; i < iterations; i++)
@@ -204,7 +205,7 @@ public class DoubleSelectionSortTests
             int elementsToCompare = right - left; // from left+1 to right inclusive
             expectedCompares += (ulong)(elementsToCompare * 2);
         }
-        
+
         // For sorted data, min is always at left and max is always at right
         // So no swaps are needed
         var expectedSwaps = 0UL;
@@ -243,7 +244,7 @@ public class DoubleSelectionSortTests
             int elementsToCompare = right - left;
             expectedCompares += (ulong)(elementsToCompare * 2);
         }
-        
+
         // For reversed data, in each iteration:
         // - min is at position right (rightmost element in current range)
         // - max is at position left (leftmost element in current range)
@@ -290,7 +291,7 @@ public class DoubleSelectionSortTests
             int elementsToCompare = right - left;
             expectedCompares += (ulong)(elementsToCompare * 2);
         }
-        
+
         // For random data, swap count varies
         // Minimum: 0 swaps (already sorted)
         // Maximum: n swaps (worst case, up to 2 swaps per iteration)

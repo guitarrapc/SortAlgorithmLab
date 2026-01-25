@@ -14,6 +14,7 @@ public class ShellSortLee2021Tests
     [ClassData(typeof(MockMountainData))]
     [ClassData(typeof(MockNearlySortedData))]
     [ClassData(typeof(MockSameValuesData))]
+    [ClassData(typeof(MockAntiQuickSortData))]
     public void SortResultOrderTest(IInputSample<int> inputSample)
     {
         var stats = new StatisticsContext();

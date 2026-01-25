@@ -13,6 +13,7 @@ public class StableQuickSortTest
     [ClassData(typeof(MockMountainData))]
     [ClassData(typeof(MockNearlySortedData))]
     [ClassData(typeof(MockSameValuesData))]
+    [ClassData(typeof(MockAntiQuickSortData))]
     public void SortResultOrderTest(IInputSample<int> inputSample)
     {
         var stats = new StatisticsContext();
@@ -366,11 +367,11 @@ public class StableQuickSortTest
         // - Writes: O(n) - Write all elements back once
         // - Swaps: 0 - This algorithm uses Read/Write, not Swap
         // - No recursion: all elements go to equal partition
-        
+
         // With quartile-based median-of-3, we make 2-3 comparisons for pivot selection
         var minCompares = 2UL; // Minimum for median-of-3
         var maxCompares = 3UL; // Maximum for median-of-3
-        
+
         // StableQuickSort doesn't use Swap
         Assert.Equal(0UL, stats.SwapCount);
 

@@ -14,6 +14,7 @@ public class StoogeSortTests
     [ClassData(typeof(MockMountainData))]
     [ClassData(typeof(MockNearlySortedData))]
     [ClassData(typeof(MockSameValuesData))]
+    [ClassData(typeof(MockAntiQuickSortData))]
     public void SortResultOrderTest(IInputSample<int> inputSample)
     {
         // Stooge Sort is extremely slow, so we limit to small arrays
@@ -156,7 +157,7 @@ public class StoogeSortTests
         Assert.Equal((ulong)expectedComparisons, stats.CompareCount);
         Assert.Equal(0UL, stats.SwapCount); // Sorted data has no swaps
         Assert.Equal(0UL, stats.IndexWriteCount); // No swaps means no writes
-        
+
         // IndexReadCount = CompareCount * 2 (each comparison reads 2 elements)
         var expectedReads = (ulong)(expectedComparisons * 2);
         Assert.Equal(expectedReads, stats.IndexReadCount);
@@ -233,4 +234,3 @@ public class StoogeSortTests
         return true;
     }
 }
-

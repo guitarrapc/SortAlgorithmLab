@@ -13,6 +13,7 @@ public class DropMergeSortTests
     [ClassData(typeof(MockMountainData))]
     [ClassData(typeof(MockNearlySortedData))]
     [ClassData(typeof(MockSameValuesData))]
+    [ClassData(typeof(MockAntiQuickSortData))]
     public void SortResultOrderTest(IInputSample<int> inputSample)
     {
         var stats = new StatisticsContext();
@@ -20,7 +21,7 @@ public class DropMergeSortTests
         DropMergeSort.Sort(array.AsSpan(), stats);
 
         Assert.Equal((ulong)inputSample.Samples.Length, (ulong)array.Length);
-        
+
         // Verify the array is sorted
         for (var i = 0; i < array.Length - 1; i++)
         {
