@@ -143,7 +143,7 @@ public static class BalancedBinaryTreeSort
         }
         finally
         {
-            ArrayPool<Node<T>>.Shared.Return(arena);
+            ArrayPool<Node<T>>.Shared.Return(arena, clearArray: true);
             if (rentedPathStack is not null)
             {
                 ArrayPool<int>.Shared.Return(rentedPathStack);
