@@ -5,14 +5,14 @@ namespace SortLab.Core.Algorithms;
 
 /// <summary>
 /// 安定ソート版のクイックソートです。
-/// 配列から中央値を求めてピボットとし、このピボットを基準に配列を3つのグループ（より小さい、等しい、より大きい）に分割する分割統治法のソートアルゴリズムです。
-/// ピボットが偏らないようにMedian-of-3法でピボットを選択することで安定した性能を実現します。
-/// 等しい要素の相対順序を保持する安定パーティショニングを使用します。
+/// 配列から四分位位置の中央値を求めてピボットとし、このピボットを基準に配列を左右に分割する分割統治法のソートアルゴリズムです。
+/// Hoare partition schemeを使用し、四分位ベースのMedian-of-3法でピボットを選択することで様々なデータパターンに対して安定した性能を実現します。
+/// 安定ソートのため、外部バッファを使用して安定な分割を行います。
 /// <br/>
 /// A stable variant of quicksort.
-/// This is a divide-and-conquer sorting algorithm that selects a pivot using the median of the array and partitions the array into three groups (less than, equal to, and greater than the pivot).
-/// To avoid biased pivot selection and achieve consistent performance, it chooses the pivot using the median-of-three method.
-/// It uses stable partitioning to preserve the relative order of equal elements.
+/// A divide-and-conquer sorting algorithm that selects the pivot as the median of quartile positions in the array and partitions the array into left and right subarrays based on that pivot.
+/// It uses the Hoare partition scheme and selects the pivot via a quartile-based median-of-three method to achieve stable performance across various data patterns.
+/// To ensure stability, it performs stable partitioning using an external buffer.
 /// </summary>
 /// <remarks>
 /// <para><strong>Theoretical Conditions for Correct Stable QuickSort:</strong></para>
