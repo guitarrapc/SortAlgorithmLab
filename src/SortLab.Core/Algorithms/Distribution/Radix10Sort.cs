@@ -123,11 +123,11 @@ public static class RadixLSD10Sort
         }
         else
         {
-            SortCorePositive(s, tempBuffer, bucketCounts);
+            SortCorePositive(s, tempBuffer, bucketCounts, context);
         }
     }
 
-    private static void SortCorePositive<T>(SortSpan<T> s, Span<T> tempBuffer, Span<int> bucketCounts) where T : IComparable<T>, IBinaryInteger<T>
+    private static void SortCorePositive<T>(SortSpan<T> s, Span<T> tempBuffer, Span<int> bucketCounts, ISortContext context) where T : IComparable<T>, IBinaryInteger<T>
     {
         if (s.Length <= 1) return;
 
@@ -179,11 +179,9 @@ public static class RadixLSD10Sort
                 tempBuffer[pos] = value;
             }
 
-            // Copy back from temp buffer
-            for (var i = 0; i < s.Length; i++)
-            {
-                s.Write(i, tempBuffer[i]);
-            }
+            // Copy back from temp buffer using CopyTo for efficiency
+            var tempSpan = new SortSpan<T>(tempBuffer, context, BUFFER_TEMP);
+            tempSpan.CopyTo(0, s, 0, s.Length);
 
             divisor *= ten;
         }
@@ -214,7 +212,7 @@ public static class RadixLSD10Sort
         if (negativeCount > 0)
         {
             var negativeSpan = new SortSpan<T>(negativeBuffer.Slice(0, negativeCount), context, BUFFER_NEGATIVE);
-            SortNegativeValues(negativeSpan, tempBuffer, bucketCounts);
+            SortNegativeValues(negativeSpan, tempBuffer, bucketCounts, context);
         }
 
         // Sort non-negative numbers
@@ -222,18 +220,21 @@ public static class RadixLSD10Sort
         if (nonNegativeCount > 0)
         {
             var nonNegativeSpan = new SortSpan<T>(nonNegativeBuffer.Slice(0, nonNegativeCount), context, BUFFER_NONNEGATIVE);
-            SortPositiveValues(nonNegativeSpan, tempBuffer, bucketCounts);
+            SortPositiveValues(nonNegativeSpan, tempBuffer, bucketCounts, context);
         }
 
         // Merge: reversed negative numbers + non-negative numbers
         var writeIndex = 0;
+        // Negative numbers must be reversed, so we can't use CopyTo
         for (var i = negativeCount - 1; i >= 0; i--)
         {
             s.Write(writeIndex++, negativeBuffer[i]);
         }
-        for (var i = 0; i < nonNegativeCount; i++)
+        // Non-negative numbers are in order, so we can use CopyTo for efficiency
+        if (nonNegativeCount > 0)
         {
-            s.Write(writeIndex++, nonNegativeBuffer[i]);
+            var nonNegativeSpan = new SortSpan<T>(nonNegativeBuffer, context, BUFFER_NONNEGATIVE);
+            nonNegativeSpan.CopyTo(0, s, negativeCount, nonNegativeCount);
         }
     }
 
@@ -241,7 +242,7 @@ public static class RadixLSD10Sort
     /// Sort negative values by their absolute values (smallest absolute value first).
     /// After sorting, the array will be in order: -1, -2, -3, ... (smallest to largest absolute value)
     /// </summary>
-    private static void SortNegativeValues<T>(SortSpan<T> s, Span<T> tempBuffer, Span<int> bucketCounts) where T : IBinaryInteger<T>
+    private static void SortNegativeValues<T>(SortSpan<T> s, Span<T> tempBuffer, Span<int> bucketCounts, ISortContext context) where T : IBinaryInteger<T>
     {
         if (s.Length <= 1) return;
 
@@ -292,11 +293,9 @@ public static class RadixLSD10Sort
                 tempBuffer[pos] = value;
             }
 
-            // Copy back from temp buffer
-            for (var i = 0; i < s.Length; i++)
-            {
-                s.Write(i, tempBuffer[i]);
-            }
+            // Copy back from temp buffer using CopyTo for efficiency
+            var tempSpan = new SortSpan<T>(tempBuffer, context, BUFFER_TEMP);
+            tempSpan.CopyTo(0, s, 0, s.Length);
 
             divisor *= ten;
         }
@@ -305,7 +304,7 @@ public static class RadixLSD10Sort
     /// <summary>
     /// Sort non-negative values (standard LSD radix sort)
     /// </summary>
-    private static void SortPositiveValues<T>(SortSpan<T> s, Span<T> tempBuffer, Span<int> bucketCounts) where T : IBinaryInteger<T>
+    private static void SortPositiveValues<T>(SortSpan<T> s, Span<T> tempBuffer, Span<int> bucketCounts, ISortContext context) where T : IBinaryInteger<T>
     {
         if (s.Length <= 1) return;
 
@@ -357,11 +356,9 @@ public static class RadixLSD10Sort
                 tempBuffer[pos] = value;
             }
 
-            // Copy back from temp buffer
-            for (var i = 0; i < s.Length; i++)
-            {
-                s.Write(i, tempBuffer[i]);
-            }
+            // Copy back from temp buffer using CopyTo for efficiency
+            var tempSpan = new SortSpan<T>(tempBuffer, context, BUFFER_TEMP);
+            tempSpan.CopyTo(0, s, 0, s.Length);
 
             divisor *= ten;
         }
