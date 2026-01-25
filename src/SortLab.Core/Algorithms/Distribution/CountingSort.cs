@@ -47,7 +47,7 @@ public static class CountingSort
 {
     private const int MaxCountArraySize = 10_000_000; // Maximum allowed count array size
     private const int StackAllocThreshold = 1024; // Use stackalloc for count arrays smaller than this
-    
+
     // Buffer identifiers for visualization
     private const int BUFFER_MAIN = 0;       // Main input array
     private const int BUFFER_TEMP = 1;       // Temporary buffer for sorted elements
@@ -114,7 +114,7 @@ public static class CountingSort
         finally
         {
             ArrayPool<int>.Shared.Return(keysArray);
-            ArrayPool<T>.Shared.Return(tempArray);
+            ArrayPool<T>.Shared.Return(tempArray, clearArray: true);
             if (rentedCountArray != null)
             {
                 ArrayPool<int>.Shared.Return(rentedCountArray);
@@ -130,7 +130,7 @@ public static class CountingSort
     {
         // Create SortSpan for temp buffer to track operations
         var tempSpan = new SortSpan<T>(tempArray, context, BUFFER_TEMP);
-        
+
         // Count occurrences of each key
         for (var i = 0; i < s.Length; i++)
         {
@@ -187,7 +187,7 @@ public static class CountingSortInteger
 {
     private const int MaxCountArraySize = 10_000_000; // Maximum allowed count array size
     private const int StackAllocThreshold = 1024; // Use stackalloc for count arrays smaller than this
-    
+
     // Buffer identifiers for visualization
     private const int BUFFER_MAIN = 0;       // Main input array
     private const int BUFFER_TEMP = 1;       // Temporary buffer for sorted elements
@@ -256,7 +256,7 @@ public static class CountingSortInteger
     {
         // Create SortSpan for temp buffer to track operations
         var tempSpan = new SortSpan<int>(tempArray, context, BUFFER_TEMP);
-        
+
         // Count occurrences
         for (var i = 0; i < s.Length; i++)
         {

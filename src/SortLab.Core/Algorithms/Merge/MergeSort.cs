@@ -61,7 +61,7 @@ public static class MergeSort
     // Buffer identifiers for visualization
     private const int BUFFER_MAIN = 0;       // Main input array
     private const int BUFFER_MERGE = 1;      // Merge buffer (auxiliary space)
-    
+
     /// <summary>
     /// Sorts the elements in the specified span in ascending order using the default comparer.
     /// </summary>
@@ -90,7 +90,7 @@ public static class MergeSort
         }
         finally
         {
-            ArrayPool<T>.Shared.Return(buffer);
+            ArrayPool<T>.Shared.Return(buffer, clearArray: true);
         }
     }
 
@@ -148,7 +148,7 @@ public static class MergeSort
         {
             var leftValue = b.Read(l);
             var rightValue = s.Read(r);
-            
+
             // Stability: use <= to take from left when equal
             // Use SortSpan.Compare(T, T) to track statistics while avoiding redundant Read
             if (s.Compare(leftValue, rightValue) <= 0)

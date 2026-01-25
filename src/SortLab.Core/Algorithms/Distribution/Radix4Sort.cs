@@ -17,7 +17,7 @@ namespace SortLab.Core.Algorithms;
 /// <remarks>
 /// <para><strong>Theoretical Conditions for Correct LSD Radix Sort (Base-256):</strong></para>
 /// <list type="number">
-/// <item><description><strong>Digit Extraction Correctness:</strong> For each digit position d (from 0 to digitCount-1), extract the d-th 8-bit digit using bitwise operations: 
+/// <item><description><strong>Digit Extraction Correctness:</strong> For each digit position d (from 0 to digitCount-1), extract the d-th 8-bit digit using bitwise operations:
 /// digit = (value >> (d × 8)) &amp; 0xFF. This ensures each byte of the integer is processed independently.</description></item>
 /// <item><description><strong>Stable Distribution (Counting Sort per Digit):</strong> Within each digit pass, elements are distributed into 256 buckets (0-255) based on the current digit value.
 /// The distribution must preserve the relative order of elements with the same digit value (stable). This is achieved by processing elements in forward order and appending to buckets.</description></item>
@@ -56,25 +56,25 @@ public static class RadixLSD4Sort
 {
     private const int RadixBits = 8;        // 8 bits per digit
     private const int RadixSize = 256;      // 2^8 = 256 buckets
-    
+
     // Buffer identifiers for visualization
     private const int BUFFER_MAIN = 0;           // Main input array
     private const int BUFFER_TEMP = 1;           // Temporary buffer for digit redistribution
     private const int BUFFER_NEGATIVE = 2;       // Negative values buffer
     private const int BUFFER_NONNEGATIVE = 3;    // Non-negative values buffer
-    
+
     public static void Sort<T>(Span<T> span) where T : IBinaryInteger<T>, IMinMaxValue<T>, IComparable<T>
     {
         Sort(span, NullContext.Default);
     }
-    
+
     public static void Sort<T>(Span<T> span, ISortContext context) where T : IBinaryInteger<T>, IMinMaxValue<T>, IComparable<T>
     {
         if (span.Length <= 1) return;
 
         // Calculate maximum possible buckets needed
         var maxBuckets = span.Length * RadixSize; // Worst case: all elements in different buckets across all passes
-        
+
         // Rent buffers from ArrayPool
         var tempArray = ArrayPool<T>.Shared.Rent(span.Length);
         var negativeArray = ArrayPool<T>.Shared.Rent(span.Length);
@@ -94,17 +94,17 @@ public static class RadixLSD4Sort
         }
         finally
         {
-            ArrayPool<T>.Shared.Return(tempArray);
-            ArrayPool<T>.Shared.Return(negativeArray);
-            ArrayPool<T>.Shared.Return(nonNegativeArray);
-            ArrayPool<T>.Shared.Return(bucketDataArray);
+            ArrayPool<T>.Shared.Return(tempArray, clearArray: true);
+            ArrayPool<T>.Shared.Return(negativeArray, clearArray: true);
+            ArrayPool<T>.Shared.Return(nonNegativeArray, clearArray: true);
+            ArrayPool<T>.Shared.Return(bucketDataArray, clearArray: true);
             ArrayPool<int>.Shared.Return(bucketOffsetsArray);
         }
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private static void SortCore<T>(Span<T> span, Span<T> tempBuffer, Span<T> negativeBuffer, Span<T> nonNegativeBuffer, 
-                                     Span<T> bucketData, Span<int> bucketOffsets, ISortContext context) 
+    private static void SortCore<T>(Span<T> span, Span<T> tempBuffer, Span<T> negativeBuffer, Span<T> nonNegativeBuffer,
+                                     Span<T> bucketData, Span<int> bucketOffsets, ISortContext context)
         where T : IBinaryInteger<T>, IMinMaxValue<T>, IComparable<T>
     {
         var s = new SortSpan<T>(span, context, BUFFER_MAIN);
@@ -119,7 +119,7 @@ public static class RadixLSD4Sort
             bitSize = 16;
         else if (typeof(T) == typeof(byte) || typeof(T) == typeof(sbyte))
             bitSize = 8;
-        
+
         var digitCount = (bitSize + RadixBits - 1) / RadixBits;
 
         // Check if we have negative numbers (for signed types)
@@ -144,18 +144,18 @@ public static class RadixLSD4Sort
         }
     }
 
-    private static void SortCorePositive<T>(SortSpan<T> s, Span<T> tempBuffer, Span<int> bucketOffsets, int digitCount, ISortContext context) 
+    private static void SortCorePositive<T>(SortSpan<T> s, Span<T> tempBuffer, Span<int> bucketOffsets, int digitCount, ISortContext context)
         where T : IBinaryInteger<T>, IMinMaxValue<T>, IComparable<T>
     {
         var temp = new SortSpan<T>(tempBuffer, context, BUFFER_TEMP);
-        
+
         for (int d = 0; d < digitCount; d++)
         {
             var shift = d * RadixBits;
-            
+
             // Clear bucket offsets
             bucketOffsets.Clear();
-            
+
             // Count occurrences of each digit
             for (var i = 0; i < s.Length; i++)
             {
@@ -163,13 +163,13 @@ public static class RadixLSD4Sort
                 var digit = GetDigit(value, shift);
                 bucketOffsets[digit + 1]++;
             }
-            
+
             // Calculate cumulative offsets (prefix sum)
             for (var i = 1; i <= RadixSize; i++)
             {
                 bucketOffsets[i] += bucketOffsets[i - 1];
             }
-            
+
             // Distribute elements into temp buffer based on current digit
             for (var i = 0; i < s.Length; i++)
             {
@@ -178,7 +178,7 @@ public static class RadixLSD4Sort
                 var destIndex = bucketOffsets[digit]++;
                 temp.Write(destIndex, value);
             }
-            
+
             // Copy back from temp to source
             for (var i = 0; i < s.Length; i++)
             {
@@ -187,14 +187,14 @@ public static class RadixLSD4Sort
         }
     }
 
-    private static void SortCoreNegative<T>(SortSpan<T> s, Span<T> tempBuffer, Span<T> negativeBuffer, Span<T> nonNegativeBuffer, 
-                                             Span<int> bucketOffsets, int digitCount, ISortContext context) 
+    private static void SortCoreNegative<T>(SortSpan<T> s, Span<T> tempBuffer, Span<T> negativeBuffer, Span<T> nonNegativeBuffer,
+                                             Span<int> bucketOffsets, int digitCount, ISortContext context)
         where T : IBinaryInteger<T>, IMinMaxValue<T>, IComparable<T>
     {
         // Wrap buffers with SortSpan for statistics tracking
         var negBuf = new SortSpan<T>(negativeBuffer, context, BUFFER_NEGATIVE);
         var nonNegBuf = new SortSpan<T>(nonNegativeBuffer, context, BUFFER_NONNEGATIVE);
-        
+
         // Separate into negative and non-negative arrays
         var negativeCount = 0;
         var nonNegativeCount = 0;
@@ -245,18 +245,18 @@ public static class RadixLSD4Sort
         }
     }
 
-    private static void SortNegativeValues<T>(SortSpan<T> s, Span<T> tempBuffer, Span<int> bucketOffsets, int digitCount, ISortContext context) 
+    private static void SortNegativeValues<T>(SortSpan<T> s, Span<T> tempBuffer, Span<int> bucketOffsets, int digitCount, ISortContext context)
         where T : IBinaryInteger<T>, IMinMaxValue<T>, IComparable<T>
     {
         var temp = new SortSpan<T>(tempBuffer, context, BUFFER_TEMP);
-        
+
         for (int d = 0; d < digitCount; d++)
         {
             var shift = d * RadixBits;
-            
+
             // Clear bucket offsets
             bucketOffsets.Clear();
-            
+
             // Count occurrences of each digit (using absolute value)
             for (var i = 0; i < s.Length; i++)
             {
@@ -265,13 +265,13 @@ public static class RadixLSD4Sort
                 var digit = GetDigit(absValue, shift);
                 bucketOffsets[digit + 1]++;
             }
-            
+
             // Calculate cumulative offsets (prefix sum)
             for (var i = 1; i <= RadixSize; i++)
             {
                 bucketOffsets[i] += bucketOffsets[i - 1];
             }
-            
+
             // Distribute elements into temp buffer in FORWARD order (for ascending sort by absolute value)
             // This preserves stability and sorts by absolute value in ascending order
             for (var i = 0; i < s.Length; i++)
@@ -282,7 +282,7 @@ public static class RadixLSD4Sort
                 var destIndex = bucketOffsets[digit]++;
                 temp.Write(destIndex, value);  // Via SortSpan for statistics
             }
-            
+
             // Copy back in FORWARD order
             // After all passes, array is sorted by absolute value (ascending)
             for (var i = 0; i < s.Length; i++)

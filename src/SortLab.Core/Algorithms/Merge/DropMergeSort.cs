@@ -82,7 +82,7 @@ public static class DropMergeSort
     /// This speeds up well-ordered input by quite a lot.
     /// </summary>
     private const bool DoubleComparisons = true;
-    
+
     /// <summary>
     /// The algorithm uses recency=8 which means it can handle no more than 8 outliers in a row.
     /// This number was chosen by experimentation, and could perhaps be adjusted dynamically for increased performance.
@@ -91,22 +91,22 @@ public static class DropMergeSort
     /// If RECENCY is too small we are more dependent on nice data/luck.
     /// </summary>
     private const int Recency = 8;
-    
+
     /// <summary>
     /// Back-track several elements at once. This is helpful when there are big clumps out-of-order.
     /// </summary>
     private const bool FastBackTracking = true;
-    
+
     /// <summary>
     /// Break early if we notice that the input is not ordered enough.
     /// </summary>
     private const bool EarlyOut = true;
-    
+
     /// <summary>
     /// Test for early-out when we have processed len / EARLY_OUT_TEST_AT elements.
     /// </summary>
     private const int EarlyOutTestAt = 4;
-    
+
     /// <summary>
     /// If more than this percentage of elements have been dropped, we abort.
     /// </summary>
@@ -140,7 +140,7 @@ public static class DropMergeSort
         }
         finally
         {
-            ArrayPool<T>.Shared.Return(droppedBuffer);
+            ArrayPool<T>.Shared.Return(droppedBuffer, clearArray: true);
         }
     }
 

@@ -48,7 +48,7 @@ public static class BucketSort
 {
     private const int MaxBucketCount = 1000; // Maximum number of buckets
     private const int MinBucketCount = 2;    // Minimum number of buckets
-    
+
     // Buffer identifiers for visualization
     private const int BUFFER_MAIN = 0;       // Main input array
     private const int BUFFER_TEMP = 1;       // Temporary buffer for sorted elements
@@ -72,7 +72,7 @@ public static class BucketSort
         // Rent arrays from ArrayPool for temporary storage
         var keysArray = ArrayPool<int>.Shared.Rent(span.Length);
         var tempArray = ArrayPool<T>.Shared.Rent(span.Length);
-        
+
         try
         {
             SortCore(span, keysArray.AsSpan(0, span.Length), tempArray.AsSpan(0, span.Length), keySelector, context);
@@ -80,7 +80,7 @@ public static class BucketSort
         finally
         {
             ArrayPool<int>.Shared.Return(keysArray);
-            ArrayPool<T>.Shared.Return(tempArray);
+            ArrayPool<T>.Shared.Return(tempArray, clearArray: true);
         }
     }
 
@@ -109,10 +109,10 @@ public static class BucketSort
 
         // Determine bucket count based on input size and range
         long range = (long)max - (long)min + 1;
-        
+
         // Calculate optimal bucket count (sqrt(n) is a common heuristic)
         var bucketCount = Math.Max(MinBucketCount, Math.Min(MaxBucketCount, (int)Math.Sqrt(span.Length)));
-        
+
         // Adjust bucket count if range is smaller
         if (range < bucketCount)
         {
@@ -134,13 +134,13 @@ public static class BucketSort
         {
             var key = keys[i];
             var bucketIndex = (int)((key - min) / bucketSize);
-            
+
             // Handle edge case where key == max
             if (bucketIndex >= bucketCount)
             {
                 bucketIndex = bucketCount - 1;
             }
-            
+
             keys[i] = bucketIndex; // Overwrite with bucket index
             bucketCounts[bucketIndex]++;
         }
@@ -245,7 +245,7 @@ public static class BucketSortInteger
 {
     private const int MaxBucketCount = 1000; // Maximum number of buckets
     private const int MinBucketCount = 2;    // Minimum number of buckets
-    
+
     // Buffer identifiers for visualization
     private const int BUFFER_MAIN = 0;       // Main input array
     private const int BUFFER_TEMP = 1;       // Temporary buffer
@@ -268,7 +268,7 @@ public static class BucketSortInteger
         // Rent arrays from ArrayPool for temporary storage
         var indicesArray = ArrayPool<int>.Shared.Rent(span.Length);
         var tempArray = ArrayPool<int>.Shared.Rent(span.Length);
-        
+
         try
         {
             SortCore(span, indicesArray.AsSpan(0, span.Length), tempArray.AsSpan(0, span.Length), context);
@@ -304,10 +304,10 @@ public static class BucketSortInteger
 
         // Determine bucket count based on input size and range
         long range = (long)max - (long)min + 1;
-        
+
         // Calculate optimal bucket count (sqrt(n) is a common heuristic)
         var bucketCount = Math.Max(MinBucketCount, Math.Min(MaxBucketCount, (int)Math.Sqrt(span.Length)));
-        
+
         // Adjust bucket count if range is smaller
         if (range < bucketCount)
         {
@@ -329,13 +329,13 @@ public static class BucketSortInteger
         {
             var value = s.Read(i);
             var bucketIndex = (int)((value - min) / bucketSize);
-            
+
             // Handle edge case where value == max
             if (bucketIndex >= bucketCount)
             {
                 bucketIndex = bucketCount - 1;
             }
-            
+
             bucketIndices[i] = bucketIndex; // Cache bucket index
             bucketCounts[bucketIndex]++;
         }

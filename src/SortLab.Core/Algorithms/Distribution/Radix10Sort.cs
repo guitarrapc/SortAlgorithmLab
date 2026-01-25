@@ -47,7 +47,7 @@ namespace SortLab.Core.Algorithms;
 public static class RadixLSD10Sort
 {
     private const int RadixBase = 10;       // Decimal base
-    
+
     // Buffer identifiers for visualization
     private const int BUFFER_MAIN = 0;           // Main input array
     private const int BUFFER_TEMP = 1;           // Temporary buffer for digit redistribution
@@ -92,10 +92,10 @@ public static class RadixLSD10Sort
         }
         finally
         {
-            ArrayPool<T>.Shared.Return(tempArray);
+            ArrayPool<T>.Shared.Return(tempArray, clearArray: true);
             ArrayPool<int>.Shared.Return(bucketCountsArray);
-            ArrayPool<T>.Shared.Return(negativeArray);
-            ArrayPool<T>.Shared.Return(nonNegativeArray);
+            ArrayPool<T>.Shared.Return(negativeArray, clearArray: true);
+            ArrayPool<T>.Shared.Return(nonNegativeArray, clearArray: true);
         }
     }
 
@@ -144,7 +144,7 @@ public static class RadixLSD10Sort
 
         // Calculate number of decimal digits
         var digitCount = GetDigitCount(max);
-        
+
         Span<int> bucketStarts = stackalloc int[RadixBase];
         var divisor = T.One;
         var ten = T.CreateChecked(10);
@@ -257,7 +257,7 @@ public static class RadixLSD10Sort
         }
 
         var digitCount = GetDigitCount(maxAbs);
-        
+
         Span<int> bucketStarts = stackalloc int[RadixBase];
         var divisor = T.One;
         var ten = T.CreateChecked(10);
@@ -322,7 +322,7 @@ public static class RadixLSD10Sort
 
         // Calculate number of decimal digits
         var digitCount = GetDigitCount(max);
-        
+
         Span<int> bucketStarts = stackalloc int[RadixBase];
         var divisor = T.One;
         var ten = T.CreateChecked(10);
