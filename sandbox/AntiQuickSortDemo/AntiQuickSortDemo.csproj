@@ -8,8 +8,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\src\SortLab.Core\SortLab.Core.csproj" />
-    <ProjectReference Include="..\..\tests\SortLab.Tests\SortLab.Tests.csproj" />
+    <ProjectReference Include="..\..\src\SortAlgorithm\SortAlgorithm.csproj" />
   </ItemGroup>
 
 </Project>

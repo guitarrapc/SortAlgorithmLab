@@ -35,54 +35,54 @@ public class InsertionBenchmark
     [Benchmark]
     public void BalancedBinaryTreeSort()
     {
-        SortLab.Core.Algorithms.BalancedBinaryTreeSort.Sort(_balancedbinarytreeArray.AsSpan());
+        SortAlgorithm.Algorithms.BalancedBinaryTreeSort.Sort(_balancedbinarytreeArray.AsSpan());
     }
 
     [Benchmark]
     public void BinaryInsertSort()
     {
-        SortLab.Core.Algorithms.BinaryInsertSort.Sort(_binaryinsertArray.AsSpan());
+        SortAlgorithm.Algorithms.BinaryInsertSort.Sort(_binaryinsertArray.AsSpan());
     }
 
     [Benchmark]
     public void BinaryTreeSort()
     {
-        SortLab.Core.Algorithms.BinaryTreeSort.Sort(_binarytreeArray.AsSpan());
+        SortAlgorithm.Algorithms.BinaryTreeSort.Sort(_binarytreeArray.AsSpan());
     }
 
     [Benchmark]
     public void InsertionSort()
     {
-        SortLab.Core.Algorithms.InsertionSort.Sort(_insertionArray.AsSpan());
+        SortAlgorithm.Algorithms.InsertionSort.Sort(_insertionArray.AsSpan());
     }
 
     [Benchmark]
     public void ShellSortCiura2001()
     {
-        SortLab.Core.Algorithms.ShellSortCiura2001.Sort(_shellArrayCiura2001.AsSpan());
+        SortAlgorithm.Algorithms.ShellSortCiura2001.Sort(_shellArrayCiura2001.AsSpan());
     }
 
     [Benchmark]
     public void ShellSortKnuth1973()
     {
-        SortLab.Core.Algorithms.ShellSortKnuth1973.Sort(_shellArrayKnuth1973.AsSpan());
+        SortAlgorithm.Algorithms.ShellSortKnuth1973.Sort(_shellArrayKnuth1973.AsSpan());
     }
 
     [Benchmark]
     public void ShellSortLee2021()
     {
-        SortLab.Core.Algorithms.ShellSortLee2021.Sort(_shellArrayLee2021.AsSpan());
+        SortAlgorithm.Algorithms.ShellSortLee2021.Sort(_shellArrayLee2021.AsSpan());
     }
 
     [Benchmark]
     public void ShellSortSedgewick1986()
     {
-        SortLab.Core.Algorithms.ShellSortSedgewick1986.Sort(_shellArraySedgewick1986.AsSpan());
+        SortAlgorithm.Algorithms.ShellSortSedgewick1986.Sort(_shellArraySedgewick1986.AsSpan());
     }
 
     [Benchmark]
     public void ShellSortTokuda1992()
     {
-        SortLab.Core.Algorithms.ShellSortTokuda1992.Sort(_shellArrayTokuda1992.AsSpan());
+        SortAlgorithm.Algorithms.ShellSortTokuda1992.Sort(_shellArrayTokuda1992.AsSpan());
     }
 }

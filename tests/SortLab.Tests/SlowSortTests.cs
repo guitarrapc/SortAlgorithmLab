@@ -1,5 +1,5 @@
-﻿using SortLab.Core.Algorithms;
-using SortLab.Core.Contexts;
+﻿using SortAlgorithm.Algorithms;
+using SortAlgorithm.Contexts;
 using SortLab.Tests.Attributes;
 
 namespace SortLab.Tests;

@@ -1,6 +1,6 @@
-﻿using SortLab.Core;
-using SortLab.Core.Algorithms;
-using SortLab.Core.Contexts;
+﻿using SortAlgorithm;
+using SortAlgorithm.Algorithms;
+using SortAlgorithm.Contexts;
 
 Console.WriteLine("QuickSort Anti-Pattern Performance Test");
 Console.WriteLine("========================================\n");

@@ -1,5 +1,5 @@
-﻿using SortLab.Core.Contexts;
-using BucketSort = SortLab.Core.Algorithms.BucketSort;
+﻿using SortAlgorithm.Contexts;
+using BucketSort = SortAlgorithm.Algorithms.BucketSort;
 
 namespace SortLab.Tests;
 

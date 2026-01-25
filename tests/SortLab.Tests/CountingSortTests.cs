@@ -1,5 +1,5 @@
-﻿using SortLab.Core.Contexts;
-using CountingSort = SortLab.Core.Algorithms.CountingSort;
+﻿using SortAlgorithm.Contexts;
+using CountingSort = SortAlgorithm.Algorithms.CountingSort;
 
 namespace SortLab.Tests;
 

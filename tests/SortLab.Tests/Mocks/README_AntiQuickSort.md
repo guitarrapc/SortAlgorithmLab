@@ -99,6 +99,6 @@ dotnet run --project sandbox/AntiQuickSortDemo/AntiQuickSortDemo.csproj
 
 - McIlroy, M. D. (1999). "A Killer Adversary for Quicksort"
   - https://www.cs.dartmouth.edu/~doug/mdmspe.pdf
-- QuickSort implementation: `src/SortLab.Core/Algorithms/Partition/QuickSort.cs`
+- QuickSort implementation: `src/SortAlgorithm/Algorithms/Partition/QuickSort.cs`
   - Hoare partition scheme
   - Middle element pivot: `(left + right) / 2`

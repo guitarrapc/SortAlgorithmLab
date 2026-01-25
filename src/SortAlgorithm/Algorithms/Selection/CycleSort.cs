@@ -1,0 +1,146 @@
+﻿using SortAlgorithm.Contexts;
+using System.Runtime.CompilerServices;
+
+namespace SortAlgorithm.Algorithms;
+
+/*
+
+Ref span ...
+
+| Method        | Number | Mean          | Error          | StdDev        | Median        | Min          | Max           | Allocated |
+|-------------- |------- |--------------:|---------------:|--------------:|--------------:|-------------:|--------------:|----------:|
+| CycleSort     | 100    |     105.30 us |      90.780 us |      4.976 us |     104.30 us |    100.90 us |     110.70 us |     448 B |
+| CycleSort     | 1000   |   8,549.93 us |     872.692 us |     47.835 us |   8,559.90 us |  8,497.90 us |   8,592.00 us |      64 B |
+| CycleSort     | 10000  | 107,614.00 us | 189,812.814 us | 10,404.281 us | 113,471.50 us | 95,601.40 us | 113,769.10 us |     448 B |
+
+Span ...
+
+| Method        | Number | Mean          | Error          | StdDev       | Median       | Min          | Max           | Allocated |
+|-------------- |------- |--------------:|---------------:|-------------:|-------------:|-------------:|--------------:|----------:|
+| CycleSort     | 100    |     112.00 us |       6.320 us |     0.346 us |    112.20 us |    111.60 us |     112.20 us |     736 B |
+| CycleSort     | 1000   |   9,055.67 us |   1,466.106 us |    80.362 us |  9,078.00 us |  8,966.50 us |   9,122.50 us |     448 B |
+| CycleSort     | 10000  | 101,010.50 us | 174,936.094 us | 9,588.838 us | 96,730.30 us | 94,307.20 us | 111,994.00 us |     736 B |
+
+*/
+
+/// <summary>
+/// 各要素を最終位置に直接配置するサイクル検出アルゴリズムです。書き込み回数を理論的に最小化（最大n回）し、メモリ書き込みコストが高い環境で有用です。
+/// 要素の正しい位置を計算し、そこにある要素と交換しながらサイクルを辿ります。
+/// <br/>
+/// A cycle-detection algorithm that places each element directly in its final position. Minimizes writes to the theoretical minimum (at most n writes), useful in environments with expensive memory write operations.
+/// Calculates the correct position of each element and follows cycles by swapping displaced elements.
+/// </summary>
+/// <remarks>
+/// <para><strong>Theoretical Conditions for Correct Cycle Sort:</strong></para>
+/// <list type="number">
+/// <item><description><strong>Cycle Detection:</strong> The algorithm must identify permutation cycles in the array.
+/// Each element belongs to exactly one cycle. By placing an element in its correct position and following the displacement chain,
+/// the algorithm completes each cycle without revisiting positions.</description></item>
+/// <item><description><strong>Position Calculation:</strong> For each element, count how many elements to its right are smaller.
+/// This count determines the element's final sorted position. This requires O(n) comparisons per element.</description></item>
+/// <item><description><strong>Minimal Writes:</strong> Each element is written to memory at most once after being read from its initial position.
+/// For an array requiring k transpositions, exactly k writes occur (theoretically optimal for in-place sorting).</description></item>
+/// <item><description><strong>Duplicate Handling:</strong> When placing an element at its calculated position, skip over duplicates
+/// to find the next available slot. This ensures stability issues don't cause infinite loops.</description></item>
+/// <item><description><strong>Cycle Completion:</strong> Continue rotating elements within a cycle until returning to the starting position.
+/// Once a cycle is completed, move to the next unprocessed position to start a new cycle.</description></item>
+/// </list>
+/// <para><strong>Performance Characteristics:</strong></para>
+/// <list type="bullet">
+/// <item><description>Family      : Selection (though often classified separately due to unique cycle-based approach)</description></item>
+/// <item><description>Stable      : No (relative order of equal elements is not preserved)</description></item>
+/// <item><description>In-place    : Yes (O(1) auxiliary space, only constant extra variables)</description></item>
+/// <item><description>Best case   : Θ(n²) - Always performs n(n-1)/2 comparisons regardless of input</description></item>
+/// <item><description>Average case: Θ(n²) - Comparisons dominate; writes are O(n) on average</description></item>
+/// <item><description>Worst case  : Θ(n²) - Same comparison count; maximum n-1 writes when all elements displaced</description></item>
+/// <item><description>Comparisons : Θ(n²) - Always n(n-1)/2 comparisons to calculate all positions</description></item>
+/// <item><description>Writes      : O(n) - Theoretically optimal; at most n writes (each element placed once)</description></item>
+/// <item><description>Reads       : Θ(n²) - Multiple reads during position calculation phase</description></item>
+/// </list>
+/// <para><strong>Use Cases:</strong></para>
+/// <list type="bullet">
+/// <item><description>Flash memory or EEPROM with limited write cycles</description></item>
+/// <item><description>Systems where memory writes are significantly more expensive than comparisons</description></item>
+/// <item><description>Educational purposes to demonstrate cycle detection in permutations</description></item>
+/// </list>
+/// </remarks>
+public static class CycleSort
+{
+    // Buffer identifiers for visualization
+    private const int BUFFER_MAIN = 0;       // Main input array
+    
+    /// <summary>
+    /// Sorts the elements in the specified span in ascending order using the default comparer.
+    /// </summary>
+    /// <typeparam name="T">The type of elements in the span. Must implement <see cref="IComparable{T}"/>.</typeparam>
+    /// <param name="span">The span of elements to sort in place.</param>
+    public static void Sort<T>(Span<T> span) where T : IComparable<T>
+    {
+        Sort(span, NullContext.Default);
+    }
+
+    /// <summary>
+    /// Sorts the elements in the specified span using the provided sort context.
+    /// </summary>
+    /// <typeparam name="T">The type of elements in the span. Must implement <see cref="IComparable{T}"/>.</typeparam>
+    /// <param name="span">The span of elements to sort. The elements within this span will be reordered in place.</param>
+    /// <param name="context">The sort context that defines the sorting strategy or options to use during the operation. Cannot be null.</param>
+    public static void Sort<T>(Span<T> span, ISortContext context) where T : IComparable<T>
+    {
+        if (span.Length <= 1) return;
+
+        var s = new SortSpan<T>(span, context, BUFFER_MAIN);
+
+        for (var cycleStart = 0; cycleStart < span.Length - 1; cycleStart++)
+        {
+            var item = s.Read(cycleStart);
+            var pos = FindPosition(ref s, item, cycleStart);
+
+            // If the item is already in the correct position, skip
+            if (pos == cycleStart) continue;
+
+            // Skip duplicates
+            pos = SkipDuplicates(ref s, item, pos);
+
+            // Put the item at its correct position
+            var temp = s.Read(pos);
+            s.Write(pos, item);
+            item = temp;
+
+            // Rotate the rest of the cycle
+            while (pos != cycleStart)
+            {
+                pos = FindPosition(ref s, item, cycleStart);
+                pos = SkipDuplicates(ref s, item, pos);
+
+                temp = s.Read(pos);
+                s.Write(pos, item);
+                item = temp;
+            }
+        }
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private static int FindPosition<T>(ref SortSpan<T> s, T value, int start) where T : IComparable<T>
+    {
+        var pos = start;
+        for (var i = start + 1; i < s.Length; i++)
+        {
+            if (s.Compare(i, value) < 0)
+            {
+                pos++;
+            }
+        }
+        return pos;
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private static int SkipDuplicates<T>(ref SortSpan<T> s, T value, int pos) where T : IComparable<T>
+    {
+        while (pos < s.Length && s.Compare(value, pos) == 0)
+        {
+            pos++;
+        }
+        return pos;
+    }
+}

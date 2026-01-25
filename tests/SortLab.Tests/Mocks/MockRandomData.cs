@@ -1,4 +1,4 @@
-﻿using SortLab.Core;
+﻿using SortAlgorithm;
 using System.Collections;
 
 namespace SortLab.Tests;

@@ -1,0 +1,595 @@
+﻿using System.Runtime.CompilerServices;
+using SortAlgorithm.Contexts;
+
+namespace SortAlgorithm.Algorithms;
+
+/// <summary>
+/// ブロック単位の分割処理により、QuickSortのキャッシュ効率とブランチ予測性能を改善した最適化版QuickSortです。
+/// 適応的ピボット選択（median-of-sqrt(n)）、ブロックパーティショニング、InsertionSortへの切り替えを組み合わせることで、
+/// 標準的なQuickSortより1.5～2倍高速に動作します。
+/// <br/>
+/// An optimized variant of QuickSort that improves cache efficiency and branch prediction performance through block-based partitioning.
+/// By combining adaptive pivot selection (median-of-sqrt(n)), block partitioning, and switching to InsertionSort for small arrays,
+/// it operates 1.5-2x faster than standard QuickSort.
+/// </summary>
+/// <remarks>
+/// <para><strong>Theoretical Conditions for Correct BlockQuickSort:</strong></para>
+/// <list type="number">
+/// <item><description><strong>Adaptive Pivot Selection Strategy:</strong> The algorithm must select a high-quality pivot to minimize worst-case behavior.
+/// This implementation uses an adaptive strategy based on array size:
+/// <list type="bullet">
+/// <item><description>n &gt; 20,000: Median-of-√n (where √n samples are evenly distributed across the array, and their median is selected using QuickSelect)</description></item>
+/// <item><description>n &gt; 800: Median-of-5-medians-of-5 (5 groups of 5 elements at quartile positions, median of their medians)</description></item>
+/// <item><description>n &gt; 100: Median-of-3-medians-of-3 (3 groups of 3 elements at distributed positions, median of their medians)</description></item>
+/// <item><description>n ≤ 100: Simple median-of-3 (first, middle, last elements)</description></item>
+/// </list>
+/// The median-of-√n strategy ensures pivot quality within O(√n) expected distance from the true median, achieving near-optimal partitioning.</description></item>
+/// <item><description><strong>Block-Based Hoare Partitioning:</strong> Unlike traditional Hoare partitioning which interleaves comparisons and swaps,
+/// block partitioning separates these operations to improve modern CPU performance:
+/// <list type="bullet">
+/// <item><description>Elements are processed in blocks of 128 elements (BLOCKSIZE constant)</description></item>
+/// <item><description>Each block is scanned once, storing indices of elements that need swapping in index buffers (indexL for left, indexR for right)</description></item>
+/// <item><description>Left scan: Find all elements ≥ pivot and store their relative indices</description></item>
+/// <item><description>Right scan: Find all elements ≤ pivot and store their relative indices</description></item>
+/// <item><description>After both scans complete, perform min(numLeft, numRight) swaps in batch</description></item>
+/// <item><description>Advance block pointers (begin += BLOCKSIZE or end -= BLOCKSIZE) when buffers are empty</description></item>
+/// </list>
+/// This approach reduces branch mispredictions (comparisons are predictable sequential access) and improves cache efficiency (swaps access nearby memory).</description></item>
+/// <item><description><strong>Partitioning Invariant Maintenance:</strong> After partitioning, the array must satisfy:
+/// <list type="bullet">
+/// <item><description>All elements in [left, pivotIndex-1] are ≤ pivot</description></item>
+/// <item><description>Element at pivotIndex equals the pivot value</description></item>
+/// <item><description>All elements in [pivotIndex+1, right] are ≥ pivot</description></item>
+/// </list>
+/// This optimization is critical for preventing stack overflow on adversarial inputs where partitions are highly imbalanced.</description></item>
+/// <item><description><strong>Hybrid Insertion Sort Threshold:</strong> For small subarrays (size ≤ 20), the algorithm switches to InsertionSort.
+/// This threshold is chosen because:
+/// <list type="bullet">
+/// <item><description>InsertionSort has lower constant factors than QuickSort for small n (fewer comparisons, simpler code, better cache locality)</description></item>
+/// <item><description>Partitioning overhead (pivot selection, buffer management) dominates for n &lt; 20</description></item>
+/// <item><description>Expected recursion depth reduction: A 20-element threshold reduces tree depth by ⌊log₂(20)⌋ ≈ 4 levels</description></item>
+/// </list>
+/// The exact threshold (20) is empirically determined from the reference implementation and matches typical hybrid sort cutoffs.</description></item>
+/// <item><description><strong>Termination Guarantee:</strong> The algorithm terminates because:
+/// <list type="bullet">
+/// <item><description>Base case 1: right ≤ left (partition has ≤ 1 element) → return immediately</description></item>
+/// <item><description>Base case 2: size ≤ 20 → delegate to InsertionSort (which has its own termination proof)</description></item>
+/// <item><description>Recursive case: Each partition is strictly smaller than the original range (at least one element is the pivot)</description></item>
+/// <item><description>Pivot selection from existing elements ensures progress (pivot is always within [left, right])</description></item>
+/// <item><description>Tail recursion on smaller partition guarantees at most O(log n) depth before hitting base cases</description></item>
+/// </list>
+/// Maximum recursion depth: O(log n) in all cases due to smaller-partition-first recursion strategy.</description></item>
+/// </list>
+/// <para><strong>Performance Characteristics:</strong></para>
+/// <list type="bullet">
+/// <item><description>Family      : Partitioning (Divide and Conquer) + Hybrid</description></item>
+/// <item><description>Partition   : Hoare block partition scheme (128-element blocks with buffered swaps)</description></item>
+/// <item><description>Pivot       : Adaptive selection (median-of-√n for n &gt; 20,000, median-of-5-medians-of-5 for n &gt; 800, median-of-3-medians-of-3 for n &gt; 100, median-of-3 otherwise)</description></item>
+/// <item><description>Stable      : No (partitioning does not preserve relative order of equal elements)</description></item>
+/// <item><description>In-place    : Yes (O(log n) auxiliary space for recursion stack + O(1) for index buffers via stackalloc)</description></item>
+/// <item><description>Best case   : Θ(n log n) - Balanced partitions from high-quality pivot selection</description></item>
+/// <item><description>Average case: Θ(n log n) - Expected ~1.2-1.4n log₂ n comparisons (better than standard QuickSort's 1.39n log₂ n due to improved pivot quality)</description></item>
+/// <item><description>Worst case  : O(n²) - Extremely rare due to median-of-√n providing O(√n) expected error from true median; InsertionSort threshold mitigates small-partition worst-case</description></item>
+/// <item><description>Comparisons : ~1.2-1.4n log₂ n (average) - Block partitioning performs same logical comparisons but with better cache locality</description></item>
+/// <item><description>Swaps       : ~0.33n log₂ n (average) - Hoare scheme swaps fewer elements than Lomuto; block buffering reduces swap overhead via sequential memory access</description></item>
+/// </list>
+/// <para><strong>Advantages of BlockQuickSort over Standard QuickSort:</strong></para>
+/// <list type="bullet">
+/// <item><description>Cache efficiency: Block processing (128 elements) fits L1 cache, reducing cache misses by 30-50%</description></item>
+/// <item><description>Branch prediction: Separating comparisons from swaps makes comparison loops predictable (no data-dependent branches in tight loop)</description></item>
+/// <item><description>SIMD potential: Sequential scans can be vectorized by modern compilers (though not explicitly in this C# implementation)</description></item>
+/// <item><description>Better pivot quality: Median-of-√n provides near-optimal partitioning without O(n) overhead</description></item>
+/// <item><description>Empirical speedup: Typically 1.5-2x faster than standard QuickSort on arrays with n &gt; 10,000</description></item>
+/// </list>
+/// <para><strong>Reference:</strong></para>
+/// <para>Original implementation: https://github.com/weissan/BlockQuicksort</para>
+/// <para>Paper: https://drops.dagstuhl.de/storage/00lipics/lipics-vol057-esa2016/LIPIcs.ESA.2016.38/LIPIcs.ESA.2016.38.pdf</para>
+/// </remarks>
+public static class BlockQuickSort
+{
+    // Block size for partitioning - matches reference implementation
+    const int BLOCKSIZE = 128;
+    
+    // Threshold for switching to insertion sort - matches reference implementation
+    const int InsertionSortThreshold = 20;
+    
+    // Buffer identifiers for visualization
+    const int BUFFER_MAIN = 0;       // Main input array
+
+    /// <summary>
+    /// Sorts the elements in the specified span in ascending order using the default comparer.
+    /// </summary>
+    /// <typeparam name="T">The type of elements in the span. Must implement <see cref="IComparable{T}"/>.</typeparam>
+    /// <param name="span">The span of elements to sort in place.</param>
+    public static void Sort<T>(Span<T> span) where T : IComparable<T>
+    {
+        Sort(span, 0, span.Length, NullContext.Default);
+    }
+
+    /// <summary>
+    /// Sorts the elements in the specified span using the provided sort context.
+    /// </summary>
+    /// <typeparam name="T">The type of elements in the span. Must implement <see cref="IComparable{T}"/>.</typeparam>
+    /// <param name="span">The span of elements to sort. The elements within this span will be reordered in place.</param>
+    /// <param name="context">The sort context that tracks statistics and provides sorting operations. Cannot be null.</param>
+    public static void Sort<T>(Span<T> span, ISortContext context) where T : IComparable<T>
+    {
+        Sort(span, 0, span.Length, context);
+    }
+
+    /// <summary>
+    /// Sorts the subrange [first..last) using the provided sort context.
+    /// </summary>
+    /// <typeparam name="T">The type of elements in the span. Must implement <see cref="IComparable{T}"/>.</typeparam>
+    /// <param name="span">The span containing elements to sort.</param>
+    /// <param name="first">The inclusive start index of the range to sort.</param>
+    /// <param name="last">The exclusive end index of the range to sort.</param>
+    /// <param name="context">The sort context for tracking statistics and observations.</param>
+    public static void Sort<T>(Span<T> span, int first, int last, ISortContext context) where T : IComparable<T>
+    {
+        ArgumentOutOfRangeException.ThrowIfNegative(first);
+        ArgumentOutOfRangeException.ThrowIfGreaterThan(last, span.Length);
+        ArgumentOutOfRangeException.ThrowIfGreaterThan(first, last);
+
+        if (last - first <= 1) return;
+
+        var s = new SortSpan<T>(span, context, BUFFER_MAIN);
+        SortCore(s, first, last - 1);
+    }
+
+    /// <summary>
+    /// Sorts the subrange [left..right] (inclusive) using block partitioning.
+    /// This overload accepts a SortSpan directly for use by other algorithms that already have a SortSpan instance.
+    /// Uses tail recursion optimization to limit stack depth to O(log n) by recursing only on smaller partition.
+    /// </summary>
+    /// <typeparam name="T">The type of elements in the span. Must implement <see cref="IComparable{T}"/>.</typeparam>
+    /// <param name="s">The SortSpan wrapping the span to sort.</param>
+    /// <param name="left">The inclusive start index of the range to sort.</param>
+    /// <param name="right">The inclusive end index of the range to sort.</param>
+    internal static void SortCore<T>(SortSpan<T> s, int left, int right) where T : IComparable<T>
+    {
+        while (right > left)
+        {
+            var size = right - left + 1;
+            
+            // Use insertion sort for small subarrays
+            if (size <= InsertionSortThreshold)
+            {
+                InsertionSort.SortCore(s, left, right + 1);
+                return;
+            }
+
+            // Partition using block-based Hoare partition
+            var pivotIndex = HoareBlockPartition(s, left, right);
+
+            // Tail recursion optimization: recurse on smaller partition, loop on larger
+            // Note: pivotIndex element is already in its final position, so exclude it from both partitions
+            if (pivotIndex - left < right - pivotIndex)
+            {
+                // Left partition is smaller: recurse on left [left, pivotIndex-1], iterate on right [pivotIndex+1, right]
+                if (pivotIndex > left)
+                {
+                    SortCore(s, left, pivotIndex - 1);
+                }
+                left = pivotIndex + 1;
+            }
+            else
+            {
+                // Right partition is smaller: recurse on right [pivotIndex+1, right], iterate on left [left, pivotIndex-1]
+                if (pivotIndex < right)
+                {
+                    SortCore(s, pivotIndex + 1, right);
+                }
+                right = pivotIndex - 1;
+            }
+        }
+    }
+
+    /// <summary>
+    /// Partitions the array using Hoare's block partitioning scheme with adaptive pivot selection.
+    /// For large arrays (> 20000 elements), uses median-of-sqrt(n) pivot selection.
+    /// For medium arrays (> 800 elements), uses median-of-5-medians-of-5.
+    /// For small arrays (> 100 elements), uses median-of-3-medians-of-3.
+    /// Otherwise uses simple median-of-3.
+    /// Elements are processed in blocks, with comparison results stored in index buffers
+    /// before performing swaps, improving cache efficiency and reducing branch mispredictions.
+    /// </summary>
+    /// <typeparam name="T">The type of elements.</typeparam>
+    /// <param name="s">The SortSpan to partition.</param>
+    /// <param name="left">The inclusive start index.</param>
+    /// <param name="right">The inclusive end index.</param>
+    /// <returns>The final position of the pivot element.</returns>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    static int HoareBlockPartition<T>(SortSpan<T> s, int left, int right) where T : IComparable<T>
+    {
+        var size = right - left + 1;
+        int pivotIndex;
+        
+        // Adaptive pivot selection based on array size (mosqrt implementation)
+        if (size > 20000)
+        {
+            // For very large arrays, use median-of-sqrt(n)
+            var sampleSize = (int)Math.Sqrt(size);
+            sampleSize += (1 - (sampleSize % 2)); // Make it odd
+            pivotIndex = MedianOfK(s, left, right, sampleSize);
+        }
+        else if (size > 800)
+        {
+            // For large arrays, use median-of-5-medians-of-5
+            pivotIndex = MedianOf5MediansOf5(s, left, right);
+        }
+        else if (size > 100)
+        {
+            // For medium arrays, use median-of-3-medians-of-3
+            pivotIndex = MedianOf3MediansOf3(s, left, right);
+        }
+        else
+        {
+            // For small arrays, use simple median-of-3
+            pivotIndex = MedianOf3(s, left, (left + right) / 2, right);
+        }
+        
+        return HoareBlockPartitionCore(s, left, right, pivotIndex);
+    }
+
+    /// <summary>
+    /// Core block partitioning logic with the pivot already selected.
+    /// This is the actual Hoare block partition implementation that processes elements in blocks.
+    /// </summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    static int HoareBlockPartitionCore<T>(SortSpan<T> s, int left, int right, int pivotIndex) where T : IComparable<T>
+    {
+        // Move pivot to the end and extract its value
+        var pivotEnd = right;
+        s.Swap(pivotIndex, pivotEnd);
+        var pivot = s.Read(pivotEnd);
+        var last = pivotEnd - 1;
+
+        // Index buffers for storing positions of elements to swap
+        Span<int> indexL = stackalloc int[BLOCKSIZE];
+        Span<int> indexR = stackalloc int[BLOCKSIZE];
+
+        var begin = left;
+        var end = last;
+        var numLeft = 0;
+        var numRight = 0;
+        var startLeft = 0;
+        var startRight = 0;
+
+        // Main loop: process blocks while enough elements remain
+        while (end - begin + 1 > 2 * BLOCKSIZE)
+        {
+            // Scan left block and store indices of elements >= pivot
+            if (numLeft == 0)
+            {
+                startLeft = 0;
+                for (var j = 0; j < BLOCKSIZE; j++)
+                {
+                    indexL[numLeft] = j;
+                    // Store indices where element is NOT less than pivot (i.e., >= pivot)
+                    numLeft += s.Compare(begin + j, pivot) < 0 ? 0 : 1;
+                }
+            }
+
+            // Scan right block and store indices of elements <= pivot
+            if (numRight == 0)
+            {
+                startRight = 0;
+                for (var j = 0; j < BLOCKSIZE; j++)
+                {
+                    indexR[numRight] = j;
+                    // Store indices where pivot is NOT less than element (i.e., pivot >= element, so element <= pivot)
+                    numRight += s.Compare(pivot, end - j) < 0 ? 0 : 1;
+                }
+            }
+
+            // Swap elements found in both buffers
+            var num = Math.Min(numLeft, numRight);
+            for (var j = 0; j < num; j++)
+            {
+                s.Swap(begin + indexL[startLeft + j], end - indexR[startRight + j]);
+            }
+
+            numLeft -= num;
+            numRight -= num;
+            startLeft += num;
+            startRight += num;
+
+            // Advance pointers if buffer is empty
+            if (numLeft == 0) begin += BLOCKSIZE;
+            if (numRight == 0) end -= BLOCKSIZE;
+        }
+
+        // Process remaining elements (less than 2 * BLOCKSIZE)
+        var shiftL = 0;
+        var shiftR = 0;
+
+        if (numRight == 0 && numLeft == 0)
+        {
+            // Both buffers empty - process remaining elements
+            shiftL = (end - begin + 1) / 2;
+            shiftR = (end - begin + 1) - shiftL;
+            startLeft = 0;
+            startRight = 0;
+
+            for (var j = 0; j < shiftL; j++)
+            {
+                indexL[numLeft] = j;
+                numLeft += s.Compare(begin + j, pivot) < 0 ? 0 : 1;
+                indexR[numRight] = j;
+                numRight += s.Compare(pivot, end - j) < 0 ? 0 : 1;
+            }
+
+            if (shiftL < shiftR)
+            {
+                indexR[numRight] = shiftR - 1;
+                numRight += s.Compare(pivot, end - shiftR + 1) < 0 ? 0 : 1;
+            }
+        }
+        else if (numRight != 0)
+        {
+            // Right buffer has elements - process remaining left elements
+            shiftL = (end - begin) - BLOCKSIZE + 1;
+            shiftR = BLOCKSIZE;
+            startLeft = 0;
+
+            for (var j = 0; j < shiftL; j++)
+            {
+                indexL[numLeft] = j;
+                numLeft += s.Compare(begin + j, pivot) < 0 ? 0 : 1;
+            }
+        }
+        else
+        {
+            // Left buffer has elements - process remaining right elements
+            shiftL = BLOCKSIZE;
+            shiftR = (end - begin) - BLOCKSIZE + 1;
+            startRight = 0;
+
+            for (var j = 0; j < shiftR; j++)
+            {
+                indexR[numRight] = j;
+                numRight += s.Compare(pivot, end - j) < 0 ? 0 : 1;
+            }
+        }
+
+        // Swap remaining elements in buffers
+        var numFinal = Math.Min(numLeft, numRight);
+        for (var j = 0; j < numFinal; j++)
+        {
+            s.Swap(begin + indexL[startLeft + j], end - indexR[startRight + j]);
+        }
+
+        numLeft -= numFinal;
+        numRight -= numFinal;
+        startLeft += numFinal;
+        startRight += numFinal;
+
+        if (numLeft == 0) begin += shiftL;
+        if (numRight == 0) end -= shiftR;
+
+        // Rearrange remaining elements in buffer
+        if (numLeft != 0)
+        {
+            var lowerI = startLeft + numLeft - 1;
+            var upper = end - begin;
+
+            // Find first element to swap
+            while (lowerI >= startLeft && indexL[lowerI] == upper)
+            {
+                upper--;
+                lowerI--;
+            }
+
+            // Swap remaining elements
+            while (lowerI >= startLeft)
+            {
+                s.Swap(begin + upper, begin + indexL[lowerI]);
+                upper--;
+                lowerI--;
+            }
+
+            // Place pivot in final position
+            s.Swap(pivotEnd, begin + upper + 1);
+            return begin + upper + 1;
+        }
+        else if (numRight != 0)
+        {
+            var lowerI = startRight + numRight - 1;
+            var upper = end - begin;
+
+            // Find first element to swap
+            while (lowerI >= startRight && indexR[lowerI] == upper)
+            {
+                upper--;
+                lowerI--;
+            }
+
+            // Swap remaining elements
+            while (lowerI >= startRight)
+            {
+                s.Swap(end - upper, end - indexR[lowerI]);
+                upper--;
+                lowerI--;
+            }
+
+            // Place pivot in final position  
+            var pivotPos = end - upper;
+            s.Swap(pivotEnd, pivotPos);
+            return pivotPos;
+        }
+        else
+        {
+            // No remaining elements - begin and end+1 crossed
+            s.Swap(pivotEnd, begin);
+            return begin;
+        }
+    }
+
+    /// <summary>
+    /// Selects median of three elements using quartile positions.
+    /// Partially sorts the three elements in place.
+    /// </summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    static int MedianOf3<T>(SortSpan<T> s, int i1, int i2, int i3) where T : IComparable<T>
+    {
+        // Sort pairs to find median
+        if (s.Compare(i1, i2) > 0) s.Swap(i1, i2);
+        if (s.Compare(i2, i3) > 0) s.Swap(i2, i3);
+        if (s.Compare(i1, i2) > 0) s.Swap(i1, i2);
+        
+        return i2;
+    }
+
+    /// <summary>
+    /// Selects median of 5 elements.
+    /// </summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    static int MedianOf5<T>(SortSpan<T> s, int i1, int i2, int i3, int i4, int i5) where T : IComparable<T>
+    {
+        // Network for median-of-5
+        if (s.Compare(i1, i2) > 0) s.Swap(i1, i2);
+        if (s.Compare(i4, i5) > 0) s.Swap(i4, i5);
+        if (s.Compare(i1, i4) > 0) s.Swap(i1, i4);
+        if (s.Compare(i2, i5) > 0) s.Swap(i2, i5);
+        if (s.Compare(i3, i4) > 0) s.Swap(i3, i4);
+        if (s.Compare(i2, i3) > 0) s.Swap(i2, i3);
+        if (s.Compare(i3, i4) > 0) s.Swap(i3, i4);
+        
+        return i3;
+    }
+
+    /// <summary>
+    /// Median-of-3-medians-of-3 for arrays > 100 elements.
+    /// </summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    static int MedianOf3MediansOf3<T>(SortSpan<T> s, int left, int right) where T : IComparable<T>
+    {
+        var length = right - left + 1;
+        var first = MedianOf3(s, left, left + 1, left + 2);
+        var mid = MedianOf3(s, left + length / 2 - 1, left + length / 2, left + length / 2 + 1);
+        var last = MedianOf3(s, right - 2, right - 1, right);
+        
+        // Move medians to boundaries
+        s.Swap(left, first);
+        s.Swap(right, last);
+        
+        return MedianOf3(s, left, mid, right);
+    }
+
+    /// <summary>
+    /// Median-of-5-medians-of-5 for arrays > 800 elements.
+    /// </summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    static int MedianOf5MediansOf5<T>(SortSpan<T> s, int left, int right) where T : IComparable<T>
+    {
+        var length = right - left + 1;
+        
+        // Need at least 25 elements for 5 groups of 5, with proper spacing
+        // Also ensure quartile positions are valid
+        if (length < 70)
+        {
+            return MedianOf3MediansOf3(s, left, right);
+        }
+        
+        var q1 = left + length / 4 - 2;
+        var mid = left + length / 2 - 2;
+        var q3 = left + (3 * length) / 4 - 3;
+        
+        var first = MedianOf5(s, left, left + 1, left + 2, left + 3, left + 4);
+        var m1 = MedianOf5(s, q1, q1 + 1, q1 + 2, q1 + 3, q1 + 4);
+        var m2 = MedianOf5(s, mid, mid + 1, mid + 2, mid + 3, mid + 4);
+        var m3 = MedianOf5(s, q3, q3 + 1, q3 + 2, q3 + 3, q3 + 4);
+        var last = MedianOf5(s, right - 4, right - 3, right - 2, right - 1, right);
+        
+        // Move medians to boundaries
+        s.Swap(left, first);
+        s.Swap(right, last);
+        
+        return MedianOf5(s, left, m1, m2, m3, right);
+    }
+
+    /// <summary>
+    /// Median-of-k sampling for very large arrays (> 20000 elements).
+    /// Uses systematic sampling across the array and selects the median.
+    /// </summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    static int MedianOfK<T>(SortSpan<T> s, int left, int right, int k) where T : IComparable<T>
+    {
+        var length = right - left + 1;
+        
+        if (length < k + 3)
+        {
+            return MedianOf3(s, left, (left + right) / 2, right);
+        }
+
+        var step = length / (k + 3);
+        var searchLeft = left + step;
+        var searchRight = right - step;
+        var placeIt = left;
+
+        // Sample k elements from across the array
+        for (var j = 0; j < k / 2; j++)
+        {
+            s.Swap(placeIt, searchLeft);
+            placeIt++;
+            s.Swap(placeIt, searchRight);
+            placeIt++;
+            searchLeft += step;
+            searchRight -= step;
+        }
+        
+        // Add middle element
+        s.Swap(placeIt, (left + right) / 2);
+        placeIt++;
+
+        // Find median of sampled elements using partial sort
+        var middleIndex = left + (placeIt - left) / 2;
+        PartialSort(s, left, placeIt, middleIndex);
+        
+        return middleIndex;
+    }
+
+    /// <summary>
+    /// Partial sort to find the k-th element (simplified nth_element).
+    /// Uses QuickSelect algorithm.
+    /// </summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    static void PartialSort<T>(SortSpan<T> s, int left, int right, int k) where T : IComparable<T>
+    {
+        while (right > left)
+        {
+            // Use median-of-3 for pivot
+            var pivotIdx = MedianOf3(s, left, (left + right) / 2, right - 1);
+            var pivot = s.Read(pivotIdx);
+            
+            // Partition
+            s.Swap(pivotIdx, right - 1);
+            var i = left;
+            var j = right - 2;
+
+            while (i <= j)
+            {
+                while (i < right - 1 && s.Compare(i, pivot) < 0) i++;
+                while (j > left && s.Compare(j, pivot) > 0) j--;
+                
+                if (i <= j)
+                {
+                    s.Swap(i, j);
+                    i++;
+                    j--;
+                }
+            }
+            
+            s.Swap(i, right - 1);
+
+            // Recurse on the side containing k
+            if (i == k)
+                return;
+            else if (i < k)
+                left = i + 1;
+            else
+                right = i;
+        }
+    }
+}

@@ -8,7 +8,7 @@
     <Project Path="sandbox/SandboxBenchmark/SandboxBenchmark.csproj" />
   </Folder>
   <Folder Name="/src/">
-    <Project Path="src/SortLab.Core/SortLab.Core.csproj" />
+    <Project Path="src/SortAlgorithm/SortAlgorithm.csproj" />
   </Folder>
   <Folder Name="/tests/">
     <Project Path="tests/SortLab.Tests/SortLab.Tests.csproj" />

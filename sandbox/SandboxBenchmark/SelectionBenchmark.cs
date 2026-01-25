@@ -23,18 +23,18 @@ public class SelectionBenchmark
     [Benchmark]
     public void CycleSort()
     {
-        SortLab.Core.Algorithms.CycleSort.Sort(_cycleArray);
+        SortAlgorithm.Algorithms.CycleSort.Sort(_cycleArray);
     }
 
     [Benchmark]
     public void PancakeSort()
     {
-        SortLab.Core.Algorithms.PancakeSort.Sort(_pancakeArray);
+        SortAlgorithm.Algorithms.PancakeSort.Sort(_pancakeArray);
     }
 
     [Benchmark]
     public void SelectionSort()
     {
-        SortLab.Core.Algorithms.SelectionSort.Sort(_selectionArray);
+        SortAlgorithm.Algorithms.SelectionSort.Sort(_selectionArray);
     }
 }
