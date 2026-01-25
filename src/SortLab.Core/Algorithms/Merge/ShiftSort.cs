@@ -215,64 +215,72 @@ public static class ShiftSort
         if (second - first > third - second)
         {
             // Second partition is smaller - buffer it and merge backward
-            var tmp2nd = new T[third - second];
-            var tmp2ndSpan = new SortSpan<T>(tmp2nd.AsSpan(), context, BUFFER_TEMP_SECOND);
-            
-            var counter = 0;
-            for (var y = second; y < third; y++)
+            var bufferSize = third - second;
+            var tmp2nd = ArrayPool<T>.Shared.Rent(bufferSize);
+            try
             {
-                tmp2ndSpan.Write(counter, s.Read(y));
-                counter++;
-            }
+                var tmp2ndSpan = new SortSpan<T>(tmp2nd.AsSpan(0, bufferSize), context, BUFFER_TEMP_SECOND);
+                
+                // Copy second partition to buffer using CopyTo for efficiency
+                s.CopyTo(second, tmp2ndSpan, 0, bufferSize);
 
-            // Merge from right to left, shifting elements from first partition rightward
-            var secondCounter = third - second;
-            var left = second - 1;
-            while (secondCounter > 0)
+                // Merge from right to left, shifting elements from first partition rightward
+                var secondCounter = bufferSize;
+                var left = second - 1;
+                while (secondCounter > 0)
+                {
+                    // Stability: >= ensures elements from left partition come first when equal
+                    if (left >= first && s.Compare(left, tmp2ndSpan.Read(secondCounter - 1)) >= 0)
+                    {
+                        s.Write(left + secondCounter, s.Read(left));
+                        left--;
+                    }
+                    else
+                    {
+                        s.Write(left + secondCounter, tmp2ndSpan.Read(secondCounter - 1));
+                        secondCounter--;
+                    }
+                }
+            }
+            finally
             {
-                // Stability: >= ensures elements from left partition come first when equal
-                if (left >= first && s.Compare(left, tmp2ndSpan.Read(secondCounter - 1)) >= 0)
-                {
-                    s.Write(left + secondCounter, s.Read(left));
-                    left--;
-                }
-                else
-                {
-                    s.Write(left + secondCounter, tmp2ndSpan.Read(secondCounter - 1));
-                    secondCounter--;
-                }
+                ArrayPool<T>.Shared.Return(tmp2nd, clearArray: true);
             }
         }
         else
         {
             // First partition is smaller - buffer it and merge forward
-            var tmp1st = new T[second - first];
-            var tmp1stSpan = new SortSpan<T>(tmp1st.AsSpan(), context, BUFFER_TEMP_FIRST);
-            
-            var counter = 0;
-            for (var y = first; y < second; y++)
+            var bufferSize = second - first;
+            var tmp1st = ArrayPool<T>.Shared.Rent(bufferSize);
+            try
             {
-                tmp1stSpan.Write(counter, s.Read(y));
-                counter++;
-            }
+                var tmp1stSpan = new SortSpan<T>(tmp1st.AsSpan(0, bufferSize), context, BUFFER_TEMP_FIRST);
+                
+                // Copy first partition to buffer using CopyTo for efficiency
+                s.CopyTo(first, tmp1stSpan, 0, bufferSize);
 
-            // Merge from left to right, shifting elements from second partition leftward
-            var firstCounter = 0;
-            var tmpLength = second - first;
-            var right = second;
-            while (firstCounter < tmp1st.Length)
+                // Merge from left to right, shifting elements from second partition leftward
+                var firstCounter = 0;
+                var tmpLength = bufferSize;
+                var right = second;
+                while (firstCounter < bufferSize)
+                {
+                    if (right < third && s.Compare(right, tmp1stSpan.Read(firstCounter)) < 0)
+                    {
+                        s.Write(right - tmpLength, s.Read(right));
+                        right++;
+                    }
+                    else
+                    {
+                        s.Write(right - tmpLength, tmp1stSpan.Read(firstCounter));
+                        firstCounter++;
+                        tmpLength--;
+                    }
+                }
+            }
+            finally
             {
-                if (right < third && s.Compare(right, tmp1stSpan.Read(firstCounter)) < 0)
-                {
-                    s.Write(right - tmpLength, s.Read(right));
-                    right++;
-                }
-                else
-                {
-                    s.Write(right - tmpLength, tmp1stSpan.Read(firstCounter));
-                    firstCounter++;
-                    tmpLength--;
-                }
+                ArrayPool<T>.Shared.Return(tmp1st, clearArray: true);
             }
         }
     }
