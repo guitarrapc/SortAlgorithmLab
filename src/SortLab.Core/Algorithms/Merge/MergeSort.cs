@@ -132,11 +132,8 @@ public static class MergeSort
         var s = new SortSpan<T>(span, context, BUFFER_MAIN);
         var b = new SortSpan<T>(buffer.Slice(0, left.Length), context, BUFFER_MERGE);
 
-        // Copy left partition to buffer to avoid overwriting during merge
-        for (var i = 0; i < left.Length; i++)
-        {
-            b.Write(i, s.Read(i));
-        }
+        // Copy left partition to buffer to avoid overwriting during merge using CopyTo for efficiency
+        s.CopyTo(0, b, 0, left.Length);
 
         var l = 0;           // Index in buffer (left partition copy)
         var r = left.Length; // Index in span (right partition, starts after left)
@@ -164,12 +161,10 @@ public static class MergeSort
             k++;
         }
 
-        // Copy remaining elements from buffer (left partition) if any
-        while (l < left.Length)
+        // Copy remaining elements from buffer (left partition) if any using CopyTo for efficiency
+        if (l < left.Length)
         {
-            s.Write(k, b.Read(l));
-            l++;
-            k++;
+            b.CopyTo(l, s, k, left.Length - l);
         }
 
         // Right partition elements are already in place, no need to copy
