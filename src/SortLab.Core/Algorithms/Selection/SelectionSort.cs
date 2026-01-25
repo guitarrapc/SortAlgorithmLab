@@ -68,7 +68,6 @@ Span ...
 /// <item><description>When memory writes are costly but comparisons are cheap</description></item>
 /// </list>
 /// </remarks>
-/// <typeparam name="T"></typeparam>
 public static class SelectionSort
 {
     // Buffer identifiers for visualization
