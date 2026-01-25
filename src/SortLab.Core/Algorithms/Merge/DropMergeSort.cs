@@ -154,6 +154,7 @@ public static class DropMergeSort
     private static void SortCore<T>(Span<T> span, Span<T> droppedBuffer, ISortContext context) where T : IComparable<T>
     {
         var s = new SortSpan<T>(span, context, BUFFER_MAIN);
+        var dropped = new SortSpan<T>(droppedBuffer, context, BUFFER_DROPPED);
 
         // First step: heuristically find the Longest Nondecreasing Subsequence (LNS).
         // The LNS is kept in-place at span[0..write] while dropped elements go to the dropped buffer.
@@ -168,11 +169,8 @@ public static class DropMergeSort
                 && read == s.Length / EarlyOutTestAt
                 && droppedCount > (int)(read * EarlyOutDisorderFraction))
             {
-                // Restore dropped elements back to array and use QuickSort
-                for (var i = 0; i < droppedCount; i++)
-                {
-                    s.Write(write + i, droppedBuffer[i]);
-                }
+                // Restore dropped elements back to array using CopyTo for efficiency
+                dropped.CopyTo(0, s, write, droppedCount);
                 QuickSortMedian3.SortCore(s, 0, s.Length - 1, context);
                 return;
             }
@@ -208,7 +206,7 @@ public static class DropMergeSort
                     && s.Compare(read, write - 2) >= 0)
                 {
                     // Quick undo: drop previously accepted element, and overwrite with new one:
-                    droppedBuffer[droppedCount++] = s.Read(write - 1);
+                    dropped.Write(droppedCount++, s.Read(write - 1));
                     s.Write(write - 1, s.Read(read));
                     read++;
                     continue;
@@ -217,7 +215,7 @@ public static class DropMergeSort
                 if (droppedInRow < Recency)
                 {
                     // Drop it
-                    droppedBuffer[droppedCount++] = s.Read(read);
+                    dropped.Write(droppedCount++, s.Read(read));
                     read++;
                     droppedInRow++;
                 }
@@ -259,7 +257,7 @@ public static class DropMergeSort
                     // Drop the back-tracked elements:
                     for (var i = 0; i < backTracked; i++)
                     {
-                        droppedBuffer[droppedCount++] = s.Read(write + i);
+                        dropped.Write(droppedCount++, s.Read(write + i));
                     }
                     droppedInRow = 0;
                 }
@@ -281,7 +279,7 @@ public static class DropMergeSort
 
         while (droppedIndex >= 0)
         {
-            var lastDropped = droppedBuffer[droppedIndex];
+            var lastDropped = dropped.Read(droppedIndex);
 
             while (0 < write && s.Compare(lastDropped, write - 1) < 0)
             {
