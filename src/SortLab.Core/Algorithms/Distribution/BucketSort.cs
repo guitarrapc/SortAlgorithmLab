@@ -174,11 +174,9 @@ public static class BucketSort
             }
         }
 
-        // Write sorted data back to original span
-        for (var i = 0; i < span.Length; i++)
-        {
-            s.Write(i, tempArray[i]);
-        }
+        // Write sorted data back to original span using CopyTo for efficiency
+        var tempSpan = new SortSpan<T>(tempArray, context, BUFFER_TEMP);
+        tempSpan.CopyTo(0, s, 0, span.Length);
     }
 
     /// <summary>
@@ -368,11 +366,9 @@ public static class BucketSortInteger
             }
         }
 
-        // Write sorted data back to original span
-        for (var i = 0; i < span.Length; i++)
-        {
-            s.Write(i, tempArray[i]);
-        }
+        // Write sorted data back to original span using CopyTo for efficiency
+        var tempSpan = new SortSpan<int>(tempArray, context, BUFFER_TEMP);
+        tempSpan.CopyTo(0, s, 0, span.Length);
     }
 
     /// <summary>

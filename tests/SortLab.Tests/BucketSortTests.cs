@@ -122,27 +122,27 @@ public class BucketSortTests
         //    - For sorted buckets: Read for key, Read for comparison
         //    - Each element except first: 2 reads (key read + 1 comparison read)
         //    - Total across all buckets: ~2n reads
-        // 4. Write back: n writes (main buffer) + n reads from temp (NOT via SortSpan)
+        // 4. Write back: n reads (temp buffer via CopyTo) + n writes (main buffer via CopyTo)
         //
-        // Actual observations:
-        // n=10:  34 reads (3.4n), 36 writes
-        // n=20:  72 reads (3.6n), 36 writes
-        // n=50:  186 reads (3.72n)
-        // n=100: 380 reads (3.8n)
+        // Actual observations (with CopyTo):
+        // n=10:  44 reads (4.4n), 44 writes (4.4n)
+        // n=20:  92 reads (4.6n), 72 writes (3.6n)
+        // n=50:  236 reads (4.72n), 186 writes (3.72n)
+        // n=100: 480 reads (4.8n), 380 writes (3.8n)
         //
-        // Writes include: InsertionSort shifts + write back
+        // Reads: 2n (find/distribute) + ~2n (insertion sort) + n (CopyTo read from temp)
+        // Writes: ~n to ~2n (insertion sort) + n (CopyTo write to main)
 
         var bucketCount = Math.Max(2, Math.Min(1000, (int)Math.Sqrt(n)));
 
-        // IndexReadCount: 2n (find/distribute) + ~1.4n to 1.8n (insertion sort)
-        var expectedReadsMin = (ulong)(3.3 * n);
-        var expectedReadsMax = (ulong)(4.0 * n);
+        // IndexReadCount: 2n (find/distribute) + ~2n (insertion sort) + n (CopyTo)
+        var expectedReadsMin = (ulong)(4.0 * n);
+        var expectedReadsMax = (ulong)(5.0 * n);
 
-        // IndexWriteCount: includes writes during insertion sort
+        // IndexWriteCount: ~n to ~2n (insertion sort) + n (CopyTo)
         // For sorted data, minimal shifts but key writes occur
-        // Observed: ~1.8n for small n, approaching ~2n for larger n
-        var expectedWritesMin = (ulong)n;
-        var expectedWritesMax = (ulong)(2.5 * n);
+        var expectedWritesMin = (ulong)(1.5 * n);
+        var expectedWritesMax = (ulong)(3.5 * n);
 
         // CompareCount: n - bucketCount (one per element except first in each bucket)
         // But with SortSpan Compare(), each comparison involves reads
