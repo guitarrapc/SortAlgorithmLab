@@ -179,11 +179,8 @@ public static class RadixLSD4Sort
                 temp.Write(destIndex, value);
             }
 
-            // Copy back from temp to source
-            for (var i = 0; i < s.Length; i++)
-            {
-                s.Write(i, temp.Read(i));
-            }
+            // Copy back from temp to source using CopyTo for efficiency
+            temp.CopyTo(0, s, 0, s.Length);
         }
     }
 
@@ -239,9 +236,10 @@ public static class RadixLSD4Sort
         {
             s.Write(writeIndex++, negBuf.Read(i));
         }
-        for (var i = 0; i < nonNegativeCount; i++)
+        // Non-negative numbers are in order, so we can use CopyTo for efficiency
+        if (nonNegativeCount > 0)
         {
-            s.Write(writeIndex++, nonNegBuf.Read(i));
+            nonNegBuf.CopyTo(0, s, negativeCount, nonNegativeCount);
         }
     }
 
@@ -283,12 +281,9 @@ public static class RadixLSD4Sort
                 temp.Write(destIndex, value);  // Via SortSpan for statistics
             }
 
-            // Copy back in FORWARD order
+            // Copy back from temp to source using CopyTo for efficiency
             // After all passes, array is sorted by absolute value (ascending)
-            for (var i = 0; i < s.Length; i++)
-            {
-                s.Write(i, temp.Read(i));  // Via SortSpan for statistics
-            }
+            temp.CopyTo(0, s, 0, s.Length);
         }
     }
 
