@@ -78,10 +78,11 @@ namespace SortLab.Core.Algorithms;
 /// <list type="bullet">
 /// <item><description><strong>Insertion Sort Fallback (TINY_SIZE = 17):</strong> Arrays smaller than 17 elements are sorted using insertion sort for better constant-factor performance.</description></item>
 /// <item><description><strong>5-Sample Pivot Selection:</strong> For arrays ≥47 elements, uses 5-sample method to select pivots, reducing worst-case probability.</description></item>
-/// <item><description><strong>Inner While Loop:</strong> Partitioning uses inner while loop to scan from right when element > pivot2, matching Yaroslavskiy's specification.</description></item>
-/// <item><description><strong>Equal Elements Optimization (DIST_SIZE = 13):</strong> When center region is large (> length - 13) and pivots are different, 
+/// <item><description><strong>Inner While Loop:</strong> Partitioning uses inner while loop to scan from right when element &gt; pivot2, matching Yaroslavskiy's specification.</description></item>
+/// <item><description><strong>Equal Elements Optimization (DIST_SIZE = 13):</strong> When center region is large (&gt; length - 13) and pivots are different, 
 /// segregates elements equal to pivots from the center region before recursing. This improves performance on arrays with many duplicate values.</description></item>
 /// <item><description><strong>Dual-Pivot Partitioning:</strong> Separate handling for equal pivots vs. different pivots cases.</description></item>
+/// <item><description>Reference: https://web.archive.org/web/20151002230717/http://iaroslavski.narod.ru/quicksort/DualPivotQuicksort.pdf</description></item>
 /// </list>
 /// <para><strong>Differences from Java's DualPivotQuicksort (Java 7+):</strong></para>
 /// <list type="bullet">
