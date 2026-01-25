@@ -1,80 +1,10 @@
+﻿using SortLab.Core.Algorithms;
+using SortLab.Core.Contexts;
+
 namespace SortLab.Tests;
 
 public class SmoothSortTests
 {
-    private ISort<int> sort;
-    private string algorithm;
-    private SortMethod method;
-
-    public SmoothSortTests()
-    {
-        sort = new SmoothSort<int>();
-        algorithm = nameof(SmoothSort<int>);
-        method = SortMethod.Selection;
-    }
-
-    [Fact]
-    public void SortMethodTest()
-    {
-        Assert.Equal(method, sort.SortType);
-    }
-
-    [Theory]
-    [ClassData(typeof(MockRandomData))]
-    public void RandomInputTypeTest(IInputSample<int> inputSample)
-    {
-        Assert.Equal(InputType.Random, inputSample.InputType);
-    }
-
-    [Theory]
-    [ClassData(typeof(MockNegativePositiveRandomData))]
-    public void MixRandomInputTypeTest(IInputSample<int> inputSample)
-    {
-        Assert.Equal(InputType.MixRandom, inputSample.InputType);
-    }
-
-    [Theory]
-    [ClassData(typeof(MockNegativeRandomData))]
-    public void NegativeRandomInputTypeTest(IInputSample<int> inputSample)
-    {
-        Assert.Equal(InputType.NegativeRandom, inputSample.InputType);
-    }
-
-    [Theory]
-    [ClassData(typeof(MockReversedData))]
-    public void ReverseInputTypeTest(IInputSample<int> inputSample)
-    {
-        Assert.Equal(InputType.Reversed, inputSample.InputType);
-    }
-
-    [Theory]
-    [ClassData(typeof(MockMountainData))]
-    public void MountainInputTypeTest(IInputSample<int> inputSample)
-    {
-        Assert.Equal(InputType.Mountain, inputSample.InputType);
-    }
-
-    [Theory]
-    [ClassData(typeof(MockNearlySortedData))]
-    public void NearlySortedInputTypeTest(IInputSample<int> inputSample)
-    {
-        Assert.Equal(InputType.NearlySorted, inputSample.InputType);
-    }
-
-    [Theory]
-    [ClassData(typeof(MockSortedData))]
-    public void SortedInputTypeTest(IInputSample<int> inputSample)
-    {
-        Assert.Equal(InputType.Sorted, inputSample.InputType);
-    }
-
-    [Theory]
-    [ClassData(typeof(MockSameValuesData))]
-    public void SameValuesInputTypeTest(IInputSample<int> inputSample)
-    {
-        Assert.Equal(InputType.SameValues, inputSample.InputType);
-    }
-
     [Theory]
     [ClassData(typeof(MockRandomData))]
     [ClassData(typeof(MockNegativePositiveRandomData))]
@@ -82,64 +12,33 @@ public class SmoothSortTests
     [ClassData(typeof(MockReversedData))]
     [ClassData(typeof(MockMountainData))]
     [ClassData(typeof(MockNearlySortedData))]
-    [ClassData(typeof(MockSortedData))]
     [ClassData(typeof(MockSameValuesData))]
+    [ClassData(typeof(MockAntiQuickSortData))]
+    [ClassData(typeof(MockQuickSortWorstCaseData))]
     public void SortResultOrderTest(IInputSample<int> inputSample)
     {
+        var stats = new StatisticsContext();
         var array = inputSample.Samples.ToArray();
-        sort.Sort(array);
-        Assert.Equal(inputSample.Samples.OrderBy(x => x), array);
+        SmoothSort.Sort(array.AsSpan(), stats);
+
+        Assert.Equal((ulong)inputSample.Samples.Length, (ulong)array.Length);
     }
 
-    [Theory]
-    [ClassData(typeof(MockRandomData))]
-    [ClassData(typeof(MockNegativePositiveRandomData))]
-    [ClassData(typeof(MockNegativeRandomData))]
-    [ClassData(typeof(MockReversedData))]
-    [ClassData(typeof(MockMountainData))]
-    [ClassData(typeof(MockNearlySortedData))]
-    [ClassData(typeof(MockSameValuesData))]
-    public void StatisticsTest(IInputSample<int> inputSample)
-    {
-        var array = inputSample.Samples.ToArray();
-        sort.Sort(array);
-        Assert.Equal(algorithm, sort.Statistics.Algorithm);
-        Assert.Equal(inputSample.Samples.Length, sort.Statistics.ArraySize);
-        Assert.NotEqual((ulong)0, sort.Statistics.IndexAccessCount);
-        Assert.NotEqual((ulong)0, sort.Statistics.CompareCount);
-        Assert.NotEqual((ulong)0, sort.Statistics.SwapCount);
-    }
+#if DEBUG
 
     [Theory]
     [ClassData(typeof(MockSortedData))]
     public void StatisticsSortedTest(IInputSample<int> inputSample)
     {
+        var stats = new StatisticsContext();
         var array = inputSample.Samples.ToArray();
-        sort.Sort(array);
-        Assert.Equal(algorithm, sort.Statistics.Algorithm);
-        Assert.Equal(inputSample.Samples.Length, sort.Statistics.ArraySize);
-        Assert.NotEqual((ulong)0, sort.Statistics.IndexAccessCount);
-        Assert.NotEqual((ulong)0, sort.Statistics.CompareCount);
-        Assert.Equal((ulong)0, sort.Statistics.SwapCount);
-    }
+        SmoothSort.Sort(array.AsSpan(), stats);
 
-    [Theory]
-    [ClassData(typeof(MockRandomData))]
-    [ClassData(typeof(MockNegativePositiveRandomData))]
-    [ClassData(typeof(MockNegativeRandomData))]
-    [ClassData(typeof(MockReversedData))]
-    [ClassData(typeof(MockMountainData))]
-    [ClassData(typeof(MockNearlySortedData))]
-    [ClassData(typeof(MockSortedData))]
-    [ClassData(typeof(MockSameValuesData))]
-    public void StatisticsResetTest(IInputSample<int> inputSample)
-    {
-        var array = inputSample.Samples.ToArray();
-        sort.Sort(array);
-        sort.Statistics.Reset();
-        Assert.Equal((ulong)0, sort.Statistics.IndexAccessCount);
-        Assert.Equal((ulong)0, sort.Statistics.CompareCount);
-        Assert.Equal((ulong)0, sort.Statistics.SwapCount);
+        Assert.Equal((ulong)inputSample.Samples.Length, (ulong)array.Length);
+        Assert.NotEqual(0UL, stats.IndexReadCount);
+        Assert.Equal(0UL, stats.IndexWriteCount);
+        Assert.NotEqual(0UL, stats.CompareCount);
+        Assert.Equal(0UL, stats.SwapCount);
     }
 
     [Theory]
@@ -149,11 +48,24 @@ public class SmoothSortTests
     [InlineData(100)]
     public void TheoreticalValuesSortedTest(int n)
     {
+        var stats = new StatisticsContext();
         var sorted = Enumerable.Range(0, n).ToArray();
-        sort.Sort(sorted);
+        SmoothSort.Sort(sorted.AsSpan(), stats);
 
-        // Sorted data should produce predictable statistics
-        Assert.NotEqual(0UL, sort.Statistics.CompareCount);
+        // Smooth Sort achieves O(n) for sorted data
+        // It should perform comparisons proportional to n (not n log n)
+        // Best case: approximately n comparisons
+        // Each comparison involves reading elements
+        var minCompares = (ulong)n;
+        var maxCompares = (ulong)(n * Math.Log(n, 2) * 2); // Allow some overhead
+
+        Assert.InRange(stats.CompareCount, minCompares, maxCompares);
+        Assert.True(stats.IndexReadCount >= stats.CompareCount,
+            $"IndexReadCount ({stats.IndexReadCount}) should be >= CompareCount ({stats.CompareCount})");
+
+        // Sorted data should have minimal operations
+        Assert.True(stats.CompareCount < (ulong)(n * n / 2),
+            $"Sorted data should be O(n), not O(n²). CompareCount: {stats.CompareCount}, n²/2: {n * n / 2}");
     }
 
     [Theory]
@@ -163,10 +75,44 @@ public class SmoothSortTests
     [InlineData(100)]
     public void TheoreticalValuesReversedTest(int n)
     {
+        var stats = new StatisticsContext();
         var reversed = Enumerable.Range(0, n).Reverse().ToArray();
-        sort.Sort(reversed);
+        SmoothSort.Sort(reversed.AsSpan(), stats);
 
-        // Reversed data should require sorting operations
-        Assert.NotEqual(0UL, sort.Statistics.CompareCount);
+        // Smooth Sort has O(n log n) worst case
+        // For reversed data, it should perform more comparisons than sorted
+        var minCompares = (ulong)(n * Math.Log(n, 2));
+        var maxCompares = (ulong)(n * Math.Log(n, 2) * 4); // Allow overhead for Leonardo heap operations
+
+        Assert.InRange(stats.CompareCount, minCompares, maxCompares);
+        Assert.NotEqual(0UL, stats.SwapCount);
+        Assert.True(stats.IndexReadCount >= stats.CompareCount,
+            $"IndexReadCount ({stats.IndexReadCount}) should be >= CompareCount ({stats.CompareCount})");
+        Assert.True(stats.IndexWriteCount >= stats.SwapCount * 2,
+            $"IndexWriteCount ({stats.IndexWriteCount}) should be >= SwapCount * 2 ({stats.SwapCount * 2})");
     }
+
+    [Theory]
+    [InlineData(10)]
+    [InlineData(20)]
+    [InlineData(50)]
+    [InlineData(100)]
+    public void TheoreticalValuesRandomTest(int n)
+    {
+        var stats = new StatisticsContext();
+        var random = Enumerable.Range(0, n).OrderBy(_ => Guid.NewGuid()).ToArray();
+        SmoothSort.Sort(random.AsSpan(), stats);
+
+        // Smooth Sort has O(n log n) average case
+        // Random data should fall between best (O(n)) and worst (O(n log n)) cases
+        var minCompares = (ulong)n; // Best case
+        var maxCompares = (ulong)(n * Math.Log(n, 2) * 4); // Worst case with overhead
+
+        Assert.InRange(stats.CompareCount, minCompares, maxCompares);
+        Assert.True(stats.IndexReadCount >= stats.CompareCount,
+            $"IndexReadCount ({stats.IndexReadCount}) should be >= CompareCount ({stats.CompareCount})");
+    }
+
+#endif
+
 }

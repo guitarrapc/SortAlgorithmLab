@@ -1,80 +1,10 @@
+﻿using SortLab.Core.Algorithms;
+using SortLab.Core.Contexts;
+
 namespace SortLab.Tests;
 
 public class DropMergeSortTests
 {
-    private ISort<int> sort;
-    private string algorithm;
-    private SortMethod method;
-
-    public DropMergeSortTests()
-    {
-        sort = new DropMergeSort<int>();
-        algorithm = nameof(DropMergeSort<int>);
-        method = SortMethod.Merging;
-    }
-
-    [Fact]
-    public void SortMethodTest()
-    {
-        Assert.Equal(method, sort.SortType);
-    }
-
-    [Theory]
-    [ClassData(typeof(MockRandomData))]
-    public void RandomInputTypeTest(IInputSample<int> inputSample)
-    {
-        Assert.Equal(InputType.Random, inputSample.InputType);
-    }
-
-    [Theory]
-    [ClassData(typeof(MockNegativePositiveRandomData))]
-    public void MixRandomInputTypeTest(IInputSample<int> inputSample)
-    {
-        Assert.Equal(InputType.MixRandom, inputSample.InputType);
-    }
-
-    [Theory]
-    [ClassData(typeof(MockNegativeRandomData))]
-    public void NegativeRandomInputTypeTest(IInputSample<int> inputSample)
-    {
-        Assert.Equal(InputType.NegativeRandom, inputSample.InputType);
-    }
-
-    [Theory]
-    [ClassData(typeof(MockReversedData))]
-    public void ReverseInputTypeTest(IInputSample<int> inputSample)
-    {
-        Assert.Equal(InputType.Reversed, inputSample.InputType);
-    }
-
-    [Theory]
-    [ClassData(typeof(MockMountainData))]
-    public void MountainInputTypeTest(IInputSample<int> inputSample)
-    {
-        Assert.Equal(InputType.Mountain, inputSample.InputType);
-    }
-
-    [Theory]
-    [ClassData(typeof(MockNearlySortedData))]
-    public void NearlySortedInputTypeTest(IInputSample<int> inputSample)
-    {
-        Assert.Equal(InputType.NearlySorted, inputSample.InputType);
-    }
-
-    [Theory]
-    [ClassData(typeof(MockSortedData))]
-    public void SortedInputTypeTest(IInputSample<int> inputSample)
-    {
-        Assert.Equal(InputType.Sorted, inputSample.InputType);
-    }
-
-    [Theory]
-    [ClassData(typeof(MockSameValuesData))]
-    public void SameValuesInputTypeTest(IInputSample<int> inputSample)
-    {
-        Assert.Equal(InputType.SameValues, inputSample.InputType);
-    }
-
     [Theory]
     [ClassData(typeof(MockRandomData))]
     [ClassData(typeof(MockNegativePositiveRandomData))]
@@ -82,88 +12,171 @@ public class DropMergeSortTests
     [ClassData(typeof(MockReversedData))]
     [ClassData(typeof(MockMountainData))]
     [ClassData(typeof(MockNearlySortedData))]
-    [ClassData(typeof(MockSortedData))]
     [ClassData(typeof(MockSameValuesData))]
+    [ClassData(typeof(MockAntiQuickSortData))]
+    [ClassData(typeof(MockQuickSortWorstCaseData))]
     public void SortResultOrderTest(IInputSample<int> inputSample)
     {
+        var stats = new StatisticsContext();
         var array = inputSample.Samples.ToArray();
-        sort.Sort(array);
-        Assert.Equal(inputSample.Samples.OrderBy(x => x), array);
+        DropMergeSort.Sort(array.AsSpan(), stats);
+
+        Assert.Equal((ulong)inputSample.Samples.Length, (ulong)array.Length);
+
+        // Verify the array is sorted
+        for (var i = 0; i < array.Length - 1; i++)
+        {
+            Assert.True(array[i] <= array[i + 1], $"Array not sorted at index {i}: {array[i]} > {array[i + 1]}");
+        }
     }
 
-    [Theory]
-    [ClassData(typeof(MockRandomData))]
-    [ClassData(typeof(MockNegativePositiveRandomData))]
-    [ClassData(typeof(MockNegativeRandomData))]
-    [ClassData(typeof(MockReversedData))]
-    [ClassData(typeof(MockMountainData))]
-    [ClassData(typeof(MockNearlySortedData))]
-    [ClassData(typeof(MockSameValuesData))]
-    public void StatisticsTest(IInputSample<int> inputSample)
-    {
-        sort.Sort(inputSample.Samples);
-        Assert.Equal(algorithm, sort.Statistics.Algorithm);
-        Assert.Equal(inputSample.Samples.Length, sort.Statistics.ArraySize);
-        Assert.NotEqual((ulong)0, sort.Statistics.IndexAccessCount);
-        Assert.NotEqual((ulong)0, sort.Statistics.CompareCount);
-        Assert.NotEqual((ulong)0, sort.Statistics.SwapCount);
-    }
+#if DEBUG
 
     [Theory]
     [ClassData(typeof(MockSortedData))]
     public void StatisticsSortedTest(IInputSample<int> inputSample)
     {
-        sort.Sort(inputSample.Samples);
-        Assert.Equal(algorithm, sort.Statistics.Algorithm);
-        Assert.Equal(inputSample.Samples.Length, sort.Statistics.ArraySize);
-        Assert.NotEqual((ulong)0, sort.Statistics.IndexAccessCount);
-        Assert.NotEqual((ulong)0, sort.Statistics.CompareCount);
-        Assert.NotEqual((ulong)0, sort.Statistics.SwapCount);
+        var stats = new StatisticsContext();
+        var array = inputSample.Samples.ToArray();
+        DropMergeSort.Sort(array.AsSpan(), stats);
+
+        Assert.Equal((ulong)inputSample.Samples.Length, (ulong)array.Length);
+        Assert.NotEqual(0UL, stats.IndexReadCount);
+        Assert.Equal(0UL, stats.IndexWriteCount); // Already sorted, no writes needed (optimized away)
+        Assert.NotEqual(0UL, stats.CompareCount);
     }
 
     [Theory]
     [ClassData(typeof(MockRandomData))]
-    [ClassData(typeof(MockNegativePositiveRandomData))]
-    [ClassData(typeof(MockNegativeRandomData))]
+    public void StatisticsRandomTest(IInputSample<int> inputSample)
+    {
+        var stats = new StatisticsContext();
+        var array = inputSample.Samples.ToArray();
+        DropMergeSort.Sort(array.AsSpan(), stats);
+
+        Assert.Equal((ulong)inputSample.Samples.Length, (ulong)array.Length);
+        Assert.NotEqual(0UL, stats.IndexReadCount);
+        Assert.NotEqual(0UL, stats.IndexWriteCount);
+        Assert.NotEqual(0UL, stats.CompareCount);
+    }
+
+    [Theory]
     [ClassData(typeof(MockReversedData))]
-    [ClassData(typeof(MockMountainData))]
+    public void StatisticsReversedTest(IInputSample<int> inputSample)
+    {
+        var stats = new StatisticsContext();
+        var array = inputSample.Samples.ToArray();
+        DropMergeSort.Sort(array.AsSpan(), stats);
+
+        Assert.Equal((ulong)inputSample.Samples.Length, (ulong)array.Length);
+        Assert.NotEqual(0UL, stats.IndexReadCount);
+        Assert.NotEqual(0UL, stats.IndexWriteCount);
+        Assert.NotEqual(0UL, stats.CompareCount);
+    }
+
+    [Theory]
     [ClassData(typeof(MockNearlySortedData))]
-    [ClassData(typeof(MockSortedData))]
-    [ClassData(typeof(MockSameValuesData))]
-    public void StatisticsResetTest(IInputSample<int> inputSample)
+    public void StatisticsNearlySortedTest(IInputSample<int> inputSample)
     {
-        sort.Sort(inputSample.Samples);
-        sort.Statistics.Reset();
-        Assert.Equal((ulong)0, sort.Statistics.IndexAccessCount);
-        Assert.Equal((ulong)0, sort.Statistics.CompareCount);
-        Assert.Equal((ulong)0, sort.Statistics.SwapCount);
+        var stats = new StatisticsContext();
+        var array = inputSample.Samples.ToArray();
+        DropMergeSort.Sort(array.AsSpan(), stats);
+
+        Assert.Equal((ulong)inputSample.Samples.Length, (ulong)array.Length);
+        Assert.NotEqual(0UL, stats.IndexReadCount);
+        Assert.NotEqual(0UL, stats.IndexWriteCount);
+        Assert.NotEqual(0UL, stats.CompareCount);
     }
 
-    [Theory]
-    [InlineData(10)]
-    [InlineData(20)]
-    [InlineData(50)]
-    [InlineData(100)]
-    public void TheoreticalValuesSortedTest(int n)
-    {
-        var sorted = Enumerable.Range(0, n).ToArray();
-        sort.Sort(sorted);
+#endif
 
-        // Sorted data should produce predictable statistics
-        Assert.NotEqual(0UL, sort.Statistics.CompareCount);
+    [Fact]
+    public void EmptyArrayTest()
+    {
+        var stats = new StatisticsContext();
+        var array = Array.Empty<int>();
+        DropMergeSort.Sort(array.AsSpan(), stats);
+
+        Assert.Empty(array);
     }
 
-    [Theory]
-    [InlineData(10)]
-    [InlineData(20)]
-    [InlineData(50)]
-    [InlineData(100)]
-    public void TheoreticalValuesReversedTest(int n)
+    [Fact]
+    public void SingleElementTest()
     {
-        var reversed = Enumerable.Range(0, n).Reverse().ToArray();
-        sort.Sort(reversed);
+        var stats = new StatisticsContext();
+        var array = new[] { 42 };
+        DropMergeSort.Sort(array.AsSpan(), stats);
 
-        // Reversed data should require sorting operations
-        Assert.NotEqual(0UL, sort.Statistics.CompareCount);
+        Assert.Single(array);
+        Assert.Equal(42, array[0]);
+    }
+
+    [Fact]
+    public void TwoElementsSortedTest()
+    {
+        var stats = new StatisticsContext();
+        var array = new[] { 1, 2 };
+        DropMergeSort.Sort(array.AsSpan(), stats);
+
+        Assert.Equal(2, array.Length);
+        Assert.Equal(1, array[0]);
+        Assert.Equal(2, array[1]);
+    }
+
+    [Fact]
+    public void TwoElementsReversedTest()
+    {
+        var stats = new StatisticsContext();
+        var array = new[] { 2, 1 };
+        DropMergeSort.Sort(array.AsSpan(), stats);
+
+        Assert.Equal(2, array.Length);
+        Assert.Equal(1, array[0]);
+        Assert.Equal(2, array[1]);
+    }
+
+    [Fact]
+    public void AlreadySortedTest()
+    {
+        var stats = new StatisticsContext();
+        var array = new[] { 1, 2, 3, 4, 5 };
+        DropMergeSort.Sort(array.AsSpan(), stats);
+
+        Assert.Equal(5, array.Length);
+        Assert.Equal(new[] { 1, 2, 3, 4, 5 }, array);
+    }
+
+    [Fact]
+    public void ReverseSortedTest()
+    {
+        var stats = new StatisticsContext();
+        var array = new[] { 5, 4, 3, 2, 1 };
+        DropMergeSort.Sort(array.AsSpan(), stats);
+
+        Assert.Equal(5, array.Length);
+        Assert.Equal(new[] { 1, 2, 3, 4, 5 }, array);
+    }
+
+    [Fact]
+    public void SingleOutlierTest()
+    {
+        // Test the "quick undo" optimization path
+        var stats = new StatisticsContext();
+        var array = new[] { 0, 1, 2, 3, 9, 5, 6, 7 };
+        DropMergeSort.Sort(array.AsSpan(), stats);
+
+        Assert.Equal(8, array.Length);
+        Assert.Equal(new[] { 0, 1, 2, 3, 5, 6, 7, 9 }, array);
+    }
+
+    [Fact]
+    public void NearlySortedWithFewOutliersTest()
+    {
+        var stats = new StatisticsContext();
+        var array = new[] { 1, 2, 15, 3, 4, 5, 20, 6, 7, 8, 9, 10 };
+        DropMergeSort.Sort(array.AsSpan(), stats);
+
+        Assert.Equal(12, array.Length);
+        Assert.Equal(new[] { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 15, 20 }, array);
     }
 }

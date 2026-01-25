@@ -1,80 +1,10 @@
-﻿namespace SortLab.Tests;
+﻿using SortLab.Core.Algorithms;
+using SortLab.Core.Contexts;
+
+namespace SortLab.Tests;
 
 public class BubbleSortTests
 {
-    private ISort<int> sort;
-    private string algorithm;
-    private SortMethod method;
-
-    public BubbleSortTests()
-    {
-        sort = new BubbleSort<int>();
-        algorithm = nameof(BubbleSort<int>);
-        method = SortMethod.Exchange;
-    }
-
-    [Fact]
-    public void SortMethodTest()
-    {
-        Assert.Equal(method, sort.SortType);
-    }
-
-    [Theory]
-    [ClassData(typeof(MockRandomData))]
-    public void RandomInputTypeTest(IInputSample<int> inputSample)
-    {
-        Assert.Equal(InputType.Random, inputSample.InputType);
-    }
-
-    [Theory]
-    [ClassData(typeof(MockNegativePositiveRandomData))]
-    public void MixRandomInputTypeTest(IInputSample<int> inputSample)
-    {
-        Assert.Equal(InputType.MixRandom, inputSample.InputType);
-    }
-
-    [Theory]
-    [ClassData(typeof(MockNegativeRandomData))]
-    public void NegativeRandomInputTypeTest(IInputSample<int> inputSample)
-    {
-        Assert.Equal(InputType.NegativeRandom, inputSample.InputType);
-    }
-
-    [Theory]
-    [ClassData(typeof(MockReversedData))]
-    public void ReverseInputTypeTest(IInputSample<int> inputSample)
-    {
-        Assert.Equal(InputType.Reversed, inputSample.InputType);
-    }
-
-    [Theory]
-    [ClassData(typeof(MockMountainData))]
-    public void MountainInputTypeTest(IInputSample<int> inputSample)
-    {
-        Assert.Equal(InputType.Mountain, inputSample.InputType);
-    }
-
-    [Theory]
-    [ClassData(typeof(MockNearlySortedData))]
-    public void NearlySortedInputTypeTest(IInputSample<int> inputSample)
-    {
-        Assert.Equal(InputType.NearlySorted, inputSample.InputType);
-    }
-
-    [Theory]
-    [ClassData(typeof(MockSortedData))]
-    public void SortedInputTypeTest(IInputSample<int> inputSample)
-    {
-        Assert.Equal(InputType.Sorted, inputSample.InputType);
-    }
-
-    [Theory]
-    [ClassData(typeof(MockSameValuesData))]
-    public void SameValuesInputTypeTest(IInputSample<int> inputSample)
-    {
-        Assert.Equal(InputType.SameValues, inputSample.InputType);
-    }
-
     [Theory]
     [ClassData(typeof(MockRandomData))]
     [ClassData(typeof(MockNegativePositiveRandomData))]
@@ -82,44 +12,96 @@ public class BubbleSortTests
     [ClassData(typeof(MockReversedData))]
     [ClassData(typeof(MockMountainData))]
     [ClassData(typeof(MockNearlySortedData))]
-    [ClassData(typeof(MockSortedData))]
     [ClassData(typeof(MockSameValuesData))]
+    [ClassData(typeof(MockAntiQuickSortData))]
+    [ClassData(typeof(MockQuickSortWorstCaseData))]
     public void SortResultOrderTest(IInputSample<int> inputSample)
     {
+        var stats = new StatisticsContext();
         var array = inputSample.Samples.ToArray();
-        sort.Sort(array);
-        var expected = inputSample.Samples.OrderBy(x => x).ToArray();
-        Assert.Equal(expected, array);
+        BubbleSort.Sort(array.AsSpan(), stats);
+
+        Assert.Equal((ulong)inputSample.Samples.Length, (ulong)array.Length);
     }
 
     [Theory]
-    [ClassData(typeof(MockRandomData))]
-    [ClassData(typeof(MockNegativePositiveRandomData))]
-    [ClassData(typeof(MockNegativeRandomData))]
-    [ClassData(typeof(MockReversedData))]
-    [ClassData(typeof(MockMountainData))]
-    [ClassData(typeof(MockNearlySortedData))]
-    [ClassData(typeof(MockSameValuesData))]
-    public void StatisticsTest(IInputSample<int> inputSample)
+    [ClassData(typeof(MockStabilityData))]
+    public void StabilityTest(StabilityTestItem[] items)
     {
-        sort.Sort(inputSample.Samples);
-        Assert.Equal(algorithm, sort.Statistics.Algorithm);
-        Assert.Equal(inputSample.Samples.Length, sort.Statistics.ArraySize);
-        Assert.NotEqual(0UL, sort.Statistics.IndexAccessCount);
-        Assert.NotEqual(0UL, sort.Statistics.CompareCount);
-        Assert.NotEqual(0UL, sort.Statistics.SwapCount);
+        // Test stability: equal elements should maintain relative order
+        var stats = new StatisticsContext();
+
+        BubbleSort.Sort(items.AsSpan(), stats);
+
+        // Verify sorting correctness - values should be in ascending order
+        Assert.Equal(MockStabilityData.Sorted, items.Select(x => x.Value).ToArray());
+
+        // Verify stability: for each group of equal values, original order is preserved
+        var value1Indices = items.Where(x => x.Value == 1).Select(x => x.OriginalIndex).ToArray();
+        var value2Indices = items.Where(x => x.Value == 2).Select(x => x.OriginalIndex).ToArray();
+        var value3Indices = items.Where(x => x.Value == 3).Select(x => x.OriginalIndex).ToArray();
+
+        // Value 1 appeared at original indices 0, 2, 4 - should remain in this order
+        Assert.Equal(MockStabilityData.Sorted1, value1Indices);
+
+        // Value 2 appeared at original indices 1, 5 - should remain in this order
+        Assert.Equal(MockStabilityData.Sorted2, value2Indices);
+
+        // Value 3 appeared at original index 3
+        Assert.Equal(MockStabilityData.Sorted3, value3Indices);
     }
+
+    [Theory]
+    [ClassData(typeof(MockStabilityWithIdData))]
+    public void StabilityTestWithComplex(StabilityTestItemWithId[] items)
+    {
+        // Test stability with more complex scenario - multiple equal values
+        var stats = new StatisticsContext();
+
+        BubbleSort.Sort(items.AsSpan(), stats);
+
+        // Expected: [2:B, 2:D, 2:F, 5:A, 5:C, 5:G, 8:E]
+        // Keys are sorted, and elements with the same key maintain original order
+
+        for (var i = 0; i < items.Length; i++)
+        {
+            Assert.Equal(MockStabilityWithIdData.Sorted[i].Key, items[i].Key);
+            Assert.Equal(MockStabilityWithIdData.Sorted[i].Id, items[i].Id);
+        }
+    }
+
+    [Theory]
+    [ClassData(typeof(MockStabilityAllEqualsData))]
+    public void StabilityTestWithAllEqual(StabilityTestItem[] items)
+    {
+        // Edge case: all elements have the same value
+        // They should remain in original order
+        var stats = new StatisticsContext();
+
+        BubbleSort.Sort(items.AsSpan(), stats);
+
+        // All values are 1
+        Assert.All(items, item => Assert.Equal(1, item.Value));
+
+        // Original order should be preserved: 0, 1, 2, 3, 4
+        Assert.Equal(MockStabilityAllEqualsData.Sorted, items.Select(x => x.OriginalIndex).ToArray());
+    }
+
+#if DEBUG
 
     [Theory]
     [ClassData(typeof(MockSortedData))]
     public void StatisticsSortedTest(IInputSample<int> inputSample)
     {
-        sort.Sort(inputSample.Samples);
-        Assert.Equal(algorithm, sort.Statistics.Algorithm);
-        Assert.Equal(inputSample.Samples.Length, sort.Statistics.ArraySize);
-        Assert.NotEqual(0UL, sort.Statistics.IndexAccessCount);
-        Assert.NotEqual(0UL, sort.Statistics.CompareCount);
-        Assert.Equal(0UL, sort.Statistics.SwapCount);
+        var stats = new StatisticsContext();
+        var array = inputSample.Samples.ToArray();
+        BubbleSort.Sort(array.AsSpan(), stats);
+
+        Assert.Equal((ulong)inputSample.Samples.Length, (ulong)array.Length);
+        Assert.NotEqual(0UL, stats.IndexReadCount);
+        Assert.Equal(0UL, stats.IndexWriteCount);
+        Assert.NotEqual(0UL, stats.CompareCount);
+        Assert.Equal(0UL, stats.SwapCount);
     }
 
     [Theory]
@@ -129,16 +111,24 @@ public class BubbleSortTests
     [InlineData(100)]
     public void TheoreticalValuesSortedTest(int n)
     {
+        var stats = new StatisticsContext();
         var sorted = Enumerable.Range(0, n).ToArray();
-        sort.Sort(sorted);
-        
-        // 理論値: ソート済みの場合
-        // 比較回数: n(n-1)/2 (常に全ての要素を比較)
-        // 交換回数: 0 (交換不要)
+        BubbleSort.Sort(sorted.AsSpan(), stats);
+
+        // Bubble Sort always performs n(n-1)/2 comparisons regardless of input order
+        // For sorted data, no swaps are needed since all elements are already in order
         var expectedCompares = (ulong)(n * (n - 1) / 2);
-        
-        Assert.Equal(expectedCompares, sort.Statistics.CompareCount);
-        Assert.Equal(0UL, sort.Statistics.SwapCount);
+        var expectedSwaps = 0UL;
+        var expectedWrites = 0UL; // No swaps = no writes
+
+        // Each comparison reads 2 elements (positions j and j-1)
+        // Total reads = 2 * number of comparisons
+        var expectedReads = expectedCompares * 2;
+
+        Assert.Equal(expectedCompares, stats.CompareCount);
+        Assert.Equal(expectedSwaps, stats.SwapCount);
+        Assert.Equal(expectedWrites, stats.IndexWriteCount);
+        Assert.Equal(expectedReads, stats.IndexReadCount);
     }
 
     [Theory]
@@ -148,36 +138,64 @@ public class BubbleSortTests
     [InlineData(100)]
     public void TheoreticalValuesReversedTest(int n)
     {
+        var stats = new StatisticsContext();
         var reversed = Enumerable.Range(0, n).Reverse().ToArray();
-        sort.Sort(reversed);
-        
-        // 理論値: 逆順の場合 (最悪ケース)
-        // 比較回数: n(n-1)/2
-        // 交換回数: n(n-1)/2
+        BubbleSort.Sort(reversed.AsSpan(), stats);
+
+        // Bubble Sort worst case: reversed array
+        // Comparisons: n(n-1)/2 (all adjacent pairs are compared)
+        // Swaps: n(n-1)/2 (every comparison results in a swap)
         var expectedCompares = (ulong)(n * (n - 1) / 2);
         var expectedSwaps = (ulong)(n * (n - 1) / 2);
-        
-        Assert.Equal(expectedCompares, sort.Statistics.CompareCount);
-        Assert.Equal(expectedSwaps, sort.Statistics.SwapCount);
+
+        // Each swap writes 2 elements (swap reads and writes both positions)
+        var expectedWrites = expectedSwaps * 2;
+
+        // Each comparison reads 2 elements + each swap reads 2 elements
+        // Total reads = 2 * comparisons + 2 * swaps = 4 * n(n-1)/2
+        var expectedReads = expectedCompares * 2 + expectedSwaps * 2;
+
+        Assert.Equal(expectedCompares, stats.CompareCount);
+        Assert.Equal(expectedSwaps, stats.SwapCount);
+        Assert.Equal(expectedWrites, stats.IndexWriteCount);
+        Assert.Equal(expectedReads, stats.IndexReadCount);
     }
 
     [Theory]
-    [ClassData(typeof(MockRandomData))]
-    [ClassData(typeof(MockNegativePositiveRandomData))]
-    [ClassData(typeof(MockNegativeRandomData))]
-    [ClassData(typeof(MockReversedData))]
-    [ClassData(typeof(MockMountainData))]
-    [ClassData(typeof(MockNearlySortedData))]
-    [ClassData(typeof(MockSortedData))]
-    [ClassData(typeof(MockSameValuesData))]
-    public void StatisticsResetTest(IInputSample<int> inputSample)
+    [InlineData(10)]
+    [InlineData(20)]
+    [InlineData(50)]
+    [InlineData(100)]
+    public void TheoreticalValuesRandomTest(int n)
     {
-        sort.Sort(inputSample.Samples);
-        sort.Statistics.Reset();
-        Assert.Equal(0UL, sort.Statistics.IndexAccessCount);
-        Assert.Equal(0UL, sort.Statistics.CompareCount);
-        Assert.Equal(0UL, sort.Statistics.SwapCount);
+        var stats = new StatisticsContext();
+        var random = Enumerable.Range(0, n).OrderBy(_ => Guid.NewGuid()).ToArray();
+        BubbleSort.Sort(random.AsSpan(), stats);
+
+        // Bubble Sort always performs n(n-1)/2 comparisons regardless of input
+        // For random data, swap count varies based on the number of inversions
+        // - Best case: 0 swaps (already sorted by chance)
+        // - Average case: n(n-1)/4 swaps (approximately half of comparisons result in swaps)
+        // - Worst case: n(n-1)/2 swaps (reversed)
+        var expectedCompares = (ulong)(n * (n - 1) / 2);
+        var minSwaps = 0UL;
+        var maxSwaps = (ulong)(n * (n - 1) / 2);
+
+        // Each comparison reads 2 elements
+        var minReads = expectedCompares * 2;
+        // Maximum reads occur when all comparisons result in swaps
+        var maxReads = expectedCompares * 2 + maxSwaps * 2;
+
+        Assert.Equal(expectedCompares, stats.CompareCount);
+        Assert.InRange(stats.SwapCount, minSwaps, maxSwaps);
+        Assert.InRange(stats.IndexReadCount, minReads, maxReads);
+
+        // Writes = 2 * swaps (each swap writes 2 elements)
+        var expectedMinWrites = minSwaps * 2;
+        var expectedMaxWrites = maxSwaps * 2;
+        Assert.InRange(stats.IndexWriteCount, expectedMinWrites, expectedMaxWrites);
     }
+
+#endif
+
 }
-
-

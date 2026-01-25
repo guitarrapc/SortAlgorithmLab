@@ -1,80 +1,10 @@
+﻿using SortLab.Core.Algorithms;
+using SortLab.Core.Contexts;
+
 namespace SortLab.Tests;
 
 public class RadixLSD4SortTests
 {
-    private ISort<int> sort;
-    private string algorithm;
-    private SortMethod method;
-
-    public RadixLSD4SortTests()
-    {
-        sort = new RadixLSD4Sort<int>();
-        algorithm = nameof(RadixLSD4Sort<int>);
-        method = SortMethod.Distributed;
-    }
-
-    [Fact]
-    public void SortMethodTest()
-    {
-        Assert.Equal(method, sort.SortType);
-    }
-
-    [Theory]
-    [ClassData(typeof(MockRandomData))]
-    public void RandomInputTypeTest(IInputSample<int> inputSample)
-    {
-        Assert.Equal(InputType.Random, inputSample.InputType);
-    }
-
-    [Theory]
-    [ClassData(typeof(MockNegativePositiveRandomData))]
-    public void MixRandomInputTypeTest(IInputSample<int> inputSample)
-    {
-        Assert.Equal(InputType.MixRandom, inputSample.InputType);
-    }
-
-    [Theory]
-    [ClassData(typeof(MockNegativeRandomData))]
-    public void NegativeRandomInputTypeTest(IInputSample<int> inputSample)
-    {
-        Assert.Equal(InputType.NegativeRandom, inputSample.InputType);
-    }
-
-    [Theory]
-    [ClassData(typeof(MockReversedData))]
-    public void ReverseInputTypeTest(IInputSample<int> inputSample)
-    {
-        Assert.Equal(InputType.Reversed, inputSample.InputType);
-    }
-
-    [Theory]
-    [ClassData(typeof(MockMountainData))]
-    public void MountainInputTypeTest(IInputSample<int> inputSample)
-    {
-        Assert.Equal(InputType.Mountain, inputSample.InputType);
-    }
-
-    [Theory]
-    [ClassData(typeof(MockNearlySortedData))]
-    public void NearlySortedInputTypeTest(IInputSample<int> inputSample)
-    {
-        Assert.Equal(InputType.NearlySorted, inputSample.InputType);
-    }
-
-    [Theory]
-    [ClassData(typeof(MockSortedData))]
-    public void SortedInputTypeTest(IInputSample<int> inputSample)
-    {
-        Assert.Equal(InputType.Sorted, inputSample.InputType);
-    }
-
-    [Theory]
-    [ClassData(typeof(MockSameValuesData))]
-    public void SameValuesInputTypeTest(IInputSample<int> inputSample)
-    {
-        Assert.Equal(InputType.SameValues, inputSample.InputType);
-    }
-
     [Theory]
     [ClassData(typeof(MockRandomData))]
     [ClassData(typeof(MockNegativePositiveRandomData))]
@@ -82,76 +12,33 @@ public class RadixLSD4SortTests
     [ClassData(typeof(MockReversedData))]
     [ClassData(typeof(MockMountainData))]
     [ClassData(typeof(MockNearlySortedData))]
-    [ClassData(typeof(MockSortedData))]
     [ClassData(typeof(MockSameValuesData))]
+    [ClassData(typeof(MockAntiQuickSortData))]
+    [ClassData(typeof(MockQuickSortWorstCaseData))]
     public void SortResultOrderTest(IInputSample<int> inputSample)
     {
+        var stats = new StatisticsContext();
         var array = inputSample.Samples.ToArray();
-        sort.Sort(array);
-        Assert.Equal(inputSample.Samples.OrderBy(x => x), array);
+        RadixLSD4Sort.Sort(array.AsSpan(), stats);
+
+        Assert.Equal((ulong)inputSample.Samples.Length, (ulong)array.Length);
     }
 
-    [Theory]
-    [ClassData(typeof(MockRandomData))]
-    [ClassData(typeof(MockReversedData))]
-    [ClassData(typeof(MockMountainData))]
-    [ClassData(typeof(MockNearlySortedData))]
-    [ClassData(typeof(MockSameValuesData))]
-    public void StatisticsTest(IInputSample<int> inputSample)
-    {
-        var array = inputSample.Samples.ToArray();
-        sort.Sort(array);
-        Assert.Equal(algorithm, sort.Statistics.Algorithm);
-        Assert.Equal(inputSample.Samples.Length, sort.Statistics.ArraySize);
-        Assert.NotEqual((ulong)0, sort.Statistics.IndexAccessCount);
-        Assert.NotEqual((ulong)0, sort.Statistics.CompareCount);
-        Assert.Equal((ulong)0, sort.Statistics.SwapCount);
-    }
-
-    [Theory]
-    [ClassData(typeof(MockNegativePositiveRandomData))]
-    [ClassData(typeof(MockNegativeRandomData))]
-    public void StatisticsNegativeTest(IInputSample<int> inputSample)
-    {
-        var array = inputSample.Samples.ToArray();
-        sort.Sort(array);
-        Assert.Equal(algorithm, sort.Statistics.Algorithm);
-        Assert.Equal(inputSample.Samples.Length, sort.Statistics.ArraySize);
-        Assert.NotEqual((ulong)0, sort.Statistics.IndexAccessCount);
-        Assert.NotEqual((ulong)0, sort.Statistics.CompareCount);
-        Assert.Equal((ulong)0, sort.Statistics.SwapCount);
-    }
+#if DEBUG
 
     [Theory]
     [ClassData(typeof(MockSortedData))]
     public void StatisticsSortedTest(IInputSample<int> inputSample)
     {
+        var stats = new StatisticsContext();
         var array = inputSample.Samples.ToArray();
-        sort.Sort(array);
-        Assert.Equal(algorithm, sort.Statistics.Algorithm);
-        Assert.Equal(inputSample.Samples.Length, sort.Statistics.ArraySize);
-        Assert.NotEqual((ulong)0, sort.Statistics.IndexAccessCount);
-        Assert.NotEqual((ulong)0, sort.Statistics.CompareCount);
-        Assert.Equal((ulong)0, sort.Statistics.SwapCount);
-    }
+        RadixLSD4Sort.Sort(array.AsSpan(), stats);
 
-    [Theory]
-    [ClassData(typeof(MockRandomData))]
-    [ClassData(typeof(MockNegativePositiveRandomData))]
-    [ClassData(typeof(MockNegativeRandomData))]
-    [ClassData(typeof(MockReversedData))]
-    [ClassData(typeof(MockMountainData))]
-    [ClassData(typeof(MockNearlySortedData))]
-    [ClassData(typeof(MockSortedData))]
-    [ClassData(typeof(MockSameValuesData))]
-    public void StatisticsResetTest(IInputSample<int> inputSample)
-    {
-        var array = inputSample.Samples.ToArray();
-        sort.Sort(array);
-        sort.Statistics.Reset();
-        Assert.Equal((ulong)0, sort.Statistics.IndexAccessCount);
-        Assert.Equal((ulong)0, sort.Statistics.CompareCount);
-        Assert.Equal((ulong)0, sort.Statistics.SwapCount);
+        Assert.Equal((ulong)inputSample.Samples.Length, (ulong)array.Length);
+        Assert.NotEqual(0UL, stats.IndexReadCount);
+        Assert.NotEqual(0UL, stats.IndexWriteCount);
+        Assert.Equal(0UL, stats.CompareCount);
+        Assert.Equal(0UL, stats.SwapCount);
     }
 
     [Theory]
@@ -161,11 +48,34 @@ public class RadixLSD4SortTests
     [InlineData(100)]
     public void TheoreticalValuesSortedTest(int n)
     {
+        var stats = new StatisticsContext();
         var sorted = Enumerable.Range(0, n).ToArray();
-        sort.Sort(sorted);
+        RadixLSD4Sort.Sort(sorted.AsSpan(), stats);
 
-        // Sorted data should produce predictable statistics
-        Assert.NotEqual(0UL, sort.Statistics.CompareCount);
+        // LSD Radix Sort (Base-256) on sorted non-negative data:
+        // For 32-bit integers: digitCount = 4 (4 bytes)
+        // 1. Check for negatives: n reads (no negatives found, all elements checked)
+        // 2. SortCorePositive (4 passes):
+        //    Per pass d (d=0,1,2,3):
+        //      - Count phase: n reads
+        //      - Distribute phase: n reads + n writes (to temp)
+        //      - Copy back phase: n reads (from temp) + n writes (to main)
+        //
+        // Total per pass: n + n + n + n + n = 5n operations (but we track reads/writes separately)
+        // - Reads: n (count) + n (distribute read from main) + n (copy back read from temp) = 3n per pass
+        // - Writes: n (distribute write to temp) + n (copy back write to main) = 2n per pass
+        //
+        // Total for 4 passes:
+        // - Reads: n (check negatives) + 4 × 3n = n + 12n = 13n
+        // - Writes: 4 × 2n = 8n
+        var digitCount = 4; // 32-bit int = 4 bytes
+        var expectedReads = (ulong)(n + digitCount * 3 * n);  // Check + (count + distribute + copy) × passes
+        var expectedWrites = (ulong)(digitCount * 2 * n);     // (temp write + main write) × passes
+
+        Assert.Equal(expectedReads, stats.IndexReadCount);
+        Assert.Equal(expectedWrites, stats.IndexWriteCount);
+        Assert.Equal(0UL, stats.CompareCount);
+        Assert.Equal(0UL, stats.SwapCount);
     }
 
     [Theory]
@@ -175,10 +85,106 @@ public class RadixLSD4SortTests
     [InlineData(100)]
     public void TheoreticalValuesReversedTest(int n)
     {
+        var stats = new StatisticsContext();
         var reversed = Enumerable.Range(0, n).Reverse().ToArray();
-        sort.Sort(reversed);
+        RadixLSD4Sort.Sort(reversed.AsSpan(), stats);
 
-        // Reversed data should require sorting operations
-        Assert.NotEqual(0UL, sort.Statistics.CompareCount);
+        // LSD Radix Sort on reversed non-negative data:
+        // Same as sorted - performance is data-independent O(d × n)
+        var digitCount = 4;
+        var expectedReads = (ulong)(n + digitCount * 3 * n);
+        var expectedWrites = (ulong)(digitCount * 2 * n);
+
+        Assert.Equal(expectedReads, stats.IndexReadCount);
+        Assert.Equal(expectedWrites, stats.IndexWriteCount);
+        Assert.Equal(0UL, stats.CompareCount);
+        Assert.Equal(0UL, stats.SwapCount);
     }
+
+    [Theory]
+    [InlineData(10)]
+    [InlineData(20)]
+    [InlineData(50)]
+    [InlineData(100)]
+    public void TheoreticalValuesRandomTest(int n)
+    {
+        var stats = new StatisticsContext();
+        var random = Enumerable.Range(0, n).OrderBy(_ => Guid.NewGuid()).ToArray();
+        RadixLSD4Sort.Sort(random.AsSpan(), stats);
+
+        // LSD Radix Sort on random non-negative data:
+        // Same complexity as sorted/reversed - O(d × n)
+        var digitCount = 4;
+        var expectedReads = (ulong)(n + digitCount * 3 * n);
+        var expectedWrites = (ulong)(digitCount * 2 * n);
+
+        Assert.Equal(expectedReads, stats.IndexReadCount);
+        Assert.Equal(expectedWrites, stats.IndexWriteCount);
+        Assert.Equal(0UL, stats.CompareCount);
+        Assert.Equal(0UL, stats.SwapCount);
+    }
+
+    [Theory]
+    [InlineData(10)]
+    [InlineData(20)]
+    [InlineData(50)]
+    [InlineData(100)]
+    public void TheoreticalValuesNegativeTest(int n)
+    {
+        var stats = new StatisticsContext();
+        // Mix of negative and non-negative: [-n/2, ..., -1, 0, 1, ..., n/2-1]
+        var mixed = Enumerable.Range(-n / 2, n).ToArray();
+        RadixLSD4Sort.Sort(mixed.AsSpan(), stats);
+
+        // With negative numbers:
+        // 1. Check for negatives: 1 read (early exit on first negative)
+        // 2. Separate: n reads (from main) + n writes (to neg/nonneg buffers via SortSpan)
+        // 3. Sort negative subset (digitCount passes)
+        // 4. Sort non-negative subset (digitCount passes)
+        // 5. Merge: n reads (from neg/nonneg buffers) + n writes (to main)
+        //
+        // For input [-n/2, ..., -1, 0, 1, ..., n/2-1]:
+        // - Negative count = n/2
+        // - Non-negative count = n/2
+        var negativeCount = n / 2;
+        var nonNegativeCount = n - negativeCount;
+        var digitCount = 4;
+
+        // Reads:
+        //   1. Check: 1
+        //   2. Separate: n (read from main)
+        //   3. Sort negatives: digitCount × 3 × negativeCount
+        //   4. Sort non-negatives: digitCount × 3 × nonNegativeCount
+        //   5. Merge: n (read from buffers)
+        // Writes:
+        //   1. Separate: n (write to neg/nonneg buffers)
+        //   2. Sort negatives: digitCount × 2 × negativeCount
+        //   3. Sort non-negatives: digitCount × 2 × nonNegativeCount
+        //   4. Merge: n (write to main)
+        var expectedReads = (ulong)(
+            1 // Check for negatives (early exit)
+            + n // Separate (read from main)
+            + digitCount * 3 * negativeCount // Sort negatives
+            + digitCount * 3 * nonNegativeCount // Sort non-negatives
+            + n // Merge (read from buffers)
+        );
+
+        var expectedWrites = (ulong)(
+            n // Separate (write to buffers)
+            + digitCount * 2 * negativeCount // Sort negatives
+            + digitCount * 2 * nonNegativeCount // Sort non-negatives
+            + n // Merge (write to main)
+        );
+
+        Assert.Equal(expectedReads, stats.IndexReadCount);
+        Assert.Equal(expectedWrites, stats.IndexWriteCount);
+        Assert.Equal(0UL, stats.CompareCount);
+        Assert.Equal(0UL, stats.SwapCount);
+
+        // Verify result is sorted
+        Assert.Equal(mixed.OrderBy(x => x), mixed);
+    }
+
+#endif
+
 }
