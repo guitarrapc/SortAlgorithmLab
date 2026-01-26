@@ -1,0 +1,89 @@
+﻿namespace SandboxBenchmark;
+
+[MemoryDiagnoser]
+public class PartitionBenchmark
+{
+    [Params(100, 1000, 10000)]
+    public int Size { get; set; }
+
+    [Params(DataPattern.Random, DataPattern.Sorted, DataPattern.Reversed, DataPattern.NearlySorted)]
+    public DataPattern Pattern { get; set; }
+
+    private int[] _blockQuickArray = default!;
+    private int[] _introArray = default!;
+    private int[] _pdqArray = default!;
+    private int[] _quickArray = default!;
+    private int[] _quickDualPivotArray = default!;
+    private int[] _quickMedian3Array = default!;
+    private int[] _quickMedian9Array = default!;
+    private int[] _stableQuickArray = default!;
+    private int[] _stdArray = default!;
+
+    [IterationSetup]
+    public void Setup()
+    {
+        _blockQuickArray = BenchmarkData.GenerateIntArray(Size, Pattern);
+        _introArray = BenchmarkData.GenerateIntArray(Size, Pattern);
+        _pdqArray = BenchmarkData.GenerateIntArray(Size, Pattern);
+        _quickArray = BenchmarkData.GenerateIntArray(Size, Pattern);
+        _quickDualPivotArray = BenchmarkData.GenerateIntArray(Size, Pattern);
+        _quickMedian3Array = BenchmarkData.GenerateIntArray(Size, Pattern);
+        _quickMedian9Array = BenchmarkData.GenerateIntArray(Size, Pattern);
+        _stableQuickArray = BenchmarkData.GenerateIntArray(Size, Pattern);
+        _stdArray = BenchmarkData.GenerateIntArray(Size, Pattern);
+    }
+
+    [Benchmark]
+    public void BlockQuickSort()
+    {
+        SortAlgorithm.Algorithms.BlockQuickSort.Sort(_blockQuickArray.AsSpan());
+    }
+
+    [Benchmark]
+    public void IntroSort()
+    {
+        SortAlgorithm.Algorithms.IntroSort.Sort(_introArray.AsSpan());
+    }
+
+    [Benchmark]
+    public void PDQSort()
+    {
+        SortAlgorithm.Algorithms.PDQSort.Sort(_pdqArray.AsSpan());
+    }
+
+    [Benchmark]
+    public void QuickSort()
+    {
+        SortAlgorithm.Algorithms.QuickSort.Sort(_quickArray.AsSpan());
+    }
+
+    [Benchmark]
+    public void QuickSortDualPivot()
+    {
+        SortAlgorithm.Algorithms.QuickSortDualPivot.Sort(_quickDualPivotArray.AsSpan());
+    }
+
+    [Benchmark]
+    public void QuickSortMedian3()
+    {
+        SortAlgorithm.Algorithms.QuickSortMedian3.Sort(_quickMedian3Array.AsSpan());
+    }
+
+    [Benchmark]
+    public void QuickSortMedian9()
+    {
+        SortAlgorithm.Algorithms.QuickSortMedian9.Sort(_quickMedian9Array.AsSpan());
+    }
+
+    [Benchmark]
+    public void StableQuickSort()
+    {
+        SortAlgorithm.Algorithms.StableQuickSort.Sort(_stableQuickArray.AsSpan());
+    }
+
+    [Benchmark]
+    public void StdSort()
+    {
+        SortAlgorithm.Algorithms.StdSort.Sort(_stdArray.AsSpan());
+    }
+}
