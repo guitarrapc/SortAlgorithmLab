@@ -36,6 +36,21 @@ dotnet run -c Release
 dotnet build
 ```
 
+### Run Some Script
+
+If you needd create some .cs file to verify somthing, you can create it in the `sandbox` folder and run it via:
+
+```powershell
+cd sandbox
+dotnet run -c Release --project YourScriptProjectName.csproj
+```
+
+or you can directly run a single C# file:
+
+```powershell
+dotnet run YourScriptFile.cs
+```
+
 ## Important Guidelines
 
 When implementing or reviewing sorting algorithms, refer to these detailed guides:
