@@ -92,8 +92,34 @@ public static class BlockQuickSort
     // Threshold for switching to insertion sort - matches reference implementation
     const int InsertionSortThreshold = 20;
     
+    // Threshold for duplicate check: only check for small arrays
+    const int DuplicateCheckThreshold = 512;
+    
+    // Minimum ratio of duplicates to continue scanning (1 in 4 = 25%)
+    const int DuplicateScanRatio = 4;
+    
     // Buffer identifiers for visualization
     const int BUFFER_MAIN = 0;       // Main input array
+    
+    /// <summary>
+    /// Result of partitioning operation.
+    /// Contains the range of elements equal to the pivot (inclusive).
+    /// </summary>
+    readonly struct PartitionResult
+    {
+        public readonly int Left;   // First index of pivot-equal elements
+        public readonly int Right;  // Last index of pivot-equal elements
+        
+        public PartitionResult(int left, int right)
+        {
+            Left = left;
+            Right = right;
+        }
+        
+        public PartitionResult(int pivotIndex) : this(pivotIndex, pivotIndex)
+        {
+        }
+    }
 
     /// <summary>
     /// Sorts the elements in the specified span in ascending order using the default comparer.
@@ -159,27 +185,27 @@ public static class BlockQuickSort
             }
 
             // Partition using block-based Hoare partition
-            var pivotIndex = HoareBlockPartition(s, left, right);
+            var result = HoareBlockPartition(s, left, right);
 
             // Tail recursion optimization: recurse on smaller partition, loop on larger
-            // Note: pivotIndex element is already in its final position, so exclude it from both partitions
-            if (pivotIndex - left < right - pivotIndex)
+            // Note: elements in [result.Left, result.Right] are already in final position (equal to pivot)
+            if (result.Left - left < right - result.Right)
             {
-                // Left partition is smaller: recurse on left [left, pivotIndex-1], iterate on right [pivotIndex+1, right]
-                if (pivotIndex > left)
+                // Left partition is smaller: recurse on left [left, result.Left-1], iterate on right [result.Right+1, right]
+                if (result.Left > left)
                 {
-                    SortCore(s, left, pivotIndex - 1);
+                    SortCore(s, left, result.Left - 1);
                 }
-                left = pivotIndex + 1;
+                left = result.Right + 1;
             }
             else
             {
-                // Right partition is smaller: recurse on right [pivotIndex+1, right], iterate on left [left, pivotIndex-1]
-                if (pivotIndex < right)
+                // Right partition is smaller: recurse on right [result.Right+1, right], iterate on left [left, result.Left-1]
+                if (result.Right < right)
                 {
-                    SortCore(s, pivotIndex + 1, right);
+                    SortCore(s, result.Right + 1, right);
                 }
-                right = pivotIndex - 1;
+                right = result.Left - 1;
             }
         }
     }
@@ -197,9 +223,9 @@ public static class BlockQuickSort
     /// <param name="s">The SortSpan to partition.</param>
     /// <param name="left">The inclusive start index.</param>
     /// <param name="right">The inclusive end index.</param>
-    /// <returns>The final position of the pivot element.</returns>
+    /// <returns>The range of elements equal to the pivot.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    static int HoareBlockPartition<T>(SortSpan<T> s, int left, int right) where T : IComparable<T>
+    static PartitionResult HoareBlockPartition<T>(SortSpan<T> s, int left, int right) where T : IComparable<T>
     {
         var size = right - left + 1;
         int pivotIndex;
@@ -228,7 +254,15 @@ public static class BlockQuickSort
             pivotIndex = MedianOf3(s, left, (left + right) / 2, right);
         }
         
-        return HoareBlockPartitionCore(s, left, right, pivotIndex);
+        var pivotPos = HoareBlockPartitionCore(s, left, right, pivotIndex);
+        
+        // Apply duplicate check for small arrays
+        if (size <= DuplicateCheckThreshold)
+        {
+            return CheckForDuplicates(s, left, right, pivotPos);
+        }
+        
+        return new PartitionResult(pivotPos);
     }
 
     /// <summary>
@@ -605,6 +639,101 @@ public static class BlockQuickSort
                 left = i + 1;
             else
                 right = i;
+        }
+    }
+
+    /// <summary>
+    /// Checks for duplicate elements equal to the pivot and groups them together.
+    /// Based on BlockQuickSort paper Section 3.1: "Further Tuning of Block Partitioning".
+    /// This optimization helps prevent deep recursion when arrays have many duplicate values.
+    /// </summary>
+    /// <remarks>
+    /// The duplicate check is applied when:
+    /// 1. The array size is small enough (≤ DuplicateCheckThreshold)
+    /// 2. There are potentially many duplicates (checked during scan)
+    /// 
+    /// The algorithm scans the larger partition for elements equal to the pivot.
+    /// Scanning continues as long as at least 1 in DuplicateScanRatio (25%) elements are equal to pivot.
+    /// Equal elements are moved adjacent to the pivot position, forming a contiguous group [left, right]
+    /// that can be excluded from further recursive calls.
+    /// </remarks>
+    /// <typeparam name="T">The type of elements.</typeparam>
+    /// <param name="s">The SortSpan to check.</param>
+    /// <param name="left">The left boundary of the partition.</param>
+    /// <param name="right">The right boundary of the partition.</param>
+    /// <param name="pivotPos">The current position of the pivot element.</param>
+    /// <returns>The range [Left, Right] of elements equal to the pivot (inclusive).</returns>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    static PartitionResult CheckForDuplicates<T>(SortSpan<T> s, int left, int right, int pivotPos) where T : IComparable<T>
+    {
+        var pivot = s.Read(pivotPos);
+        var leftSize = pivotPos - left;
+        var rightSize = right - pivotPos;
+        
+        // Check the larger partition for duplicates
+        if (leftSize > rightSize)
+        {
+            // Scan left partition (from pivotPos-1 down to left)
+            var equalLeft = pivotPos;
+            var scanned = 0;
+            var found = 0;
+            
+            for (var i = pivotPos - 1; i >= left; i--)
+            {
+                scanned++;
+                
+                // Check if element equals pivot (elements on left are <= pivot, so only need == check)
+                if (s.Compare(i, pivot) == 0)
+                {
+                    found++;
+                    equalLeft--;
+                    // Move equal element next to pivot group
+                    if (i != equalLeft)
+                    {
+                        s.Swap(i, equalLeft);
+                    }
+                }
+                
+                // Stop if duplicates are too sparse (less than 25%)
+                if (scanned >= DuplicateScanRatio && found * DuplicateScanRatio < scanned)
+                {
+                    break;
+                }
+            }
+            
+            return new PartitionResult(equalLeft, pivotPos);
+        }
+        else
+        {
+            // Scan right partition (from pivotPos+1 up to right)
+            var equalRight = pivotPos;
+            var scanned = 0;
+            var found = 0;
+            
+            for (var i = pivotPos + 1; i <= right; i++)
+            {
+                scanned++;
+                
+                // Check if element equals pivot (elements on right are >= pivot, so only need == check)
+                if (s.Compare(i, pivot) == 0)
+                {
+                    found++;
+                    equalRight++;
+                    // Move equal element next to pivot group
+                    if (i != equalRight)
+                    {
+                        s.Swap(i, equalRight);
+                    }
+                }
+                
+                // Stop if duplicates are too sparse (less than 25%)
+                if (scanned >= DuplicateScanRatio && found * DuplicateScanRatio < scanned)
+                {
+                    break;
+                }
+            }
+            
+            return new PartitionResult(pivotPos, equalRight);
         }
     }
 }

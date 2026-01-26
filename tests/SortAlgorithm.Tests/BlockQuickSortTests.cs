@@ -358,6 +358,105 @@ public class BlockQuickSortTests
         }
     }
 
+    /// <summary>
+    /// Tests duplicate check optimization with small arrays containing many duplicates.
+    /// This triggers the duplicate check path (size ≤ 512).
+    /// </summary>
+    [Fact]
+    public void DuplicateCheckSmallArrayTest()
+    {
+        var stats = new StatisticsContext();
+        var size = 300; // Small enough to trigger duplicate check
+        var array = new int[size];
+
+        // 80% of elements are value 50
+        var random = new Random(42);
+        for (var i = 0; i < size; i++)
+        {
+            array[i] = random.Next(10) < 8 ? 50 : random.Next(100);
+        }
+
+        BlockQuickSort.Sort(array.AsSpan(), stats);
+
+        // Verify sorted
+        for (var i = 0; i < size - 1; i++)
+        {
+            Assert.True(array[i] <= array[i + 1], 
+                $"Array not sorted at index {i}: {array[i]} > {array[i + 1]}");
+        }
+
+        // Verify many elements are 50
+        var count50 = array.Count(x => x == 50);
+        Assert.True(count50 >= size * 0.7, $"Expected at least 70% to be 50, got {count50}/{size}");
+    }
+
+    /// <summary>
+    /// Tests duplicate check with arrays at the threshold boundary.
+    /// </summary>
+    [Theory]
+    [InlineData(256)]  // Half the threshold
+    [InlineData(512)]  // At threshold
+    [InlineData(513)]  // Just above threshold (no duplicate check)
+    public void DuplicateCheckThresholdTest(int size)
+    {
+        var stats = new StatisticsContext();
+        var array = new int[size];
+
+        // 60% duplicates
+        var random = new Random(42);
+        for (var i = 0; i < size; i++)
+        {
+            array[i] = random.Next(10) < 6 ? 42 : random.Next(size);
+        }
+
+        BlockQuickSort.Sort(array.AsSpan(), stats);
+
+        // Verify sorted
+        for (var i = 0; i < size - 1; i++)
+        {
+            Assert.True(array[i] <= array[i + 1], 
+                $"Array not sorted at index {i}: {array[i]} > {array[i + 1]}");
+        }
+    }
+
+    /// <summary>
+    /// Tests that duplicate check stops early when duplicates are sparse.
+    /// The algorithm should stop scanning when less than 25% are duplicates.
+    /// </summary>
+    [Fact]
+    public void DuplicateCheckEarlyStopTest()
+    {
+        var stats = new StatisticsContext();
+        var size = 400;
+        var array = new int[size];
+
+        // First 20% are duplicates (value 1), rest are unique
+        // This should trigger early stop in duplicate scanning
+        for (var i = 0; i < size / 5; i++)
+        {
+            array[i] = 1;
+        }
+        for (var i = size / 5; i < size; i++)
+        {
+            array[i] = i;
+        }
+
+        // Shuffle
+        var random = new Random(42);
+        var shuffled = array.OrderBy(_ => random.Next()).ToArray();
+
+        BlockQuickSort.Sort(shuffled.AsSpan(), stats);
+
+        // Verify sorted
+        for (var i = 0; i < size - 1; i++)
+        {
+            Assert.True(shuffled[i] <= shuffled[i + 1], 
+                $"Array not sorted at index {i}: {shuffled[i]} > {shuffled[i + 1]}");
+        }
+    }
+
+
+
 #if DEBUG
 
     [Theory]
