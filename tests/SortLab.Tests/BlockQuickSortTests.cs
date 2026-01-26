@@ -264,31 +264,113 @@ public class BlockQuickSortTests
     }
 
     [Theory]
-    [ClassData(typeof(MockRandomData))]
-    public void StatisticsRandomTest(IInputSample<int> inputSample)
+    [InlineData(10)]
+    [InlineData(20)]
+    [InlineData(50)]
+    [InlineData(100)]
+    public void TheoreticalValuesSortedTest(int n)
     {
         var stats = new StatisticsContext();
-        var array = inputSample.Samples.ToArray();
-        BlockQuickSort.Sort(array.AsSpan(), stats);
+        var sorted = Enumerable.Range(0, n).ToArray();
+        BlockQuickSort.Sort(sorted.AsSpan(), stats);
 
-        Assert.Equal((ulong)inputSample.Samples.Length, (ulong)array.Length);
-        Assert.NotEqual(0UL, stats.IndexReadCount);
-        Assert.NotEqual(0UL, stats.CompareCount);
-        Assert.NotEqual(0UL, stats.SwapCount);
+        // BlockQuickSort behavior on sorted data:
+        // - For small arrays (n ≤ 20): Uses InsertionSort
+        //   - Best case O(n): n-1 comparisons, 0 swaps
+        // - For larger arrays (n > 20): Uses QuickSort with adaptive pivot selection
+        //   - For sorted data with median-of-3 or better pivot selection,
+        //     partitioning creates relatively balanced partitions
+        //   - InsertionSort is used for final small partitions (≤ 20 elements)
+        //   - Block partitioning comparisons + InsertionSort for small partitions
+
+        ulong minCompares, maxCompares, minSwaps, maxSwaps;
+
+        // Conservative bounds that work for both InsertionSort and QuickSort paths
+        minCompares = (ulong)(n - 1); // Minimum: at least n-1 comparisons
+        maxCompares = (ulong)(3 * n * Math.Max(1, Math.Log(n, 2))); // Upper bound for QuickSort
+        minSwaps = 0UL; // Sorted data may need no swaps
+        maxSwaps = (ulong)(n * Math.Max(1, Math.Log(n, 2))); // Upper bound
+
+        Assert.InRange(stats.CompareCount, minCompares, maxCompares);
+        Assert.InRange(stats.SwapCount, minSwaps, maxSwaps);
+
+        // IndexReads: Each comparison reads elements, each swap reads and writes
+        var minIndexReads = stats.CompareCount;
+        Assert.True(stats.IndexReadCount >= minIndexReads,
+            $"IndexReadCount ({stats.IndexReadCount}) should be >= {minIndexReads}");
     }
 
     [Theory]
-    [ClassData(typeof(MockReversedData))]
-    public void StatisticsReversedTest(IInputSample<int> inputSample)
+    [InlineData(10)]
+    [InlineData(20)]
+    [InlineData(50)]
+    [InlineData(100)]
+    public void TheoreticalValuesReversedTest(int n)
     {
         var stats = new StatisticsContext();
-        var array = inputSample.Samples.ToArray();
-        BlockQuickSort.Sort(array.AsSpan(), stats);
+        var reversed = Enumerable.Range(0, n).Reverse().ToArray();
+        BlockQuickSort.Sort(reversed.AsSpan(), stats);
 
-        Assert.Equal((ulong)inputSample.Samples.Length, (ulong)array.Length);
-        Assert.NotEqual(0UL, stats.IndexReadCount);
-        Assert.NotEqual(0UL, stats.CompareCount);
-        Assert.NotEqual(0UL, stats.SwapCount);
+        // BlockQuickSort behavior on reversed data:
+        // - For small arrays (n ≤ 20): Uses InsertionSort
+        //   - Worst case O(n²): n(n-1)/2 comparisons, (n-1)(n+2)/2 writes
+        // - For larger arrays (n > 20): Uses QuickSort with adaptive pivot selection
+        //   - Median-of-3 or better pivot selection helps avoid worst-case
+        //   - Block partitioning occurs, then InsertionSort for final small partitions
+        //   - Overall: O(n log n) behavior with good pivot selection
+
+        ulong minCompares, maxCompares;
+
+        // Conservative bounds that handle both paths
+        if (n <= 20)
+        {
+            // InsertionSort worst case for small arrays
+            minCompares = (ulong)(n * (n - 1) / 2);
+            maxCompares = (ulong)(n * (n - 1) / 2);
+        }
+        else
+        {
+            // Larger arrays: combination of QuickSort partitioning + InsertionSort for small partitions
+            minCompares = (ulong)(n);
+            maxCompares = (ulong)(n * n); // Allow for worst-case InsertionSort on partitions
+        }
+
+        Assert.InRange(stats.CompareCount, minCompares, maxCompares);
+
+        // IndexReads and IndexWrites should be proportional to operations
+        var minIndexReads = stats.CompareCount;
+        Assert.True(stats.IndexReadCount >= minIndexReads,
+            $"IndexReadCount ({stats.IndexReadCount}) should be >= {minIndexReads}");
+    }
+
+    [Theory]
+    [InlineData(10)]
+    [InlineData(20)]
+    [InlineData(50)]
+    [InlineData(100)]
+    public void TheoreticalValuesRandomTest(int n)
+    {
+        var stats = new StatisticsContext();
+        var random = Enumerable.Range(0, n).OrderBy(_ => Guid.NewGuid()).ToArray();
+        BlockQuickSort.Sort(random.AsSpan(), stats);
+
+        // BlockQuickSort behavior on random data:
+        // - For small arrays (n ≤ 20): Uses InsertionSort
+        //   - Average case O(n²): approximately n²/4 comparisons
+        // - For larger arrays: Uses QuickSort with adaptive pivot selection + InsertionSort for small partitions
+        //   - Average case: ~1.2-1.4n log₂ n comparisons (better than standard QuickSort)
+        //   - Block partitioning improves cache efficiency without changing comparison count
+        //   - Combined complexity: O(n log n) with InsertionSort overhead
+
+        // Conservative bounds for both paths
+        ulong minCompares = (ulong)(n - 1); // Minimum: at least n-1 comparisons
+        ulong maxCompares = (ulong)(n * n); // Allow for InsertionSort worst-case on partitions
+
+        Assert.InRange(stats.CompareCount, minCompares, maxCompares);
+
+        var minIndexReads = stats.CompareCount;
+        Assert.True(stats.IndexReadCount >= minIndexReads,
+            $"IndexReadCount ({stats.IndexReadCount}) should be >= {minIndexReads}");
     }
 
 #endif
