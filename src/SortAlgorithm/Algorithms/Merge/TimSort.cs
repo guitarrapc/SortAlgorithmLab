@@ -81,6 +81,8 @@ namespace SortAlgorithm.Algorithms;
 /// <para><strong>Reference:</strong></para>
 /// <para>Wiki: https://en.wikipedia.org/wiki/Timsort</para>
 /// <para>Original description: https://github.com/python/cpython/blob/v3.4.10/Objects/listsort.txt</para>
+/// <para>Arxiv: Tight Universal Bounds for Partially Presorted Pareto Front and Convex Hull https://arxiv.org/abs/2512.06559</para>
+/// <para>Arxiv: On the Worst-Case Complexity of TimSort https://arxiv.org/abs/1805.08612</para>
 /// <para>YouTube: https://www.youtube.com/watch?v=exbuZQpWkQ0 (Efficient Algorithms COMP526 (Fall 2023))</para>
 /// </remarks>
 public static class TimSort
@@ -362,10 +364,14 @@ public static class TimSort
                 lastOfs = ofs;
                 ofs = (ofs << 1) + 1;
                 if (ofs <= 0) // Overflow
+                {
                     ofs = maxOfs;
+                }
             }
             if (ofs > maxOfs)
+            {
                 ofs = maxOfs;
+            }
 
             lastOfs += hint;
             ofs += hint;
@@ -379,10 +385,14 @@ public static class TimSort
                 lastOfs = ofs;
                 ofs = (ofs << 1) + 1;
                 if (ofs <= 0) // Overflow
+                {
                     ofs = maxOfs;
+                }
             }
             if (ofs > maxOfs)
+            {
                 ofs = maxOfs;
+            }
 
             var tmp = lastOfs;
             lastOfs = hint - ofs;
@@ -395,9 +405,13 @@ public static class TimSort
         {
             var m = lastOfs + ((ofs - lastOfs) >> 1);
             if (s.Compare(key, baseIdx + m) > 0)
+            {
                 lastOfs = m + 1;
+            }
             else
+            {
                 ofs = m;
+            }
         }
         return ofs;
     }
@@ -423,10 +437,14 @@ public static class TimSort
                 lastOfs = ofs;
                 ofs = (ofs << 1) + 1;
                 if (ofs <= 0) // Overflow
+                {
                     ofs = maxOfs;
+                }
             }
             if (ofs > maxOfs)
+            {
                 ofs = maxOfs;
+            }
 
             var tmp = lastOfs;
             lastOfs = hint - ofs;
@@ -441,10 +459,14 @@ public static class TimSort
                 lastOfs = ofs;
                 ofs = (ofs << 1) + 1;
                 if (ofs <= 0) // Overflow
+                {
                     ofs = maxOfs;
+                }
             }
             if (ofs > maxOfs)
+            {
                 ofs = maxOfs;
+            }
 
             lastOfs += hint;
             ofs += hint;
@@ -456,9 +478,13 @@ public static class TimSort
         {
             var m = lastOfs + ((ofs - lastOfs) >> 1);
             if (s.Compare(key, baseIdx + m) >= 0)
+            {
                 lastOfs = m + 1;
+            }
             else
+            {
                 ofs = m;
+            }
         }
         return ofs;
     }
@@ -519,7 +545,9 @@ public static class TimSort
                         count2 = 0;
                         len1--;
                         if (len1 == 0)
+                        {
                             goto exitMerge;
+                        }
                     }
                     else
                     {
@@ -529,7 +557,9 @@ public static class TimSort
                         count1 = 0;
                         len2--;
                         if (len2 == 0)
+                        {
                             goto exitMerge;
+                        }
                     }
                 } while ((count1 | count2) < minGallop);
 
@@ -544,12 +574,16 @@ public static class TimSort
                         cursor1 += count1;
                         len1 -= count1;
                         if (len1 == 0)
+                        {
                             goto exitMerge;
+                        }
                     }
                     s.Write(dest++, s.Read(cursor2++));
                     len2--;
                     if (len2 == 0)
+                    {
                         goto exitMerge;
+                    }
 
                     count2 = GallopLeft(s, t.Read(cursor1), cursor2, len2, 0);
                     if (count2 != 0)
@@ -559,18 +593,24 @@ public static class TimSort
                         cursor2 += count2;
                         len2 -= count2;
                         if (len2 == 0)
+                        {
                             goto exitMerge;
+                        }
                     }
                     s.Write(dest++, t.Read(cursor1++));
                     len1--;
                     if (len1 == 1)
+                    {
                         goto exitMerge;
+                    }
 
                     minGallop--;
                 } while (count1 >= MIN_GALLOP || count2 >= MIN_GALLOP);
 
                 if (minGallop < 0)
+                {
                     minGallop = 0;
+                }
                 minGallop += 2;  // Penalize for leaving galloping mode
             }
 
@@ -652,7 +692,9 @@ public static class TimSort
                         count1 = 0;
                         len2--;
                         if (len2 == 0)
+                        {
                             goto exitMerge;
+                        }
                     }
                     else
                     {
@@ -662,7 +704,9 @@ public static class TimSort
                         count2 = 0;
                         len1--;
                         if (len1 == 0)
+                        {
                             goto exitMerge;
+                        }
                     }
                 } while ((count1 | count2) < minGallop);
 
@@ -677,12 +721,16 @@ public static class TimSort
                         len1 -= count1;
                         s.CopyTo(cursor1 + 1, s, dest + 1, count1);
                         if (len1 == 0)
+                        {
                             goto exitMerge;
+                        }
                     }
                     s.Write(dest--, t.Read(cursor2--));
                     len2--;
                     if (len2 == 1)
+                    {
                         goto exitMerge;
+                    }
 
                     count2 = len2 - GallopLeft(t, s.Read(cursor1), 0, len2, len2 - 1);
                     if (count2 != 0)
@@ -692,18 +740,24 @@ public static class TimSort
                         len2 -= count2;
                         t.CopyTo(cursor2 + 1, s, dest + 1, count2);
                         if (len2 == 0)
+                        {
                             goto exitMerge;
+                        }
                     }
                     s.Write(dest--, s.Read(cursor1--));
                     len1--;
                     if (len1 == 0)
+                    {
                         goto exitMerge;
+                    }
 
                     minGallop--;
                 } while (count1 >= MIN_GALLOP || count2 >= MIN_GALLOP);
 
                 if (minGallop < 0)
+                {
                     minGallop = 0;
+                }
                 minGallop += 2;  // Penalize for leaving galloping mode
             }
 
