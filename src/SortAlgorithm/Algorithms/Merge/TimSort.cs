@@ -70,8 +70,10 @@ namespace SortAlgorithm.Algorithms;
 /// <para><strong>Implementation Notes:</strong></para>
 /// <list type="bullet">
 /// <item><description>MIN_MERGE = 32: Arrays smaller than 32 elements use Binary Insertion Sort directly (O(n²) but fast for small n)</description></item>
+/// <item><description>MIN_GALLOP = 7: Threshold for entering galloping mode during merges</description></item>
 /// <item><description>Stack size = 85: Sufficient for 2^64 elements (worst-case stack depth is ⌈log_φ(n)⌉ where φ ≈ 1.618 is golden ratio)</description></item>
-/// <item><description>Simplified implementation: This version uses basic merging without galloping mode for clarity and simplicity</description></item>
+/// <item><description>Galloping mode: Adaptive exponential search + binary search when one run consistently wins, dynamically adjusted threshold</description></item>
+/// <item><description>Range reduction: Before merging, skip elements already in final positions using galloping</description></item>
 /// </list>
 /// <para><strong>Reference:</strong></para>
 /// <para>Wiki: https://en.wikipedia.org/wiki/Timsort</para>
@@ -87,6 +89,19 @@ public static class TimSort
     // TimSort constants
     private const int MIN_MERGE = 32;        // Minimum sized sequence to merge
     private const int MIN_GALLOP = 7;        // Threshold for entering galloping mode
+
+    /// <summary>
+    /// Merge state structure to track galloping threshold dynamically.
+    /// </summary>
+    private ref struct MergeState
+    {
+        public int MinGallop;
+
+        public MergeState()
+        {
+            MinGallop = MIN_GALLOP;
+        }
+    }
 
     /// <summary>
     /// Sorts the elements in the specified span in ascending order using the default comparer.
@@ -303,9 +318,163 @@ public static class TimSort
     }
 
     /// <summary>
-    /// Merges two adjacent runs.
+    /// Merges two adjacent runs with galloping mode optimization.
     /// </summary>
     private static void MergeRuns<T>(Span<T> span, int base1, int len1, int base2, int len2, ISortContext context) where T : IComparable<T>
+    {
+        var s = new SortSpan<T>(span, context, BUFFER_MAIN);
+        var ms = new MergeState();
+
+        // Optimize: Find where first element of run2 goes in run1
+        // Elements before this point are already in their final positions
+        var k = GallopRight(s, s.Read(base2), base1, len1, 0);
+        base1 += k;
+        len1 -= k;
+        if (len1 == 0) return;
+
+        // Optimize: Find where last element of run1 goes in run2
+        // Elements after this point are already in their final positions
+        len2 = GallopLeft(s, s.Read(base1 + len1 - 1), base2, len2, len2 - 1);
+        if (len2 == 0) return;
+
+        // Merge remaining runs using galloping
+        if (len1 <= len2)
+        {
+            MergeLow(span, base1, len1, base2, len2, ref ms, context);
+        }
+        else
+        {
+            MergeHigh(span, base1, len1, base2, len2, ref ms, context);
+        }
+    }
+
+    /// <summary>
+    /// Locate the position at which to insert key in a sorted range.
+    /// Returns the index k such that all elements in [base..base+k) are less than key,
+    /// and all elements in [base+k..base+len) are greater than or equal to key.
+    /// Uses galloping (exponential search followed by binary search).
+    /// </summary>
+    private static int GallopLeft<T>(SortSpan<T> s, T key, int baseIdx, int len, int hint) where T : IComparable<T>
+    {
+        var lastOfs = 0;
+        var ofs = 1;
+        var p = baseIdx + hint;
+
+        if (s.Compare(key, p) > 0)
+        {
+            // Gallop right until s[base + hint + lastOfs] < key <= s[base + hint + ofs]
+            var maxOfs = len - hint;
+            while (ofs < maxOfs && s.Compare(key, p + ofs) > 0)
+            {
+                lastOfs = ofs;
+                ofs = (ofs << 1) + 1;
+                if (ofs <= 0) // Overflow
+                    ofs = maxOfs;
+            }
+            if (ofs > maxOfs)
+                ofs = maxOfs;
+
+            lastOfs += hint;
+            ofs += hint;
+        }
+        else
+        {
+            // Gallop left until s[base + hint - ofs] < key <= s[base + hint - lastOfs]
+            var maxOfs = hint + 1;
+            while (ofs < maxOfs && s.Compare(key, p - ofs) <= 0)
+            {
+                lastOfs = ofs;
+                ofs = (ofs << 1) + 1;
+                if (ofs <= 0) // Overflow
+                    ofs = maxOfs;
+            }
+            if (ofs > maxOfs)
+                ofs = maxOfs;
+
+            var tmp = lastOfs;
+            lastOfs = hint - ofs;
+            ofs = hint - tmp;
+        }
+
+        // Binary search in [base + lastOfs, base + ofs)
+        lastOfs++;
+        while (lastOfs < ofs)
+        {
+            var m = lastOfs + ((ofs - lastOfs) >> 1);
+            if (s.Compare(key, baseIdx + m) > 0)
+                lastOfs = m + 1;
+            else
+                ofs = m;
+        }
+        return ofs;
+    }
+
+    /// <summary>
+    /// Locate the position at which to insert key in a sorted range.
+    /// Returns the index k such that all elements in [base..base+k) are less than or equal to key,
+    /// and all elements in [base+k..base+len) are greater than key.
+    /// Uses galloping (exponential search followed by binary search).
+    /// </summary>
+    private static int GallopRight<T>(SortSpan<T> s, T key, int baseIdx, int len, int hint) where T : IComparable<T>
+    {
+        var lastOfs = 0;
+        var ofs = 1;
+        var p = baseIdx + hint;
+
+        if (s.Compare(key, p) < 0)
+        {
+            // Gallop left until s[base + hint - ofs] <= key < s[base + hint - lastOfs]
+            var maxOfs = hint + 1;
+            while (ofs < maxOfs && s.Compare(key, p - ofs) < 0)
+            {
+                lastOfs = ofs;
+                ofs = (ofs << 1) + 1;
+                if (ofs <= 0) // Overflow
+                    ofs = maxOfs;
+            }
+            if (ofs > maxOfs)
+                ofs = maxOfs;
+
+            var tmp = lastOfs;
+            lastOfs = hint - ofs;
+            ofs = hint - tmp;
+        }
+        else
+        {
+            // Gallop right until s[base + hint + lastOfs] <= key < s[base + hint + ofs]
+            var maxOfs = len - hint;
+            while (ofs < maxOfs && s.Compare(key, p + ofs) >= 0)
+            {
+                lastOfs = ofs;
+                ofs = (ofs << 1) + 1;
+                if (ofs <= 0) // Overflow
+                    ofs = maxOfs;
+            }
+            if (ofs > maxOfs)
+                ofs = maxOfs;
+
+            lastOfs += hint;
+            ofs += hint;
+        }
+
+        // Binary search in [base + lastOfs, base + ofs)
+        lastOfs++;
+        while (lastOfs < ofs)
+        {
+            var m = lastOfs + ((ofs - lastOfs) >> 1);
+            if (s.Compare(key, baseIdx + m) >= 0)
+                lastOfs = m + 1;
+            else
+                ofs = m;
+        }
+        return ofs;
+    }
+
+    /// <summary>
+    /// Merges two adjacent runs where the first run is smaller or equal.
+    /// Uses galloping mode when one run consistently wins.
+    /// </summary>
+    private static void MergeLow<T>(Span<T> span, int base1, int len1, int base2, int len2, ref MergeState ms, ISortContext context) where T : IComparable<T>
     {
         var s = new SortSpan<T>(span, context, BUFFER_MAIN);
 
@@ -314,34 +483,240 @@ public static class TimSort
         var t = new SortSpan<T>(tmp, context, BUFFER_TEMP);
         s.CopyTo(base1, t, 0, len1);
 
-        var i = 0;              // Index in temp (first run)
-        var j = base2;          // Index in span (second run)
-        var k = base1;          // Destination index
+        var cursor1 = 0;          // Index in temp (first run)
+        var cursor2 = base2;      // Index in span (second run)
+        var dest = base1;         // Destination index
 
-        // Merge
-        while (i < len1 && j < base2 + len2)
+        // Move first element of second run
+        s.Write(dest++, s.Read(cursor2++));
+        len2--;
+
+        if (len2 == 0)
         {
-            var leftVal = t.Read(i);
-            var rightVal = s.Read(j);
-            
-            // Stability: use <= to take from left when equal
-            if (s.Compare(leftVal, rightVal) <= 0)
-            {
-                s.Write(k++, leftVal);
-                i++;
-            }
-            else
-            {
-                s.Write(k++, rightVal);
-                j++;
-            }
+            t.CopyTo(0, s, dest, len1);
+            return;
+        }
+        if (len1 == 1)
+        {
+            s.CopyTo(cursor2, s, dest, len2);
+            s.Write(dest + len2, t.Read(cursor1));
+            return;
         }
 
-        // Copy remaining elements from temp
-        while (i < len1)
+        var minGallop = ms.MinGallop;
+
+        while (true)
         {
-            s.Write(k++, t.Read(i++));
+            var count1 = 0;  // # of times run1 won in a row
+            var count2 = 0;  // # of times run2 won in a row
+
+            // One-pair-at-a-time mode
+            do
+            {
+                var val1 = t.Read(cursor1);
+                var val2 = s.Read(cursor2);
+
+                if (s.Compare(val1, val2) <= 0)
+                {
+                    s.Write(dest++, val1);
+                    cursor1++;
+                    count1++;
+                    count2 = 0;
+                    len1--;
+                    if (len1 == 0)
+                        goto exitMerge;
+                }
+                else
+                {
+                    s.Write(dest++, val2);
+                    cursor2++;
+                    count2++;
+                    count1 = 0;
+                    len2--;
+                    if (len2 == 0)
+                        goto exitMerge;
+                }
+            } while ((count1 | count2) < minGallop);
+
+            // Galloping mode: one run is winning consistently
+            do
+            {
+                count1 = GallopRight(t, s.Read(cursor2), cursor1, len1, 0);
+                if (count1 != 0)
+                {
+                    t.CopyTo(cursor1, s, dest, count1);
+                    dest += count1;
+                    cursor1 += count1;
+                    len1 -= count1;
+                    if (len1 == 0)
+                        goto exitMerge;
+                }
+                s.Write(dest++, s.Read(cursor2++));
+                len2--;
+                if (len2 == 0)
+                    goto exitMerge;
+
+                count2 = GallopLeft(s, t.Read(cursor1), cursor2, len2, 0);
+                if (count2 != 0)
+                {
+                    s.CopyTo(cursor2, s, dest, count2);
+                    dest += count2;
+                    cursor2 += count2;
+                    len2 -= count2;
+                    if (len2 == 0)
+                        goto exitMerge;
+                }
+                s.Write(dest++, t.Read(cursor1++));
+                len1--;
+                if (len1 == 1)
+                    goto exitMerge;
+
+                minGallop--;
+            } while (count1 >= MIN_GALLOP || count2 >= MIN_GALLOP);
+
+            if (minGallop < 0)
+                minGallop = 0;
+            minGallop += 2;  // Penalize for leaving galloping mode
         }
-        // Elements from second run are already in place
+
+        exitMerge:
+        ms.MinGallop = minGallop < 1 ? 1 : minGallop;
+
+        if (len1 == 1)
+        {
+            s.CopyTo(cursor2, s, dest, len2);
+            s.Write(dest + len2, t.Read(cursor1));
+        }
+        else if (len1 > 0)
+        {
+            t.CopyTo(cursor1, s, dest, len1);
+        }
+    }
+
+    /// <summary>
+    /// Merges two adjacent runs where the second run is smaller.
+    /// Uses galloping mode when one run consistently wins.
+    /// </summary>
+    private static void MergeHigh<T>(Span<T> span, int base1, int len1, int base2, int len2, ref MergeState ms, ISortContext context) where T : IComparable<T>
+    {
+        var s = new SortSpan<T>(span, context, BUFFER_MAIN);
+
+        // Copy second run to temp array
+        var tmp = new T[len2];
+        var t = new SortSpan<T>(tmp, context, BUFFER_TEMP);
+        s.CopyTo(base2, t, 0, len2);
+
+        var cursor1 = base1 + len1 - 1;  // Index in span (first run, from end)
+        var cursor2 = len2 - 1;          // Index in temp (second run, from end)
+        var dest = base2 + len2 - 1;     // Destination index (from end)
+
+        // Move last element of first run
+        s.Write(dest--, s.Read(cursor1--));
+        len1--;
+
+        if (len1 == 0)
+        {
+            t.CopyTo(0, s, dest - (len2 - 1), len2);
+            return;
+        }
+        if (len2 == 1)
+        {
+            dest -= len1;
+            cursor1 -= len1;
+            s.CopyTo(cursor1 + 1, s, dest + 1, len1);
+            s.Write(dest, t.Read(0));
+            return;
+        }
+
+        var minGallop = ms.MinGallop;
+
+        while (true)
+        {
+            var count1 = 0;  // # of times run1 won in a row
+            var count2 = 0;  // # of times run2 won in a row
+
+            // One-pair-at-a-time mode
+            do
+            {
+                var val1 = s.Read(cursor1);
+                var val2 = t.Read(cursor2);
+
+                if (s.Compare(val2, val1) >= 0)
+                {
+                    s.Write(dest--, val2);
+                    cursor2--;
+                    count2++;
+                    count1 = 0;
+                    len2--;
+                    if (len2 == 0)
+                        goto exitMerge;
+                }
+                else
+                {
+                    s.Write(dest--, val1);
+                    cursor1--;
+                    count1++;
+                    count2 = 0;
+                    len1--;
+                    if (len1 == 0)
+                        goto exitMerge;
+                }
+            } while ((count1 | count2) < minGallop);
+
+            // Galloping mode: one run is winning consistently
+            do
+            {
+                count1 = len1 - GallopRight(s, t.Read(cursor2), base1, len1, len1 - 1);
+                if (count1 != 0)
+                {
+                    dest -= count1;
+                    cursor1 -= count1;
+                    len1 -= count1;
+                    s.CopyTo(cursor1 + 1, s, dest + 1, count1);
+                    if (len1 == 0)
+                        goto exitMerge;
+                }
+                s.Write(dest--, t.Read(cursor2--));
+                len2--;
+                if (len2 == 1)
+                    goto exitMerge;
+
+                count2 = len2 - GallopLeft(t, s.Read(cursor1), 0, len2, len2 - 1);
+                if (count2 != 0)
+                {
+                    dest -= count2;
+                    cursor2 -= count2;
+                    len2 -= count2;
+                    t.CopyTo(cursor2 + 1, s, dest + 1, count2);
+                    if (len2 == 0)
+                        goto exitMerge;
+                }
+                s.Write(dest--, s.Read(cursor1--));
+                len1--;
+                if (len1 == 0)
+                    goto exitMerge;
+
+                minGallop--;
+            } while (count1 >= MIN_GALLOP || count2 >= MIN_GALLOP);
+
+            if (minGallop < 0)
+                minGallop = 0;
+            minGallop += 2;  // Penalize for leaving galloping mode
+        }
+
+        exitMerge:
+        ms.MinGallop = minGallop < 1 ? 1 : minGallop;
+
+        if (len2 == 1)
+        {
+            dest -= len1;
+            cursor1 -= len1;
+            s.CopyTo(cursor1 + 1, s, dest + 1, len1);
+            s.Write(dest, t.Read(cursor2));
+        }
+        else if (len2 > 0)
+        {
+            t.CopyTo(0, s, dest - (len2 - 1), len2);
+        }
     }
 }
