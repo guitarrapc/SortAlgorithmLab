@@ -11,7 +11,6 @@ This is a C# sorting algorithm laboratory for educational and performance analys
 - `src/SortAlgorithm/` - Core sorting algorithms and interfaces
   - `Algorithms/` - Sorting algorithm implementations
   - `Contexts/` - Statistics and visualization contexts
-  - `Sortings/` - All sorting algorithm implementations (deprecated)
 - `tests/SortAlgorithm.Tests/` - Unit tests for all algorithms
 - `sandbox/` - Benchmark and experimental code
 - `.github/agent_docs/` - Detailed implementation guidelines
