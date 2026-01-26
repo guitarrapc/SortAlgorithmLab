@@ -76,8 +76,8 @@ Span ...
 /// </list>
 //// <para><strong>Reference:</strong></para>
 /// <para>Wiki: https://en.wikipedia.org/wiki/Insertion_sort</para>
-// </remarks>
-/ublic static class InsertionSort
+/// </remarks>
+public static class InsertionSort
 {
     // Buffer identifiers for visualization
     private const int BUFFER_MAIN = 0;       // Main input array
