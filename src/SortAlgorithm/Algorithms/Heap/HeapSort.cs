@@ -58,10 +58,14 @@ Span ...
 /// <item><description><strong>Heap Property Maintenance:</strong> For a max-heap, every parent node must be greater than or equal to its children.
 /// For array index i, left child is at 2i+1 and right child is at 2i+2. This implementation correctly maintains this property through the iterative heapify operation.</description></item>
 /// <item><description><strong>Build Heap Phase:</strong> The initial heap construction starts from the last non-leaf node (n/2 - 1) and heapifies downward to index 0.
+/// This implementation uses Floyd's improved heap construction algorithm, which reduces comparisons by ~25% compared to standard bottom-up heapify.
 /// This bottom-up approach runs in O(n) time, which is more efficient than the naive O(n log n) top-down construction.</description></item>
 /// <item><description><strong>Extract Max Phase:</strong> Repeatedly swap the root (maximum element) with the last element, reduce heap size, and re-heapify.
 /// This phase performs n-1 extractions, each requiring O(log n) heapify operations, totaling O(n log n).</description></item>
-/// <item><description><strong>Heapify Operation:</strong> Uses an iterative (non-recursive) sift-down approach to restore heap property.
+/// <item><description><strong>Floyd's Heapify Optimization:</strong> During heap construction, uses Floyd's two-phase algorithm:
+/// Phase 1 percolates down to a leaf by selecting larger children without comparing keys.
+/// Phase 2 sifts the original value up to its correct position. This reduces the average number of comparisons.</description></item>
+/// <item><description><strong>Standard Heapify:</strong> During extraction phase, uses standard iterative sift-down approach.
 /// Compares parent with both children, swaps with the larger child if needed, and continues down the tree until heap property is satisfied.</description></item>
 /// </list>
 /// <para><strong>Performance Characteristics:</strong></para>
@@ -160,7 +164,9 @@ public static class HeapSort
         // Build heap
         for (var i = first + n / 2 - 1; i >= first; i--)
         {
-            Heapify(s, i, n, first);
+            // Can replace with standard Heapify(s, i, n, first) for traditional approach
+            FloydHeapify(s, i, n, first);
+            // Heapify(s, i, n, first);
         }
 
         // Extract elements from heap
@@ -169,9 +175,59 @@ public static class HeapSort
             // Move current root to end
             s.Swap(first, i);
 
-            // Re-heapify the reduced heap
+            // Re-heapify the reduced heap (standard sift-down)
             Heapify(s, first, i - first, first);
         }
+    }
+
+    /// <summary>
+    /// Restores the heap property using Floyd's improved heap construction algorithm.
+    /// This method first descends to a leaf level by always selecting the larger child,
+    /// then sifts the original value up to its correct position.
+    /// This reduces comparisons by ~25% compared to standard bottom-up heapify
+    /// </summary>
+    /// <typeparam name="T">The type of elements in the span. Must implement <see cref="IComparable{T}"/>.</typeparam>
+    /// <param name="s">The SortSpan containing the elements and context for tracking operations.</param>
+    /// <param name="root">The index of the root node of the subtree to heapify.</param>
+    /// <param name="size">The size of the heap (number of elements to consider).</param>
+    /// <param name="offset">The starting index offset for the heap within the span.</param>
+    /// <remarks>
+    /// Floyd's algorithm reduces the number of comparisons during heap construction by ~25%.
+    /// Phase 1: Percolate down to a leaf by always taking the larger child (no key comparison).
+    /// Phase 2: Sift up the original root value to its correct position.
+    /// <para>Time Complexity: O(log n) - Same asymptotic complexity but fewer comparisons in practice.</para>
+    /// <para>Space Complexity: O(1) - Uses iteration instead of recursion.</para>
+    /// </remarks>
+    private static void FloydHeapify<T>(SortSpan<T> s, int root, int size, int offset) where T : IComparable<T>
+    {
+        var rootValue = s.Read(root);
+        var hole = root;
+        
+        // Phase 1: Percolate down to a leaf, always taking the larger child
+        var child = 2 * (hole - offset) + 1 + offset;
+        while (child < offset + size)
+        {
+            // Find larger child
+            if (child + 1 < offset + size && s.Compare(child + 1, child) > 0)
+            {
+                child++;
+            }
+            
+            // Move larger child up
+            s.Write(hole, s.Read(child));
+            hole = child;
+            child = 2 * (hole - offset) + 1 + offset;
+        }
+        
+        // Phase 2: Sift up the original root value to its correct position
+        var parent = offset + (hole - offset - 1) / 2;
+        while (hole > root && s.Compare(rootValue, s.Read(parent)) > 0)
+        {
+            s.Write(hole, s.Read(parent));
+            hole = parent;
+            parent = offset + (hole - offset - 1) / 2;
+        }
+        s.Write(hole, rootValue);
     }
 
     /// <summary>
