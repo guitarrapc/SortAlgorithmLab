@@ -15,6 +15,11 @@ public class BlockQuickSortTests
     [ClassData(typeof(MockSameValuesData))]
     [ClassData(typeof(MockAntiQuickSortData))]
     [ClassData(typeof(MockQuickSortWorstCaseData))]
+    [ClassData(typeof(MockAllIdenticalData))]
+    [ClassData(typeof(MockTwoDistinctValuesData))]
+    [ClassData(typeof(MockHalfZeroHalfOneData))]
+    [ClassData(typeof(MockManyDuplicatesSqrtRangeData))]
+    [ClassData(typeof(MockHighlySkewedData))]
     public void SortResultOrderTest(IInputSample<int> inputSample)
     {
         var stats = new StatisticsContext();
@@ -246,6 +251,111 @@ public class BlockQuickSortTests
         BlockQuickSort.Sort(array.AsSpan(), stats);
 
         Assert.Equal(new[] { 1, 2, 2, 2, 3, 5, 5, 5, 8, 9 }, array);
+    }
+
+    /// <summary>
+    /// Tests pattern with repeating sequences of duplicates.
+    /// Example: [1,1,1,2,2,2,3,3,3,...] shuffled
+    /// </summary>
+    [Fact]
+    public void RepeatingDuplicateSequencesTest()
+    {
+        var stats = new StatisticsContext();
+        var array = new List<int>();
+        for (var i = 0; i < 100; i++)
+        {
+            // Each value appears 5 times
+            for (var j = 0; j < 5; j++)
+            {
+                array.Add(i);
+            }
+        }
+
+        // Shuffle the array
+        var random = new Random(42);
+        var shuffled = array.OrderBy(_ => random.Next()).ToArray();
+
+        BlockQuickSort.Sort(shuffled.AsSpan(), stats);
+
+        // Verify sorted and count occurrences
+        for (var i = 0; i < shuffled.Length - 1; i++)
+        {
+            Assert.True(shuffled[i] <= shuffled[i + 1], 
+                $"Array not sorted at index {i}: {shuffled[i]} > {shuffled[i + 1]}");
+        }
+
+        // Verify each value appears exactly 5 times
+        for (var i = 0; i < 100; i++)
+        {
+            var count = shuffled.Count(x => x == i);
+            Assert.Equal(5, count);
+        }
+    }
+
+    /// <summary>
+    /// Tests array with duplicates at block boundaries.
+    /// This ensures block partitioning handles duplicates correctly across block transitions.
+    /// </summary>
+    [Fact]
+    public void DuplicatesAtBlockBoundariesTest()
+    {
+        var stats = new StatisticsContext();
+        var blockSize = 128;
+        var array = new int[blockSize * 3];
+
+        // Fill with pattern: many duplicates at block boundaries
+        for (var i = 0; i < array.Length; i++)
+        {
+            if (i % blockSize < 10 || i % blockSize >= blockSize - 10)
+            {
+                array[i] = 1; // Duplicates near boundaries
+            }
+            else
+            {
+                array[i] = i; // Unique values in the middle
+            }
+        }
+
+        // Shuffle
+        var random = new Random(42);
+        var shuffled = array.OrderBy(_ => random.Next()).ToArray();
+
+        BlockQuickSort.Sort(shuffled.AsSpan(), stats);
+
+        // Verify sorted
+        for (var i = 0; i < shuffled.Length - 1; i++)
+        {
+            Assert.True(shuffled[i] <= shuffled[i + 1], 
+                $"Array not sorted at index {i}: {shuffled[i]} > {shuffled[i + 1]}");
+        }
+    }
+
+    /// <summary>
+    /// Tests the case where pivot value appears many times in the array.
+    /// Paper mentions: "pivot occurs twice in the sample" as a trigger for duplicate check.
+    /// </summary>
+    [Fact]
+    public void PivotValueAppearsManyTimesTest()
+    {
+        var stats = new StatisticsContext();
+        var size = 1000;
+        var array = new int[size];
+
+        // Fill array: 50% are the median value (500)
+        var random = new Random(42);
+        for (var i = 0; i < size; i++)
+        {
+            array[i] = random.Next(2) == 0 ? 500 : random.Next(1000);
+        }
+
+        BlockQuickSort.Sort(array.AsSpan(), stats);
+
+        // Verify sorted
+        for (var i = 0; i < size - 1; i++)
+        {
+            Assert.True(array[i] <= array[i + 1], 
+                $"Array not sorted at index {i}: {array[i]} > {array[i + 1]}");
+        }
     }
 
 #if DEBUG

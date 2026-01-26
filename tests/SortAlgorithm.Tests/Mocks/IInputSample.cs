@@ -14,6 +14,13 @@ public enum InputType
     MixRandom,
     NegativeRandom,
     DictionaryRamdom,
+
+    // Duplicate-heavy patterns (for BlockQuickSort paper benchmarks)
+    AllIdentical,
+    TwoDistinctValues,
+    HalfZeroHalfOne,
+    ManyDuplicatesSqrtRange,
+    HighlySkewed,
 }
 
 public interface IInputSample<T> where T : IComparable
