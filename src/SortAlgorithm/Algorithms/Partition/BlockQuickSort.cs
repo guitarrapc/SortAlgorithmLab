@@ -82,8 +82,7 @@ namespace SortAlgorithm.Algorithms;
 /// <item><description>Empirical speedup: Typically 1.5-2x faster than standard QuickSort on arrays with n &gt; 10,000</description></item>
 /// </list>
 /// <para><strong>Reference:</strong></para>
-/// <para>Original implementation: https://github.com/weissan/BlockQuicksort</para>
-/// <para>Paper: https://drops.dagstuhl.de/storage/00lipics/lipics-vol057-esa2016/LIPIcs.ESA.2016.38/LIPIcs.ESA.2016.38.pdf</para>
+/// <para>Paper: https://arxiv.org/abs/1604.06697</para>
 /// </remarks>
 public static class BlockQuickSort
 {
@@ -235,6 +234,13 @@ public static class BlockQuickSort
     /// <summary>
     /// Core block partitioning logic with the pivot already selected.
     /// This is the actual Hoare block partition implementation that processes elements in blocks.
+    /// <para>
+    /// Block partitioning separates comparison from swapping to reduce branch mispredictions:
+    /// - Scan left blocks to find elements >= pivot (stored in indexL buffer)
+    /// - Scan right blocks to find elements &lt;= pivot (stored in indexR buffer)
+    /// - Batch swap elements from both buffers
+    /// This approach improves cache efficiency and enables better branch prediction.
+    /// </para>
     /// </summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     static int HoareBlockPartitionCore<T>(SortSpan<T> s, int left, int right, int pivotIndex) where T : IComparable<T>
@@ -246,6 +252,8 @@ public static class BlockQuickSort
         var last = pivotEnd - 1;
 
         // Index buffers for storing positions of elements to swap
+        // indexL: stores offsets of elements >= pivot on the left side
+        // indexR: stores offsets of elements <= pivot on the right side
         Span<int> indexL = stackalloc int[BLOCKSIZE];
         Span<int> indexR = stackalloc int[BLOCKSIZE];
 
@@ -259,26 +267,28 @@ public static class BlockQuickSort
         // Main loop: process blocks while enough elements remain
         while (end - begin + 1 > 2 * BLOCKSIZE)
         {
-            // Scan left block and store indices of elements >= pivot
+            // Scan left block: find elements >= pivot that need to move right
+            // Corresponds to paper's Line 9: numLeft += (pivot >= A[ℓ + j])
             if (numLeft == 0)
             {
                 startLeft = 0;
                 for (var j = 0; j < BLOCKSIZE; j++)
                 {
                     indexL[numLeft] = j;
-                    // Store indices where element is NOT less than pivot (i.e., >= pivot)
+                    // Increment counter when: !(begin[j] < pivot), i.e., begin[j] >= pivot
                     numLeft += s.Compare(begin + j, pivot) < 0 ? 0 : 1;
                 }
             }
 
-            // Scan right block and store indices of elements <= pivot
+            // Scan right block: find elements <= pivot that need to move left
+            // Corresponds to paper's Line 16: numRight += (pivot <= A[r - j])
             if (numRight == 0)
             {
                 startRight = 0;
                 for (var j = 0; j < BLOCKSIZE; j++)
                 {
                     indexR[numRight] = j;
-                    // Store indices where pivot is NOT less than element (i.e., pivot >= element, so element <= pivot)
+                    // Increment counter when: !(pivot < end[j]), i.e., pivot >= end[j], meaning end[j] <= pivot
                     numRight += s.Compare(pivot, end - j) < 0 ? 0 : 1;
                 }
             }
@@ -315,14 +325,17 @@ public static class BlockQuickSort
             for (var j = 0; j < shiftL; j++)
             {
                 indexL[numLeft] = j;
+                // Left: count elements >= pivot
                 numLeft += s.Compare(begin + j, pivot) < 0 ? 0 : 1;
                 indexR[numRight] = j;
+                // Right: count elements <= pivot
                 numRight += s.Compare(pivot, end - j) < 0 ? 0 : 1;
             }
 
             if (shiftL < shiftR)
             {
                 indexR[numRight] = shiftR - 1;
+                // Right: count if last element <= pivot
                 numRight += s.Compare(pivot, end - shiftR + 1) < 0 ? 0 : 1;
             }
         }
@@ -336,6 +349,7 @@ public static class BlockQuickSort
             for (var j = 0; j < shiftL; j++)
             {
                 indexL[numLeft] = j;
+                // Left: count elements >= pivot
                 numLeft += s.Compare(begin + j, pivot) < 0 ? 0 : 1;
             }
         }
@@ -349,6 +363,7 @@ public static class BlockQuickSort
             for (var j = 0; j < shiftR; j++)
             {
                 indexR[numRight] = j;
+                // Right: count elements <= pivot
                 numRight += s.Compare(pivot, end - j) < 0 ? 0 : 1;
             }
         }
