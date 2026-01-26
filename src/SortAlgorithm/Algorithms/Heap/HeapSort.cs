@@ -102,7 +102,6 @@ Span ...
 /// <item><description>Despite O(n log n) guarantee, often slower than Quicksort in practice due to poor cache performance</description></item>
 /// </list>
 /// </remarks>
-
 public static class HeapSort
 {
     // Buffer identifiers for visualization
