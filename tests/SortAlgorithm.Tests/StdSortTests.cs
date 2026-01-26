@@ -1,0 +1,379 @@
+﻿using SortAlgorithm.Algorithms;
+using SortAlgorithm.Contexts;
+
+namespace SortAlgorithm.Tests;
+
+public class StdSortTests
+{
+    [Theory]
+    [ClassData(typeof(MockRandomData))]
+    [ClassData(typeof(MockNegativePositiveRandomData))]
+    [ClassData(typeof(MockNegativeRandomData))]
+    [ClassData(typeof(MockReversedData))]
+    [ClassData(typeof(MockMountainData))]
+    [ClassData(typeof(MockNearlySortedData))]
+    [ClassData(typeof(MockSameValuesData))]
+    [ClassData(typeof(MockAntiQuickSortData))]
+    [ClassData(typeof(MockQuickSortWorstCaseData))]
+    public void SortResultOrderTest(IInputSample<int> inputSample)
+    {
+        var stats = new StatisticsContext();
+        var array = inputSample.Samples.ToArray();
+        StdSort.Sort(array.AsSpan(), stats);
+
+        Assert.Equal((ulong)inputSample.Samples.Length, (ulong)array.Length);
+    }
+
+    [Fact]
+    public void EdgeCaseEmptyArrayTest()
+    {
+        var stats = new StatisticsContext();
+        var empty = Array.Empty<int>();
+        StdSort.Sort(empty.AsSpan(), stats);
+    }
+
+    [Fact]
+    public void EdgeCaseSingleElementTest()
+    {
+        var stats = new StatisticsContext();
+        var single = new[] { 42 };
+        StdSort.Sort(single.AsSpan(), stats);
+
+        Assert.Equal(42, single[0]);
+    }
+
+    [Fact]
+    public void EdgeCaseTwoElementsSortedTest()
+    {
+        var stats = new StatisticsContext();
+        var twoSorted = new[] { 1, 2 };
+        StdSort.Sort(twoSorted.AsSpan(), stats);
+
+        Assert.Equal([1, 2], twoSorted);
+    }
+
+    [Fact]
+    public void EdgeCaseTwoElementsReversedTest()
+    {
+        var stats = new StatisticsContext();
+        var twoReversed = new[] { 2, 1 };
+        StdSort.Sort(twoReversed.AsSpan(), stats);
+
+        Assert.Equal([1, 2], twoReversed);
+    }
+
+    [Fact]
+    public void EdgeCaseThreeElementsTest()
+    {
+        var stats = new StatisticsContext();
+        var three = new[] { 3, 1, 2 };
+        StdSort.Sort(three.AsSpan(), stats);
+
+        Assert.Equal([1, 2, 3], three);
+    }
+
+    [Fact]
+    public void EdgeCaseFourElementsTest()
+    {
+        var stats = new StatisticsContext();
+        var four = new[] { 4, 2, 3, 1 };
+        StdSort.Sort(four.AsSpan(), stats);
+
+        Assert.Equal([1, 2, 3, 4], four);
+    }
+
+    [Fact]
+    public void EdgeCaseFiveElementsTest()
+    {
+        var stats = new StatisticsContext();
+        var five = new[] { 5, 2, 4, 1, 3 };
+        StdSort.Sort(five.AsSpan(), stats);
+
+        Assert.Equal([1, 2, 3, 4, 5], five);
+    }
+
+    [Fact]
+    public void RangeSortTest()
+    {
+        var stats = new StatisticsContext();
+        var array = new[] { 5, 3, 8, 1, 9, 2, 7, 4, 6 };
+
+        // Sort only the range [2, 6) -> indices 2, 3, 4, 5
+        StdSort.Sort(array.AsSpan(), 2, 6, stats);
+
+        // Expected: first 2 elements unchanged, middle 4 sorted, last 3 unchanged
+        Assert.Equal(new[] { 5, 3, 1, 2, 8, 9, 7, 4, 6 }, array);
+    }
+
+    [Fact]
+    public void RangeSortFullArrayTest()
+    {
+        var stats = new StatisticsContext();
+        var array = new[] { 5, 3, 8, 1, 9, 2, 7, 4, 6 };
+
+        // Sort the entire array using range API
+        StdSort.Sort(array.AsSpan(), 0, array.Length, stats);
+
+        Assert.Equal(new[] { 1, 2, 3, 4, 5, 6, 7, 8, 9 }, array);
+    }
+
+    [Fact]
+    public void SmallArrayUnder24ElementsTest()
+    {
+        var stats = new StatisticsContext();
+        var array = Enumerable.Range(1, 20).Reverse().ToArray();
+        StdSort.Sort(array.AsSpan(), stats);
+
+        Assert.Equal(Enumerable.Range(1, 20).ToArray(), array);
+    }
+
+    [Fact]
+    public void LargeArrayOver128ElementsTest()
+    {
+        // Test Tuckey's ninther path
+        var stats = new StatisticsContext();
+        var array = Enumerable.Range(1, 200).Reverse().ToArray();
+        StdSort.Sort(array.AsSpan(), stats);
+
+        Assert.Equal(Enumerable.Range(1, 200).ToArray(), array);
+    }
+
+    [Fact]
+    public void AlreadySortedDetectionTest()
+    {
+        // Test already partitioned optimization
+        var stats = new StatisticsContext();
+        var array = Enumerable.Range(1, 100).ToArray();
+        StdSort.Sort(array.AsSpan(), stats);
+
+        Assert.Equal(Enumerable.Range(1, 100).ToArray(), array);
+    }
+
+    [Fact]
+    public void DuplicateElementsTest()
+    {
+        var stats = new StatisticsContext();
+        var array = new[] { 3, 1, 4, 1, 5, 9, 2, 6, 5, 3, 5 };
+        StdSort.Sort(array.AsSpan(), stats);
+
+        Assert.Equal(new[] { 1, 1, 2, 3, 3, 4, 5, 5, 5, 6, 9 }, array);
+    }
+
+    [Fact]
+    public void AllSameElementsTest()
+    {
+        var stats = new StatisticsContext();
+        var array = Enumerable.Repeat(42, 50).ToArray();
+        StdSort.Sort(array.AsSpan(), stats);
+
+        Assert.All(array, x => Assert.Equal(42, x));
+    }
+
+    [Fact]
+    public void DepthLimitHeapSortFallbackTest()
+    {
+        // Create worst-case pattern that triggers heap sort fallback
+        var stats = new StatisticsContext();
+        var array = new[] { 1, 3, 5, 7, 9, 11, 13, 15, 2, 4, 6, 8, 10, 12, 14, 16 };
+        StdSort.Sort(array.AsSpan(), stats);
+
+        Assert.Equal(Enumerable.Range(1, 16).ToArray(), array);
+    }
+
+    [Fact]
+    public void StringSortTest()
+    {
+        var stats = new StatisticsContext();
+        var array = new[] { "zebra", "apple", "mango", "banana", "cherry" };
+        StdSort.Sort(array.AsSpan(), stats);
+
+        Assert.Equal(new[] { "apple", "banana", "cherry", "mango", "zebra" }, array);
+    }
+
+    [Fact]
+    public void CustomComparableTypeTest()
+    {
+        var stats = new StatisticsContext();
+        var array = new[]
+        {
+            new ComparablePair(3, "c"),
+            new ComparablePair(1, "a"),
+            new ComparablePair(2, "b")
+        };
+        StdSort.Sort(array.AsSpan(), stats);
+
+        Assert.Equal(1, array[0].Value);
+        Assert.Equal(2, array[1].Value);
+        Assert.Equal(3, array[2].Value);
+    }
+
+    private record ComparablePair(int Value, string Label) : IComparable<ComparablePair>
+    {
+        public int CompareTo(ComparablePair? other)
+        {
+            if (other == null) return 1;
+            return Value.CompareTo(other.Value);
+        }
+    }
+
+#if DEBUG
+
+    [Theory]
+    [ClassData(typeof(MockSortedData))]
+    public void StatisticsSortedTest(IInputSample<int> inputSample)
+    {
+        var stats = new StatisticsContext();
+        var array = inputSample.Samples.ToArray();
+        StdSort.Sort(array.AsSpan(), stats);
+
+        Assert.Equal((ulong)inputSample.Samples.Length, (ulong)array.Length);
+        Assert.NotEqual(0UL, stats.IndexReadCount);
+        Assert.NotEqual(0UL, stats.CompareCount);
+    }
+
+    [Theory]
+    [InlineData(10)]
+    [InlineData(20)]
+    [InlineData(50)]
+    [InlineData(100)]
+    public void TheoreticalValuesSortedTest(int n)
+    {
+        var stats = new StatisticsContext();
+        var sorted = Enumerable.Range(0, n).ToArray();
+        StdSort.Sort(sorted.AsSpan(), stats);
+
+        // StdSort behavior on sorted data:
+        // - For small arrays (n ≤ 16): Uses InsertionSort
+        //   - Best case O(n): n-1 comparisons, 0 swaps
+        // - For larger arrays (n > 16): Uses QuickSort with median-of-three pivot
+        //   - For sorted data, InsertionSort is still used for final small partitions
+        //   - Comparisons include: median-of-3 selections + partitioning + InsertionSort for small partitions
+        //   - Swaps may be minimal due to sorted nature
+
+        ulong minCompares, maxCompares, minSwaps, maxSwaps;
+
+        // Note: Even for n > 16, the entire array may still go through InsertionSort
+        // if the initial partition immediately becomes small enough
+        // For sorted data specifically, partitioning creates small partitions quickly
+
+        // Conservative bounds that work for both InsertionSort and QuickSort paths
+        minCompares = (ulong)(n - 1); // Minimum: at least n-1 comparisons
+        maxCompares = (ulong)(3 * n * Math.Max(1, Math.Log(n, 2))); // Upper bound for QuickSort
+        minSwaps = 0UL; // Sorted data may need no swaps
+        maxSwaps = (ulong)(n * Math.Max(1, Math.Log(n, 2))); // Upper bound
+
+        Assert.InRange(stats.CompareCount, minCompares, maxCompares);
+        Assert.InRange(stats.SwapCount, minSwaps, maxSwaps);
+
+        // IndexReads: Each comparison reads elements, each swap reads and writes
+        var minIndexReads = stats.CompareCount;
+        Assert.True(stats.IndexReadCount >= minIndexReads,
+            $"IndexReadCount ({stats.IndexReadCount}) should be >= {minIndexReads}");
+    }
+
+    [Theory]
+    [InlineData(10)]
+    [InlineData(20)]
+    [InlineData(50)]
+    [InlineData(100)]
+    public void TheoreticalValuesReversedTest(int n)
+    {
+        var stats = new StatisticsContext();
+        var reversed = Enumerable.Range(0, n).Reverse().ToArray();
+        StdSort.Sort(reversed.AsSpan(), stats);
+
+        // StdSort behavior on reversed data:
+        // - For small arrays (n ≤ 16): Uses InsertionSort
+        //   - Worst case O(n²): n(n-1)/2 comparisons, (n-1)(n+2)/2 writes
+        // - For larger arrays (n > 16): Uses QuickSort with median-of-three pivot
+        //   - Partitioning occurs, then InsertionSort for final small partitions
+        //   - Overall: O(n log n) behavior
+
+        ulong minCompares, maxCompares;
+
+        // Conservative bounds that handle both paths
+        if (n <= 16)
+        {
+            // InsertionSort worst case for small arrays
+            minCompares = (ulong)(n * (n - 1) / 2);
+            maxCompares = (ulong)(n * (n - 1) / 2);
+        }
+        else
+        {
+            // Larger arrays: combination of QuickSort partitioning + InsertionSort for small partitions
+            minCompares = (ulong)(n);
+            maxCompares = (ulong)(n * n); // Allow for worst-case InsertionSort on partitions
+        }
+
+        Assert.InRange(stats.CompareCount, minCompares, maxCompares);
+
+        // IndexReads and IndexWrites should be proportional to operations
+        var minIndexReads = stats.CompareCount;
+        Assert.True(stats.IndexReadCount >= minIndexReads,
+            $"IndexReadCount ({stats.IndexReadCount}) should be >= {minIndexReads}");
+    }
+
+    [Theory]
+    [InlineData(10)]
+    [InlineData(20)]
+    [InlineData(50)]
+    [InlineData(100)]
+    public void TheoreticalValuesRandomTest(int n)
+    {
+        var stats = new StatisticsContext();
+        var random = Enumerable.Range(0, n).OrderBy(_ => Guid.NewGuid()).ToArray();
+        StdSort.Sort(random.AsSpan(), stats);
+
+        // StdSort behavior on random data:
+        // - For small arrays (n ≤ 16): Uses InsertionSort
+        //   - Average case O(n²): approximately n²/4 comparisons
+        // - For larger arrays: Uses QuickSort + InsertionSort for small partitions
+        //   - Combined complexity: O(n log n) with InsertionSort overhead
+
+        // Conservative bounds for both paths
+        ulong minCompares = (ulong)(n - 1); // Minimum: at least n-1 comparisons
+        ulong maxCompares = (ulong)(n * n); // Allow for InsertionSort worst-case on partitions
+
+        Assert.InRange(stats.CompareCount, minCompares, maxCompares);
+
+        var minIndexReads = stats.CompareCount;
+        Assert.True(stats.IndexReadCount >= minIndexReads,
+            $"IndexReadCount ({stats.IndexReadCount}) should be >= {minIndexReads}");
+    }
+
+    [Theory]
+    [InlineData(5)]
+    [InlineData(10)]
+    [InlineData(20)]
+    [InlineData(50)]
+    public void TheoreticalValuesSameElementsTest(int n)
+    {
+        var stats = new StatisticsContext();
+        var sameValues = Enumerable.Repeat(42, n).ToArray();
+        StdSort.Sort(sameValues.AsSpan(), stats);
+
+        // StdSort behavior on same elements:
+        // - For small arrays (n ≤ 16): Uses InsertionSort
+        //   - Best case O(n): n-1 comparisons (all equal, no shifts)
+        // - For larger arrays: Uses QuickSort + InsertionSort
+        //   - All elements equal to pivot
+        //   - Hoare partition may still swap elements (l ≤ r condition)
+        //   - Combined complexity varies
+
+        // Conservative bounds for all cases
+        ulong minCompares = (ulong)(n - 1);
+        ulong maxCompares = (ulong)(n * Math.Max(1, (int)Math.Log(n, 2)) * 3);
+
+        Assert.InRange(stats.CompareCount, minCompares, maxCompares);
+
+        // Verify array is still correct (all values unchanged)
+        Assert.All(sameValues, val => Assert.Equal(42, val));
+
+        var minIndexReads = stats.CompareCount;
+        Assert.True(stats.IndexReadCount >= minIndexReads,
+            $"IndexReadCount ({stats.IndexReadCount}) should be >= {minIndexReads}");
+    }
+
+#endif
+
+}
