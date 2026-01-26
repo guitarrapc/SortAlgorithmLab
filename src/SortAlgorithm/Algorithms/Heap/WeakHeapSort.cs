@@ -1,4 +1,5 @@
 ﻿using SortAlgorithm.Contexts;
+using System.Buffers;
 using System.Runtime.CompilerServices;
 
 namespace SortAlgorithm.Algorithms;
@@ -44,7 +45,7 @@ namespace SortAlgorithm.Algorithms;
 /// <list type="bullet">
 /// <item><description>Family      : Heap / Selection (optimized variant)</description></item>
 /// <item><description>Stable      : No (element order changes arbitrarily during heap operations)</description></item>
-/// <item><description>In-place    : Nearly (requires O(n) bits for reverse array ≈ n/8 bytes overhead)</description></item>
+/// <item><description>In-place    : Nearly (requires O(n) bits for reverse array ≈ n/64 ulongs = n/8 bytes overhead)</description></item>
 /// <item><description>Best case   : Ω(n log n) - Heap construction and extraction always required regardless of input</description></item>
 /// <item><description>Average case: Θ(n log n) - Build weak heap O(n) + extract phase O(n log n)</description></item>
 /// <item><description>Worst case  : O(n log n) - Guaranteed upper bound for all inputs</description></item>
@@ -61,7 +62,8 @@ namespace SortAlgorithm.Algorithms;
 /// </para>
 /// <para><strong>Implementation Notes:</strong></para>
 /// <list type="bullet">
-/// <item><description>Uses Span&lt;bool&gt; for reverse bits: stackalloc for ≤1024 elements, heap allocation otherwise</description></item>
+/// <item><description>Uses bit-packed ulong array for reverse bits: stackalloc for small arrays (≤1024 elements → 16 ulongs), ArrayPool for larger arrays</description></item>
+/// <item><description>Bit packing reduces memory usage by 8x compared to bool[] (1 bit vs 8 bits per element)</description></item>
 /// <item><description>Distinguished ancestor follows the right spine upward based on parity vs. parent's reverse bit</description></item>
 /// <item><description>Merge is the only comparison operation; all other logic composes merges</description></item>
 /// <item><description>Space overhead: n bits = n/8 bytes (e.g., 1000 elements → 125 bytes)</description></item>
@@ -72,7 +74,7 @@ public static class WeakHeapSort
 {
     // Buffer identifiers for visualization
     private const int BUFFER_MAIN = 0;       // Main input array
-    private const int STACKALLOC_THRESHOLD = 1024; // Use stackalloc for arrays <= 1024 elements
+    private const int STACKALLOC_THRESHOLD = 1024; // Use stackalloc for arrays <= 1024 elements (in bits: 128 bytes)
 
     /// <summary>
     /// Sorts the elements in the specified span in ascending order using the default comparer.
@@ -124,50 +126,66 @@ public static class WeakHeapSort
     {
         if (n <= 1) return;
 
-        // Allocate reverse bits: r[i] indicates whether node i's children are swapped
-        // r[0] is unused (root has no parent) but allocated for uniform indexing
-        Span<bool> r = n <= STACKALLOC_THRESHOLD
-            ? stackalloc bool[n]
-            : new bool[n];
-        r.Clear(); // Initialize all reverse bits to false
+        // Calculate space needed for bit-packed reverse bits
+        // Each ulong stores 64 bits, so we need (n + 63) / 64 ulongs
+        var ulongCount = (n + 63) / 64;
+        ulong[]? rentedArray = null;
 
-        // Phase 1: Build max weak heap (bottom-up merges)
-        // After this, offset+0 contains the maximum element
-        for (var j = n - 1; j > 0; j--)
+        try
         {
-            var i = DistinguishedAncestor(j, r);
-            Merge(s, offset, r, i, j);
-        }
+            // Allocate reverse bits: r[i] indicates whether node i's children are swapped
+            // r[0] is unused (root has no parent) but allocated for uniform indexing
+            // Use bit packing: each ulong stores 64 bits, reducing memory by 8x vs bool[]
+            Span<ulong> r = ulongCount <= STACKALLOC_THRESHOLD / 64
+                ? stackalloc ulong[ulongCount]
+                : (rentedArray = ArrayPool<ulong>.Shared.Rent(ulongCount)).AsSpan(0, ulongCount);
+            r.Clear(); // Initialize all reverse bits to false
 
-        // Phase 2: Extract max elements from n-1 down to 2
-        // Each iteration moves the current maximum to its final position
-        for (var m = n - 1; m >= 2; m--)
-        {
-            // Move current max (at offset+0) to position offset+m
-            s.Swap(offset, offset + m);
-
-            // Restore weak heap property for reduced heap [0..m-1]
-            // Descend the distinguished path from node 1 to a leaf
-            var x = 1;
-            int y;
-            while ((y = 2 * x + (r[x] ? 1 : 0)) < m)
+            // Phase 1: Build max weak heap (bottom-up merges)
+            // After this, offset+0 contains the maximum element
+            for (var j = n - 1; j > 0; j--)
             {
-                x = y;
+                var i = DistinguishedAncestor(j, r);
+                Merge(s, offset, r, i, j);
             }
 
-            // Ascend from leaf to root, merging root with each node on the path
-            while (x > 0)
+            // Phase 2: Extract max elements from n-1 down to 2
+            // Each iteration moves the current maximum to its final position
+            for (var m = n - 1; m >= 2; m--)
             {
-                Merge(s, offset, r, 0, x);
-                x >>= 1;
+                // Move current max (at offset+0) to position offset+m
+                s.Swap(offset, offset + m);
+
+                // Restore weak heap property for reduced heap [0..m-1]
+                // Descend the distinguished path from node 1 to a leaf
+                var x = 1;
+                int y;
+                while ((y = 2 * x + (GetBit(r, x) ? 1 : 0)) < m)
+                {
+                    x = y;
+                }
+
+                // Ascend from leaf to root, merging root with each node on the path
+                while (x > 0)
+                {
+                    Merge(s, offset, r, 0, x);
+                    x >>= 1;
+                }
+            }
+
+            // Final step: Sort the last two elements (at positions offset+0 and offset+1)
+            // Classic weak heap sort does an unconditional swap here; we use conditional to avoid redundant work
+            if (n > 1 && s.Compare(offset + 1, offset) < 0)
+            {
+                s.Swap(offset, offset + 1);
             }
         }
-
-        // Final step: Sort the last two elements (at positions offset+0 and offset+1)
-        // Classic weak heap sort does an unconditional swap here; we use conditional to avoid redundant work
-        if (n > 1 && s.Compare(offset + 1, offset) < 0)
+        finally
         {
-            s.Swap(offset, offset + 1);
+            if (rentedArray != null)
+            {
+                ArrayPool<ulong>.Shared.Return(rentedArray);
+            }
         }
     }
 
@@ -177,12 +195,12 @@ public static class WeakHeapSort
     /// This is the fundamental comparison operation of weak heap sort.
     /// </summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private static void Merge<T>(SortSpan<T> s, int offset, Span<bool> r, int i, int j) where T : IComparable<T>
+    private static void Merge<T>(SortSpan<T> s, int offset, Span<ulong> r, int i, int j) where T : IComparable<T>
     {
         if (s.Compare(offset + j, offset + i) > 0)
         {
             s.Swap(offset + i, offset + j);
-            r[j] = !r[j];
+            FlipBit(r, j);
         }
     }
 
@@ -192,7 +210,7 @@ public static class WeakHeapSort
     /// Algorithm: Ascend while j's parity matches its parent's reverse bit.
     /// </summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private static int DistinguishedAncestor(int j, Span<bool> r)
+    private static int DistinguishedAncestor(int j, Span<ulong> r)
     {
         // Climb the tree while (j & 1) == r[parent]
         // parent = j >> 1
@@ -200,7 +218,7 @@ public static class WeakHeapSort
         while (j > 0)
         {
             var parent = j >> 1;
-            var parentBit = r[parent] ? 1 : 0;
+            var parentBit = GetBit(r, parent) ? 1 : 0;
 
             // If j's parity differs from parent's reverse bit, parent is the distinguished ancestor
             if ((j & 1) != parentBit)
@@ -209,5 +227,27 @@ public static class WeakHeapSort
             j = parent;
         }
         return 0; // Reached root (should not happen for j > 0, but safe fallback)
+    }
+
+    /// <summary>
+    /// Gets a bit value from the bit-packed array at the specified index.
+    /// </summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private static bool GetBit(Span<ulong> bits, int index)
+    {
+        var ulongIndex = index / 64;
+        var bitIndex = index % 64;
+        return ((bits[ulongIndex] >> bitIndex) & 1) == 1;
+    }
+
+    /// <summary>
+    /// Flips a bit in the bit-packed array at the specified index.
+    /// </summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private static void FlipBit(Span<ulong> bits, int index)
+    {
+        var ulongIndex = index / 64;
+        var bitIndex = index % 64;
+        bits[ulongIndex] ^= 1UL << bitIndex;
     }
 }
