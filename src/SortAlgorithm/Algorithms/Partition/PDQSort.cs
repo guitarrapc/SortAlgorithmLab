@@ -82,7 +82,7 @@ namespace SortAlgorithm.Algorithms;
 /// </list>
 /// <para><strong>Performance Characteristics:</strong></para>
 /// <list type="bullet">
-/// <item><description>Family      : Hybrid (Partitioning + Heap + Insertion)</description></item>
+/// <item><description>Family      : Hybrid (Partition (base) + Heap + Insertion)</description></item>
 /// <item><description>Stable      : No (partitioning and heapsort are unstable)</description></item>
 /// <item><description>In-place    : Yes (O(log n) auxiliary space for recursion stack)</description></item>
 /// <item><description>Best case   : O(n) - Sorted, reverse sorted, all equal elements (pattern detection + partial insertion sort)</description></item>

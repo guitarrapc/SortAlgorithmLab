@@ -64,7 +64,7 @@ namespace SortAlgorithm.Algorithms;
 /// </list>
 /// <para><strong>Performance Characteristics:</strong></para>
 /// <list type="bullet">
-/// <item><description>Family      : Hybrid (Partitioning + Heap + Insertion)</description></item>
+/// <item><description>Family      : Hybrid (Partition (base) + Heap + Insertion)</description></item>
 /// <item><description>Stable      : No (QuickSort and HeapSort are unstable; element order is not preserved for equal values)</description></item>
 /// <item><description>In-place    : Yes (O(log n) auxiliary space for recursion stack, no additional arrays allocated)</description></item>
 /// <item><description>Best case   : Θ(n log n) - Occurs when QuickSort consistently creates balanced partitions and InsertionSort handles small subarrays efficiently</description></item>
