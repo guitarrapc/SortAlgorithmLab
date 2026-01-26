@@ -94,19 +94,6 @@ public static class TimSort
     private const int MIN_GALLOP = 7;        // Threshold for entering galloping mode
 
     /// <summary>
-    /// Merge state structure to track galloping threshold dynamically.
-    /// </summary>
-    private ref struct MergeState
-    {
-        public int MinGallop;
-
-        public MergeState()
-        {
-            MinGallop = MIN_GALLOP;
-        }
-    }
-
-    /// <summary>
     /// Sorts the elements in the specified span in ascending order using the default comparer.
     /// </summary>
     /// <typeparam name="T">The type of elements in the span. Must implement <see cref="IComparable{T}"/>.</typeparam>
@@ -736,6 +723,19 @@ public static class TimSort
         {
             // Return the rented array to the pool
             ArrayPool<T>.Shared.Return(tmp, clearArray: RuntimeHelpers.IsReferenceOrContainsReferences<T>());
+        }
+    }
+
+    /// <summary>
+    /// Merge state structure to track galloping threshold dynamically.
+    /// </summary>
+    private ref struct MergeState
+    {
+        public int MinGallop;
+
+        public MergeState()
+        {
+            MinGallop = MIN_GALLOP;
         }
     }
 }
