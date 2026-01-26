@@ -1,23 +1,22 @@
-﻿using System.Runtime.CompilerServices;
+﻿using System.Buffers;
+using System.Runtime.CompilerServices;
 using SortAlgorithm.Contexts;
 
 namespace SortAlgorithm.Algorithms;
 
 /// <summary>
-/// バイトニックソート（2のべき乗専用版） - バイトニック列を構築し、再帰的にマージして整列列に変換するソーティングネットワークアルゴリズムです。
-/// 入力サイズは2のべき乗（2^n）でなければなりません。任意のサイズに対応する場合は BitonicSortFill を使用してください。
+/// バイトニックソート - バイトニック列（単調増加後に単調減少する列、またはその逆）を構築し、再帰的にマージして整列列に変換するソーティングネットワークアルゴリズムです。
+/// 入力サイズが2のべき乗でない場合、最大値でパディングして次の2のべき乗まで拡張し、ソート後に元のサイズにトリミングします。
 /// <br/>
-/// Bitonic Sort (Power-of-2 Only) - A sorting network algorithm that builds a bitonic sequence and recursively merges it into a sorted sequence.
-/// Input length must be a power of 2 (2^n). For arbitrary sizes, use BitonicSortFill instead.
+/// Bitonic Sort - A sorting network algorithm that builds a bitonic sequence (monotonically increasing then decreasing, or vice versa)
+/// and recursively merges it into a sorted sequence. For non-power-of-2 inputs, pads with the maximum value to the next power of 2,
+/// sorts, and then trims back to the original size.
 /// </summary>
 /// <remarks>
 /// <para><strong>Theoretical Conditions for Correct Bitonic Sort:</strong></para>
 /// <list type="number">
 /// <item><description><strong>Bitonic Sequence Definition:</strong> A sequence is bitonic if it first monotonically increases then monotonically decreases,
 /// or can be circularly rotated to achieve this property. For example: [3,7,9,5,2,1] is bitonic.</description></item>
-/// <item><description><strong>Power-of-Two Requirement:</strong> The input length must be a power of 2 (n = 2^m for some integer m ≥ 0).
-/// This ensures the divide-and-conquer structure maintains balanced splits at each recursive level.
-/// If n is not a power of 2, this implementation throws ArgumentException. Use BitonicSortFill for arbitrary sizes.</description></item>
 /// <item><description><strong>Recursive Bitonic Construction:</strong> Divide the input into two halves. Recursively sort the first half in ascending order
 /// and the second half in descending order. The concatenation of these two sorted subsequences forms a bitonic sequence.
 /// This is because the first half increases (a₁ ≤ a₂ ≤ ... ≤ aₖ) and the second half decreases (bₖ ≥ ... ≥ b₂ ≥ b₁),
@@ -25,36 +24,39 @@ namespace SortAlgorithm.Algorithms;
 /// <item><description><strong>Bitonic Merge Correctness:</strong> Given a bitonic sequence of length n = 2k, compare and conditionally swap elements
 /// at distance k apart (i.e., compare element[i] with element[i+k] for i ∈ [0, k)). This operation, called a bitonic split,
 /// partitions the sequence into two bitonic subsequences of length k each, where all elements in the first half are ≤ all elements
-/// in the second half. Recursively applying bitonic merge to each half produces a fully sorted sequence.
-/// <para><strong>Proof sketch:</strong> Let S = [a₁,...,aₖ, b₁,...,bₖ] be bitonic. After comparing and swapping (aᵢ, bᵢ) for all i:
+/// in the second half. Recursively applying bitonic merge to each half produces a fully sorted sequence.</description></item>
+/// <item><description><strong>Power-of-Two Requirement:</strong> The classic bitonic sort requires input length to be a power of 2 (n = 2^m) to maintain
+/// balanced recursive splitting. This implementation handles arbitrary lengths by padding to the next power of 2.</description></item>
+/// <item><description><strong>Padding Strategy for Non-Power-of-2:</strong> When input length n is not a power of 2:
 /// <list type="bullet">
-/// <item>If S is increasing then decreasing: aᵢ ≤ aᵢ₊₁ ≤ ... ≤ aₖ and bₖ ≥ ... ≥ b₂ ≥ b₁.
-/// After swap: min(aᵢ, bᵢ) goes to first half, max(aᵢ, bᵢ) to second half.
-/// All elements in first half ≤ all elements in second half.
-/// Both halves remain bitonic.</item>
-/// </list></para></description></item>
+/// <item>Find the maximum value max in the input array.</item>
+/// <item>Pad the array to the next power of 2 (2^⌈log₂ n⌉) by appending max values.</item>
+/// <item>Sort the padded array using bitonic sort.</item>
+/// <item>Since max is the largest value, all padding elements will be sorted to the end of the array.</item>
+/// <item>Trim the result back to the original length n, discarding the padding elements.</item>
+/// </list>
+/// This preserves correctness because padding with max ensures that the original n elements maintain their relative order
+/// and are not affected by the padding values during comparison-based sorting.</description></item>
 /// <item><description><strong>Comparison Network Property:</strong> Bitonic sort is a comparison network, meaning the sequence of comparisons
-/// is data-independent (oblivious). The same comparisons are performed regardless of input values, making it ideal for parallel hardware
-/// implementations, SIMD optimizations, and worst-case guarantees.</description></item>
-/// <item><description><strong>Recursion Termination:</strong> Base case: sequences of length 1 are trivially sorted. Recursion depth is log₂ n,
-/// and at each level, O(n) comparisons are performed, yielding O(n log² n) total comparisons.</description></item>
+/// is data-independent. The same comparisons are performed regardless of input values, making it ideal for parallel hardware
+/// implementations and SIMD optimizations.</description></item>
 /// </list>
 /// <para><strong>Performance Characteristics:</strong></para>
 /// <list type="bullet">
 /// <item><description>Family      : Network Sort / Exchange</description></item>
 /// <item><description>Stable      : No (swapping non-adjacent elements can change relative order of equal elements)</description></item>
-/// <item><description>In-place    : Yes (O(1) auxiliary space - sorts directly on input array)</description></item>
+/// <item><description>In-place    : Yes for power-of-2 sizes (O(1) auxiliary space); O(n) auxiliary space for non-power-of-2 due to padding array</description></item>
 /// <item><description>Best case   : Θ(n log² n) - Data-independent comparison count (same as worst case)</description></item>
 /// <item><description>Average case: Θ(n log² n) - Performs the same comparisons for all inputs</description></item>
-/// <item><description>Worst case  : Θ(n log² n) - Comparison count: ½ × n × log² n for n = 2^k</description></item>
+/// <item><description>Worst case  : Θ(n log² n) - Comparison count: ½ × n × log² n for power-of-2 inputs</description></item>
 /// <item><description>Comparisons : Θ(n log² n) - Exactly (log² n × (log n + 1)) / 4 × n comparisons for n = 2^k</description></item>
 /// <item><description>Swaps       : O(n log² n) - At most equal to comparison count; depends on input disorder</description></item>
 /// <item><description>Parallel depth: O(log² n) - Network depth allows O(log² n) parallel time with O(n log n) processors</description></item>
 /// </list>
 /// <para><strong>Implementation Notes:</strong></para>
 /// <list type="bullet">
-/// <item><description>Strictly requires power-of-2 input length. Throws ArgumentException otherwise.</description></item>
-/// <item><description>True in-place sorting with zero heap allocation (all work done on input span).</description></item>
+/// <item><description>Power-of-2 inputs (n = 2^k): Sorted in-place with zero additional heap allocation.</description></item>
+/// <item><description>Non-power-of-2 inputs: Creates a temporary array of size 2^⌈log₂ n⌉ for padding, then copies back n elements.</description></item>
 /// <item><description>Sequential implementation: Does not exploit parallelism (comparisons are executed sequentially).</description></item>
 /// <item><description>Uses aggressive inlining for performance-critical helper methods (CompareAndSwap, IsPowerOfTwo, etc.).</description></item>
 /// </list>
@@ -63,20 +65,20 @@ namespace SortAlgorithm.Algorithms;
 /// <item><description>Parallel sorting on GPUs or multi-core systems (when parallelized via SIMD or threads)</description></item>
 /// <item><description>Hardware sorting networks (FPGA, ASIC implementations)</description></item>
 /// <item><description>Educational purposes to demonstrate oblivious sorting algorithms</description></item>
-/// <item><description>Scenarios where input size is guaranteed to be a power of 2 and zero allocation is required</description></item>
+/// <item><description>Scenarios where predictable, data-independent execution time is required</description></item>
 /// </list>
 /// </remarks>
-public static class BitonicSort
+public static class BitonicSortFill
 {
     // Buffer identifiers for visualization
     private const int BUFFER_MAIN = 0;       // Main input array
 
     /// <summary>
     /// Sorts the elements in the specified span in ascending order using the default comparer.
+    /// Automatically handles non-power-of-2 sizes by padding.
     /// </summary>
     /// <typeparam name="T">The type of elements in the span. Must implement <see cref="IComparable{T}"/>.</typeparam>
     /// <param name="span">The span of elements to sort in place.</param>
-    /// <exception cref="ArgumentException">Thrown when the span length is not a power of 2.</exception>
     public static void Sort<T>(Span<T> span) where T : IComparable<T>
     {
         Sort(span, NullContext.Default);
@@ -84,21 +86,65 @@ public static class BitonicSort
 
     /// <summary>
     /// Sorts the elements in the specified span using the provided sort context.
+    /// If the length is not a power of 2, the array is padded with the maximum value,
+    /// sorted, and then trimmed back to the original size.
     /// </summary>
     /// <typeparam name="T">The type of elements in the span. Must implement <see cref="IComparable{T}"/>.</typeparam>
     /// <param name="span">The span of elements to sort. The elements within this span will be reordered in place.</param>
     /// <param name="context">The sort context that defines the sorting strategy or options to use during the operation. Cannot be null.</param>
-    /// <exception cref="ArgumentException">Thrown when the span length is not a power of 2.</exception>
     public static void Sort<T>(Span<T> span, ISortContext context) where T : IComparable<T>
     {
         if (span.Length <= 1) return;
 
-        // Verify that length is a power of 2
-        if (!IsPowerOfTwo(span.Length))
-            throw new ArgumentException($"Bitonic sort requires input length to be a power of 2. Actual length: {span.Length}", nameof(span));
+        int originalLength = span.Length;
 
-        var s = new SortSpan<T>(span, context, BUFFER_MAIN);
-        SortCore(s, 0, span.Length, ascending: true);
+        // If length is already a power of 2, sort directly
+        if (IsPowerOfTwo(originalLength))
+        {
+            var sortSpan = new SortSpan<T>(span, context, BUFFER_MAIN);
+            SortCore(sortSpan, 0, originalLength, ascending: true);
+            return;
+        }
+
+        // Calculate next power of 2
+        int paddedLength = NextPowerOfTwo(originalLength);
+        
+        // Find the maximum value in the input for padding
+        T maxValue = span[0];
+        for (int i = 1; i < originalLength; i++)
+        {
+            if (span[i].CompareTo(maxValue) > 0)
+            {
+                maxValue = span[i];
+            }
+        }
+
+        // Create temporary array with padding
+        var workingArray = ArrayPool<T>.Shared.Rent(paddedLength);
+        Span<T> workingSpan = workingArray.AsSpan();
+
+        try
+        {
+            // Copy original data
+            span.CopyTo(workingSpan);
+
+            // Pad with max value (will be sorted to the end)
+            for (int i = originalLength; i < paddedLength; i++)
+            {
+                workingSpan[i] = maxValue;
+            }
+
+            // Sort the padded array
+            var paddedSortSpan = new SortSpan<T>(workingSpan, context, BUFFER_MAIN);
+            SortCore(paddedSortSpan, 0, paddedLength, ascending: true);
+
+            // Copy back only the original elements
+            workingSpan.Slice(0, originalLength).CopyTo(span);
+        }
+        finally
+        {
+            ArrayPool<T>.Shared.Return(workingArray);
+        }
     }
 
     /// <summary>
@@ -138,13 +184,13 @@ public static class BitonicSort
         if (count > 1)
         {
             int k = count / 2;
-
+            
             // Compare and swap elements at distance k apart
             for (int i = low; i < low + k; i++)
             {
                 CompareAndSwap(span, i, i + k, ascending);
             }
-
+            
             // Recursively merge both halves
             BitonicMerge(span, low, k, ascending);
             BitonicMerge(span, low + k, k, ascending);
@@ -162,7 +208,7 @@ public static class BitonicSort
     private static void CompareAndSwap<T>(SortSpan<T> span, int i, int j, bool ascending) where T : IComparable<T>
     {
         int cmp = span.Compare(i, j);
-
+        
         // If ascending and i > j, or if descending and i < j, then swap
         if ((ascending && cmp > 0) || (!ascending && cmp < 0))
         {
@@ -179,5 +225,24 @@ public static class BitonicSort
     private static bool IsPowerOfTwo(int n)
     {
         return n > 0 && (n & (n - 1)) == 0;
+    }
+
+    /// <summary>
+    /// Calculates the next power of 2 greater than or equal to n.
+    /// </summary>
+    /// <param name="n">The input number.</param>
+    /// <returns>The next power of 2.</returns>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private static int NextPowerOfTwo(int n)
+    {
+        if (n <= 0) return 1;
+        
+        n--;
+        n |= n >> 1;
+        n |= n >> 2;
+        n |= n >> 4;
+        n |= n >> 8;
+        n |= n >> 16;
+        return n + 1;
     }
 }

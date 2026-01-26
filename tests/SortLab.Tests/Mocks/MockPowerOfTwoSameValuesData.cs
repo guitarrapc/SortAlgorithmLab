@@ -1,5 +1,4 @@
-﻿using SortAlgorithm;
-using System.Collections;
+﻿using System.Collections;
 
 namespace SortLab.Tests;
 

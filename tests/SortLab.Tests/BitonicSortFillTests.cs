@@ -3,19 +3,21 @@ using SortAlgorithm.Contexts;
 
 namespace SortLab.Tests;
 
-public class BitonicSortTests
+public class BitonicSortFillTests
 {
     [Theory]
-    [ClassData(typeof(MockPowerOfTwoRandomData))]
-    [ClassData(typeof(MockPowerOfTwoNegativePositiveRandomData))]
-    [ClassData(typeof(MockPowerOfTwoReversedData))]
-    [ClassData(typeof(MockPowerOfTwoNearlySortedData))]
-    [ClassData(typeof(MockPowerOfTwoSameValuesData))]
+    [ClassData(typeof(MockRandomData))]
+    [ClassData(typeof(MockNegativePositiveRandomData))]
+    [ClassData(typeof(MockNegativeRandomData))]
+    [ClassData(typeof(MockReversedData))]
+    [ClassData(typeof(MockMountainData))]
+    [ClassData(typeof(MockNearlySortedData))]
+    [ClassData(typeof(MockSameValuesData))]
     public void SortResultOrderTest(IInputSample<int> inputSample)
     {
         var stats = new StatisticsContext();
         var array = inputSample.Samples.ToArray();
-        BitonicSort.Sort(array.AsSpan(), stats);
+        BitonicSortFill.Sort(array.AsSpan(), stats);
 
         Assert.Equal((ulong)inputSample.Samples.Length, (ulong)array.Length);
 
@@ -27,12 +29,23 @@ public class BitonicSortTests
     }
 
     [Fact]
-    public void ThrowsOnNonPowerOfTwo()
+    public void NonPowerOfTwoSizes()
     {
-        var stats = new StatisticsContext();
-        var array = new int[] { 3, 1, 4, 1, 5, 9, 2 }; // Length 7 is not power of 2
+        // Test various non-power-of-2 sizes
+        int[] sizes = [3, 5, 7, 10, 15, 100, 127, 200, 1000];
+        var random = new Random(42);
 
-        Assert.Throws<ArgumentException>(() => BitonicSort.Sort(array.AsSpan(), stats));
+        foreach (var size in sizes)
+        {
+            var stats = new StatisticsContext();
+            var array = Enumerable.Range(0, size).OrderBy(_ => random.Next()).ToArray();
+            var expected = array.OrderBy(x => x).ToArray();
+
+            BitonicSortFill.Sort(array.AsSpan(), stats);
+
+            Assert.Equal(size, array.Length);
+            Assert.Equal(expected, array);
+        }
     }
 
     [Fact]
@@ -40,7 +53,7 @@ public class BitonicSortTests
     {
         var stats = new StatisticsContext();
         var array = Array.Empty<int>();
-        BitonicSort.Sort(array.AsSpan(), stats);
+        BitonicSortFill.Sort(array.AsSpan(), stats);
         Assert.Empty(array);
     }
 
@@ -49,7 +62,7 @@ public class BitonicSortTests
     {
         var stats = new StatisticsContext();
         var array = new int[] { 42 };
-        BitonicSort.Sort(array.AsSpan(), stats);
+        BitonicSortFill.Sort(array.AsSpan(), stats);
         Assert.Single(array);
         Assert.Equal(42, array[0]);
     }
@@ -59,7 +72,7 @@ public class BitonicSortTests
     {
         var stats = new StatisticsContext();
         var array = new int[] { 2, 1 };
-        BitonicSort.Sort(array.AsSpan(), stats);
+        BitonicSortFill.Sort(array.AsSpan(), stats);
         Assert.Equal(2, array.Length);
         Assert.Equal(1, array[0]);
         Assert.Equal(2, array[1]);
@@ -70,7 +83,7 @@ public class BitonicSortTests
     {
         var stats = new StatisticsContext();
         var array = new int[] { 3, 1, 4, 2 };
-        BitonicSort.Sort(array.AsSpan(), stats);
+        BitonicSortFill.Sort(array.AsSpan(), stats);
         Assert.Equal(new int[] { 1, 2, 3, 4 }, array);
     }
 
@@ -79,7 +92,7 @@ public class BitonicSortTests
     {
         var stats = new StatisticsContext();
         var array = new int[] { 5, 2, 8, 1, 9, 3, 7, 4 };
-        BitonicSort.Sort(array.AsSpan(), stats);
+        BitonicSortFill.Sort(array.AsSpan(), stats);
         Assert.Equal(new int[] { 1, 2, 3, 4, 5, 7, 8, 9 }, array);
     }
 
@@ -88,8 +101,17 @@ public class BitonicSortTests
     {
         var stats = new StatisticsContext();
         var array = Enumerable.Repeat(42, 16).ToArray();
-        BitonicSort.Sort(array.AsSpan(), stats);
+        BitonicSortFill.Sort(array.AsSpan(), stats);
         Assert.All(array, x => Assert.Equal(42, x));
+    }
+
+    [Fact]
+    public void HundredElements()
+    {
+        var stats = new StatisticsContext();
+        var array = Enumerable.Range(0, 100).Reverse().ToArray();
+        BitonicSortFill.Sort(array.AsSpan(), stats);
+        Assert.Equal(Enumerable.Range(0, 100).ToArray(), array);
     }
 
 #if DEBUG
@@ -100,7 +122,7 @@ public class BitonicSortTests
     {
         var stats = new StatisticsContext();
         var array = inputSample.Samples.ToArray();
-        BitonicSort.Sort(array.AsSpan(), stats);
+        BitonicSortFill.Sort(array.AsSpan(), stats);
 
         Assert.Equal((ulong)inputSample.Samples.Length, (ulong)array.Length);
 
@@ -121,7 +143,7 @@ public class BitonicSortTests
     {
         var stats = new StatisticsContext();
         var sorted = Enumerable.Range(0, n).ToArray();
-        BitonicSort.Sort(sorted.AsSpan(), stats);
+        BitonicSortFill.Sort(sorted.AsSpan(), stats);
 
         // Bitonic sort performs the same number of comparisons regardless of input order
         // For n = 2^k, the number of comparisons is (k(k+1)/2) * n where k = log2(n)
@@ -152,7 +174,7 @@ public class BitonicSortTests
     {
         var stats = new StatisticsContext();
         var reversed = Enumerable.Range(0, n).Reverse().ToArray();
-        BitonicSort.Sort(reversed.AsSpan(), stats);
+        BitonicSortFill.Sort(reversed.AsSpan(), stats);
 
         // Bitonic sort performs the same number of comparisons regardless of input order
         var expectedCompares = CalculateBitonicComparisons(n);
@@ -181,7 +203,7 @@ public class BitonicSortTests
     {
         var stats = new StatisticsContext();
         var random = Enumerable.Range(0, n).OrderBy(_ => Guid.NewGuid()).ToArray();
-        BitonicSort.Sort(random.AsSpan(), stats);
+        BitonicSortFill.Sort(random.AsSpan(), stats);
 
         // Bitonic sort always performs the same number of comparisons regardless of input
         var expectedCompares = CalculateBitonicComparisons(n);
@@ -210,9 +232,16 @@ public class BitonicSortTests
     {
         if (n <= 1) return 0;
         
-        // n must be a power of 2 for BitonicSort
+        // Calculate next power of 2 if not already
+        int paddedN = n;
+        if ((n & (n - 1)) != 0)
+        {
+            paddedN = 1;
+            while (paddedN < n) paddedN <<= 1;
+        }
+        
         int k = 0;
-        int temp = n;
+        int temp = paddedN;
         while (temp > 1)
         {
             temp >>= 1;
@@ -220,7 +249,7 @@ public class BitonicSortTests
         }
         
         // Formula: n * k * (k+1) / 4
-        return (ulong)(n * k * (k + 1) / 4);
+        return (ulong)(paddedN * k * (k + 1) / 4);
     }
 
 #endif
