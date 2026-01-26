@@ -11,6 +11,6 @@
     <Project Path="src/SortAlgorithm/SortAlgorithm.csproj" />
   </Folder>
   <Folder Name="/tests/">
-    <Project Path="tests/SortLab.Tests/SortLab.Tests.csproj" />
+    <Project Path="tests/SortAlgorithm.Tests/SortAlgorithm.Tests.csproj" />
   </Folder>
 </Solution>

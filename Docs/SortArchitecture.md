@@ -77,7 +77,7 @@ classベースのContextパターンと `SortSpan<T>` ref struct を組み合わ
 ### ISortContext インターフェース
 
 ```csharp
-namespace SortLab.Core.Contexts;
+namespace SortAlgorithm.Contexts;
 
 public interface ISortContext
 {
@@ -116,7 +116,7 @@ public interface ISortContext
 #### NullContext（No-op、シングルトン）
 
 ```csharp
-namespace SortLab.Core.Contexts;
+namespace SortAlgorithm.Contexts;
 
 public sealed class NullContext : ISortContext
 {
@@ -134,7 +134,7 @@ public sealed class NullContext : ISortContext
 #### StatisticsContext（統計収集）
 
 ```csharp
-namespace SortLab.Core.Contexts;
+namespace SortAlgorithm.Contexts;
 
 public sealed class StatisticsContext : ISortContext
 {
@@ -168,7 +168,7 @@ public sealed class StatisticsContext : ISortContext
 #### VisualizationContext（描画用）
 
 ```csharp
-namespace SortLab.Core.Contexts;
+namespace SortAlgorithm.Contexts;
 
 public sealed class VisualizationContext : ISortContext
 {
@@ -199,7 +199,7 @@ public sealed class VisualizationContext : ISortContext
 #### CompositeContext（複合）
 
 ```csharp
-namespace SortLab.Core.Contexts;
+namespace SortAlgorithm.Contexts;
 
 public sealed class CompositeContext : ISortContext
 {
@@ -241,7 +241,7 @@ public sealed class CompositeContext : ISortContext
 現行の `SortBase<T>` に近い書き心地を提供する ref struct。
 
 ```csharp
-namespace SortLab.Core.Algorithms;
+namespace SortAlgorithm.Algorithms;
 
 internal ref struct SortSpan<T>(Span<T> span, ISortContext context) where T : IComparable<T>
 {
@@ -301,7 +301,7 @@ internal ref struct SortSpan<T>(Span<T> span, ISortContext context) where T : IC
 ### ソートアルゴリズム実装例
 
 ```csharp
-namespace SortLab.Core.Algorithms;
+namespace SortAlgorithm.Algorithms;
 
 public static class BubbleSort
 {
@@ -384,7 +384,7 @@ Parallel.ForEach(arrays, array =>
 ## ファイル構成
 
 ```
-src/SortLab.Core/
+src/SortAlgorithm/
 ├── Contexts/
 │   ├── ISortContext.cs             # インターフェース
 │   ├── NullContext.cs              # No-op（シングルトン class）

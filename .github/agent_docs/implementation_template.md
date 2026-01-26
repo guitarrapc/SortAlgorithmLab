@@ -5,7 +5,7 @@ Use this template as a starting point for implementing new sorting algorithms.
 ```csharp
 using System.Runtime.CompilerServices;
 
-namespace SortLab.Core.Sortings;
+namespace SortAlgorithm.Sortings;
 
 /// <summary>
 /// {Algorithm Name} sorting algorithm.

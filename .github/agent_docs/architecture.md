@@ -21,9 +21,9 @@ Sorting algorithms follow a consistent architecture:
 
 ## File Locations
 
-- Algorithm implementations: [src/SortLab.Core/Sortings/](../../src/SortLab.Core/Sortings/)
-- Core interfaces: [src/SortLab.Core/](../../src/SortLab.Core/)
-- Unit tests: [tests/SortLab.Tests/](../../tests/SortLab.Tests/)
+- Algorithm implementations: [src/SortAlgorithm/Sortings/](../../src/SortAlgorithm/Sortings/)
+- Core interfaces: [src/SortAlgorithm/](../../src/SortAlgorithm/)
+- Unit tests: [tests/SortAlgorithm.Tests/](../../tests/SortAlgorithm.Tests/)
 - Benchmark code: [sandbox/SandboxBenchmark/](../../sandbox/SandboxBenchmark/)
 
 ## Context Types
