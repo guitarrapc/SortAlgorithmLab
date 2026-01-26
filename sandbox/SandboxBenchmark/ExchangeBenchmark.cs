@@ -44,6 +44,6 @@ public class ExchangeBenchmark
     [Benchmark]
     public void OddEventSort()
     {
-        SortAlgorithm.Algorithms.OddEventSort.Sort(_oddEventArray.AsSpan());
+        SortAlgorithm.Algorithms.OddEvenSort.Sort(_oddEventArray.AsSpan());
     }
 }
