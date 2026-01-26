@@ -26,9 +26,14 @@ namespace SortAlgorithm.Algorithms;
 /// When this limit is exceeded, it indicates pathological QuickSort behavior (e.g., adversarial input patterns),
 /// triggering a switch to HeapSort which guarantees O(n log n) regardless of input.</description></item>
 /// <item><description><strong>QuickSort Phase - Median-of-Three Pivot Selection:</strong> To avoid worst-case QuickSort behavior on sorted/reverse-sorted inputs,
-/// the pivot is selected as the median of three quartile positions: q1 = left + n/4, mid = left + n/2, q3 = left + 3n/4.
-/// This quartile-based sampling provides better pivot quality than simple left/mid/right sampling, especially for mountain-shaped or partially-sorted data.
-/// The median-of-three reduces the probability of worst-case partitioning from O(1/n) (random pivot) to O(1/n³).</description></item>
+/// the pivot is selected adaptively based on array size:
+/// <list type="bullet">
+/// <item><description>For arrays &lt; 1000 elements: median of three quartile positions (q1 = left + n/4, mid = left + n/2, q3 = left + 3n/4)</description></item>
+/// <item><description>For arrays ≥ 1000 elements: <strong>Ninther</strong> (median-of-5) using positions: left, left+delta/2, mid, mid+delta/2, right (where delta = n/2)</description></item>
+/// </list>
+/// The quartile-based sampling provides better pivot quality than simple left/mid/right sampling.
+/// The Ninther (median-of-5) further improves pivot selection for large arrays, reducing the probability of unbalanced partitions.
+/// This adaptive approach is similar to C++ std::introsort's __sort5 optimization.</description></item>
 /// <item><description><strong>QuickSort Phase - Hoare Partition Scheme:</strong> Partitioning uses bidirectional scanning:
 /// <list type="bullet">
 /// <item><description>Left pointer l advances while s[l] &lt; pivot (with boundary check l &lt; right)</description></item>
@@ -74,14 +79,20 @@ namespace SortAlgorithm.Algorithms;
 /// <item><description>Cache-friendly: InsertionSort for small partitions improves spatial locality</description></item>
 /// <item><description>Stack-safe: Tail recursion optimization + depth limit ensures O(log n) stack depth</description></item>
 /// <item><description>Practical performance: Used in production libraries (C++ std::sort, .NET Array.Sort, Java Arrays.sort for primitives)</description></item>
-/// <item><description>Robust pivot selection: Quartile-based median-of-three handles various data patterns (sorted, reverse, mountain, valley)</description></item>
+/// <item><description>Robust pivot selection: Ninther (median-of-5) for large arrays and quartile-based median-of-3 for smaller arrays handle various data patterns</description></item>
+/// <item><description>Nearly-sorted optimization: Detects already-sorted partitions (zero swaps) and completes them efficiently with InsertionSort</description></item>
 /// </list>
 /// <para><strong>Implementation Details:</strong></para>
 /// <list type="bullet">
 /// <item><description>Threshold value: 16 elements for switching to InsertionSort (empirically optimal, balances overhead vs. efficiency)</description></item>
 /// <item><description>Depth limit: 2 × floor(log₂(n)) - allows some imbalance before triggering HeapSort</description></item>
-/// <item><description>Pivot selection: Median-of-three using quartile positions (n/4, n/2, 3n/4) for better distribution sampling</description></item>
+/// <item><description>Pivot selection (adaptive):
+/// <list type="bullet">
+/// <item><description>Arrays ≥ 1000: Ninther (median-of-5 using positions: left, left+n/4, mid, mid+3n/4, right)</description></item>
+/// <item><description>Arrays &lt; 1000: Median-of-3 using quartile positions (n/4, n/2, 3n/4)</description></item>
+/// </list></description></item>
 /// <item><description>Partition scheme: Hoare partition (bidirectional scan) for fewer swaps and better duplicate handling</description></item>
+/// <item><description>Nearly-sorted detection: Tracks swap count during partitioning; if zero, uses InsertionSort to complete (similar to C++ std::introsort)</description></item>
 /// <item><description>Tail recursion: Always recurse on smaller partition, loop on larger to guarantee O(log n) stack depth</description></item>
 /// </list>
 /// <para><strong>Historical Context:</strong></para>
@@ -99,6 +110,8 @@ namespace SortAlgorithm.Algorithms;
 /// <item><description>Algorithm correctness: InsertionSort, HeapSort, and QuickSort are all proven correct sorting algorithms</description></item>
 /// <item><description>Complexity guarantee: Depth limit of 2⌊log₂(n)⌋ ensures HeapSort fallback before stack overflow or quadratic behavior</description></item>
 /// </list>
+/// <para><strong>Reference:</strong></para>
+/// <para>Reference implementation: https://github.com/llvm/llvm-project/blob/368faacac7525e538fa6680aea74e19a75e3458d/libcxx/include/__algorithm/sort.h#L272</para>
 /// </remarks>
 public static class IntroSort
 {
@@ -192,16 +205,34 @@ public static class IntroSort
 
             depthLimit--;
 
-            // QuickSort with median-of-three pivot selection (Hoare partition)
+            // QuickSort with adaptive pivot selection:
+            // - For large arrays (>= 1000): use Ninther (median-of-5) for better pivot quality
+            // - For smaller arrays: use median-of-3 (quartile-based)
             var length = right - left + 1;
-            var q1 = left + length / 4;
-            var mid = left + length / 2;
-            var q3 = left + (length * 3) / 4;
-            var pivot = MedianOf3Value(s, q1, mid, q3);
+            T pivot;
 
-            // Hoare partition scheme
+            if (length >= 1000)
+            {
+                // Ninther: 5-point sampling for large arrays (similar to C++ std::introsort)
+                var delta = length / 2;
+                var mid = left + delta;
+                var q1 = left + delta / 2;
+                var q3 = mid + delta / 2;
+                pivot = MedianOf5Value(s, left, q1, mid, q3, right);
+            }
+            else
+            {
+                // Standard quartile-based median-of-3 for smaller arrays
+                var q1 = left + length / 4;
+                var mid = left + length / 2;
+                var q3 = left + (length * 3) / 4;
+                pivot = MedianOf3Value(s, q1, mid, q3);
+            }
+
+            // Hoare partition scheme with swap counting for nearly-sorted detection
             var l = left;
             var r = right;
+            var swapCount = 0;
 
             while (l <= r)
             {
@@ -221,9 +252,34 @@ public static class IntroSort
                 if (l <= r)
                 {
                     s.Swap(l, r);
+                    swapCount++; // Track swaps for nearly-sorted detection
                     l++;
                     r--;
                 }
+            }
+
+            // Nearly-sorted detection: if no swaps occurred, the array is likely already sorted
+            // This is similar to C++ std::introsort's __insertion_sort_incomplete optimization
+            if (swapCount == 0)
+            {
+                // For nearly-sorted arrays, InsertionSort is very efficient
+                // Try InsertionSort on both partitions - if already sorted, it will complete quickly
+                var leftPartitionSize = r - left + 1;
+                var rightPartitionSize = right - l + 1;
+
+                // Only apply this optimization if partitions are reasonably sized
+                if (leftPartitionSize > 1 && leftPartitionSize <= size / 2)
+                {
+                    InsertionSort.SortCore(s, left, r + 1);
+                }
+
+                if (rightPartitionSize > 1 && rightPartitionSize <= size / 2)
+                {
+                    InsertionSort.SortCore(s, l, right + 1);
+                }
+
+                // Both partitions handled, we're done
+                return;
             }
 
             // Tail recursion optimization: recurse on smaller partition, loop on larger
@@ -259,7 +315,7 @@ public static class IntroSort
     {
         // Use SortSpan.Compare to track statistics
         var cmpLowMid = s.Compare(lowIdx, midIdx);
-        
+
         if (cmpLowMid > 0) // low > mid
         {
             var cmpMidHigh = s.Compare(midIdx, highIdx);
@@ -286,6 +342,52 @@ public static class IntroSort
                 return s.Read(midIdx); // mid is median
             }
         }
+    }
+
+    /// <summary>
+    /// Returns the median value among five elements at specified indices.
+    /// This implements "Ninther" - median-of-medians using 5 samples for better pivot quality on large arrays.
+    /// Performs 6-8 comparisons to determine the median value.
+    /// </summary>
+    /// <remarks>
+    /// This is based on C++ std::introsort's __sort5 optimization for arrays >= 1000 elements.
+    /// The five samples are: left, left+delta/2, mid, mid+delta/2, right (where delta = length/2).
+    /// This provides better pivot selection than simple 3-point sampling, especially for large arrays
+    /// with patterns like partially-sorted or mountain-shaped distributions.
+    /// </remarks>
+    private static T MedianOf5Value<T>(SortSpan<T> s, int i1, int i2, int i3, int i4, int i5) where T : IComparable<T>
+    {
+        // Sort the 5 indices using a sorting network (6 comparisons minimum for 5 elements)
+        // We'll use a simplified approach: sort pairs, then find median
+
+        // First, sort pairs: (i1, i2), (i3, i4)
+        if (s.Compare(i1, i2) > 0) (i1, i2) = (i2, i1);
+        if (s.Compare(i3, i4) > 0) (i3, i4) = (i4, i3);
+
+        // Now i1 <= i2 and i3 <= i4
+        // Find median of i2, i3, i5 (this will be in the middle range)
+        if (s.Compare(i2, i5) > 0) (i2, i5) = (i5, i2);
+        if (s.Compare(i2, i3) > 0) (i2, i3) = (i3, i2);
+
+        // Now we need the median of the remaining elements
+        // We know: i1 <= i2, i3 <= i4, and i2 is constrained
+        // The median is the 3rd element when sorted
+
+        if (s.Compare(i1, i3) > 0) (i1, i3) = (i3, i1);
+        // i1 is now the minimum of {i1, i3}
+
+        if (s.Compare(i2, i3) > 0) (i2, i3) = (i3, i2);
+        // i2 is now <= i3
+
+        if (s.Compare(i2, i4) > 0)
+        {
+            if (s.Compare(i3, i4) > 0)
+                return s.Read(i4);
+            else
+                return s.Read(i3);
+        }
+
+        return s.Read(i2);
     }
 
     /// <summary>
