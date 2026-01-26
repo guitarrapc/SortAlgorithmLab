@@ -12,31 +12,66 @@ namespace SortAlgorithm.Algorithms;
 /// <remarks>
 /// <para><strong>Theoretical Conditions for Correct TimSort:</strong></para>
 /// <list type="number">
+/// <item><description><strong>Run Detection:</strong> The algorithm must identify maximal monotonic sequences (runs).
+/// An ascending run is a sequence where each element is ≥ the previous (a[i] ≤ a[i+1]).
+/// A strictly descending run is a sequence where each element is &gt; the previous (a[i] &gt; a[i+1]).
+/// This implementation correctly distinguishes between ascending (using ≤ for stability) and strictly descending (using &gt;) runs.</description></item>
+/// <item><description><strong>Descending Run Reversal:</strong> Strictly descending runs must be reversed in-place to convert them to ascending runs.
+/// The reversal is done by swapping elements from both ends moving towards the center: swap(a[lo], a[hi]), lo++, hi--.
+/// This maintains stability because the original relative order of equal elements is preserved within the run.</description></item>
+/// <item><description><strong>MinRun Calculation:</strong> The minimum run length (minRun) must be computed to balance run merging efficiency.
+/// For array size n, minRun is calculated by taking the top 6 bits of n and adding 1 if any of the remaining bits are set.
+/// This ensures: 32 ≤ minRun ≤ 64 for large n, and n/minRun is close to or slightly less than a power of 2.
+/// Formula: while n ≥ 64: r |= (n &amp; 1), n >>= 1; return n + r.
+/// This guarantees balanced merge tree depth and O(n log n) worst-case performance.</description></item>
+/// <item><description><strong>Run Extension:</strong> If a natural run is shorter than minRun, it must be extended to minRun length using Binary Insertion Sort.
+/// The already-sorted portion of the run is used as a starting point, and remaining elements are inserted using binary search.
+/// This reduces comparisons to O(k log k) for extending a run of length k, while maintaining stability.</description></item>
+/// <item><description><strong>Run Stack Invariants:</strong> The stack of pending runs must maintain two invariants at all times (except during final collapse):
+/// (A) runLen[i-1] &gt; runLen[i] + runLen[i+1] - Ensures roughly balanced merges
+/// (B) runLen[i] &gt; runLen[i+1] - Ensures decreasing run lengths
+/// When an invariant is violated, runs must be merged immediately. If both runLen[i-1] and runLen[i+1] exist,
+/// merge the smaller of the two with runLen[i] to minimize work. These invariants guarantee O(log n) stack depth.</description></item>
+/// <item><description><strong>Stable Merging:</strong> When merging two adjacent runs, the algorithm must preserve the relative order of equal elements.
+/// This is achieved by using ≤ comparison when choosing from the left run: if left[i] ≤ right[j], take left[i].
+/// The smaller run is copied to a temporary buffer, and elements are merged back into the original array.
+/// This ensures that equal elements from the left run appear before equal elements from the right run.</description></item>
+/// <item><description><strong>Stack Collapse:</strong> After all runs are identified, the remaining runs on the stack must be merged.
+/// The final collapse merges runs in a specific order to maintain efficiency: always merge the smaller of runLen[i-1] and runLen[i+1] with runLen[i].
+/// This continues until only one run remains, which is the fully sorted array.</description></item>
+/// </list>
 /// <para><strong>Performance Characteristics:</strong></para>
 /// <list type="bullet">
 /// <item><description>Family      : Hybrid (Merge + Insertion)</description></item>
-/// <item><description>Stable      : Yes (equal elements maintain relative order through careful merge logic)</description></item>
+/// <item><description>Stable      : Yes (≤ comparison in ascending run detection and merging preserves relative order)</description></item>
 /// <item><description>In-place    : No (requires O(n/2) temporary space worst-case for merging)</description></item>
-/// <item><description>Best case   : O(n) - Already sorted or reverse sorted data (single pass with n-1 comparisons)</description></item>
-/// <item><description>Average case: O(n log n) - Balanced run detection and merge tree</description></item>
-/// <item><description>Worst case  : O(n log n) - Guaranteed by minrun calculation and merge invariants</description></item>
-/// <item><description>Comparisons : O(n log n) worst-case, often much less on partially sorted data</description></item>
-/// <item><description>Writes      : O(n log n) worst-case, minimal on sorted data due to run detection</description></item>
-/// <item><description>Space       : O(n/2) worst-case for merge buffer (uses ArrayPool for efficiency)</description></item>
+/// <item><description>Best case   : O(n) - Already sorted or reverse sorted data (single run detected, n-1 comparisons)</description></item>
+/// <item><description>Average case: O(n log n) - Balanced run detection and merge tree with adaptive behavior</description></item>
+/// <item><description>Worst case  : O(n log n) - Guaranteed by minRun calculation (ensures balanced merges) and stack invariants (ensures O(log n) depth)</description></item>
+/// <item><description>Comparisons : Best O(n), Average/Worst O(n log n) - Exploits existing order in data</description></item>
+/// <item><description>Writes      : Best O(1), Average/Worst O(n log n) - Minimal writes for sorted data due to run detection</description></item>
+/// <item><description>Space       : O(n/2) worst-case for temporary merge buffer (smaller run is copied)</description></item>
 /// </list>
 /// <para><strong>Adaptive Behavior:</strong></para>
 /// <list type="bullet">
-/// <item><description>Sorted data: O(n) - Detected as single ascending run</description></item>
-/// <item><description>Reverse sorted: O(n) - Detected as single descending run, then reversed</description></item>
-/// <item><description>Many runs: Galloping mode efficiently handles repeated patterns</description></item>
-/// <item><description>Random data: Falls back to efficient merge sort with optimized merging</description></item>
+/// <item><description>Sorted data: O(n) - Detected as single ascending run, no merges needed</description></item>
+/// <item><description>Reverse sorted: O(n) - Detected as single descending run, reversed in O(n) with n/2 swaps</description></item>
+/// <item><description>Partially sorted: O(n) to O(n log n) - Exploits existing runs, fewer merges needed</description></item>
+/// <item><description>Random data: O(n log n) - Falls back to efficient merge sort with run-based optimization</description></item>
 /// </list>
 /// <para><strong>Why TimSort is Superior for Real-World Data:</strong></para>
 /// <list type="bullet">
-/// <item><description>Exploits existing order: Natural runs are identified and preserved</description></item>
-/// <item><description>Stable sorting: Critical for multi-key sorts and maintaining data integrity</description></item>
-/// <item><description>Predictable performance: O(n log n) guarantee prevents worst-case scenarios</description></item>
-/// <item><description>Memory efficient: Only allocates temp buffer when needed, uses ArrayPool</description></item>
+/// <item><description>Exploits existing order: Natural runs are identified and preserved, reducing work on partially sorted data</description></item>
+/// <item><description>Stable sorting: Critical for multi-key sorts (e.g., sort by age, then by name) and maintaining data integrity</description></item>
+/// <item><description>Predictable performance: O(n log n) guarantee prevents worst-case scenarios unlike QuickSort</description></item>
+/// <item><description>Memory efficient: Temporary buffer size is at most n/2 (smaller run is copied)</description></item>
+/// <item><description>Balanced merges: MinRun calculation and stack invariants ensure logarithmic merge tree depth</description></item>
+/// </list>
+/// <para><strong>Implementation Notes:</strong></para>
+/// <list type="bullet">
+/// <item><description>MIN_MERGE = 32: Arrays smaller than 32 elements use Binary Insertion Sort directly (O(n²) but fast for small n)</description></item>
+/// <item><description>Stack size = 85: Sufficient for 2^64 elements (worst-case stack depth is ⌈log_φ(n)⌉ where φ ≈ 1.618 is golden ratio)</description></item>
+/// <item><description>Simplified implementation: This version uses basic merging without galloping mode for clarity and simplicity</description></item>
 /// </list>
 /// <para><strong>Reference:</strong></para>
 /// <para>Wiki: https://en.wikipedia.org/wiki/Timsort</para>
