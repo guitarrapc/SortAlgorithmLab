@@ -212,6 +212,8 @@ public static class TimSort
     /// <summary>
     /// Computes the minimum run length for the given array size.
     /// </summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+
     private static int ComputeMinRun(int n)
     {
         var r = 0;
@@ -226,6 +228,7 @@ public static class TimSort
     /// <summary>
     /// Reverses the elements in the range [lo..hi].
     /// </summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private static void Reverse<T>(SortSpan<T> s, int lo, int hi) where T : IComparable<T>
     {
         while (lo < hi)
