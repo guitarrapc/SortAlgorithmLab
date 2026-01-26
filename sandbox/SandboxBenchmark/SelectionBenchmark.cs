@@ -1,12 +1,13 @@
 ﻿namespace SandboxBenchmark;
 
-[ShortRunJob]
 [MemoryDiagnoser]
-[MinColumn, MaxColumn]
 public class SelectionBenchmark
 {
     [Params(100, 1000, 10000)]
-    public int Number { get; set; }
+    public int Size { get; set; }
+
+    [Params(DataPattern.Random, DataPattern.Sorted, DataPattern.Reversed, DataPattern.NearlySorted)]
+    public DataPattern Pattern { get; set; }
 
     private int[] _cycleArray = default!;
     private int[] _pancakeArray = default!;
@@ -15,9 +16,9 @@ public class SelectionBenchmark
     [IterationSetup]
     public void Setup()
     {
-        _cycleArray = BenchmarkData.GenIntArray(Number);
-        _pancakeArray = BenchmarkData.GenIntArray(Number);
-        _selectionArray = BenchmarkData.GenIntArray(Number);
+        _cycleArray = BenchmarkData.GenerateIntArray(Size, Pattern);
+        _pancakeArray = BenchmarkData.GenerateIntArray(Size, Pattern);
+        _selectionArray = BenchmarkData.GenerateIntArray(Size, Pattern);
     }
 
     [Benchmark]

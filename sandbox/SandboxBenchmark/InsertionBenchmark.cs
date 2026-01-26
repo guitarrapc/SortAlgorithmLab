@@ -1,12 +1,13 @@
 ﻿namespace SandboxBenchmark;
 
-[ShortRunJob]
 [MemoryDiagnoser]
-[MinColumn, MaxColumn]
 public class InsertionBenchmark
 {
     [Params(100, 1000, 10000)]
-    public int Number { get; set; }
+    public int Size { get; set; }
+
+    [Params(DataPattern.Random, DataPattern.Sorted, DataPattern.Reversed, DataPattern.NearlySorted)]
+    public DataPattern Pattern { get; set; }
 
     private int[] _balancedbinarytreeArray = default!;
     private int[] _binaryinsertArray = default!;
@@ -21,15 +22,15 @@ public class InsertionBenchmark
     [IterationSetup]
     public void Setup()
     {
-        _balancedbinarytreeArray = BenchmarkData.GenIntArray(Number);
-        _binaryinsertArray = BenchmarkData.GenIntArray(Number);
-        _binarytreeArray = BenchmarkData.GenIntArray(Number);
-        _insertionArray = BenchmarkData.GenIntArray(Number);
-        _shellArrayCiura2001 = BenchmarkData.GenIntArray(Number);
-        _shellArrayKnuth1973 = BenchmarkData.GenIntArray(Number);
-        _shellArrayLee2021 = BenchmarkData.GenIntArray(Number);
-        _shellArraySedgewick1986 = BenchmarkData.GenIntArray(Number);
-        _shellArrayTokuda1992 = BenchmarkData.GenIntArray(Number);
+        _balancedbinarytreeArray = BenchmarkData.GenerateIntArray(Size, Pattern);
+        _binaryinsertArray = BenchmarkData.GenerateIntArray(Size, Pattern);
+        _binarytreeArray = BenchmarkData.GenerateIntArray(Size, Pattern);
+        _insertionArray = BenchmarkData.GenerateIntArray(Size, Pattern);
+        _shellArrayCiura2001 = BenchmarkData.GenerateIntArray(Size, Pattern);
+        _shellArrayKnuth1973 = BenchmarkData.GenerateIntArray(Size, Pattern);
+        _shellArrayLee2021 = BenchmarkData.GenerateIntArray(Size, Pattern);
+        _shellArraySedgewick1986 = BenchmarkData.GenerateIntArray(Size, Pattern);
+        _shellArrayTokuda1992 = BenchmarkData.GenerateIntArray(Size, Pattern);
     }
 
     [Benchmark]
