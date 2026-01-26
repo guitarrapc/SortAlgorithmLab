@@ -1,4 +1,6 @@
 ﻿using SortAlgorithm.Contexts;
+using System.Buffers;
+using System.Runtime.CompilerServices;
 
 namespace SortAlgorithm.Algorithms;
 
@@ -74,6 +76,7 @@ namespace SortAlgorithm.Algorithms;
 /// <item><description>Stack size = 85: Sufficient for 2^64 elements (worst-case stack depth is ⌈log_φ(n)⌉ where φ ≈ 1.618 is golden ratio)</description></item>
 /// <item><description>Galloping mode: Adaptive exponential search + binary search when one run consistently wins, dynamically adjusted threshold</description></item>
 /// <item><description>Range reduction: Before merging, skip elements already in final positions using galloping</description></item>
+/// <item><description>ArrayPool: Uses ArrayPool&lt;T&gt;.Shared to rent temporary buffers, reducing GC pressure and allocation overhead</description></item>
 /// </list>
 /// <para><strong>Reference:</strong></para>
 /// <para>Wiki: https://en.wikipedia.org/wiki/Timsort</para>
@@ -478,118 +481,126 @@ public static class TimSort
     {
         var s = new SortSpan<T>(span, context, BUFFER_MAIN);
 
-        // Copy first run to temp array
-        var tmp = new T[len1];
-        var t = new SortSpan<T>(tmp, context, BUFFER_TEMP);
-        s.CopyTo(base1, t, 0, len1);
-
-        var cursor1 = 0;          // Index in temp (first run)
-        var cursor2 = base2;      // Index in span (second run)
-        var dest = base1;         // Destination index
-
-        // Move first element of second run
-        s.Write(dest++, s.Read(cursor2++));
-        len2--;
-
-        if (len2 == 0)
+        // Rent temp array from ArrayPool
+        var tmp = ArrayPool<T>.Shared.Rent(len1);
+        try
         {
-            t.CopyTo(0, s, dest, len1);
-            return;
-        }
-        if (len1 == 1)
-        {
-            s.CopyTo(cursor2, s, dest, len2);
-            s.Write(dest + len2, t.Read(cursor1));
-            return;
-        }
+            var t = new SortSpan<T>(tmp.AsSpan(0, len1), context, BUFFER_TEMP);
+            s.CopyTo(base1, t, 0, len1);
 
-        var minGallop = ms.MinGallop;
+            var cursor1 = 0;          // Index in temp (first run)
+            var cursor2 = base2;      // Index in span (second run)
+            var dest = base1;         // Destination index
 
-        while (true)
-        {
-            var count1 = 0;  // # of times run1 won in a row
-            var count2 = 0;  // # of times run2 won in a row
+            // Move first element of second run
+            s.Write(dest++, s.Read(cursor2++));
+            len2--;
 
-            // One-pair-at-a-time mode
-            do
+            if (len2 == 0)
             {
-                var val1 = t.Read(cursor1);
-                var val2 = s.Read(cursor2);
+                t.CopyTo(0, s, dest, len1);
+                return;
+            }
+            if (len1 == 1)
+            {
+                s.CopyTo(cursor2, s, dest, len2);
+                s.Write(dest + len2, t.Read(cursor1));
+                return;
+            }
 
-                if (s.Compare(val1, val2) <= 0)
+            var minGallop = ms.MinGallop;
+
+            while (true)
+            {
+                var count1 = 0;  // # of times run1 won in a row
+                var count2 = 0;  // # of times run2 won in a row
+
+                // One-pair-at-a-time mode
+                do
                 {
-                    s.Write(dest++, val1);
-                    cursor1++;
-                    count1++;
-                    count2 = 0;
-                    len1--;
-                    if (len1 == 0)
-                        goto exitMerge;
-                }
-                else
+                    var val1 = t.Read(cursor1);
+                    var val2 = s.Read(cursor2);
+
+                    if (s.Compare(val1, val2) <= 0)
+                    {
+                        s.Write(dest++, val1);
+                        cursor1++;
+                        count1++;
+                        count2 = 0;
+                        len1--;
+                        if (len1 == 0)
+                            goto exitMerge;
+                    }
+                    else
+                    {
+                        s.Write(dest++, val2);
+                        cursor2++;
+                        count2++;
+                        count1 = 0;
+                        len2--;
+                        if (len2 == 0)
+                            goto exitMerge;
+                    }
+                } while ((count1 | count2) < minGallop);
+
+                // Galloping mode: one run is winning consistently
+                do
                 {
-                    s.Write(dest++, val2);
-                    cursor2++;
-                    count2++;
-                    count1 = 0;
+                    count1 = GallopRight(t, s.Read(cursor2), cursor1, len1, 0);
+                    if (count1 != 0)
+                    {
+                        t.CopyTo(cursor1, s, dest, count1);
+                        dest += count1;
+                        cursor1 += count1;
+                        len1 -= count1;
+                        if (len1 == 0)
+                            goto exitMerge;
+                    }
+                    s.Write(dest++, s.Read(cursor2++));
                     len2--;
                     if (len2 == 0)
                         goto exitMerge;
-                }
-            } while ((count1 | count2) < minGallop);
 
-            // Galloping mode: one run is winning consistently
-            do
+                    count2 = GallopLeft(s, t.Read(cursor1), cursor2, len2, 0);
+                    if (count2 != 0)
+                    {
+                        s.CopyTo(cursor2, s, dest, count2);
+                        dest += count2;
+                        cursor2 += count2;
+                        len2 -= count2;
+                        if (len2 == 0)
+                            goto exitMerge;
+                    }
+                    s.Write(dest++, t.Read(cursor1++));
+                    len1--;
+                    if (len1 == 1)
+                        goto exitMerge;
+
+                    minGallop--;
+                } while (count1 >= MIN_GALLOP || count2 >= MIN_GALLOP);
+
+                if (minGallop < 0)
+                    minGallop = 0;
+                minGallop += 2;  // Penalize for leaving galloping mode
+            }
+
+            exitMerge:
+            ms.MinGallop = minGallop < 1 ? 1 : minGallop;
+
+            if (len1 == 1)
             {
-                count1 = GallopRight(t, s.Read(cursor2), cursor1, len1, 0);
-                if (count1 != 0)
-                {
-                    t.CopyTo(cursor1, s, dest, count1);
-                    dest += count1;
-                    cursor1 += count1;
-                    len1 -= count1;
-                    if (len1 == 0)
-                        goto exitMerge;
-                }
-                s.Write(dest++, s.Read(cursor2++));
-                len2--;
-                if (len2 == 0)
-                    goto exitMerge;
-
-                count2 = GallopLeft(s, t.Read(cursor1), cursor2, len2, 0);
-                if (count2 != 0)
-                {
-                    s.CopyTo(cursor2, s, dest, count2);
-                    dest += count2;
-                    cursor2 += count2;
-                    len2 -= count2;
-                    if (len2 == 0)
-                        goto exitMerge;
-                }
-                s.Write(dest++, t.Read(cursor1++));
-                len1--;
-                if (len1 == 1)
-                    goto exitMerge;
-
-                minGallop--;
-            } while (count1 >= MIN_GALLOP || count2 >= MIN_GALLOP);
-
-            if (minGallop < 0)
-                minGallop = 0;
-            minGallop += 2;  // Penalize for leaving galloping mode
+                s.CopyTo(cursor2, s, dest, len2);
+                s.Write(dest + len2, t.Read(cursor1));
+            }
+            else if (len1 > 0)
+            {
+                t.CopyTo(cursor1, s, dest, len1);
+            }
         }
-
-        exitMerge:
-        ms.MinGallop = minGallop < 1 ? 1 : minGallop;
-
-        if (len1 == 1)
+        finally
         {
-            s.CopyTo(cursor2, s, dest, len2);
-            s.Write(dest + len2, t.Read(cursor1));
-        }
-        else if (len1 > 0)
-        {
-            t.CopyTo(cursor1, s, dest, len1);
+            // Return the rented array to the pool
+            ArrayPool<T>.Shared.Return(tmp, clearArray: RuntimeHelpers.IsReferenceOrContainsReferences<T>());
         }
     }
 
@@ -601,122 +612,130 @@ public static class TimSort
     {
         var s = new SortSpan<T>(span, context, BUFFER_MAIN);
 
-        // Copy second run to temp array
-        var tmp = new T[len2];
-        var t = new SortSpan<T>(tmp, context, BUFFER_TEMP);
-        s.CopyTo(base2, t, 0, len2);
-
-        var cursor1 = base1 + len1 - 1;  // Index in span (first run, from end)
-        var cursor2 = len2 - 1;          // Index in temp (second run, from end)
-        var dest = base2 + len2 - 1;     // Destination index (from end)
-
-        // Move last element of first run
-        s.Write(dest--, s.Read(cursor1--));
-        len1--;
-
-        if (len1 == 0)
+        // Rent temp array from ArrayPool
+        var tmp = ArrayPool<T>.Shared.Rent(len2);
+        try
         {
-            t.CopyTo(0, s, dest - (len2 - 1), len2);
-            return;
-        }
-        if (len2 == 1)
-        {
-            dest -= len1;
-            cursor1 -= len1;
-            s.CopyTo(cursor1 + 1, s, dest + 1, len1);
-            s.Write(dest, t.Read(0));
-            return;
-        }
+            var t = new SortSpan<T>(tmp.AsSpan(0, len2), context, BUFFER_TEMP);
+            s.CopyTo(base2, t, 0, len2);
 
-        var minGallop = ms.MinGallop;
+            var cursor1 = base1 + len1 - 1;  // Index in span (first run, from end)
+            var cursor2 = len2 - 1;          // Index in temp (second run, from end)
+            var dest = base2 + len2 - 1;     // Destination index (from end)
 
-        while (true)
-        {
-            var count1 = 0;  // # of times run1 won in a row
-            var count2 = 0;  // # of times run2 won in a row
+            // Move last element of first run
+            s.Write(dest--, s.Read(cursor1--));
+            len1--;
 
-            // One-pair-at-a-time mode
-            do
+            if (len1 == 0)
             {
-                var val1 = s.Read(cursor1);
-                var val2 = t.Read(cursor2);
+                t.CopyTo(0, s, dest - (len2 - 1), len2);
+                return;
+            }
+            if (len2 == 1)
+            {
+                dest -= len1;
+                cursor1 -= len1;
+                s.CopyTo(cursor1 + 1, s, dest + 1, len1);
+                s.Write(dest, t.Read(0));
+                return;
+            }
 
-                if (s.Compare(val2, val1) >= 0)
+            var minGallop = ms.MinGallop;
+
+            while (true)
+            {
+                var count1 = 0;  // # of times run1 won in a row
+                var count2 = 0;  // # of times run2 won in a row
+
+                // One-pair-at-a-time mode
+                do
                 {
-                    s.Write(dest--, val2);
-                    cursor2--;
-                    count2++;
-                    count1 = 0;
+                    var val1 = s.Read(cursor1);
+                    var val2 = t.Read(cursor2);
+
+                    if (s.Compare(val2, val1) >= 0)
+                    {
+                        s.Write(dest--, val2);
+                        cursor2--;
+                        count2++;
+                        count1 = 0;
+                        len2--;
+                        if (len2 == 0)
+                            goto exitMerge;
+                    }
+                    else
+                    {
+                        s.Write(dest--, val1);
+                        cursor1--;
+                        count1++;
+                        count2 = 0;
+                        len1--;
+                        if (len1 == 0)
+                            goto exitMerge;
+                    }
+                } while ((count1 | count2) < minGallop);
+
+                // Galloping mode: one run is winning consistently
+                do
+                {
+                    count1 = len1 - GallopRight(s, t.Read(cursor2), base1, len1, len1 - 1);
+                    if (count1 != 0)
+                    {
+                        dest -= count1;
+                        cursor1 -= count1;
+                        len1 -= count1;
+                        s.CopyTo(cursor1 + 1, s, dest + 1, count1);
+                        if (len1 == 0)
+                            goto exitMerge;
+                    }
+                    s.Write(dest--, t.Read(cursor2--));
                     len2--;
-                    if (len2 == 0)
+                    if (len2 == 1)
                         goto exitMerge;
-                }
-                else
-                {
-                    s.Write(dest--, val1);
-                    cursor1--;
-                    count1++;
-                    count2 = 0;
+
+                    count2 = len2 - GallopLeft(t, s.Read(cursor1), 0, len2, len2 - 1);
+                    if (count2 != 0)
+                    {
+                        dest -= count2;
+                        cursor2 -= count2;
+                        len2 -= count2;
+                        t.CopyTo(cursor2 + 1, s, dest + 1, count2);
+                        if (len2 == 0)
+                            goto exitMerge;
+                    }
+                    s.Write(dest--, s.Read(cursor1--));
                     len1--;
                     if (len1 == 0)
                         goto exitMerge;
-                }
-            } while ((count1 | count2) < minGallop);
 
-            // Galloping mode: one run is winning consistently
-            do
+                    minGallop--;
+                } while (count1 >= MIN_GALLOP || count2 >= MIN_GALLOP);
+
+                if (minGallop < 0)
+                    minGallop = 0;
+                minGallop += 2;  // Penalize for leaving galloping mode
+            }
+
+            exitMerge:
+            ms.MinGallop = minGallop < 1 ? 1 : minGallop;
+
+            if (len2 == 1)
             {
-                count1 = len1 - GallopRight(s, t.Read(cursor2), base1, len1, len1 - 1);
-                if (count1 != 0)
-                {
-                    dest -= count1;
-                    cursor1 -= count1;
-                    len1 -= count1;
-                    s.CopyTo(cursor1 + 1, s, dest + 1, count1);
-                    if (len1 == 0)
-                        goto exitMerge;
-                }
-                s.Write(dest--, t.Read(cursor2--));
-                len2--;
-                if (len2 == 1)
-                    goto exitMerge;
-
-                count2 = len2 - GallopLeft(t, s.Read(cursor1), 0, len2, len2 - 1);
-                if (count2 != 0)
-                {
-                    dest -= count2;
-                    cursor2 -= count2;
-                    len2 -= count2;
-                    t.CopyTo(cursor2 + 1, s, dest + 1, count2);
-                    if (len2 == 0)
-                        goto exitMerge;
-                }
-                s.Write(dest--, s.Read(cursor1--));
-                len1--;
-                if (len1 == 0)
-                    goto exitMerge;
-
-                minGallop--;
-            } while (count1 >= MIN_GALLOP || count2 >= MIN_GALLOP);
-
-            if (minGallop < 0)
-                minGallop = 0;
-            minGallop += 2;  // Penalize for leaving galloping mode
+                dest -= len1;
+                cursor1 -= len1;
+                s.CopyTo(cursor1 + 1, s, dest + 1, len1);
+                s.Write(dest, t.Read(cursor2));
+            }
+            else if (len2 > 0)
+            {
+                t.CopyTo(0, s, dest - (len2 - 1), len2);
+            }
         }
-
-        exitMerge:
-        ms.MinGallop = minGallop < 1 ? 1 : minGallop;
-
-        if (len2 == 1)
+        finally
         {
-            dest -= len1;
-            cursor1 -= len1;
-            s.CopyTo(cursor1 + 1, s, dest + 1, len1);
-            s.Write(dest, t.Read(cursor2));
-        }
-        else if (len2 > 0)
-        {
-            t.CopyTo(0, s, dest - (len2 - 1), len2);
+            // Return the rented array to the pool
+            ArrayPool<T>.Shared.Return(tmp, clearArray: RuntimeHelpers.IsReferenceOrContainsReferences<T>());
         }
     }
 }
