@@ -62,6 +62,8 @@ namespace SortAlgorithm.Algorithms;
 /// <item><description>No tree balancing is performed; for guaranteed O(n log n) performance, consider using AVL or Red-Black tree variants</description></item>
 /// <item><description><strong>Non-Optimized:</strong> This version uses class-based nodes with reference type overhead. See <see cref="BinaryTreeSort"/> for an arena-based optimized version.</description></item>
 /// </list>
+/// <para><strong>Reference:</strong></para>
+/// <para>Wiki: https://en.wikipedia.org/wiki/Tree_sort</para>
 /// </remarks>
 public static class BinaryTreeSort
 {

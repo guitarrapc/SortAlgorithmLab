@@ -43,6 +43,8 @@ namespace SortAlgorithm.Algorithms;
 /// </list>
 /// <para><strong>Note:</strong> Uses decimal arithmetic (division and modulo), which may be slower than binary-based radix sorts (e.g., RadixLSD4Sort with bit shifts).
 /// However, it is more intuitive for understanding and debugging.</para>
+/// <para><strong>Reference:</strong></para>
+/// <para>Wiki: https://en.wikipedia.org/wiki/Radix_sort#Least_significant_digit</para>
 /// </remarks>
 public static class RadixLSD10Sort
 {

@@ -112,7 +112,8 @@ namespace SortAlgorithm.Algorithms;
 /// <item><description>Complexity guarantee: Depth limit of 2⌊log₂(n)⌋ ensures HeapSort fallback before stack overflow or quadratic behavior</description></item>
 /// </list>
 /// <para><strong>Reference:</strong></para>
-/// <para>Reference implementation: https://github.com/llvm/llvm-project/blob/368faacac7525e538fa6680aea74e19a75e3458d/libcxx/include/__algorithm/sort.h#L272</para>
+/// <para>Wiki: https://en.wikipedia.org/wiki/Introsort</para>
+/// <para>LLVM implementation: https://github.com/llvm/llvm-project/blob/368faacac7525e538fa6680aea74e19a75e3458d/libcxx/include/__algorithm/sort.h#L272</para>
 /// </remarks>
 public static class IntroSort
 {

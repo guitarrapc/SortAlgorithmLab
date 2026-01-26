@@ -61,6 +61,8 @@ PancakeSort ...
 /// <para><strong>Note:</strong> The Pancake Sorting Problem asks for the minimum number of flips to sort any array. 
 /// This implementation uses a simple greedy approach (not necessarily optimal) that guarantees at most 2(n-1) flips.
 /// The optimal bound is between (15n/14) and (18n/11) flips for worst-case inputs.</para>
+/// <para><strong>Reference:</strong></para>
+/// <para>Wiki: https://en.wikipedia.org/wiki/Pancake_sorting</para>
 /// </remarks>
 public static class PancakeSort
 {

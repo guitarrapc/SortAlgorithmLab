@@ -101,6 +101,8 @@ Span ...
 /// <item><description>Comparison-based algorithm: requires O(n log n) comparisons in all cases</description></item>
 /// <item><description>Despite O(n log n) guarantee, often slower than Quicksort in practice due to poor cache performance</description></item>
 /// </list>
+/// <para><strong>Reference:</strong></para>
+/// <para>Wiki: https://en.wikipedia.org/wiki/Heapsort</para>
 /// </remarks>
 public static class HeapSort
 {

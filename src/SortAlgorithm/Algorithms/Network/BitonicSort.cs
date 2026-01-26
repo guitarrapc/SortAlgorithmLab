@@ -65,6 +65,8 @@ namespace SortAlgorithm.Algorithms;
 /// <item><description>Educational purposes to demonstrate oblivious sorting algorithms</description></item>
 /// <item><description>Scenarios where input size is guaranteed to be a power of 2 and zero allocation is required</description></item>
 /// </list>
+/// <para><strong>Reference:</strong></para>
+/// <para>Wiki: https://en.wikipedia.org/wiki/Bitonic_sorter</para>
 /// </remarks>
 public static class BitonicSort
 {

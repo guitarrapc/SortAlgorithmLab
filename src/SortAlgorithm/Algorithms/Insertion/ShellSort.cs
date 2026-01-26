@@ -94,6 +94,8 @@ Span (Sedgewick) ...
 /// <item><description>Provides good general-purpose performance</description></item>
 /// <item><description>Theoretical worst-case complexity: O(n^{3/2})</description></item>
 /// </list>
+/// <para><strong>Reference:</strong></para>
+/// <para>Wiki: https://en.wikipedia.org/wiki/Shellsort</para>
 /// </remarks>
 public static class ShellSortKnuth1973
 {

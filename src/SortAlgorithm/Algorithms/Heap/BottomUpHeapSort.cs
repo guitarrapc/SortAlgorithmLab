@@ -86,6 +86,9 @@ namespace SortAlgorithm.Algorithms;
 /// comparison-efficient variants of heap sort, though it remains primarily of theoretical interest due to
 /// poor cache behavior inherent in heap structures.
 /// </para>
+/// <para><strong>Reference:</strong></para>
+/// <para>Wiki: https://en.wikipedia.org/wiki/Heapsort</para>
+/// <para>Paper: https://pdf.sciencedirectassets.com/271538/1-s2.0-S0304397500X04148/1-s2.0-030439759390364Y/main.pdf</para>
 /// </remarks>
 public static class BottomupHeapSort
 {

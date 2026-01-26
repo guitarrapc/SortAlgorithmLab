@@ -46,6 +46,8 @@ namespace SortAlgorithm.Algorithms;
 /// <item><description>vs ShellSort: Similar concept but uses swaps instead of insertions; generally slightly slower</description></item>
 /// <item><description>vs QuickSort: Simpler but slower on average; more predictable performance</description></item>
 /// </list>
+/// <para><strong>Reference:</strong></para>
+/// <para>Wiki: https://en.wikipedia.org/wiki/Comb_sort</para>
 /// </remarks>
 public static class CombSort
 {

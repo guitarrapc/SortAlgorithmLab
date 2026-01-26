@@ -55,6 +55,8 @@ namespace SortAlgorithm.Algorithms;
 /// <item><description>Linked list sorting (can be done in-place with O(1) space)</description></item>
 /// <item><description>External sorting of large datasets</description></item>
 /// </list>
+/// <para><strong>Reference:</strong></para>
+/// <para>Wiki: https://en.wikipedia.org/wiki/Merge_sort</para>
 /// </remarks>
 public static class MergeSort
 {

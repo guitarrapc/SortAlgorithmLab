@@ -63,6 +63,8 @@ Span ...
 /// <item><description>Systems where memory writes are significantly more expensive than comparisons</description></item>
 /// <item><description>Educational purposes to demonstrate cycle detection in permutations</description></item>
 /// </list>
+/// <para><strong>Reference:</strong></para>
+/// <para>Wiki: https://en.wikipedia.org/wiki/Quicksort</para>
 /// </remarks>
 public static class CycleSort
 {

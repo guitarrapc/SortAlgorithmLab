@@ -42,6 +42,8 @@ namespace SortAlgorithm.Algorithms;
 /// <item><description>Memory      : O(n + k)</description></item>
 /// <item><description>Note        : キーの範囲が大きいとメモリ使用量が膨大になります。最大範囲は{MaxCountArraySize}です。</description></item>
 /// </list>
+/// <para><strong>Reference:</strong></para>
+/// <para>Wiki: https://en.wikipedia.org/wiki/Counting_sort</para>
 /// </remarks>
 public static class CountingSort
 {

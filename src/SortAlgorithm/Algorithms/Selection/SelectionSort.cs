@@ -67,6 +67,8 @@ Span ...
 /// <item><description>Educational purposes to teach fundamental sorting concepts</description></item>
 /// <item><description>When memory writes are costly but comparisons are cheap</description></item>
 /// </list>
+/// <para><strong>Reference:</strong></para>
+/// <para>Wiki: https://en.wikipedia.org/wiki/Selection_sort</para>
 /// </remarks>
 public static class SelectionSort
 {

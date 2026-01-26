@@ -42,6 +42,8 @@ Span ...
 /// <item><description>Comparisons : (e-1) × n × (n-1) / 2 on average - Each verification performs n-1 comparisons</description></item>
 /// <item><description>Swaps       : (n-1) × n! on average - Each shuffle performs n-1 swaps via Fisher-Yates</description></item>
 /// </list>
+/// <para><strong>Reference:</strong></para>
+/// <para>Wiki: https://en.wikipedia.org/wiki/Bogosort</para>
 /// </remarks>
 public static class BogoSort
 {

@@ -47,6 +47,8 @@ namespace SortAlgorithm.Algorithms;
 /// <item><description>Scenarios where predictable parallel performance is required</description></item>
 /// <item><description>When input size is guaranteed to be a power of 2</description></item>
 /// </list>
+/// <para><strong>Reference:</strong></para>
+/// <para>Wiki: https://en.wikipedia.org/wiki/Bitonic_sorter</para>
 /// </remarks>
 public static class BitonicSortParallel
 {

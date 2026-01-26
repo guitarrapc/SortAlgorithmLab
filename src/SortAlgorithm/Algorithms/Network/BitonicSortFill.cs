@@ -67,6 +67,8 @@ namespace SortAlgorithm.Algorithms;
 /// <item><description>Educational purposes to demonstrate oblivious sorting algorithms</description></item>
 /// <item><description>Scenarios where predictable, data-independent execution time is required</description></item>
 /// </list>
+/// <para><strong>Reference:</strong></para>
+/// <para>Wiki: https://en.wikipedia.org/wiki/Bitonic_sorter</para>
 /// </remarks>
 public static class BitonicSortFill
 {

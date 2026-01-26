@@ -65,8 +65,9 @@ Span ...
 /// <item><description>Binary Insertion Sort: O(n log n) comparisons, O(n²) writes - Binary search reduces comparisons but not writes</description></item>
 /// <item><description>Practical benefit: More significant when comparisons are expensive (e.g., string comparison, complex objects)</description></item>
 /// </list>
+/// <para><strong>Reference:</strong></para>
+/// <para>Wiki: https://en.wikipedia.org/wiki/Insertion_sort</para>
 /// </remarks>
-/// <typeparam name="T"></typeparam>
 public static class BinaryInsertSort
 {
     // Buffer identifiers for visualization

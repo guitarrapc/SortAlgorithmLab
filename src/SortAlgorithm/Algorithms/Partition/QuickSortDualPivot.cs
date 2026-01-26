@@ -98,6 +98,8 @@ namespace SortAlgorithm.Algorithms;
 /// <item><description><strong>Duplicate Handling:</strong> Java uses 5-way partitioning to segregate elements equal to pivots.
 /// This implementation uses Yaroslavskiy's 2009 approach with equal elements optimization.</description></item>
 /// </list>
+/// <para><strong>Reference:</strong></para>
+/// <para>Wiki: https://en.wikipedia.org/wiki/Quicksort</para>
 /// </remarks>
 public static class QuickSortDualPivot
 {

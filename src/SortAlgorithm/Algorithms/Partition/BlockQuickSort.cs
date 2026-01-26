@@ -82,6 +82,7 @@ namespace SortAlgorithm.Algorithms;
 /// <item><description>Empirical speedup: Typically 1.5-2x faster than standard QuickSort on arrays with n &gt; 10,000</description></item>
 /// </list>
 /// <para><strong>Reference:</strong></para>
+/// <para>Wiki: https://en.wikipedia.org/wiki/Quicksort</para>
 /// <para>Paper: https://arxiv.org/abs/1604.06697</para>
 /// </remarks>
 public static class BlockQuickSort

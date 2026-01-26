@@ -32,6 +32,8 @@ namespace SortAlgorithm.Algorithms;
 /// <item><description>Comparisons : Exactly n(n-1)/2 comparisons in all cases</description></item>
 /// <item><description>Swaps       : Best 0, Average n(n-1)/4, Worst n(n-1)/2</description></item>
 /// </list>
+/// <para><strong>Reference:</strong></para>
+/// <para>Wiki: https://en.wikipedia.org/wiki/Bubble_sort</para>
 /// </remarks>
 /// <typeparam name="T"></typeparam>
 public static class BubbleSort

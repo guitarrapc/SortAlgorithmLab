@@ -47,6 +47,8 @@ namespace SortAlgorithm.Algorithms;
 /// <item><description>Builds max-heap for ascending sort (min-heap would produce descending order)</description></item>
 /// <item><description>Child indices: For parent i (offset-adjusted), children are at 3*(i-offset)+1+offset, 3*(i-offset)+2+offset, 3*(i-offset)+3+offset</description></item>
 /// </list>
+/// <para><strong>Reference:</strong></para>
+/// <para>Wiki: https://en.wikipedia.org/wiki/Heapsort</para>
 /// </remarks>
 public static class TernaryHeapSort
 {

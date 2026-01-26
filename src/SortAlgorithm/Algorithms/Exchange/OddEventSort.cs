@@ -46,6 +46,8 @@ namespace SortAlgorithm.Algorithms;
 /// <item><description>vs Cocktail Sort: Cocktail Sort uses bidirectional passes; Odd-Even Sort uses alternating pair phases</description></item>
 /// <item><description>vs Insertion Sort: Insertion Sort is typically faster in sequential execution for small arrays</description></item>
 /// </list>
+/// <para><strong>Reference:</strong></para>
+/// <para>Wiki: https://en.wikipedia.org/wiki/Odd%E2%80%93even_sort</para>
 /// </remarks>
 public static class OddEvenSort
 {

@@ -69,8 +69,7 @@ namespace SortAlgorithm.Algorithms;
 /// <item><description>Less than 20-30% elements out of order</description></item>
 /// </list>
 /// <para><strong>Reference:</strong></para>
-/// <para>Original implementation: https://github.com/emilk/drop-merge-sort</para>
-/// <para>JavaScript implementation: https://github.com/Jooraz/js-drop-merge-sort</para>
+/// <para>Other implementation: https://github.com/emilk/drop-merge-sort</para>
 /// </remarks>
 public static class DropMergeSort
 {

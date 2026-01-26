@@ -81,6 +81,8 @@ namespace SortAlgorithm.Algorithms;
 /// <item><description>vs. Dual-Pivot QuickSort: Simpler implementation, but dual-pivot can be ~5-10% faster on modern CPUs</description></item>
 /// <item><description>vs. IntroSort: This is the core algorithm; IntroSort adds HeapSort fallback for worst-case protection</description></item>
 /// </list>
+/// <para><strong>Reference:</strong></para>
+/// <para>Wiki: https://en.wikipedia.org/wiki/Quicksort</para>
 /// </remarks>
 public static class QuickSortMedian3
 {

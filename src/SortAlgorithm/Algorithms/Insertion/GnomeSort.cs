@@ -38,6 +38,8 @@ namespace SortAlgorithm.Algorithms;
 /// <item><description>Swaps       : Best: 0 | Average: ~n²/4 | Worst: n(n-1)/2</description></item>
 /// <item><description>Index Writes: Best: 0 | Average: ~n²/2 | Worst: n(n-1) (2 writes per swap)</description></item>
 /// </list>
+/// <para><strong>Reference:</strong></para>
+/// <para>Wiki: https://en.wikipedia.org/wiki/Gnome_sort</para>
 /// </remarks>
 public static class GnomeSort
 {

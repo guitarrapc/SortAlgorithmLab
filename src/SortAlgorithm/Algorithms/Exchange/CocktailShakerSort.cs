@@ -34,6 +34,8 @@ namespace SortAlgorithm.Algorithms;
 /// <item><description>Comparisons : Best O(n), Average/Worst O(n²)</description></item>
 /// <item><description>Swaps       : Best 0, Average n(n-1)/4, Worst n(n-1)/2</description></item>
 /// </list>
+/// <para><strong>Reference:</strong></para>
+/// <para>Wiki: https://en.wikipedia.org/wiki/Cocktail_shaker_sort</para>
 /// </remarks>
 public static class CocktailShakerSort
 {

@@ -80,6 +80,9 @@ namespace SortAlgorithm.Algorithms;
 /// <item><description>vs. TimSort: TimSort is also stable and adaptive, but this QuickSort variant is simpler and more predictable</description></item>
 /// <item><description>vs. Dual-Pivot QuickSort: Simpler implementation with guaranteed stability (dual-pivot is faster but unstable)</description></item>
 /// </list>
+/// <para><strong>Reference:</strong></para>
+/// <para>Wiki: https://en.wikipedia.org/wiki/Quicksort</para>
+/// <para>Paper: https://arxiv.org/abs/1604.06697</para>
 /// </remarks>
 public static class StableQuickSort
 {

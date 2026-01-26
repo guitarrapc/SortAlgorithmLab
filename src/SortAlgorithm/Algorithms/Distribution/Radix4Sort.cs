@@ -51,6 +51,8 @@ namespace SortAlgorithm.Algorithms;
 /// <item><description>Cache-friendly bucket size: 256 buckets fit well in L1/L2 cache</description></item>
 /// <item><description>Type-agnostic: Works with any IBinaryInteger type (byte, short, int, long)</description></item>
 /// </list>
+/// <para><strong>Reference:</strong></para>
+/// <para>Wiki: https://en.wikipedia.org/wiki/Radix_sort#Least_significant_digit</para>
 /// </remarks>
 public static class RadixLSD4Sort
 {

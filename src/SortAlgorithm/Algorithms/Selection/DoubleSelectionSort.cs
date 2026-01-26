@@ -50,6 +50,8 @@ namespace SortAlgorithm.Algorithms;
 /// <item><description>When write operations are expensive and you want to minimize swap count compared to bubble sort</description></item>
 /// <item><description>Small datasets where the constant factor improvement over selection sort matters</description></item>
 /// </list>
+/// <para><strong>Reference:</strong></para>
+/// <para>Wiki: https://en.wikipedia.org/wiki/Selection_sort</para>
 /// </remarks>
 public static class DoubleSelectionSort
 {

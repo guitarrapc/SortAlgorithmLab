@@ -43,6 +43,8 @@ namespace SortAlgorithm.Algorithms;
 /// <item><description>Memory      : O(n + k) - k bucket lists plus n elements total</description></item>
 /// <item><description>Note        : バケット数は√n (最小{MinBucketCount}、最大{MaxBucketCount}) に自動調整されます。キーの分布が偏るとパフォーマンスが低下します。</description></item>
 /// </list>
+/// <para><strong>Reference:</strong></para>
+/// <para>Wiki: https://en.wikipedia.org/wiki/Bucket_sort</para>
 /// </remarks>
 public static class BucketSort
 {

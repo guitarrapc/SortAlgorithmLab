@@ -126,7 +126,8 @@ namespace SortAlgorithm.Algorithms;
 /// <item><description>Equal element handling: PartitionLeft optimization correctly handles duplicate-heavy inputs</description></item>
 /// </list>
 /// <para><strong>Reference:</strong></para>
-/// <para>Reference implementation: https://github.com/orlp/pdqsort</para>
+/// <para>Paper: https://arxiv.org/abs/2106.05123</para>
+/// <para>Other implementation: https://github.com/orlp/pdqsort</para>
 /// </remarks>
 public static class PDQSort
 {

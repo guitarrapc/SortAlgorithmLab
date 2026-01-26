@@ -63,6 +63,8 @@ namespace SortAlgorithm.Algorithms;
 /// <item><description>Recursion depth can be O(n) in worst case, risking stack overflow on large arrays</description></item>
 /// <item><description>Poor performance on arrays with many duplicate elements (use 3-way partitioning instead)</description></item>
 /// </list>
+/// <para><strong>Reference:</strong></para>
+/// <para>Wiki: https://en.wikipedia.org/wiki/Quicksort</para>
 /// </remarks>
 public static class QuickSort
 {

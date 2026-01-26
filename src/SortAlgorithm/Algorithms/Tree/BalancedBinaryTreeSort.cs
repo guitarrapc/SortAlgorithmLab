@@ -86,6 +86,8 @@ This implementation uses value caching to avoid that overhead.
 /// <item><description>Predictable performance regardless of input distribution</description></item>
 /// <item><description>Height always bounded by 1.44 × log₂(n)</description></item>
 /// </list>
+/// <para><strong>Reference:</strong></para>
+/// <para>Wiki: https://en.wikipedia.org/wiki/Tree_sort</para>
 /// </remarks>
 public static class BalancedBinaryTreeSort
 {

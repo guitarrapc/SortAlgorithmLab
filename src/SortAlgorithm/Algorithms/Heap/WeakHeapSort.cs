@@ -69,6 +69,8 @@ namespace SortAlgorithm.Algorithms;
 /// <item><description>Space overhead: n bits = n/8 bytes (e.g., 1000 elements → 125 bytes)</description></item>
 /// <item><description>Final swap(0,1) is unconditional in classic implementations; here it's conditional to avoid redundant work</description></item>
 /// </list>
+/// <para><strong>Reference:</strong></para>
+/// <para>Wiki: https://en.wikipedia.org/wiki/Heapsort</para>
 /// </remarks>
 public static class WeakHeapSort
 {

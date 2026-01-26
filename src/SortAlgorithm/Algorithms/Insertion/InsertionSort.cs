@@ -74,9 +74,10 @@ Span ...
 /// <item><description>As the final step in hybrid algorithms (e.g., Timsort, Introsort)</description></item>
 /// <item><description>When stability is required with minimal memory overhead</description></item>
 /// </list>
-/// </remarks>
-/// <typeparam name="T"></typeparam>
-public static class InsertionSort
+//// <para><strong>Reference:</strong></para>
+/// <para>Wiki: https://en.wikipedia.org/wiki/Insertion_sort</para>
+// </remarks>
+/ublic static class InsertionSort
 {
     // Buffer identifiers for visualization
     private const int BUFFER_MAIN = 0;       // Main input array

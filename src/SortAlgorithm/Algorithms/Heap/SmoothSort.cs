@@ -78,8 +78,9 @@ Span ...
 /// <item><description>✓ Achieves O(n log n) on random/reversed data (verified within expected bounds)</description></item>
 /// </list>
 /// <para><strong>Reference:</strong></para>
-/// <para>Dijkstra, E.W. (1981). "Smoothsort, an alternative for sorting in situ" (EWD796a)</para>
-/// <para>Original implementation: https://www.slideshare.net/habib_786/smooth-sort</para>
+/// <para>Wiki: https://en.wikipedia.org/wiki/Smoothsort</para>
+/// <para>Paper: Dijkstra, E.W. (1981). "Smoothsort, an alternative for sorting in situ" (EWD796a) https://www.cs.utexas.edu/~EWD/ewd07xx/EWD796a.PDF</para>
+/// <para>Slide: https://www.slideshare.net/habib_786/smooth-sort</para>
 /// </remarks>
 public static class SmoothSort
 {

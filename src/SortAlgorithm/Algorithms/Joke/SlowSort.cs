@@ -68,6 +68,8 @@ namespace SortAlgorithm.Algorithms;
 /// Unlike efficient divide-and-conquer algorithms (like merge sort) that have non-overlapping subproblems,
 /// Slow Sort's third recursive call overlaps with the previous two, leading to exponential time complexity.
 /// It has no practical use and exists purely for educational and humorous purposes.</para>
+/// <para><strong>Reference:</strong></para>
+/// <para>Wiki: https://en.wikipedia.org/wiki/Slowsort</para>
 /// </remarks>
 public static class SlowSort
 {
