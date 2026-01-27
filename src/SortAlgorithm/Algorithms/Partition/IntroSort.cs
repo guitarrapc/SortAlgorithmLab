@@ -113,6 +113,7 @@ namespace SortAlgorithm.Algorithms;
 /// </list>
 /// <para><strong>Reference:</strong></para>
 /// <para>Wiki: https://en.wikipedia.org/wiki/Introsort</para>
+/// <para>Paper: David R Musser https://webpages.charlotte.edu/rbunescu/courses/ou/cs4040/introsort.pdf</para>
 /// <para>LLVM implementation: https://github.com/llvm/llvm-project/blob/368faacac7525e538fa6680aea74e19a75e3458d/libcxx/include/__algorithm/sort.h#L272</para>
 /// </remarks>
 public static class IntroSort
@@ -283,7 +284,7 @@ public static class IntroSort
             if (swapCount == 0)
             {
                 // For nearly-sorted arrays, InsertionSort is very efficient
-                // Try InsertionSort on both partitions - if already sorted, it will complete quickly
+                // Process both partitions in left-to-right order for consistent visualization
                 var leftPartitionSize = r - left + 1;
                 var rightPartitionSize = right - l + 1;
 
@@ -302,28 +303,15 @@ public static class IntroSort
                 return;
             }
 
-            // Tail recursion optimization: recurse on smaller partition, loop on larger
-            var leftSize = r - left + 1;
-            var rightSize = right - l + 1;
-
-            if (leftSize < rightSize)
+            // Tail recursion optimization: always process left first, then loop on right
+            // This ensures consistent left-to-right ordering for visualization
+            if (left < r)
             {
-                // Left partition is smaller: recurse on left, loop on right
-                if (left < r)
-                {
-                    IntroSortInternal(s, left, r, depthLimit, insertionSortThreshold, context);
-                }
-                left = l; // Continue with right partition in next loop iteration
+                // Recurse on left partition
+                IntroSortInternal(s, left, r, depthLimit, insertionSortThreshold, context);
             }
-            else
-            {
-                // Right partition is smaller (or equal): recurse on right, loop on left
-                if (l < right)
-                {
-                    IntroSortInternal(s, l, right, depthLimit, insertionSortThreshold, context);
-                }
-                right = r; // Continue with left partition in next loop iteration
-            }
+            // Tail recursion: continue loop with right partition
+            left = l;
         }
     }
 
