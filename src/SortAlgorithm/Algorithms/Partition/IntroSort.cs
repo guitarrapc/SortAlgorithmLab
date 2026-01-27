@@ -272,34 +272,34 @@ public static class IntroSort
                 // If pointers haven't crossed, swap and advance both
                 if (l <= r)
                 {
-                    s.Swap(l, r);
-                    swapCount++; // Track swaps for nearly-sorted detection
+                    if (l != r) // Only count actual swaps (not self-swaps)
+                    {
+                        s.Swap(l, r);
+                        swapCount++;
+                    }
                     l++;
                     r--;
                 }
             }
 
-            // Nearly-sorted detection: if no swaps occurred, the array is likely already sorted
+            // Nearly-sorted detection: if no swaps occurred, try InsertionSort
             // This is similar to C++ std::introsort's __insertion_sort_incomplete optimization
             if (swapCount == 0)
             {
                 // For nearly-sorted arrays, InsertionSort is very efficient
-                // Process both partitions in left-to-right order for consistent visualization
-                var leftPartitionSize = r - left + 1;
-                var rightPartitionSize = right - l + 1;
-
-                // Only apply this optimization if partitions are reasonably sized
-                if (leftPartitionSize > 1 && leftPartitionSize <= size / 2)
+                // Try left partition first (left-to-right order for consistent visualization)
+                if (left < r)
                 {
                     InsertionSort.SortCore(s, left, r + 1);
                 }
-
-                if (rightPartitionSize > 1 && rightPartitionSize <= size / 2)
+                
+                // Then process right partition
+                if (l < right)
                 {
                     InsertionSort.SortCore(s, l, right + 1);
                 }
-
-                // Both partitions handled, we're done
+                
+                // Both partitions handled
                 return;
             }
 
