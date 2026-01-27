@@ -51,7 +51,7 @@ namespace SortAlgorithm.Algorithms;
 /// </list>
 /// <para><strong>Performance Characteristics:</strong></para>
 /// <list type="bullet">
-/// <item><description>Family      : Merge (adaptive)</description></item>
+/// <item><description>Family      : Partition (adaptive)</description></item>
 /// <item><description>Stable      : No (relative order of equal elements is not preserved)</description></item>
 /// <item><description>In-place    : No (O(K) auxiliary space where K is the number of out-of-order elements)</description></item>
 /// <item><description>Best case   : O(N) - When data is already sorted or nearly sorted (K ≈ 0), only LNS extraction and merge are needed</description></item>
@@ -69,6 +69,7 @@ namespace SortAlgorithm.Algorithms;
 /// <item><description>Less than 20-30% elements out of order</description></item>
 /// </list>
 /// <para><strong>Reference:</strong></para>
+/// <para>Paper: https://micsymposium.org/mics_2011_proceedings/mics2011_submission_13.pdf</para>
 /// <para>Other implementation: https://github.com/emilk/drop-merge-sort</para>
 /// </remarks>
 public static class DropMergeSort
