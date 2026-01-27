@@ -9,7 +9,11 @@
 
 <PageTitle>Sort Algorithm Visualization</PageTitle>
 
-<div class="visualization-page">
+<div class="visualization-page" 
+     style="--sidebar-width: @(_sidebarWidth)px; user-select: @(_isResizing ? "none" : "auto");"
+     @onmousemove="OnMouseMove" 
+     @onmouseup="OnMouseUp"
+     @onmousemove:preventDefault="@_isResizing">
     <div class="header">
         <h1>🎨 Sort Algorithm Visualization</h1>
         <div>
@@ -24,6 +28,10 @@
     </div>
     
     <div class="sidebar">
+        <div class="sidebar-resizer" 
+             @onmousedown="StartResize" 
+             @onmousedown:preventDefault></div>
+        
         <div class="statistics-panel">
             <h3>⚙️ Settings</h3>
             
@@ -123,11 +131,50 @@ private int[] AvailableSizes = [16, 32, 64, 128, 256, 512, 1024, 2048, 4096];
     
 private int EffectiveOpsPerSecond => Playback.OperationsPerFrame * 60; // 60 FPS固定
     
+    // サイドバーリサイズ関連
+    private int _sidebarWidth = 280; // デフォルト幅（px）
+    private bool _isResizing = false;
+    private int _resizeStartX = 0;
+    private int _resizeStartWidth = 0;
+    
 protected override void OnInitialized()
 {
     Playback.StateChanged += OnStateChanged;
     // 初期アルゴリズムの推奨サイズを設定
     SetRecommendedSize();
+}
+    
+protected override async Task OnAfterRenderAsync(bool firstRender)
+{
+    if (firstRender)
+    {
+        // グローバルなマウスイベントリスナーを登録（JS Interop不要、Blazor側で処理）
+    }
+}
+    
+private void StartResize(MouseEventArgs e)
+{
+    _isResizing = true;
+    _resizeStartX = (int)e.ClientX;
+    _resizeStartWidth = _sidebarWidth;
+}
+    
+private void OnMouseMove(MouseEventArgs e)
+{
+    if (_isResizing)
+    {
+        var deltaX = (int)e.ClientX - _resizeStartX;
+        var newWidth = _resizeStartWidth + deltaX;
+            
+        // 最小200px、最大500pxに制限
+        _sidebarWidth = Math.Clamp(newWidth, 200, 500);
+        StateHasChanged();
+    }
+}
+    
+private void OnMouseUp()
+{
+    _isResizing = false;
 }
     
 private void OnAlgorithmChanged()

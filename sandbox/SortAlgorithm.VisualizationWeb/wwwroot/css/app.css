@@ -58,7 +58,7 @@ html, body {
 
 .visualization-page {
     display: grid;
-    grid-template-columns: 25% 1fr;
+    grid-template-columns: var(--sidebar-width, 280px) 1fr;
     grid-template-rows: auto 1fr auto;
     height: 100vh;
     gap: 10px;
@@ -81,6 +81,40 @@ html, body {
     background-color: var(--bg-panel);
     border-radius: 8px;
     overflow-y: auto;
+    position: relative;
+    /* 幅はグリッドで自動的に決まるため、min/maxのみ設定 */
+}
+
+.sidebar-resizer {
+    position: absolute;
+    right: 0;
+    top: 0;
+    bottom: 0;
+    width: 6px;
+    cursor: col-resize;
+    background: transparent;
+    z-index: 10;
+    transition: background-color 0.2s;
+}
+
+.sidebar-resizer:hover {
+    background-color: var(--color-compare);
+}
+
+.sidebar-resizer::after {
+    content: '';
+    position: absolute;
+    right: 2px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 2px;
+    height: 30px;
+    background-color: rgba(255, 255, 255, 0.2);
+    border-radius: 1px;
+}
+
+.sidebar-resizer:hover::after {
+    background-color: rgba(255, 255, 255, 0.5);
 }
 
 .visualization-area {
