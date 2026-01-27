@@ -11,7 +11,7 @@ public class SortExecutor
     /// <summary>
     /// ソートを実行し、すべての操作を記録する
     /// </summary>
-    public List<SortOperation> ExecuteAndRecord(int[] array, object sortAlgorithm)
+    public List<SortOperation> ExecuteAndRecord(int[] array, AlgorithmMetadata algorithm)
     {
         var operations = new List<SortOperation>();
         
@@ -71,19 +71,8 @@ public class SortExecutor
             }
         );
         
-        // リフレクションでSort(int[], ISortContext)メソッドを呼び出す
-        try
-        {
-            var sortMethod = sortAlgorithm.GetType().GetMethod("Sort", [typeof(int[]), typeof(ISortContext)]);
-            if (sortMethod != null)
-            {
-                sortMethod.Invoke(sortAlgorithm, [array, context]);
-            }
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine($"Error invoking sort: {ex.Message}");
-        }
+        // デリゲートを直接呼び出し（リフレクション不要、AOT対応）
+        algorithm.SortAction(array, context);
         
         return operations;
     }

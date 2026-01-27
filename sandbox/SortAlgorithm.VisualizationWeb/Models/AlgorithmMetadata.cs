@@ -1,4 +1,6 @@
-﻿namespace SortAlgorithm.VisualizationWeb.Models;
+﻿using SortAlgorithm.Contexts;
+
+namespace SortAlgorithm.VisualizationWeb.Models;
 
 /// <summary>
 /// アルゴリズムのメタデータ
@@ -17,8 +19,8 @@ public record AlgorithmMetadata
     /// <summary>最大要素数</summary>
     public required int MaxElements { get; init; }
     
-    /// <summary>型の完全名（リフレクション用）</summary>
-    public required string TypeName { get; init; }
+    /// <summary>ソート実行デリゲート</summary>
+    public required Action<int[], ISortContext> SortAction { get; init; }
     
     /// <summary>説明</summary>
     public string Description { get; init; } = string.Empty;

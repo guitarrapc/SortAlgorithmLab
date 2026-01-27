@@ -128,15 +128,14 @@
     
     private void GenerateAndSort()
     {
-        var algorithm = Registry.CreateInstance(SelectedAlgorithm);
-        if (algorithm == null)
+        var metadata = Registry.GetAllAlgorithms().FirstOrDefault(a => a.Name == SelectedAlgorithm);
+        if (metadata == null)
         {
-            Console.WriteLine($"Failed to create algorithm: {SelectedAlgorithm}");
+            Console.WriteLine($"Algorithm not found: {SelectedAlgorithm}");
             return;
         }
         
         // 要素数制限を適用
-        var metadata = Registry.GetAllAlgorithms().First(a => a.Name == SelectedAlgorithm);
         var size = Math.Min(ArraySize, metadata.MaxElements);
         
         // ランダム配列生成
@@ -146,7 +145,7 @@
         // ソート実行と操作記録
         try
         {
-            var operations = Executor.ExecuteAndRecord((int[])array.Clone(), algorithm);
+            var operations = Executor.ExecuteAndRecord((int[])array.Clone(), metadata);
             Playback.LoadOperations(array, operations);
             Console.WriteLine($"Loaded {operations.Count} operations for {SelectedAlgorithm}");
         }
