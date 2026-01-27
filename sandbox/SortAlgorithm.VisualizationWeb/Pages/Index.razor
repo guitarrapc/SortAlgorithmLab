@@ -10,7 +10,7 @@
 <PageTitle>Sort Algorithm Visualization</PageTitle>
 
 <div class="visualization-page" 
-     style="--sidebar-width: @(_sidebarWidth)px; user-select: @(_isResizing ? "none" : "auto");"
+     style="--sidebar-width: @(_sidebarCollapsed ? "40" : _sidebarWidth)px; user-select: @(_isResizing ? "none" : "auto");"
      @onmousemove="OnMouseMove" 
      @onmouseup="OnMouseUp"
      @onmousemove:preventDefault="@_isResizing">
@@ -27,13 +27,20 @@
         </div>
     </div>
     
-    <div class="sidebar">
+    <div class="sidebar @(_sidebarCollapsed ? "collapsed" : "")">
         <div class="sidebar-resizer" 
              @onmousedown="StartResize" 
              @onmousedown:preventDefault></div>
         
-        <div class="statistics-panel">
-            <h3>⚙️ Settings</h3>
+        <button class="sidebar-toggle" 
+                @onclick="ToggleSidebar"
+                title="@(_sidebarCollapsed ? "Show Sidebar" : "Hide Sidebar")">
+            @(_sidebarCollapsed ? "▶" : "◀")
+        </button>
+        
+        <div class="sidebar-content">
+            <div class="statistics-panel">
+                <h3>⚙️ Settings</h3>
             
             <div class="stat-item">
                 <span class="stat-label">Algorithm</span>
@@ -85,6 +92,7 @@
             <span class="stat-label">Complexity</span>
             <span class="stat-value" style="font-size: 0.9rem;">@GetSelectedAlgorithmComplexity()</span>
         </div>
+        </div>
     </div>
     
     <div class="visualization-area">
@@ -131,16 +139,23 @@ private int EffectiveOpsPerSecond => Playback.OperationsPerFrame * 60; // 60 FPS
     
     // サイドバーリサイズ関連
     private int _sidebarWidth = 280; // デフォルト幅（px）
+    private bool _sidebarCollapsed = false; // 折りたたみ状態
     private bool _isResizing = false;
     private int _resizeStartX = 0;
     private int _resizeStartWidth = 0;
     
-protected override void OnInitialized()
-{
-    Playback.StateChanged += OnStateChanged;
-    // 初期アルゴリズムの推奨サイズを設定
-    SetRecommendedSize();
-}
+    protected override void OnInitialized()
+    {
+        Playback.StateChanged += OnStateChanged;
+        // 初期アルゴリズムの推奨サイズを設定
+        SetRecommendedSize();
+    }
+    
+    private void ToggleSidebar()
+    {
+        _sidebarCollapsed = !_sidebarCollapsed;
+        StateHasChanged();
+    }
     
 protected override async Task OnAfterRenderAsync(bool firstRender)
 {

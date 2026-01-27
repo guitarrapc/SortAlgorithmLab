@@ -63,6 +63,7 @@ html, body {
     height: 100vh;
     gap: 10px;
     padding: 10px;
+    transition: grid-template-columns 0.3s ease;
 }
 
 .header {
@@ -82,7 +83,51 @@ html, body {
     border-radius: 8px;
     overflow-y: auto;
     position: relative;
-    /* 幅はグリッドで自動的に決まるため、min/maxのみ設定 */
+    transition: all 0.3s ease;
+}
+
+.sidebar.collapsed {
+    padding: 10px 5px;
+    overflow: hidden;
+}
+
+.sidebar-content {
+    opacity: 1;
+    transition: opacity 0.2s ease;
+}
+
+.sidebar.collapsed .sidebar-content {
+    opacity: 0;
+    pointer-events: none;
+}
+
+.sidebar-toggle {
+    position: absolute;
+    right: 10px;
+    bottom: 20px;
+    width: 32px;
+    height: 64px;
+    background-color: var(--color-compare);
+    color: var(--text-light);
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 1.2rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 100;
+    transition: all 0.2s;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+}
+
+.sidebar-toggle:hover {
+    background-color: #9333EA;
+    transform: scale(1.05);
+}
+
+.sidebar.collapsed .sidebar-toggle {
+    right: 4px;
 }
 
 .sidebar-resizer {
@@ -95,6 +140,10 @@ html, body {
     background: transparent;
     z-index: 10;
     transition: background-color 0.2s;
+}
+
+.sidebar.collapsed .sidebar-resizer {
+    display: none; /* 折りたたみ時はリサイザーを非表示 */
 }
 
 .sidebar-resizer:hover {
