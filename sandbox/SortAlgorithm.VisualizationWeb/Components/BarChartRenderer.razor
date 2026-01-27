@@ -1,0 +1,65 @@
+@using SortAlgorithm.VisualizationWeb.Models
+@using SortAlgorithm.VisualizationWeb.Services
+
+<div class="bar-chart-container @(State?.PlaybackState == PlaybackState.Playing ? "playing" : "")" 
+     @onclick="OnCanvasClick" 
+     style="position: relative; width: 100%; height: 100%;">
+    
+    @if (State != null && State.MainArray.Length > 0)
+    {
+        <svg width="100%" height="100%" viewBox="0 0 @Width @Height" preserveAspectRatio="xMidYMid meet">
+            @{
+                var barWidth = (double)Width / State.MainArray.Length;
+                var maxValue = State.MainArray.Max();
+                
+                for (int i = 0; i < State.MainArray.Length; i++)
+                {
+                    var value = State.MainArray[i];
+                    var barHeight = (value / (double)maxValue) * (Height - 20);
+                    var x = i * barWidth;
+                    var y = Height - barHeight;
+                    var color = GetBarColor(i);
+                    
+                    <rect x="@x" 
+                          y="@y" 
+                          width="@(barWidth - 1)" 
+                          height="@barHeight"
+                          fill="@color"
+                          stroke="none" />
+                }
+            }
+        </svg>
+    }
+</div>
+
+@code {
+    [Parameter]
+    public VisualizationState? State { get; set; }
+    
+    [Parameter]
+    public int Width { get; set; } = 1200;
+    
+    [Parameter]
+    public int Height { get; set; } = 600;
+    
+    [Parameter]
+    public EventCallback OnClick { get; set; }
+    
+    private string GetBarColor(int index)
+    {
+        if (State == null) return "#3B82F6";
+        
+        if (State.SwapIndices.Contains(index)) return "#EF4444"; // Red - Swap
+        if (State.CompareIndices.Contains(index)) return "#A855F7"; // Purple - Compare
+        if (State.WriteIndices.Contains(index)) return "#F97316"; // Orange - Write
+        if (State.ReadIndices.Contains(index)) return "#FBBF24"; // Yellow - Read
+        
+        return "#3B82F6"; // Blue - Normal
+    }
+    
+    private async Task OnCanvasClick()
+    {
+        await OnClick.InvokeAsync();
+    }
+}
+

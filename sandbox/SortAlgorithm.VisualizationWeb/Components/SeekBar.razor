@@ -1,0 +1,44 @@
+@using SortAlgorithm.VisualizationWeb.Models
+
+<div class="seek-bar">
+    <div class="seek-slider-container" @onclick="OnSliderClick" @ref="_sliderRef">
+        <div class="seek-progress" style="width: @ProgressPercentage%">
+            <div class="seek-handle" @onmousedown="OnHandleMouseDown"></div>
+        </div>
+    </div>
+    <span class="time-display">@ProgressText</span>
+</div>
+
+@code {
+    [Parameter]
+    public int CurrentIndex { get; set; }
+    
+    [Parameter]
+    public int TotalOperations { get; set; }
+    
+    [Parameter]
+    public EventCallback<int> OnSeek { get; set; }
+    
+    private ElementReference _sliderRef;
+    private bool _isDragging;
+    
+    private double ProgressPercentage => TotalOperations > 0 
+        ? (double)CurrentIndex / TotalOperations * 100 
+        : 0;
+    
+    private string ProgressText => $"{CurrentIndex:N0} / {TotalOperations:N0} ops ({ProgressPercentage:F1}%)";
+    
+    private async Task OnSliderClick(MouseEventArgs e)
+    {
+        // 簡略化: クリック位置からシーク位置を計算
+        // 実際の実装では要素のサイズと位置を取得して正確に計算
+        var percentage = 0.5; // 仮の値
+        var newIndex = (int)(TotalOperations * percentage);
+        await OnSeek.InvokeAsync(newIndex);
+    }
+    
+    private void OnHandleMouseDown(MouseEventArgs e)
+    {
+        _isDragging = true;
+    }
+}

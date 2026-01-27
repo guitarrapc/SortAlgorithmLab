@@ -1,0 +1,52 @@
+@using SortAlgorithm.VisualizationWeb.Models
+
+<div class="statistics-panel">
+    <h3>📊 Statistics</h3>
+    
+    <div class="stat-item">
+        <span class="stat-label">Comparisons</span>
+        <span class="stat-value">@State.CompareCount.ToString("N0")</span>
+    </div>
+    
+    <div class="stat-item">
+        <span class="stat-label">Swaps</span>
+        <span class="stat-value">@State.SwapCount.ToString("N0")</span>
+    </div>
+    
+    <div class="stat-item">
+        <span class="stat-label">Index Reads</span>
+        <span class="stat-value">@State.IndexReadCount.ToString("N0")</span>
+    </div>
+    
+    <div class="stat-item">
+        <span class="stat-label">Index Writes</span>
+        <span class="stat-value">@State.IndexWriteCount.ToString("N0")</span>
+    </div>
+    
+    <div class="stat-item">
+        <span class="stat-label">Progress</span>
+        <span class="stat-value">@ProgressPercentage.ToString("F1")%</span>
+    </div>
+    
+    <div class="stat-item">
+        <span class="stat-label">Status</span>
+        <span class="stat-value">@StatusText</span>
+    </div>
+</div>
+
+@code {
+    [Parameter]
+    public VisualizationState State { get; set; } = new();
+    
+    private double ProgressPercentage => State.TotalOperations > 0 
+        ? (double)State.CurrentOperationIndex / State.TotalOperations * 100 
+        : 0;
+    
+    private string StatusText => State.PlaybackState switch
+    {
+        PlaybackState.Playing => "▶ Playing",
+        PlaybackState.Paused => "⏸ Paused",
+        PlaybackState.Stopped => "⏹ Stopped",
+        _ => "Unknown"
+    };
+}

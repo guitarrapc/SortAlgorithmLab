@@ -1,0 +1,179 @@
+@page "/"
+@using SortAlgorithm.VisualizationWeb.Models
+@using SortAlgorithm.VisualizationWeb.Services
+@using SortAlgorithm.VisualizationWeb.Components
+@inject PlaybackService Playback
+@inject SortExecutor Executor
+@inject AlgorithmRegistry Registry
+@implements IDisposable
+
+<PageTitle>Sort Algorithm Visualization</PageTitle>
+
+<div class="visualization-page">
+    <div class="header">
+        <h1>🎨 Sort Algorithm Visualization</h1>
+        <div>
+            <select @bind="SelectedCategory">
+                <option value="">All Categories</option>
+                @foreach (var category in Registry.GetCategories())
+                {
+                    <option value="@category">@category</option>
+                }
+            </select>
+        </div>
+    </div>
+    
+    <div class="sidebar">
+        <div class="statistics-panel">
+            <h3>⚙️ Settings</h3>
+            
+            <div class="stat-item">
+                <span class="stat-label">Algorithm</span>
+                <select @bind="SelectedAlgorithm" style="width: 100%;">
+                    @foreach (var algo in GetFilteredAlgorithms())
+                    {
+                        <option value="@algo.Name">@algo.Name</option>
+                    }
+                </select>
+            </div>
+            
+            <div class="stat-item">
+                <span class="stat-label">Array Size</span>
+                <select @bind="ArraySize">
+                    <option value="16">16</option>
+                    <option value="32">32</option>
+                    <option value="64">64</option>
+                    <option value="128">128</option>
+                    <option value="256">256</option>
+                </select>
+            </div>
+            
+            <div class="stat-item">
+                <button class="primary" @onclick="GenerateAndSort" style="width: 100%;">🎲 Generate & Sort</button>
+            </div>
+            
+            <div class="stat-item">
+                <span class="stat-label">Speed: @Playback.Fps FPS</span>
+                <input type="range" min="1" max="120" @bind="Playback.Fps" @bind:after="StateHasChanged" style="width: 100%;" />
+            </div>
+        </div>
+        
+        <StatisticsPanel State="Playback.State" />
+        
+        <div class="stat-item" style="margin-top: 20px;">
+            <span class="stat-label">Complexity</span>
+            <span class="stat-value" style="font-size: 0.9rem;">@GetSelectedAlgorithmComplexity()</span>
+        </div>
+    </div>
+    
+    <div class="visualization-area">
+        <div style="flex: 1; display: flex; align-items: center; justify-content: center; background-color: #1A1A1A; border-radius: 8px;">
+            @if (Playback.State.MainArray.Length > 0)
+            {
+                <BarChartRenderer State="Playback.State" 
+                                 Width="1200" 
+                                 Height="600" 
+                                 OnClick="OnVisualizationClick" />
+            }
+            else
+            {
+                <div style="text-align: center; color: #999;">
+                    <p style="font-size: 2rem;">📊</p>
+                    <p>Click "Generate & Sort" to start visualization</p>
+                </div>
+            }
+        </div>
+    </div>
+    
+    <div class="controls">
+        <SeekBar CurrentIndex="Playback.State.CurrentOperationIndex"
+                TotalOperations="Playback.State.TotalOperations"
+                OnSeek="OnSeek" />
+        
+        <div style="display: flex; gap: 10px; margin-top: 10px; align-items: center;">
+            <button @onclick="Playback.Stop">⏹ Reset</button>
+            <button @onclick="Playback.TogglePlayPause">
+                @(Playback.State.PlaybackState == PlaybackState.Playing ? "⏸ Pause" : "▶ Play")
+            </button>
+            <span style="flex: 1;"></span>
+            <span style="color: #999;">Mode: @Playback.State.Mode</span>
+        </div>
+    </div>
+</div>
+
+@code {
+    private string SelectedAlgorithm { get; set; } = "BubbleSort";
+    private string SelectedCategory { get; set; } = "";
+    private int ArraySize { get; set; } = 64;
+    
+    protected override void OnInitialized()
+    {
+        Playback.StateChanged += OnStateChanged;
+    }
+    
+    private IEnumerable<AlgorithmMetadata> GetFilteredAlgorithms()
+    {
+        var algorithms = string.IsNullOrEmpty(SelectedCategory)
+            ? Registry.GetAllAlgorithms()
+            : Registry.GetByCategory(SelectedCategory);
+        
+        return algorithms.OrderBy(a => a.Name);
+    }
+    
+    private string GetSelectedAlgorithmComplexity()
+    {
+        var algo = Registry.GetAllAlgorithms().FirstOrDefault(a => a.Name == SelectedAlgorithm);
+        return algo?.TimeComplexity ?? "Unknown";
+    }
+    
+    private void GenerateAndSort()
+    {
+        var algorithm = Registry.CreateInstance(SelectedAlgorithm);
+        if (algorithm == null)
+        {
+            Console.WriteLine($"Failed to create algorithm: {SelectedAlgorithm}");
+            return;
+        }
+        
+        // 要素数制限を適用
+        var metadata = Registry.GetAllAlgorithms().First(a => a.Name == SelectedAlgorithm);
+        var size = Math.Min(ArraySize, metadata.MaxElements);
+        
+        // ランダム配列生成
+        var random = new Random();
+        var array = Enumerable.Range(1, size).OrderBy(_ => random.Next()).ToArray();
+        
+        // ソート実行と操作記録
+        try
+        {
+            var operations = Executor.ExecuteAndRecord((int[])array.Clone(), algorithm);
+            Playback.LoadOperations(array, operations);
+            Console.WriteLine($"Loaded {operations.Count} operations for {SelectedAlgorithm}");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error executing sort: {ex.Message}");
+        }
+    }
+    
+    private void OnVisualizationClick()
+    {
+        Playback.TogglePlayPause();
+    }
+    
+    private void OnSeek(int index)
+    {
+        Playback.SeekTo(index);
+    }
+    
+    private void OnStateChanged()
+    {
+        InvokeAsync(StateHasChanged);
+    }
+    
+    public void Dispose()
+    {
+        Playback.StateChanged -= OnStateChanged;
+    }
+}
+
