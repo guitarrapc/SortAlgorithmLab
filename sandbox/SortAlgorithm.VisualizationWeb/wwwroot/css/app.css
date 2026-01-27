@@ -212,6 +212,15 @@ html, body {
     align-items: center;
 }
 
+.stat-item-vertical {
+    display: block; /* 縦方向に配置 */
+}
+
+.stat-item-vertical .stat-label {
+    display: block;
+    margin-bottom: 8px;
+}
+
 .stat-label {
     font-size: 0.9rem;
     color: var(--text-gray);
