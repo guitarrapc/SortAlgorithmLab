@@ -75,12 +75,20 @@
             </div>
             
             <div class="stat-item stat-item-vertical">
-                <span class="stat-label">Speed</span>
+                <span class="stat-label">Operations Per Frame</span>
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
                     <span class="stat-value" style="font-size: 0.9rem;">@Playback.OperationsPerFrame ops/frame</span>
-                    <span style="font-size: 0.85rem; color: #999;">(@EffectiveOpsPerSecond ops/sec)</span>
                 </div>
                 <input type="range" min="1" max="1000" @bind="Playback.OperationsPerFrame" @bind:after="StateHasChanged" style="width: 100%;" />
+            </div>
+            
+            <div class="stat-item stat-item-vertical">
+                <span class="stat-label">Speed Multiplier</span>
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                    <span class="stat-value" style="font-size: 0.9rem;">@Playback.SpeedMultiplier.ToString("F1")x</span>
+                    <span style="font-size: 0.85rem; color: #999;">(@EffectiveFPS FPS)</span>
+                </div>
+                <input type="range" min="0.1" max="100" step="0.5" @bind="Playback.SpeedMultiplier" @bind:after="OnSpeedMultiplierChanged" style="width: 100%;" />
             </div>
         </div>
         
@@ -131,9 +139,9 @@ private string SelectedAlgorithm { get; set; } = "BubbleSort";
 private string SelectedCategory { get; set; } = "";
 private int ArraySize { get; set; } = 64;
     
-private int[] AvailableSizes = [16, 32, 64, 128, 256, 512, 1024, 2048, 4096];
+    private int[] AvailableSizes = [16, 32, 64, 128, 256, 512, 1024, 2048, 4096];
     
-private int EffectiveOpsPerSecond => Playback.OperationsPerFrame * 60; // 60 FPS固定
+    private int EffectiveFPS => (int)(60 * Playback.SpeedMultiplier);
     
     // サイドバーリサイズ関連
     private int _sidebarWidth = 280; // デフォルト幅（px）
@@ -152,6 +160,17 @@ private int EffectiveOpsPerSecond => Playback.OperationsPerFrame * 60; // 60 FPS
     private void ToggleSidebar()
     {
         _sidebarCollapsed = !_sidebarCollapsed;
+        StateHasChanged();
+    }
+    
+    private void OnSpeedMultiplierChanged()
+    {
+        // 再生中の場合、タイマー間隔を更新
+        if (Playback.State.PlaybackState == PlaybackState.Playing)
+        {
+            Playback.Pause();
+            Playback.Play();
+        }
         StateHasChanged();
     }
     

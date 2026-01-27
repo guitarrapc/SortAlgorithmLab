@@ -19,14 +19,20 @@ public class PlaybackService : IDisposable
     private int[] _initialArray = [];
     private Dictionary<int, int[]> _initialBuffers = new();
     
-    private const int TARGET_FPS = 60; // 固定フレームレート
+    private const int TARGET_FPS = 60; // ベースフレームレート
     private const int MAX_ARRAY_SIZE = 4096; // 最大配列サイズ
+    private const double RENDER_INTERVAL_MS = 16.67; // UI更新間隔（60 FPS）
+    
+    private DateTime _lastRenderTime = DateTime.MinValue; // 最後の描画時刻
     
     /// <summary>現在の状態</summary>
     public VisualizationState State { get; private set; } = new();
     
     /// <summary>1フレームあたりの操作数（1-1000）</summary>
-    public int OperationsPerFrame { get; set; } = 10;
+    public int OperationsPerFrame { get; set; } = 1;
+    
+    /// <summary>速度倍率（0.1x - 100x）</summary>
+    public double SpeedMultiplier { get; set; } = 1.0;
     
     /// <summary>ソート完了時に自動的にリセットするか</summary>
     public bool AutoReset { get; set; } = false;
@@ -37,12 +43,18 @@ public class PlaybackService : IDisposable
     public PlaybackService()
     {
         _timer = new Timer();
-        _timer.Interval = 1000.0 / TARGET_FPS; // 60 FPS = 16.67ms
+        UpdateTimerInterval();
         _timer.Elapsed += OnTimerElapsed;
         
         // 最大サイズの配列をArrayPoolからレンタル
         _pooledArray = ArrayPool<int>.Shared.Rent(MAX_ARRAY_SIZE);
         _currentArraySize = 0;
+    }
+    
+    private void UpdateTimerInterval()
+    {
+        // ベースFPS × 速度倍率でタイマー間隔を計算
+        _timer.Interval = 1000.0 / (TARGET_FPS * SpeedMultiplier);
     }
     
     /// <summary>
@@ -78,6 +90,7 @@ public class PlaybackService : IDisposable
         if (State.PlaybackState == PlaybackState.Playing) return;
         
         State.PlaybackState = PlaybackState.Playing;
+        UpdateTimerInterval(); // 速度倍率を反映
         _timer.Start();
         StateChanged?.Invoke();
     }
@@ -197,6 +210,7 @@ public class PlaybackService : IDisposable
                 {
                     Pause(); // 最後のフレームで一時停止
                 }
+                // 完了時は常に描画
                 StateChanged?.Invoke();
                 return;
             }
@@ -209,7 +223,15 @@ public class PlaybackService : IDisposable
             ApplyOperation(lastOperation, applyToArray: false, updateStats: false);
         }
         
-        StateChanged?.Invoke();
+        // UI更新の間引き: 前回の描画から一定時間経過した場合のみ描画
+        var now = DateTime.UtcNow;
+        var elapsed = (now - _lastRenderTime).TotalMilliseconds;
+        
+        if (elapsed >= RENDER_INTERVAL_MS)
+        {
+            _lastRenderTime = now;
+            StateChanged?.Invoke();
+        }
     }
     
     private void ApplyOperation(SortOperation operation, bool applyToArray, bool updateStats)
