@@ -1,4 +1,5 @@
-﻿using System.Timers;
+﻿using System.Buffers;
+using System.Timers;
 using SortAlgorithm.VisualizationWeb.Models;
 using Timer = System.Timers.Timer;
 
@@ -11,10 +12,15 @@ public class PlaybackService : IDisposable
 {
     private readonly Timer _timer;
     private List<SortOperation> _operations = [];
+    
+    // ArrayPoolで配列を再利用
+    private int[] _pooledArray;
+    private int _currentArraySize;
     private int[] _initialArray = [];
     private Dictionary<int, int[]> _initialBuffers = new();
     
     private const int TARGET_FPS = 60; // 固定フレームレート
+    private const int MAX_ARRAY_SIZE = 4096; // 最大配列サイズ
     
     /// <summary>現在の状態</summary>
     public VisualizationState State { get; private set; } = new();
@@ -33,21 +39,29 @@ public class PlaybackService : IDisposable
         _timer = new Timer();
         _timer.Interval = 1000.0 / TARGET_FPS; // 60 FPS = 16.67ms
         _timer.Elapsed += OnTimerElapsed;
+        
+        // 最大サイズの配列をArrayPoolからレンタル
+        _pooledArray = ArrayPool<int>.Shared.Rent(MAX_ARRAY_SIZE);
+        _currentArraySize = 0;
     }
     
     /// <summary>
     /// ソート操作をロードする
     /// </summary>
-    public void LoadOperations(int[] initialArray, List<SortOperation> operations)
+    public void LoadOperations(ReadOnlySpan<int> initialArray, List<SortOperation> operations)
     {
         Stop();
         _operations = operations;
-        _initialArray = [.. initialArray];
+        _currentArraySize = initialArray.Length;
+        
+        // プールされた配列の必要な部分だけを使用
+        initialArray.CopyTo(_pooledArray.AsSpan(0, _currentArraySize));
+        _initialArray = _pooledArray.AsSpan(0, _currentArraySize).ToArray(); // 初期状態のコピーを保持
         _initialBuffers.Clear();
         
         State = new VisualizationState
         {
-            MainArray = [.. initialArray],
+            MainArray = _pooledArray.AsSpan(0, _currentArraySize).ToArray(), // 現在の状態用のコピー
             TotalOperations = operations.Count,
             CurrentOperationIndex = 0,
             PlaybackState = PlaybackState.Stopped
@@ -87,7 +101,14 @@ public class PlaybackService : IDisposable
     {
         _timer.Stop();
         State.CurrentOperationIndex = 0;
-        State.MainArray = [.. _initialArray];
+        
+        // プールされた配列を再利用
+        if (_currentArraySize > 0)
+        {
+            _initialArray.AsSpan().CopyTo(_pooledArray.AsSpan(0, _currentArraySize));
+            State.MainArray = _pooledArray.AsSpan(0, _currentArraySize).ToArray();
+        }
+        
         State.BufferArrays.Clear();
         State.PlaybackState = PlaybackState.Stopped;
         ClearHighlights();
@@ -263,5 +284,11 @@ public class PlaybackService : IDisposable
     public void Dispose()
     {
         _timer?.Dispose();
+        
+        // ArrayPoolに配列を返却
+        if (_pooledArray != null)
+        {
+            ArrayPool<int>.Shared.Return(_pooledArray, clearArray: true);
+        }
     }
 }
