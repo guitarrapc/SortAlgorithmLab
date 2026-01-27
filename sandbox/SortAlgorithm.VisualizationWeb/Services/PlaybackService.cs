@@ -14,11 +14,13 @@ public class PlaybackService : IDisposable
     private int[] _initialArray = [];
     private Dictionary<int, int[]> _initialBuffers = new();
     
+    private const int TARGET_FPS = 60; // 固定フレームレート
+    
     /// <summary>現在の状態</summary>
     public VisualizationState State { get; private set; } = new();
     
-    /// <summary>FPS（1-120）</summary>
-    public int Fps { get; set; } = 30;
+    /// <summary>1フレームあたりの操作数（1-1000）</summary>
+    public int OperationsPerFrame { get; set; } = 10;
     
     /// <summary>状態が変更されたときのイベント</summary>
     public event Action? StateChanged;
@@ -26,6 +28,7 @@ public class PlaybackService : IDisposable
     public PlaybackService()
     {
         _timer = new Timer();
+        _timer.Interval = 1000.0 / TARGET_FPS; // 60 FPS = 16.67ms
         _timer.Elapsed += OnTimerElapsed;
     }
     
@@ -58,7 +61,6 @@ public class PlaybackService : IDisposable
         if (State.PlaybackState == PlaybackState.Playing) return;
         
         State.PlaybackState = PlaybackState.Playing;
-        _timer.Interval = 1000.0 / Fps;
         _timer.Start();
         StateChanged?.Invoke();
     }
@@ -144,10 +146,31 @@ public class PlaybackService : IDisposable
         }
         
         ClearHighlights();
-        var operation = _operations[State.CurrentOperationIndex];
-        ApplyOperation(operation, applyToArray: true, updateStats: true);
         
-        State.CurrentOperationIndex++;
+        // 1フレームで複数の操作を処理
+        int operationsToProcess = Math.Min(OperationsPerFrame, _operations.Count - State.CurrentOperationIndex);
+        
+        for (int i = 0; i < operationsToProcess; i++)
+        {
+            var operation = _operations[State.CurrentOperationIndex];
+            ApplyOperation(operation, applyToArray: true, updateStats: true);
+            State.CurrentOperationIndex++;
+            
+            if (State.CurrentOperationIndex >= _operations.Count)
+            {
+                Stop();
+                StateChanged?.Invoke();
+                return;
+            }
+        }
+        
+        // 最後の操作をハイライト表示
+        if (State.CurrentOperationIndex < _operations.Count)
+        {
+            var lastOperation = _operations[State.CurrentOperationIndex - 1];
+            ApplyOperation(lastOperation, applyToArray: false, updateStats: false);
+        }
+        
         StateChanged?.Invoke();
     }
     
