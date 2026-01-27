@@ -156,30 +156,15 @@ public static class StableQuickSort
             var (lessEnd, greaterStart) = StablePartition(s, left, right, pivot);
 
             // Phase 3. Recursively sort partitions with tail recursion optimization
-            // Sort smaller partition first (recursively), then loop on larger partition
-            var lessCount = lessEnd - left;
-            var greaterCount = right - greaterStart + 1;
-
-            if (lessCount < greaterCount)
+            // Always sort left partition first (recursively), then loop on right partition
+            // This ensures consistent left-to-right ordering for visualization
+            if (lessEnd - left > 1)
             {
-                // Left partition is smaller: recurse on left, loop on right
-                if (lessCount > 1)
-                {
-                    SortCore(s, left, lessEnd - 1, context);
-                }
-                // Tail recursion: continue loop with right partition
-                left = greaterStart;
+                // Recurse on left partition
+                SortCore(s, left, lessEnd - 1, context);
             }
-            else
-            {
-                // Right partition is smaller or equal: recurse on right, loop on left
-                if (greaterCount > 1)
-                {
-                    SortCore(s, greaterStart, right, context);
-                }
-                // Tail recursion: continue loop with left partition
-                right = lessEnd - 1;
-            }
+            // Tail recursion: continue loop with right partition
+            left = greaterStart;
         }
     }
 
