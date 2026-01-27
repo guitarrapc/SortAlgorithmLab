@@ -23,7 +23,16 @@ public sealed class StatisticsContext : ISortContext
     private ulong _indexWriteCount;
 
     public void OnCompare(int i, int j, int result, int bufferIdI, int bufferIdJ) => Interlocked.Increment(ref _compareCount);
-    public void OnSwap(int i, int j, int bufferId) => Interlocked.Increment(ref _swapCount);
+    
+    public void OnSwap(int i, int j, int bufferId)
+    {
+        Interlocked.Increment(ref _swapCount);
+        // Swap操作は内部的にRead×2 + Write×2を含む
+        // temp = array[i] (Read), value = array[j] (Read), array[i] = value (Write), array[j] = temp (Write)
+        Interlocked.Add(ref _indexReadCount, 2);
+        Interlocked.Add(ref _indexWriteCount, 2);
+    }
+    
     public void OnIndexRead(int index, int bufferId) => Interlocked.Increment(ref _indexReadCount);
     public void OnIndexWrite(int index, int bufferId) => Interlocked.Increment(ref _indexWriteCount);
 

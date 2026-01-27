@@ -155,16 +155,9 @@ internal ref struct SortSpan<T> where T: IComparable<T>
     public void Swap(int i, int j)
     {
 #if DEBUG
-        var a = Read(i);
-        var b = Read(j);
-
         _context.OnSwap(i, j, _bufferId);
-
-        Write(i, b);
-        Write(j, a);
-#else
-        (_span[i], _span[j]) = (_span[j], _span[i]);
 #endif
+        (_span[i], _span[j]) = (_span[j], _span[i]);
     }
 
     /// <summary>
