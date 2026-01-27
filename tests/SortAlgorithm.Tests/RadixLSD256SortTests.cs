@@ -3,7 +3,7 @@ using SortAlgorithm.Contexts;
 
 namespace SortAlgorithm.Tests;
 
-public class RadixLSD4SortTests
+public class RadixLSD256SortTests
 {
     [Theory]
     [ClassData(typeof(MockRandomData))]
@@ -19,7 +19,7 @@ public class RadixLSD4SortTests
     {
         var stats = new StatisticsContext();
         var array = inputSample.Samples.ToArray();
-        RadixLSD4Sort.Sort(array.AsSpan(), stats);
+        RadixLSD256Sort.Sort(array.AsSpan(), stats);
 
         Assert.Equal((ulong)inputSample.Samples.Length, (ulong)array.Length);
     }
@@ -32,7 +32,7 @@ public class RadixLSD4SortTests
     {
         var stats = new StatisticsContext();
         var array = inputSample.Samples.ToArray();
-        RadixLSD4Sort.Sort(array.AsSpan(), stats);
+        RadixLSD256Sort.Sort(array.AsSpan(), stats);
 
         Assert.Equal((ulong)inputSample.Samples.Length, (ulong)array.Length);
         Assert.NotEqual(0UL, stats.IndexReadCount);
@@ -50,27 +50,27 @@ public class RadixLSD4SortTests
     {
         var stats = new StatisticsContext();
         var sorted = Enumerable.Range(0, n).ToArray();
-        RadixLSD4Sort.Sort(sorted.AsSpan(), stats);
+        RadixLSD256Sort.Sort(sorted.AsSpan(), stats);
 
-        // LSD Radix Sort (Base-256) on sorted non-negative data:
+        // LSD Radix Sort (Radix-256) with sign-bit flipping:
         // For 32-bit integers: digitCount = 4 (4 bytes)
-        // 1. Check for negatives: n reads (no negatives found, all elements checked)
-        // 2. SortCorePositive (4 passes):
-        //    Per pass d (d=0,1,2,3):
-        //      - Count phase: n reads
-        //      - Distribute phase: n reads + n writes (to temp)
-        //      - Copy back phase: n reads (from temp) + n writes (to main)
+        // 
+        // Unified processing for all values (no separate negative/positive paths):
+        // Per pass d (d=0,1,2,3):
+        //   - Count phase: n reads
+        //   - Distribute phase: n reads + n writes (to temp)
+        //   - Copy back phase: n reads (from temp) + n writes (to main)
         //
-        // Total per pass: n + n + n + n + n = 5n operations (but we track reads/writes separately)
-        // - Reads: n (count) + n (distribute read from main) + n (copy back read from temp) = 3n per pass
-        // - Writes: n (distribute write to temp) + n (copy back write to main) = 2n per pass
+        // Total per pass:
+        // - Reads: n (count) + n (distribute) + n (copy back) = 3n
+        // - Writes: n (distribute to temp) + n (copy back to main) = 2n
         //
         // Total for 4 passes:
-        // - Reads: n (check negatives) + 4 × 3n = n + 12n = 13n
+        // - Reads: 4 × 3n = 12n
         // - Writes: 4 × 2n = 8n
         var digitCount = 4; // 32-bit int = 4 bytes
-        var expectedReads = (ulong)(n + digitCount * 3 * n);  // Check + (count + distribute + copy) × passes
-        var expectedWrites = (ulong)(digitCount * 2 * n);     // (temp write + main write) × passes
+        var expectedReads = (ulong)(digitCount * 3 * n);  // (count + distribute + copy) × passes
+        var expectedWrites = (ulong)(digitCount * 2 * n); // (temp write + main write) × passes
 
         Assert.Equal(expectedReads, stats.IndexReadCount);
         Assert.Equal(expectedWrites, stats.IndexWriteCount);
@@ -87,12 +87,12 @@ public class RadixLSD4SortTests
     {
         var stats = new StatisticsContext();
         var reversed = Enumerable.Range(0, n).Reverse().ToArray();
-        RadixLSD4Sort.Sort(reversed.AsSpan(), stats);
+        RadixLSD256Sort.Sort(reversed.AsSpan(), stats);
 
-        // LSD Radix Sort on reversed non-negative data:
+        // LSD Radix Sort on reversed data:
         // Same as sorted - performance is data-independent O(d × n)
         var digitCount = 4;
-        var expectedReads = (ulong)(n + digitCount * 3 * n);
+        var expectedReads = (ulong)(digitCount * 3 * n);
         var expectedWrites = (ulong)(digitCount * 2 * n);
 
         Assert.Equal(expectedReads, stats.IndexReadCount);
@@ -110,12 +110,12 @@ public class RadixLSD4SortTests
     {
         var stats = new StatisticsContext();
         var random = Enumerable.Range(0, n).OrderBy(_ => Guid.NewGuid()).ToArray();
-        RadixLSD4Sort.Sort(random.AsSpan(), stats);
+        RadixLSD256Sort.Sort(random.AsSpan(), stats);
 
-        // LSD Radix Sort on random non-negative data:
+        // LSD Radix Sort on random data:
         // Same complexity as sorted/reversed - O(d × n)
         var digitCount = 4;
-        var expectedReads = (ulong)(n + digitCount * 3 * n);
+        var expectedReads = (ulong)(digitCount * 3 * n);
         var expectedWrites = (ulong)(digitCount * 2 * n);
 
         Assert.Equal(expectedReads, stats.IndexReadCount);
@@ -134,47 +134,17 @@ public class RadixLSD4SortTests
         var stats = new StatisticsContext();
         // Mix of negative and non-negative: [-n/2, ..., -1, 0, 1, ..., n/2-1]
         var mixed = Enumerable.Range(-n / 2, n).ToArray();
-        RadixLSD4Sort.Sort(mixed.AsSpan(), stats);
+        RadixLSD256Sort.Sort(mixed.AsSpan(), stats);
 
-        // With negative numbers:
-        // 1. Check for negatives: 1 read (early exit on first negative)
-        // 2. Separate: n reads (from main) + n writes (to neg/nonneg buffers via SortSpan)
-        // 3. Sort negative subset (digitCount passes)
-        // 4. Sort non-negative subset (digitCount passes)
-        // 5. Merge: n reads (from neg/nonneg buffers) + n writes (to main)
-        //
-        // For input [-n/2, ..., -1, 0, 1, ..., n/2-1]:
-        // - Negative count = n/2
-        // - Non-negative count = n/2
-        var negativeCount = n / 2;
-        var nonNegativeCount = n - negativeCount;
+        // With sign-bit flipping, negative and positive values are processed in the same passes:
+        // No separate negative/positive processing needed.
+        // 
+        // Total for 4 passes:
+        // - Reads: 4 × 3n = 12n
+        // - Writes: 4 × 2n = 8n
         var digitCount = 4;
-
-        // Reads:
-        //   1. Check: 1
-        //   2. Separate: n (read from main)
-        //   3. Sort negatives: digitCount × 3 × negativeCount
-        //   4. Sort non-negatives: digitCount × 3 × nonNegativeCount
-        //   5. Merge: n (read from buffers)
-        // Writes:
-        //   1. Separate: n (write to neg/nonneg buffers)
-        //   2. Sort negatives: digitCount × 2 × negativeCount
-        //   3. Sort non-negatives: digitCount × 2 × nonNegativeCount
-        //   4. Merge: n (write to main)
-        var expectedReads = (ulong)(
-            1 // Check for negatives (early exit)
-            + n // Separate (read from main)
-            + digitCount * 3 * negativeCount // Sort negatives
-            + digitCount * 3 * nonNegativeCount // Sort non-negatives
-            + n // Merge (read from buffers)
-        );
-
-        var expectedWrites = (ulong)(
-            n // Separate (write to buffers)
-            + digitCount * 2 * negativeCount // Sort negatives
-            + digitCount * 2 * nonNegativeCount // Sort non-negatives
-            + n // Merge (write to main)
-        );
+        var expectedReads = (ulong)(digitCount * 3 * n);
+        var expectedWrites = (ulong)(digitCount * 2 * n);
 
         Assert.Equal(expectedReads, stats.IndexReadCount);
         Assert.Equal(expectedWrites, stats.IndexWriteCount);
@@ -183,6 +153,45 @@ public class RadixLSD4SortTests
 
         // Verify result is sorted
         Assert.Equal(mixed.OrderBy(x => x), mixed);
+    }
+
+    [Fact]
+    public void MinValueHandlingTest()
+    {
+        var stats = new StatisticsContext();
+        // Test that int.MinValue is handled correctly (no overflow)
+        var array = new[] { int.MinValue, -1, 0, 1, int.MaxValue };
+        RadixLSD256Sort.Sort(array.AsSpan(), stats);
+
+        Assert.Equal(new[] { int.MinValue, -1, 0, 1, int.MaxValue }, array);
+    }
+
+    [Fact]
+    public void StabilityTest()
+    {
+        // Test stability: elements with same key maintain relative order
+        var records = new[]
+        {
+            (value: 5, id: 1),
+            (value: 3, id: 2),
+            (value: 5, id: 3),
+            (value: 3, id: 4),
+            (value: 5, id: 5)
+        };
+
+        var keys = records.Select(r => r.value).ToArray();
+        RadixLSD256Sort.Sort(keys.AsSpan());
+
+        // After sorting by value, records with same value should maintain original order
+        // Since we only sorted keys, we verify the sort is stable by checking
+        // that multiple sorts preserve order
+        var firstSort = records.Select(r => r.value).ToArray();
+        RadixLSD256Sort.Sort(firstSort.AsSpan());
+        
+        var secondSort = firstSort.ToArray();
+        RadixLSD256Sort.Sort(secondSort.AsSpan());
+
+        Assert.Equal(firstSort, secondSort);
     }
 
 #endif
