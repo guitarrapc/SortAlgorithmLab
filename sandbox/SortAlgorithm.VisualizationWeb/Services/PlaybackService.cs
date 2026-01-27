@@ -22,6 +22,9 @@ public class PlaybackService : IDisposable
     /// <summary>1フレームあたりの操作数（1-1000）</summary>
     public int OperationsPerFrame { get; set; } = 10;
     
+    /// <summary>ソート完了時に自動的にリセットするか</summary>
+    public bool AutoReset { get; set; } = false;
+    
     /// <summary>状態が変更されたときのイベント</summary>
     public event Action? StateChanged;
     
@@ -141,7 +144,14 @@ public class PlaybackService : IDisposable
     {
         if (State.CurrentOperationIndex >= _operations.Count)
         {
-            Stop();
+            if (AutoReset)
+            {
+                Stop(); // 自動リセット
+            }
+            else
+            {
+                Pause(); // 最後のフレームで一時停止
+            }
             return;
         }
         
@@ -158,7 +168,14 @@ public class PlaybackService : IDisposable
             
             if (State.CurrentOperationIndex >= _operations.Count)
             {
-                Stop();
+                if (AutoReset)
+                {
+                    Stop(); // 自動リセット
+                }
+                else
+                {
+                    Pause(); // 最後のフレームで一時停止
+                }
                 StateChanged?.Invoke();
                 return;
             }
