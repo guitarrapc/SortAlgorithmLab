@@ -7,28 +7,57 @@
     
     @if (State != null && State.MainArray.Length > 0)
     {
-        <svg width="100%" height="100%" viewBox="0 0 @Width @Height" preserveAspectRatio="xMidYMid meet">
-            @{
-                var barWidth = (double)Width / State.MainArray.Length;
-                var maxValue = State.MainArray.Max();
-                
-                for (int i = 0; i < State.MainArray.Length; i++)
+        var arrayLength = State.MainArray.Length;
+        
+        // 配列サイズに応じて隙間を調整
+        double gapRatio;
+        if (arrayLength <= 256)
+        {
+            gapRatio = 0.15; // 15%の隙間（小さい配列は見やすく）
+        }
+        else if (arrayLength <= 1024)
+        {
+            gapRatio = 0.10; // 10%の隙間
+        }
+        else
+        {
+            gapRatio = 0.05; // 5%の隙間（大きい配列は密集させる）
+        }
+        
+        var minBarWidth = 1.0; // 最小バー幅（px）
+        var requiredWidth = Math.Max(Width, (int)(arrayLength * minBarWidth / (1.0 - gapRatio)));
+        var totalBarWidth = (double)requiredWidth / arrayLength;
+        var barWidth = totalBarWidth * (1.0 - gapRatio); // 実際のバー幅（隙間を除く）
+        var gap = totalBarWidth * gapRatio; // 隙間の幅
+        var maxValue = State.MainArray.Max();
+        
+        <svg width="100%" height="100%" viewBox="0 0 @requiredWidth @Height" preserveAspectRatio="xMidYMid meet" style="display: block;">
+            <g shape-rendering="crispEdges">
+                @for (int i = 0; i < arrayLength; i++)
                 {
                     var value = State.MainArray[i];
                     var barHeight = (value / (double)maxValue) * (Height - 20);
-                    var x = i * barWidth;
+                    var x = i * totalBarWidth + (gap / 2); // 隙間の半分を左側に配置
                     var y = Height - barHeight;
                     var color = GetBarColor(i);
                     
-                    <rect x="@x" 
+                    <rect @key="i"
+                          x="@x" 
                           y="@y" 
-                          width="@(barWidth - 1)" 
+                          width="@barWidth" 
                           height="@barHeight"
                           fill="@color"
                           stroke="none" />
                 }
-            }
+            </g>
         </svg>
+    }
+    else
+    {
+        <div style="text-align: center; color: #999;">
+            <p style="font-size: 2rem;">📊</p>
+            <p>Click "Generate & Sort" to start visualization</p>
+        </div>
     }
 </div>
 
