@@ -33,7 +33,7 @@
         var gap = totalBarWidth * gapRatio; // 隙間の幅
         var maxValue = State.MainArray.Max();
         
-        <svg width="100%" height="100%" viewBox="0 0 @requiredWidth @baseHeight" preserveAspectRatio="xMidYMid meet" style="display: block; max-height: 100%;">
+        <svg width="100%" height="100%" viewBox="0 0 @requiredWidth @baseHeight" preserveAspectRatio="xMidYMax meet" style="display: block;">
             <g shape-rendering="crispEdges">
                 @for (int i = 0; i < arrayLength; i++)
                 {
