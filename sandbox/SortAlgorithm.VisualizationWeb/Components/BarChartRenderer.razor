@@ -25,20 +25,22 @@
         }
         
         var minBarWidth = 1.0; // 最小バー幅（px）
-        var requiredWidth = Math.Max(Width, (int)(arrayLength * minBarWidth / (1.0 - gapRatio)));
+        var baseWidth = 1200; // ベース幅
+        var baseHeight = 600; // ベース高さ（アスペクト比の基準）
+        var requiredWidth = Math.Max(baseWidth, (int)(arrayLength * minBarWidth / (1.0 - gapRatio)));
         var totalBarWidth = (double)requiredWidth / arrayLength;
         var barWidth = totalBarWidth * (1.0 - gapRatio); // 実際のバー幅（隙間を除く）
         var gap = totalBarWidth * gapRatio; // 隙間の幅
         var maxValue = State.MainArray.Max();
         
-        <svg width="100%" height="100%" viewBox="0 0 @requiredWidth @Height" preserveAspectRatio="xMidYMid meet" style="display: block;">
+        <svg width="100%" height="100%" viewBox="0 0 @requiredWidth @baseHeight" preserveAspectRatio="xMidYMid meet" style="display: block; max-height: 100%;">
             <g shape-rendering="crispEdges">
                 @for (int i = 0; i < arrayLength; i++)
                 {
                     var value = State.MainArray[i];
-                    var barHeight = (value / (double)maxValue) * (Height - 20);
+                    var barHeight = (value / (double)maxValue) * (baseHeight - 20);
                     var x = i * totalBarWidth + (gap / 2); // 隙間の半分を左側に配置
-                    var y = Height - barHeight;
+                    var y = baseHeight - barHeight;
                     var color = GetBarColor(i);
                     
                     <rect @key="i"
@@ -64,12 +66,6 @@
 @code {
     [Parameter]
     public VisualizationState? State { get; set; }
-    
-    [Parameter]
-    public int Width { get; set; } = 1200;
-    
-    [Parameter]
-    public int Height { get; set; } = 600;
     
     [Parameter]
     public EventCallback OnClick { get; set; }

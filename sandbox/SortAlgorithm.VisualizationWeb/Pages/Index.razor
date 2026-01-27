@@ -88,12 +88,10 @@
     </div>
     
     <div class="visualization-area">
-        <div style="flex: 1; display: flex; align-items: center; justify-content: center; background-color: #1A1A1A; border-radius: 8px;">
+        <div class="visualization-content">
             @if (Playback.State.MainArray.Length > 0)
             {
                 <BarChartRenderer State="Playback.State" 
-                                 Width="1200" 
-                                 Height="600" 
                                  OnClick="OnVisualizationClick" />
             }
             else
