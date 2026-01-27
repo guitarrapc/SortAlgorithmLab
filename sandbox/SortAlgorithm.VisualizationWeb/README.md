@@ -10,9 +10,10 @@
   - Exchange Sorts (4種類): BubbleSort, CocktailShakerSort, CombSort, OddEvenSort
   - Selection Sorts (4種類): SelectionSort, DoubleSelectionSort, CycleSort, PancakeSort
   - Insertion Sorts (4種類): InsertionSort, BinaryInsertSort, ShellSort, GnomeSort
-  - Merge Sorts (5種類): MergeSort, TimSort, PowerSort, DropMergeSort, ShiftSort
+  - Merge Sorts (4種類): MergeSort, TimSort, PowerSort, ShiftSort
   - Heap Sorts (5種類): HeapSort, BottomupHeapSort, WeakHeapSort, SmoothSort, TernaryHeapSort
   - Partition Sorts (9種類): QuickSort, QuickSortMedian3/9, QuickSortDualPivot, BlockQuickSort, StableQuickSort, IntroSort, PDQSort, StdSort
+  - Adaptive Sorts (1種類): DropMergeSort
   - Distribution Sorts (4種類): CountingSort, BucketSort, RadixLSD4Sort, RadixLSD10Sort
   - Network Sorts (3種類): BitonicSort, BitonicSortFill, BitonicSortParallel
   - Tree Sorts (2種類): BinaryTreeSort, BalancedBinaryTreeSort

@@ -51,7 +51,7 @@ namespace SortAlgorithm.Algorithms;
 /// </list>
 /// <para><strong>Performance Characteristics:</strong></para>
 /// <list type="bullet">
-/// <item><description>Family      : Partition (adaptive)</description></item>
+/// <item><description>Family      : Aadaptive</description></item>
 /// <item><description>Stable      : No (relative order of equal elements is not preserved)</description></item>
 /// <item><description>In-place    : No (O(K) auxiliary space where K is the number of out-of-order elements)</description></item>
 /// <item><description>Best case   : O(N) - When data is already sorted or nearly sorted (K ≈ 0), only LNS extraction and merge are needed</description></item>

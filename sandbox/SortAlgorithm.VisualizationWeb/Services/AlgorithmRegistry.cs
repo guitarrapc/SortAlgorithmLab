@@ -55,7 +55,6 @@ public class AlgorithmRegistry
         Add("MergeSort", "Merge Sorts", "O(n log n)", MAX_SIZE, 2048, (arr, ctx) => MergeSort.Sort(arr.AsSpan(), ctx));
         Add("TimSort", "Merge Sorts", "O(n log n)", MAX_SIZE, 2048, (arr, ctx) => TimSort.Sort(arr.AsSpan(), ctx));
         Add("PowerSort", "Merge Sorts", "O(n log n)", MAX_SIZE, 2048, (arr, ctx) => PowerSort.Sort(arr.AsSpan(), ctx));
-        Add("DropMergeSort", "Merge Sorts", "O(n log n)", MAX_SIZE, 2048, (arr, ctx) => DropMergeSort.Sort(arr.AsSpan(), ctx));
         Add("ShiftSort", "Merge Sorts", "O(n log n)", MAX_SIZE, 2048, (arr, ctx) => ShiftSort.Sort(arr.AsSpan(), ctx));
         
         // Heap Sorts - O(n log n) - 推奨2048
@@ -75,7 +74,10 @@ public class AlgorithmRegistry
         Add("IntroSort", "Partition Sorts", "O(n log n)", MAX_SIZE, 4096, (arr, ctx) => IntroSort.Sort(arr.AsSpan(), ctx));
         Add("PDQSort", "Partition Sorts", "O(n log n)", MAX_SIZE, 4096, (arr, ctx) => PDQSort.Sort(arr.AsSpan(), ctx));
         Add("StdSort", "Partition Sorts", "O(n log n)", MAX_SIZE, 4096, (arr, ctx) => StdSort.Sort(arr.AsSpan(), ctx));
-        
+
+        // Adaptive Sorts - O(n log n) - 推奨2048
+        Add("DropMergeSort", "Adaptive Sorts", "O(n log n)", MAX_SIZE, 2048, (arr, ctx) => DropMergeSort.Sort(arr.AsSpan(), ctx));
+
         // Distribution Sorts - O(n) ~ O(nk) - 推奨4096
         // CountingSort and BucketSort require key selector function - omitted for now
         Add("RadixLSD4Sort", "Distribution Sorts", "O(nk)", MAX_SIZE, 4096, (arr, ctx) => RadixLSD4Sort.Sort(arr.AsSpan(), ctx));
