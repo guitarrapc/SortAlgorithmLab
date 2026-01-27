@@ -80,6 +80,7 @@ public class AlgorithmRegistry
 
         // Distribution Sorts - O(n) ~ O(nk) - 推奨4096
         // CountingSort and BucketSort require key selector function - omitted for now
+        Add("RadixLSD4Sort", "Distribution Sorts", "O(nk)", MAX_SIZE, 4096, (arr, ctx) => RadixLSD4Sort.Sort(arr.AsSpan(), ctx));
         Add("RadixLSD256Sort", "Distribution Sorts", "O(nk)", MAX_SIZE, 4096, (arr, ctx) => RadixLSD256Sort.Sort(arr.AsSpan(), ctx));
         Add("RadixLSD10Sort", "Distribution Sorts", "O(nk)", MAX_SIZE, 4096, (arr, ctx) => RadixLSD10Sort.Sort(arr.AsSpan(), ctx));
         
