@@ -52,11 +52,22 @@ public class RadixLSD4SortTests
         var sorted = Enumerable.Range(0, n).ToArray();
         RadixLSD4Sort.Sort(sorted.AsSpan(), stats);
 
-        // LSD Radix Sort (Radix-4, 2-bit per pass) with sign-bit flipping:
-        // For 32-bit integers: digitCount = 16 (32 bits / 2 bits = 16 passes)
+        // LSD Radix Sort (Radix-4, 2-bit per pass) with sign-bit flipping and early termination:
+        // For 32-bit integers with range [0, n-1]:
         // 
-        // Unified processing for all values (no separate negative/positive paths):
-        // Per pass d (d=0,1,...,15):
+        // Early termination optimization:
+        // - Find min/max keys: n reads
+        // - Calculate required bits from range (max ^ min)
+        // - Only process required digit passes
+        //
+        // Example for n=100:
+        // - max value = 99 → key = 0x8000_0063 (after sign-bit flip for signed int)
+        // - min value = 0 → key = 0x8000_0000
+        // - range = 0x8000_0063 ^ 0x8000_0000 = 0x0000_0063 = 99
+        // - required bits = 7 (for value 99)
+        // - required passes = ceil(7 / 2) = 4
+        //
+        // Per pass d (d=0,1,2,3):
         //   - Count phase: n reads
         //   - Distribute phase: n reads + n writes (to temp)
         //   - Copy back phase: n reads (from temp) + n writes (to main)
@@ -65,12 +76,16 @@ public class RadixLSD4SortTests
         // - Reads: n (count) + n (distribute) + n (copy back) = 3n
         // - Writes: n (distribute to temp) + n (copy back to main) = 2n
         //
-        // Total for 16 passes:
-        // - Reads: 16 × 3n = 48n
-        // - Writes: 16 × 2n = 32n
-        var digitCount = 16; // 32-bit int / 2-bit per digit = 16 passes
-        var expectedReads = (ulong)(digitCount * 3 * n);  // (count + distribute + copy) × passes
-        var expectedWrites = (ulong)(digitCount * 2 * n); // (temp write + main write) × passes
+        // Total:
+        // - Initial scan: n reads
+        // - Radix passes: digitCount × (3n reads + 2n writes)
+        var maxValue = n - 1;
+        var range = (ulong)maxValue; // min=0 after sign-bit flip, range = max - min
+        var requiredBits = range == 0 ? 0 : (64 - System.Numerics.BitOperations.LeadingZeroCount(range));
+        var digitCount = Math.Max(1, (requiredBits + 2 - 1) / 2); // ceil(requiredBits / 2)
+        
+        var expectedReads = (ulong)(n + digitCount * 3 * n);  // Initial + (count + distribute + copy) × passes
+        var expectedWrites = (ulong)(digitCount * 2 * n);     // (temp write + main write) × passes
 
         Assert.Equal(expectedReads, stats.IndexReadCount);
         Assert.Equal(expectedWrites, stats.IndexWriteCount);
@@ -112,10 +127,14 @@ public class RadixLSD4SortTests
         var random = Enumerable.Range(0, n).OrderBy(_ => Guid.NewGuid()).ToArray();
         RadixLSD4Sort.Sort(random.AsSpan(), stats);
 
-        // LSD Radix Sort on random data:
-        // Same complexity as sorted/reversed - O(d × n)
-        var digitCount = 16;
-        var expectedReads = (ulong)(digitCount * 3 * n);
+        // LSD Radix Sort on random data with early termination:
+        // Same complexity - determined by actual range
+        var maxValue = n - 1;
+        var range = (ulong)maxValue;
+        var requiredBits = range == 0 ? 0 : (64 - System.Numerics.BitOperations.LeadingZeroCount(range));
+        var digitCount = Math.Max(1, (requiredBits + 2 - 1) / 2);
+        
+        var expectedReads = (ulong)(n + digitCount * 3 * n);
         var expectedWrites = (ulong)(digitCount * 2 * n);
 
         Assert.Equal(expectedReads, stats.IndexReadCount);

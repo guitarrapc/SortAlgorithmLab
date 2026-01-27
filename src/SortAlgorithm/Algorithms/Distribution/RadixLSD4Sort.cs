@@ -115,9 +115,26 @@ public static class RadixLSD4Sort
             throw new NotSupportedException($"Type {typeof(T).Name} with bit size {bitSize} is not supported. Maximum supported bit size is 64.");
         }
 
-        var digitCount = (bitSize + RadixBits - 1) / RadixBits;
+        // Find min and max to determine actual required passes
+        // This optimization skips unnecessary high-order digit passes
+        var minKey = ulong.MaxValue;
+        var maxKey = ulong.MinValue;
+        
+        for (var i = 0; i < s.Length; i++)
+        {
+            var value = s.Read(i);
+            var key = GetUnsignedKey(value, bitSize);
+            if (key < minKey) minKey = key;
+            if (key > maxKey) maxKey = key;
+        }
 
-        // Perform LSD radix sort
+        // Calculate required number of passes based on the range
+        // XOR to find differing bits, then count bits needed
+        var range = maxKey ^ minKey;
+        var requiredBits = range == 0 ? 0 : (64 - System.Numerics.BitOperations.LeadingZeroCount(range));
+        var digitCount = Math.Max(1, (requiredBits + RadixBits - 1) / RadixBits);
+
+        // Perform LSD radix sort (only required passes)
         for (int d = 0; d < digitCount; d++)
         {
             var shift = d * RadixBits;
