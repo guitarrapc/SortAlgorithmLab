@@ -36,7 +36,8 @@ public interface ISortContext
     /// </summary>
     /// <param name="index">The zero-based index at which the write operation occurs</param>
     /// <param name="bufferId">Buffer identifier (0 = main array, 1+ = auxiliary buffers)</param>
-    void OnIndexWrite(int index, int bufferId);
+    /// <param name="value">The value being written (optional, used for visualization)</param>
+    void OnIndexWrite(int index, int bufferId, object? value = null);
 
     /// <summary>
     /// Handles a range copy operation between buffers.

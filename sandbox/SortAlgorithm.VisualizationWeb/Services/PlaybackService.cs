@@ -240,6 +240,14 @@ public class PlaybackService : IDisposable
                 
             case OperationType.IndexWrite:
                 State.WriteIndices.Add(operation.Index1);
+                if (applyToArray && operation.Value.HasValue)
+                {
+                    var arr = GetArray(operation.BufferId1);
+                    if (operation.Index1 >= 0 && operation.Index1 < arr.Length)
+                    {
+                        arr[operation.Index1] = operation.Value.Value;
+                    }
+                }
                 if (updateStats) State.IndexWriteCount++;
                 break;
                 

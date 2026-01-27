@@ -34,7 +34,7 @@ public sealed class StatisticsContext : ISortContext
     }
     
     public void OnIndexRead(int index, int bufferId) => Interlocked.Increment(ref _indexReadCount);
-    public void OnIndexWrite(int index, int bufferId) => Interlocked.Increment(ref _indexWriteCount);
+    public void OnIndexWrite(int index, int bufferId, object? value = null) => Interlocked.Increment(ref _indexWriteCount);
 
     public void OnRangeCopy(int sourceIndex, int destinationIndex, int length, int sourceBufferId, int destinationBufferId)
     {

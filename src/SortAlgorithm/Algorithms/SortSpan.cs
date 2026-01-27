@@ -58,7 +58,7 @@ internal ref struct SortSpan<T> where T: IComparable<T>
     public void Write(int i, T value)
     {
 #if DEBUG
-        _context.OnIndexWrite(i, _bufferId);
+        _context.OnIndexWrite(i, _bufferId, value);
 #endif
         _span[i] = value;
     }

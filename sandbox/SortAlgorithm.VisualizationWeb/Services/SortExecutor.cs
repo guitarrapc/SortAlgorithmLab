@@ -57,13 +57,14 @@ public class SortExecutor
                         BufferId1 = bufferId
                     });
                 },
-                onIndexWrite: (index, bufferId) =>
+                onIndexWrite: (index, bufferId, value) =>
                 {
                     operations.Add(new SortOperation
                     {
                         Type = OperationType.IndexWrite,
                         Index1 = index,
-                        BufferId1 = bufferId
+                        BufferId1 = bufferId,
+                        Value = value as int?
                     });
                 },
                 onRangeCopy: (sourceIndex, destIndex, length, sourceBufferId, destBufferId) =>

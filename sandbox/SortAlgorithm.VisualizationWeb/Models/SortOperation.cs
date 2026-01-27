@@ -25,4 +25,7 @@ public record SortOperation
     
     /// <summary>比較結果（Compareの場合）</summary>
     public int CompareResult { get; init; }
+    
+    /// <summary>書き込まれる値（IndexWriteの場合）</summary>
+    public int? Value { get; init; }
 }
