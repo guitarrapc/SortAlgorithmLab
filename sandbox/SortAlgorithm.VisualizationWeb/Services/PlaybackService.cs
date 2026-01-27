@@ -227,7 +227,7 @@ public class PlaybackService : IDisposable
                 State.SwapIndices.Add(operation.Index2);
                 if (applyToArray)
                 {
-                    var arr = GetArray(operation.BufferId1);
+                    var arr = GetArray(operation.BufferId1).AsSpan();
                     (arr[operation.Index1], arr[operation.Index2]) = (arr[operation.Index2], arr[operation.Index1]);
                 }
                 if (updateStats) State.SwapCount++;
@@ -242,7 +242,7 @@ public class PlaybackService : IDisposable
                 State.WriteIndices.Add(operation.Index1);
                 if (applyToArray && operation.Value.HasValue)
                 {
-                    var arr = GetArray(operation.BufferId1);
+                    var arr = GetArray(operation.BufferId1).AsSpan();
                     if (operation.Index1 >= 0 && operation.Index1 < arr.Length)
                     {
                         arr[operation.Index1] = operation.Value.Value;
@@ -252,7 +252,23 @@ public class PlaybackService : IDisposable
                 break;
                 
             case OperationType.RangeCopy:
-                // RangeCopyは簡略化（実際の実装では配列コピーが必要）
+                if (applyToArray)
+                {
+                    var sourceArr = GetArray(operation.BufferId1);
+                    var destArr = GetArray(operation.BufferId2);
+                    
+                    var sourceSpan = sourceArr.AsSpan();
+                    var destSpan = destArr.AsSpan();
+                    
+                    if (operation.Index1 >= 0 && operation.Index2 >= 0 && 
+                        operation.Length > 0 &&
+                        operation.Index1 + operation.Length <= sourceSpan.Length &&
+                        operation.Index2 + operation.Length <= destSpan.Length)
+                    {
+                        sourceSpan.Slice(operation.Index1, operation.Length)
+                            .CopyTo(destSpan.Slice(operation.Index2, operation.Length));
+                    }
+                }
                 if (updateStats)
                 {
                     State.IndexReadCount += (ulong)operation.Length;
