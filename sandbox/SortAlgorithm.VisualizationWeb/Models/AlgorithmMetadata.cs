@@ -19,6 +19,9 @@ public record AlgorithmMetadata
     /// <summary>最大要素数</summary>
     public required int MaxElements { get; init; }
     
+    /// <summary>推奨要素数</summary>
+    public required int RecommendedSize { get; init; }
+    
     /// <summary>ソート実行デリゲート</summary>
     public required Action<int[], ISortContext> SortAction { get; init; }
     

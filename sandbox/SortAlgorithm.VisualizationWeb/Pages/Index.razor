@@ -29,7 +29,7 @@
             
             <div class="stat-item">
                 <span class="stat-label">Algorithm</span>
-                <select @bind="SelectedAlgorithm" style="width: 100%;">
+                <select @bind="SelectedAlgorithm" @bind:after="OnAlgorithmChanged" style="width: 100%;">
                     @foreach (var algo in GetFilteredAlgorithms())
                     {
                         <option value="@algo.Name">@algo.Name</option>
@@ -38,13 +38,12 @@
             </div>
             
             <div class="stat-item">
-                <span class="stat-label">Array Size</span>
+                <span class="stat-label">Array Size @GetSizeRecommendation()</span>
                 <select @bind="ArraySize">
-                    <option value="16">16</option>
-                    <option value="32">32</option>
-                    <option value="64">64</option>
-                    <option value="128">128</option>
-                    <option value="256">256</option>
+                    @foreach (var size in AvailableSizes)
+                    {
+                        <option value="@size">@size @(IsRecommendedSize(size) ? "⭐" : "")</option>
+                    }
                 </select>
             </div>
             
@@ -108,16 +107,51 @@
 </div>
 
 @code {
-    private string SelectedAlgorithm { get; set; } = "BubbleSort";
-    private string SelectedCategory { get; set; } = "";
-    private int ArraySize { get; set; } = 64;
+private string SelectedAlgorithm { get; set; } = "BubbleSort";
+private string SelectedCategory { get; set; } = "";
+private int ArraySize { get; set; } = 64;
     
-    private int EffectiveOpsPerSecond => Playback.OperationsPerFrame * 60; // 60 FPS固定
+private int[] AvailableSizes = [16, 32, 64, 128, 256, 512, 1024, 2048, 4096];
     
-    protected override void OnInitialized()
+private int EffectiveOpsPerSecond => Playback.OperationsPerFrame * 60; // 60 FPS固定
+    
+protected override void OnInitialized()
+{
+    Playback.StateChanged += OnStateChanged;
+    // 初期アルゴリズムの推奨サイズを設定
+    SetRecommendedSize();
+}
+    
+private void OnAlgorithmChanged()
+{
+    SetRecommendedSize();
+    StateHasChanged();
+}
+    
+private void SetRecommendedSize()
+{
+    var algo = Registry.GetAllAlgorithms().FirstOrDefault(a => a.Name == SelectedAlgorithm);
+    if (algo != null)
     {
-        Playback.StateChanged += OnStateChanged;
+        ArraySize = algo.RecommendedSize;
     }
+}
+    
+private string GetSizeRecommendation()
+{
+    var algo = Registry.GetAllAlgorithms().FirstOrDefault(a => a.Name == SelectedAlgorithm);
+    if (algo != null && algo.RecommendedSize != ArraySize)
+    {
+        return $"(Recommended: {algo.RecommendedSize})";
+    }
+    return "";
+}
+    
+private bool IsRecommendedSize(int size)
+{
+    var algo = Registry.GetAllAlgorithms().FirstOrDefault(a => a.Name == SelectedAlgorithm);
+    return algo?.RecommendedSize == size;
+}
     
     private IEnumerable<AlgorithmMetadata> GetFilteredAlgorithms()
     {
@@ -143,7 +177,7 @@
             return;
         }
         
-        // 要素数制限を適用
+        // 要素数制限を適用（すべてのアルゴリズムで4096まで対応）
         var size = Math.Min(ArraySize, metadata.MaxElements);
         
         // ランダム配列生成
