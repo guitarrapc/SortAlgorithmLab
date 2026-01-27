@@ -229,27 +229,41 @@ public static class RadixLSD256Sort
         }
         else if (bitSize <= 32)
         {
-            // int or uint
+            // int, uint, or nint/nuint on 32-bit platform
             if (typeof(T) == typeof(int))
             {
                 var intValue = int.CreateTruncating(value);
                 return (uint)intValue ^ 0x8000_0000;
             }
+            else if (typeof(T) == typeof(nint))
+            {
+                // nint is signed, needs sign-bit flip
+                var nintValue = nint.CreateTruncating(value);
+                return (uint)nintValue ^ 0x8000_0000;
+            }
             else
             {
+                // uint or nuint (unsigned, no flip needed)
                 return uint.CreateTruncating(value);
             }
         }
         else if (bitSize <= 64)
         {
-            // long or ulong
+            // long, ulong, or nint/nuint on 64-bit platform
             if (typeof(T) == typeof(long))
             {
                 var longValue = long.CreateTruncating(value);
                 return (ulong)longValue ^ 0x8000_0000_0000_0000;
             }
+            else if (typeof(T) == typeof(nint))
+            {
+                // nint is signed, needs sign-bit flip (64-bit platform)
+                var nintValue = nint.CreateTruncating(value);
+                return (ulong)nintValue ^ 0x8000_0000_0000_0000;
+            }
             else
             {
+                // ulong or nuint (unsigned, no flip needed)
                 return ulong.CreateTruncating(value);
             }
         }
