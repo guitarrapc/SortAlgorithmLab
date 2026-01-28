@@ -109,11 +109,8 @@ public static class RadixLSD4Sort
         var temp = new SortSpan<T>(tempBuffer, context, BUFFER_TEMP);
 
         // Determine the number of digits based on type size
+        // GetBitSize throws NotSupportedException for unsupported types (>64-bit)
         var bitSize = GetBitSize<T>();
-        if (bitSize > 64)
-        {
-            throw new NotSupportedException($"Type {typeof(T).Name} with bit size {bitSize} is not supported. Maximum supported bit size is 64.");
-        }
 
         // Find min and max to determine actual required passes
         // This optimization skips unnecessary high-order digit passes
@@ -174,6 +171,7 @@ public static class RadixLSD4Sort
 
     /// <summary>
     /// Get bit size of the type T.
+    /// Throws NotSupportedException for types larger than 64-bit.
     /// </summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private static int GetBitSize<T>() where T : IBinaryInteger<T>
@@ -186,12 +184,12 @@ public static class RadixLSD4Sort
             return 32;
         else if (typeof(T) == typeof(long) || typeof(T) == typeof(ulong))
             return 64;
-        else if (typeof(T) == typeof(Int128) || typeof(T) == typeof(UInt128))
-            return 128;
         else if (typeof(T) == typeof(nint) || typeof(T) == typeof(nuint))
             return IntPtr.Size * 8;
+        else if (typeof(T) == typeof(Int128) || typeof(T) == typeof(UInt128))
+            throw new NotSupportedException($"Type {typeof(T).Name} with 128-bit size is not supported. Maximum supported bit size is 64.");
         else
-            return 64; // Default fallback
+            throw new NotSupportedException($"Type {typeof(T).Name} is not supported.");
     }
 
     /// <summary>
