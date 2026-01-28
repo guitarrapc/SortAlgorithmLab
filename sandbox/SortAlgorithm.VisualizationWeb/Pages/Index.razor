@@ -9,9 +9,9 @@
 
 <PageTitle>Sort Algorithm Visualization</PageTitle>
 
-<div class="visualization-page" 
+<div class="visualization-page"
      style="--sidebar-width: @(_sidebarCollapsed ? "40" : _sidebarWidth)px; user-select: @(_isResizing ? "none" : "auto");"
-     @onmousemove="OnMouseMove" 
+     @onmousemove="OnMouseMove"
      @onmouseup="OnMouseUp"
      @onmousemove:preventDefault="@_isResizing">
     <div class="header">
@@ -26,87 +26,87 @@
             </select>
         </div>
     </div>
-    
+
     <div class="sidebar @(_sidebarCollapsed ? "collapsed" : "")">
-        <div class="sidebar-resizer" 
-             @onmousedown="StartResize" 
+        <div class="sidebar-resizer"
+             @onmousedown="StartResize"
              @onmousedown:preventDefault></div>
-        
-        <button class="sidebar-toggle" 
+
+        <button class="sidebar-toggle"
                 @onclick="ToggleSidebar"
                 title="@(_sidebarCollapsed ? "Show Sidebar" : "Hide Sidebar")">
             @(_sidebarCollapsed ? "▶" : "◀")
         </button>
-        
+
         <div class="sidebar-content">
             <div class="statistics-panel">
                 <h3>⚙️ Settings</h3>
-            
-            <div class="stat-item">
-                <span class="stat-label">Algorithm</span>
-                <select @bind="SelectedAlgorithm" @bind:after="OnAlgorithmChanged" style="width: 100%;">
-                    @foreach (var algo in GetFilteredAlgorithms())
-                    {
-                        <option value="@algo.Name">@algo.Name</option>
-                    }
-                </select>
-            </div>
-            
-            <div class="stat-item">
-                <span class="stat-label">Array Size @GetSizeRecommendation()</span>
-                <select @bind="ArraySize">
-                    @foreach (var size in AvailableSizes)
-                    {
-                        <option value="@size">@size @(IsRecommendedSize(size) ? "⭐" : "")</option>
-                    }
-                </select>
-            </div>
-            
-            <div class="stat-item">
-                <button class="primary" @onclick="GenerateAndSort" style="width: 100%;">🎲 Generate & Sort</button>
-            </div>
-            
-            <div class="stat-item">
-                <label class="toggle-switch">
-                    <input type="checkbox" @bind="Playback.AutoReset" />
-                    <span class="toggle-slider"></span>
-                    <span class="toggle-label">Auto Reset on Complete</span>
-                </label>
-            </div>
-            
-            <div class="stat-item stat-item-vertical">
-                <span class="stat-label">Operations Per Frame</span>
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
-                    <span class="stat-value" style="font-size: 0.9rem;">@Playback.OperationsPerFrame ops/frame</span>
+
+                <div class="stat-item">
+                    <span class="stat-label">Algorithm</span>
+                    <select @bind="SelectedAlgorithm" @bind:after="OnAlgorithmChanged" style="width: 100%;">
+                        @foreach (var algo in GetFilteredAlgorithms())
+                        {
+                            <option value="@algo.Name">@algo.Name</option>
+                        }
+                    </select>
                 </div>
-                <input type="range" min="1" max="1000" @bind="Playback.OperationsPerFrame" @bind:after="StateHasChanged" style="width: 100%;" />
-            </div>
-            
-            <div class="stat-item stat-item-vertical">
-                <span class="stat-label">Speed Multiplier</span>
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
-                    <span class="stat-value" style="font-size: 0.9rem;">@Playback.SpeedMultiplier.ToString("F1")x</span>
-                    <span style="font-size: 0.85rem; color: #999;">(@EffectiveFPS FPS)</span>
+
+                <div class="stat-item">
+                    <span class="stat-label">Array Size @GetSizeRecommendation()</span>
+                    <select @bind="ArraySize">
+                        @foreach (var size in AvailableSizes)
+                        {
+                            <option value="@size">@size @(IsRecommendedSize(size) ? "⭐" : "")</option>
+                        }
+                    </select>
                 </div>
-                <input type="range" min="0.1" max="100" step="0.5" @bind="Playback.SpeedMultiplier" @bind:after="OnSpeedMultiplierChanged" style="width: 100%;" />
+
+                <div class="stat-item">
+                    <button class="primary" @onclick="GenerateAndSort" style="width: 100%;">🎲 Generate & Sort</button>
+                </div>
+
+                <div class="stat-item">
+                    <label class="toggle-switch">
+                        <input type="checkbox" @bind="Playback.AutoReset" />
+                        <span class="toggle-slider"></span>
+                        <span class="toggle-label">Auto Reset on Complete</span>
+                    </label>
+                </div>
+
+                <div class="stat-item stat-item-vertical">
+                    <span class="stat-label">Operations Per Frame</span>
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                        <span class="stat-value" style="font-size: 0.9rem;">@Playback.OperationsPerFrame ops/frame</span>
+                    </div>
+                    <input type="range" min="1" max="1000" @bind="Playback.OperationsPerFrame" @bind:after="StateHasChanged" style="width: 100%;" />
+                </div>
+
+                <div class="stat-item stat-item-vertical">
+                    <span class="stat-label">Speed Multiplier</span>
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                        <span class="stat-value" style="font-size: 0.9rem;">@Playback.SpeedMultiplier.ToString("F1")x</span>
+                        <span style="font-size: 0.85rem; color: #999;">(@EffectiveFPS FPS)</span>
+                    </div>
+                    <input type="range" min="0.1" max="100" step="0.5" @bind="Playback.SpeedMultiplier" @bind:after="OnSpeedMultiplierChanged" style="width: 100%;" />
+                </div>
             </div>
-        </div>
-        
-        <StatisticsPanel State="Playback.State" />
-        
-        <div class="stat-item" style="margin-top: 20px;">
-            <span class="stat-label">Complexity</span>
-            <span class="stat-value" style="font-size: 0.9rem;">@GetSelectedAlgorithmComplexity()</span>
-        </div>
+
+            <StatisticsPanel State="Playback.State" />
+
+            <div class="stat-item" style="margin-top: 20px;">
+                <span class="stat-label">Complexity</span>
+                <span class="stat-value" style="font-size: 0.9rem;">@GetSelectedAlgorithmComplexity()</span>
+            </div>
         </div>
     </div>
-    
+
     <div class="visualization-area">
         <div class="visualization-content">
             @if (Playback.State.MainArray.Length > 0)
             {
-                <BarChartRenderer State="Playback.State" 
-                                 OnClick="OnVisualizationClick" />
+                <BarChartRenderer State="Playback.State"
+                                  OnClick="OnVisualizationClick" />
             }
             else
             {
@@ -117,12 +117,12 @@
             }
         </div>
     </div>
-    
+
     <div class="controls">
         <SeekBar CurrentIndex="Playback.State.CurrentOperationIndex"
-                TotalOperations="Playback.State.TotalOperations"
-                OnSeek="OnSeek" />
-        
+                 TotalOperations="Playback.State.TotalOperations"
+                 OnSeek="OnSeek" />
+
         <div style="display: flex; gap: 10px; margin-top: 10px; align-items: center;">
             <button @onclick="Playback.Stop">⏹ Reset</button>
             <button @onclick="Playback.TogglePlayPause">
@@ -135,34 +135,34 @@
 </div>
 
 @code {
-private string SelectedAlgorithm { get; set; } = "BubbleSort";
-private string SelectedCategory { get; set; } = "";
-private int ArraySize { get; set; } = 64;
-    
+    private string SelectedAlgorithm { get; set; } = "BubbleSort";
+    private string SelectedCategory { get; set; } = "";
+    private int ArraySize { get; set; } = 64;
+
     private int[] AvailableSizes = [16, 32, 64, 128, 256, 512, 1024, 2048, 4096];
-    
+
     private int EffectiveFPS => (int)(60 * Playback.SpeedMultiplier);
-    
+
     // サイドバーリサイズ関連
     private int _sidebarWidth = 280; // デフォルト幅（px）
     private bool _sidebarCollapsed = false; // 折りたたみ状態
     private bool _isResizing = false;
     private int _resizeStartX = 0;
     private int _resizeStartWidth = 0;
-    
+
     protected override void OnInitialized()
     {
         Playback.StateChanged += OnStateChanged;
         // 初期アルゴリズムの推奨サイズを設定
         SetRecommendedSize();
     }
-    
+
     private void ToggleSidebar()
     {
         _sidebarCollapsed = !_sidebarCollapsed;
         StateHasChanged();
     }
-    
+
     private void OnSpeedMultiplierChanged()
     {
         // 再生中の場合、タイマー間隔を更新
@@ -173,86 +173,86 @@ private int ArraySize { get; set; } = 64;
         }
         StateHasChanged();
     }
-    
-protected override async Task OnAfterRenderAsync(bool firstRender)
-{
-    if (firstRender)
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        // グローバルなマウスイベントリスナーを登録（JS Interop不要、Blazor側で処理）
+        if (firstRender)
+        {
+            // グローバルなマウスイベントリスナーを登録（JS Interop不要、Blazor側で処理）
+        }
     }
-}
-    
-private void StartResize(MouseEventArgs e)
-{
-    _isResizing = true;
-    _resizeStartX = (int)e.ClientX;
-    _resizeStartWidth = _sidebarWidth;
-}
-    
-private void OnMouseMove(MouseEventArgs e)
-{
-    if (_isResizing)
+
+    private void StartResize(MouseEventArgs e)
     {
-        var deltaX = (int)e.ClientX - _resizeStartX;
-        var newWidth = _resizeStartWidth + deltaX;
-            
-        // 最小200px、最大500pxに制限
-        _sidebarWidth = Math.Clamp(newWidth, 200, 500);
+        _isResizing = true;
+        _resizeStartX = (int)e.ClientX;
+        _resizeStartWidth = _sidebarWidth;
+    }
+
+    private void OnMouseMove(MouseEventArgs e)
+    {
+        if (_isResizing)
+        {
+            var deltaX = (int)e.ClientX - _resizeStartX;
+            var newWidth = _resizeStartWidth + deltaX;
+
+            // 最小200px、最大500pxに制限
+            _sidebarWidth = Math.Clamp(newWidth, 200, 500);
+            StateHasChanged();
+        }
+    }
+
+    private void OnMouseUp()
+    {
+        _isResizing = false;
+    }
+
+    private void OnAlgorithmChanged()
+    {
+        SetRecommendedSize();
         StateHasChanged();
     }
-}
-    
-private void OnMouseUp()
-{
-    _isResizing = false;
-}
-    
-private void OnAlgorithmChanged()
-{
-    SetRecommendedSize();
-    StateHasChanged();
-}
-    
-private void SetRecommendedSize()
-{
-    var algo = Registry.GetAllAlgorithms().FirstOrDefault(a => a.Name == SelectedAlgorithm);
-    if (algo != null)
+
+    private void SetRecommendedSize()
     {
-        ArraySize = algo.RecommendedSize;
+        var algo = Registry.GetAllAlgorithms().FirstOrDefault(a => a.Name == SelectedAlgorithm);
+        if (algo != null)
+        {
+            ArraySize = algo.RecommendedSize;
+        }
     }
-}
-    
-private string GetSizeRecommendation()
-{
-    var algo = Registry.GetAllAlgorithms().FirstOrDefault(a => a.Name == SelectedAlgorithm);
-    if (algo != null && algo.RecommendedSize != ArraySize)
+
+    private string GetSizeRecommendation()
     {
-        return $"(Recommended: {algo.RecommendedSize})";
+        var algo = Registry.GetAllAlgorithms().FirstOrDefault(a => a.Name == SelectedAlgorithm);
+        if (algo != null && algo.RecommendedSize != ArraySize)
+        {
+            return $"(Recommended: {algo.RecommendedSize})";
+        }
+        return "";
     }
-    return "";
-}
-    
-private bool IsRecommendedSize(int size)
-{
-    var algo = Registry.GetAllAlgorithms().FirstOrDefault(a => a.Name == SelectedAlgorithm);
-    return algo?.RecommendedSize == size;
-}
-    
+
+    private bool IsRecommendedSize(int size)
+    {
+        var algo = Registry.GetAllAlgorithms().FirstOrDefault(a => a.Name == SelectedAlgorithm);
+        return algo?.RecommendedSize == size;
+    }
+
     private IEnumerable<AlgorithmMetadata> GetFilteredAlgorithms()
     {
         var algorithms = string.IsNullOrEmpty(SelectedCategory)
             ? Registry.GetAllAlgorithms()
             : Registry.GetByCategory(SelectedCategory);
-        
+
         return algorithms.OrderBy(a => a.Name);
     }
-    
+
     private string GetSelectedAlgorithmComplexity()
     {
         var algo = Registry.GetAllAlgorithms().FirstOrDefault(a => a.Name == SelectedAlgorithm);
         return algo?.TimeComplexity ?? "Unknown";
     }
-    
+
     private void GenerateAndSort()
     {
         var metadata = Registry.GetAllAlgorithms().FirstOrDefault(a => a.Name == SelectedAlgorithm);
@@ -261,14 +261,14 @@ private bool IsRecommendedSize(int size)
             Console.WriteLine($"Algorithm not found: {SelectedAlgorithm}");
             return;
         }
-        
+
         // 要素数制限を適用（すべてのアルゴリズムで4096まで対応）
         var size = Math.Min(ArraySize, metadata.MaxElements);
-        
+
         // ランダム配列生成（一度だけ生成）
         var random = new Random();
         var array = Enumerable.Range(1, size).OrderBy(_ => random.Next()).ToArray();
-        
+
         // ソート実行と操作記録（ReadOnlySpanを使用）
         try
         {
@@ -281,22 +281,22 @@ private bool IsRecommendedSize(int size)
             Console.WriteLine($"Error executing sort: {ex.Message}");
         }
     }
-    
+
     private void OnVisualizationClick()
     {
         Playback.TogglePlayPause();
     }
-    
+
     private void OnSeek(int index)
     {
         Playback.SeekTo(index);
     }
-    
+
     private void OnStateChanged()
     {
         InvokeAsync(StateHasChanged);
     }
-    
+
     public void Dispose()
     {
         Playback.StateChanged -= OnStateChanged;
