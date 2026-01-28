@@ -93,8 +93,8 @@ public class AlgorithmRegistry
         Add("BinaryTreeSort", "Tree Sorts", "O(n log n)", MAX_SIZE, 1024, (arr, ctx) => BinaryTreeSort.Sort(arr.AsSpan(), ctx));
         Add("BalancedBinaryTreeSort", "Tree Sorts", "O(n log n)", MAX_SIZE, 2048, (arr, ctx) => BalancedBinaryTreeSort.Sort(arr.AsSpan(), ctx));
         
-        // Joke Sorts - O(n!) ~ O(∞) - 推奨16（注意: 極めて遅い）
-        Add("BogoSort", "Joke Sorts", "O(n!)", MAX_SIZE, 16, (arr, ctx) => BogoSort.Sort(arr.AsSpan(), ctx), "⚠️ Extremely slow!");
+        // Joke Sorts - O(n!) ~ O(∞) - 推奨8（注意: 極めて遅い）
+        Add("BogoSort", "Joke Sorts", "O(n!)", 8, 8, (arr, ctx) => BogoSort.Sort(arr.AsSpan(), ctx), "⚠️ Extremely slow!");
         Add("SlowSort", "Joke Sorts", "O(n^(log n))", MAX_SIZE, 16, (arr, ctx) => SlowSort.Sort(arr.AsSpan(), ctx), "⚠️ Extremely slow!");
         Add("StoogeSort", "Joke Sorts", "O(n^2.7)", MAX_SIZE, 16, (arr, ctx) => StoogeSort.Sort(arr.AsSpan(), ctx), "⚠️ Extremely slow!");
     }
