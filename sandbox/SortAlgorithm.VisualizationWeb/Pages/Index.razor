@@ -244,7 +244,7 @@
             ? Registry.GetAllAlgorithms()
             : Registry.GetByCategory(SelectedCategory);
 
-        return algorithms.OrderBy(a => a.Name);
+        return algorithms;
     }
 
     private string GetSelectedAlgorithmComplexity()
