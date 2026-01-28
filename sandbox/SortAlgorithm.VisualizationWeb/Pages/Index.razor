@@ -45,9 +45,24 @@
                 <div class="stat-item">
                     <span class="stat-label">Algorithm</span>
                     <select @bind="SelectedAlgorithm" @bind:after="OnAlgorithmChanged" style="width: 100%;">
-                        @foreach (var algo in GetFilteredAlgorithms())
+                        @if (string.IsNullOrEmpty(SelectedCategory))
                         {
-                            <option value="@algo.Name">@algo.Name</option>
+                            @foreach (var group in GetAlgorithmsByCategory())
+                            {
+                                <optgroup label="@group.Key">
+                                    @foreach (var algo in group)
+                                    {
+                                        <option value="@algo.Name">@algo.Name</option>
+                                    }
+                                </optgroup>
+                            }
+                        }
+                        else
+                        {
+                            @foreach (var algo in GetFilteredAlgorithms())
+                            {
+                                <option value="@algo.Name">@algo.Name</option>
+                            }
                         }
                     </select>
                 </div>
@@ -245,6 +260,23 @@
             : Registry.GetByCategory(SelectedCategory);
 
         return algorithms;
+    }
+
+    private IEnumerable<IGrouping<string, AlgorithmMetadata>> GetAlgorithmsByCategory()
+    {
+        // AlgorithmRegistry に登録された順序を保持しながらカテゴリごとにグループ化
+        var allAlgorithms = Registry.GetAllAlgorithms();
+        
+        // カテゴリの最初の出現順序を記録
+        var categoryOrder = allAlgorithms
+            .Select((algo, index) => new { algo.Category, Index = index })
+            .GroupBy(x => x.Category)
+            .ToDictionary(g => g.Key, g => g.Min(x => x.Index));
+        
+        // カテゴリごとにグループ化し、カテゴリの最初の出現順でソート
+        return allAlgorithms
+            .GroupBy(a => a.Category)
+            .OrderBy(g => categoryOrder[g.Key]);
     }
 
     private string GetSelectedAlgorithmComplexity()
