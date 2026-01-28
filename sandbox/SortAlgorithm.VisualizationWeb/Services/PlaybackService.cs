@@ -274,6 +274,19 @@ public class PlaybackService : IDisposable
                 break;
                 
             case OperationType.RangeCopy:
+                // ハイライト表示: sourceとdestinationの範囲をハイライト
+                for (int i = 0; i < operation.Length; i++)
+                {
+                    if (operation.Index1 >= 0)
+                    {
+                        State.ReadIndices.Add(operation.Index1 + i);
+                    }
+                    if (operation.Index2 >= 0)
+                    {
+                        State.WriteIndices.Add(operation.Index2 + i);
+                    }
+                }
+                
                 if (applyToArray)
                 {
                     var sourceArr = GetArray(operation.BufferId1);
