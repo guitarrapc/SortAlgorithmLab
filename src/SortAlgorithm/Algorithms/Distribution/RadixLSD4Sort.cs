@@ -53,15 +53,20 @@ namespace SortAlgorithm.Algorithms;
 /// <list type="bullet">
 /// <item><description>More passes than radix-256: 16 passes for 32-bit vs 4 passes for radix-256</description></item>
 /// <item><description>Smaller bucket size: 4 buckets fit entirely in CPU registers/L1 cache</description></item>
-/// <item><description>Simple bit operations: Only 2-bit shift and mask (& 0b11)</description></item>
+/// <item><description>Simple bit operations: Only 2-bit shift and mask (&amp; 0b11)</description></item>
 /// <item><description>Good for educational purposes: Shows radix sort with minimal buckets</description></item>
 /// <item><description>Trade-off: More passes vs simpler bucket management</description></item>
 /// </list>
 /// <para><strong>Supported Types:</strong></para>
 /// <list type="bullet">
-/// <item><description>Supported: byte, sbyte, short, ushort, int, uint, long, ulong (up to 64-bit)</description></item>
-/// <item><description>Not Supported: Int128, UInt128, BigInteger (>64-bit types throw NotSupportedException)</description></item>
+/// <item><description><strong>Supported:</strong> byte, sbyte, short, ushort, int, uint, long, ulong, nint, nuint (up to 64-bit)</description></item>
+/// <item><description><strong>Not Supported:</strong> Int128, UInt128, BigInteger (&lt;64-bit types)</description></item>
 /// </list>
+/// <para><strong>Why Int128/UInt128 are not supported:</strong></para>
+/// <para>This implementation uses ulong (64-bit) as the key type for radix sorting. Supporting 128-bit types would require
+/// UInt128 keys and significantly more complex logic. Since 128-bit integer sorting is a rare use case (mainly cryptography
+/// and scientific computing), we intentionally limit support to 64-bit and below for simplicity and performance.
+/// If you need to sort Int128/UInt128, consider implementing a custom comparer with Array.Sort or similar.</para>
 /// <para><strong>Reference:</strong></para>
 /// <para>Wiki: https://en.wikipedia.org/wiki/Radix_sort#Least_significant_digit</para>
 /// </remarks>
@@ -74,11 +79,17 @@ public static class RadixLSD4Sort
     private const int BUFFER_MAIN = 0;       // Main input array
     private const int BUFFER_TEMP = 1;       // Temporary buffer for digit redistribution
 
+    /// <summary>
+    /// Sorts the elements in the specified span using a key selector function.
+    /// </summary>
     public static void Sort<T>(Span<T> span) where T : IBinaryInteger<T>, IMinMaxValue<T>, IComparable<T>
     {
         Sort(span, NullContext.Default);
     }
 
+    /// <summary>
+    /// Sorts the elements in the specified span using a key selector function and sort context.
+    /// </summary>
     public static void Sort<T>(Span<T> span, ISortContext context) where T : IBinaryInteger<T>, IMinMaxValue<T>, IComparable<T>
     {
         if (span.Length <= 1) return;
