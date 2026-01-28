@@ -1,5 +1,6 @@
 ﻿using SortAlgorithm.Contexts;
 using System.Buffers;
+using System.Numerics;
 using System.Runtime.CompilerServices;
 
 namespace SortAlgorithm.Algorithms;
@@ -170,6 +171,15 @@ public static class CountingSort
 /// Very fast when the value range is narrow, but consumes significant memory for wide ranges.
 /// </summary>
 /// <remarks>
+/// <para><strong>Supported Types:</strong></para>
+/// <list type="bullet">
+/// <item><description><strong>Supported:</strong> byte, sbyte, short, ushort, int, uint, long, ulong, nint, nuint (up to 64-bit)</description></item>
+/// <item><description><strong>Not Supported:</strong> Int128, UInt128, BigInteger (>64-bit types)</description></item>
+/// </list>
+/// <para><strong>Why Int128/UInt128 are not supported:</strong></para>
+/// <para>This implementation uses long for range calculation. Supporting 128-bit types would require significantly more complex
+/// logic and is not practical for counting sort (the count array would be enormous). If you need to sort Int128/UInt128,
+/// consider using a comparison-based sort like QuickSort or IntroSort.</para>
 /// <para><strong>Performance Characteristics:</strong></para>
 /// <list type="bullet">
 /// <item><description>Family      : Distribution</description></item>
@@ -191,39 +201,55 @@ public static class CountingSortInteger
     private const int BUFFER_MAIN = 0;       // Main input array
     private const int BUFFER_TEMP = 1;       // Temporary buffer for sorted elements
 
-    public static void Sort(Span<int> span)
+    /// <summary>
+    /// Sorts integer values in the specified span (generic version for IBinaryInteger types).
+    /// </summary>
+    public static void Sort<T>(Span<T> span) 
+        where T : IBinaryInteger<T>, IMinMaxValue<T>, IComparable<T>
     {
         Sort(span, NullContext.Default);
     }
 
-    public static void Sort(Span<int> span, ISortContext context)
+    /// <summary>
+    /// Sorts integer values in the specified span with sort context (generic version for IBinaryInteger types).
+    /// </summary>
+    public static void Sort<T>(Span<T> span, ISortContext context) 
+        where T : IBinaryInteger<T>, IMinMaxValue<T>, IComparable<T>
     {
         if (span.Length <= 1) return;
 
-        var s = new SortSpan<int>(span, context, BUFFER_MAIN);
+        // Check if type is supported (64-bit or less)
+        var bitSize = GetBitSize<T>();
+
+        var s = new SortSpan<T>(span, context, BUFFER_MAIN);
 
         // Rent arrays from ArrayPool for temporary storage
-        var tempArray = ArrayPool<int>.Shared.Rent(span.Length);
+        var tempArray = ArrayPool<T>.Shared.Rent(span.Length);
         int[]? rentedCountArray = null;
 
         try
         {
             // Find min and max to determine range
-            var min = int.MaxValue;
-            var max = int.MinValue;
+            // Convert to long for range calculation
+            var minValue = T.MaxValue;
+            var maxValue = T.MinValue;
 
             for (var i = 0; i < s.Length; i++)
             {
                 var value = s.Read(i);
-                if (value < min) min = value;
-                if (value > max) max = value;
+                if (value.CompareTo(minValue) < 0) minValue = value;
+                if (value.CompareTo(maxValue) > 0) maxValue = value;
             }
 
             // If all elements are the same, no need to sort
-            if (min == max) return;
+            if (minValue.CompareTo(maxValue) == 0) return;
+
+            // Convert to long for range calculation
+            var min = ConvertToLong(minValue);
+            var max = ConvertToLong(maxValue);
 
             // Check for overflow and validate range
-            long range = (long)max - (long)min + 1;
+            long range = max - min + 1;
             if (range > int.MaxValue)
                 throw new ArgumentException($"Value range is too large for CountingSort: {range}. Maximum supported range is {int.MaxValue}.");
             if (range > MaxCountArraySize)
@@ -242,7 +268,7 @@ public static class CountingSortInteger
         }
         finally
         {
-            ArrayPool<int>.Shared.Return(tempArray);
+            ArrayPool<T>.Shared.Return(tempArray, clearArray: true);
             if (rentedCountArray != null)
             {
                 ArrayPool<int>.Shared.Return(rentedCountArray);
@@ -251,16 +277,18 @@ public static class CountingSortInteger
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private static void SortCore(SortSpan<int> s, Span<int> tempArray, Span<int> countArray, int offset, ISortContext context)
+    private static void SortCore<T>(SortSpan<T> s, Span<T> tempArray, Span<int> countArray, long offset, ISortContext context) 
+        where T : IBinaryInteger<T>, IComparable<T>
     {
         // Create SortSpan for temp buffer to track operations
-        var tempSpan = new SortSpan<int>(tempArray, context, BUFFER_TEMP);
+        var tempSpan = new SortSpan<T>(tempArray, context, BUFFER_TEMP);
 
         // Count occurrences
         for (var i = 0; i < s.Length; i++)
         {
             var value = s.Read(i);
-            countArray[value + offset]++;
+            var index = (int)(ConvertToLong(value) + offset);
+            countArray[index]++;
         }
 
         // Calculate cumulative counts (for stable sort)
@@ -273,7 +301,7 @@ public static class CountingSortInteger
         for (var i = s.Length - 1; i >= 0; i--)
         {
             var value = s.Read(i);
-            var index = value + offset;
+            var index = (int)(ConvertToLong(value) + offset);
             var pos = countArray[index] - 1;
             tempSpan.Write(pos, value);
             countArray[index]--;
@@ -281,5 +309,37 @@ public static class CountingSortInteger
 
         // Write sorted data back to original span using CopyTo for efficiency
         tempSpan.CopyTo(0, s, 0, s.Length);
+    }
+
+    /// <summary>
+    /// Get bit size of the type T and validate support.
+    /// Throws NotSupportedException for types larger than 64-bit.
+    /// </summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private static int GetBitSize<T>() where T : System.Numerics.IBinaryInteger<T>
+    {
+        if (typeof(T) == typeof(byte) || typeof(T) == typeof(sbyte))
+            return 8;
+        else if (typeof(T) == typeof(short) || typeof(T) == typeof(ushort))
+            return 16;
+        else if (typeof(T) == typeof(int) || typeof(T) == typeof(uint))
+            return 32;
+        else if (typeof(T) == typeof(long) || typeof(T) == typeof(ulong))
+            return 64;
+        else if (typeof(T) == typeof(nint) || typeof(T) == typeof(nuint))
+            return IntPtr.Size * 8;
+        else if (typeof(T) == typeof(System.Int128) || typeof(T) == typeof(System.UInt128))
+            throw new NotSupportedException($"Type {typeof(T).Name} with 128-bit size is not supported. Maximum supported bit size is 64.");
+        else
+            throw new NotSupportedException($"Type {typeof(T).Name} is not supported.");
+    }
+
+    /// <summary>
+    /// Convert IBinaryInteger value to long for range calculation.
+    /// </summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private static long ConvertToLong<T>(T value) where T : System.Numerics.IBinaryInteger<T>
+    {
+        return long.CreateTruncating(value);
     }
 }
