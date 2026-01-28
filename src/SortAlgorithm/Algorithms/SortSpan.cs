@@ -172,8 +172,15 @@ internal ref struct SortSpan<T> where T: IComparable<T>
     {
 #if DEBUG
         _context.OnRangeCopy(sourceIndex, destinationIndex, length, _bufferId, destination.BufferId);
-#endif
+        // Track individual writes to destination for visualization
+        for (int i = 0; i < length; i++)
+        {
+            var value = Read(sourceIndex + i);
+            destination.Write(destinationIndex + i, value);
+        }
+#else
         _span.Slice(sourceIndex, length).CopyTo(destination._span.Slice(destinationIndex, length));
+#endif
     }
 
     /// <summary>
