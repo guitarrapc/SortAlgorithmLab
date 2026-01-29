@@ -63,12 +63,16 @@ public class PlaybackService : IDisposable
         _initialArray = _pooledArray.AsSpan(0, _currentArraySize).ToArray(); // 初期状態のコピーを保持
         _initialBuffers.Clear();
         
+        // 現在のVisualizationModeを保持
+        var currentMode = State.Mode;
+        
         State = new VisualizationState
         {
             MainArray = _pooledArray.AsSpan(0, _currentArraySize).ToArray(), // 現在の状態用のコピー
             TotalOperations = operations.Count,
             CurrentOperationIndex = 0,
-            PlaybackState = PlaybackState.Stopped
+            PlaybackState = PlaybackState.Stopped,
+            Mode = currentMode // モードを引き継ぐ
         };
         
         StateChanged?.Invoke();
