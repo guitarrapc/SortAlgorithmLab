@@ -31,7 +31,7 @@ public class PlaybackService : IDisposable
     public int OperationsPerFrame { get; set; } = 1;
     
     /// <summary>速度倍率（0.1x - 100x）</summary>
-    public double SpeedMultiplier { get; set; } = 1.0;
+    public double SpeedMultiplier { get; set; } = 10.0;
     
     /// <summary>ソート完了時に自動的にリセットするか</summary>
     public bool AutoReset { get; set; } = false;
