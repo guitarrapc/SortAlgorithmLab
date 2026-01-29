@@ -11,6 +11,9 @@ public class MockPowerOfTwoNearlySortedData : IEnumerable<object[]>
         testData.Add([new InputSample<int>() { InputType = InputType.Random, Samples = CreateNearlySorted(16) }]);
         testData.Add([new InputSample<int>() { InputType = InputType.Random, Samples = CreateNearlySorted(64) }]);
         testData.Add([new InputSample<int>() { InputType = InputType.Random, Samples = CreateNearlySorted(256) }]);
+        testData.Add([new InputSample<int>() { InputType = InputType.Random, Samples = CreateNearlySorted(512) }]);
+        testData.Add([new InputSample<int>() { InputType = InputType.Random, Samples = CreateNearlySorted(1024) }]);
+        testData.Add([new InputSample<int>() { InputType = InputType.Random, Samples = CreateNearlySorted(2048) }]);
     }
 
     private static int[] CreateNearlySorted(int size)
