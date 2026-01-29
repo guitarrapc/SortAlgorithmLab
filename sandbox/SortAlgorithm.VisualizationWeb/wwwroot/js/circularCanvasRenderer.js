@@ -107,15 +107,24 @@ window.circularCanvasRenderer = {
         const centerX = width / 2;
         const centerY = height / 2;
         const maxRadius = Math.min(width, height) * 0.45; // 90%の直径を使用（余白考慮）
-        
-        // バッファー配列がある場合は同心円リングとして配置
-        const totalRings = 1 + bufferCount; // メイン + バッファー
-        const ringWidth = (maxRadius * 0.8) / totalRings; // 各リングの幅
         const minRadius = maxRadius * 0.2; // 内側の空白（ドーナツ型）
         
-        // メイン配列の半径範囲
-        const mainMinRadius = minRadius;
-        const mainMaxRadius = minRadius + ringWidth;
+        // バッファー配列が表示されている場合のみ同心円リングとして配置
+        const showBuffers = bufferCount > 0 && !isSortCompleted;
+        let mainMinRadius, mainMaxRadius;
+        let ringWidth = 0;
+        
+        if (showBuffers) {
+            // バッファーがある場合: リング分割
+            const totalRings = 1 + bufferCount; // メイン + バッファー
+            ringWidth = (maxRadius * 0.8) / totalRings; // 各リングの幅
+            mainMinRadius = minRadius;
+            mainMaxRadius = minRadius + ringWidth;
+        } else {
+            // バッファーがない場合: メイン配列が外側まで広がる
+            mainMinRadius = minRadius;
+            mainMaxRadius = maxRadius; // 最大半径まで使用
+        }
         
         // 最大値を取得
         const maxValue = Math.max(...array);
@@ -185,7 +194,7 @@ window.circularCanvasRenderer = {
         }
         
         // バッファー配列を同心円リングとして描画（ソート完了時は非表示）
-        if (bufferCount > 0 && !isSortCompleted) {
+        if (showBuffers) {
             const bufferIds = Object.keys(bufferArrays).sort((a, b) => parseInt(a) - parseInt(b));
             
             for (let bufferIndex = 0; bufferIndex < bufferIds.length; bufferIndex++) {

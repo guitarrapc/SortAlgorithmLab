@@ -92,10 +92,11 @@ window.canvasRenderer = {
         // 配列が空の場合は何もしない
         if (arrayLength === 0) return;
         
-        // 領域の分割を計算（メイン配列 + バッファー配列）
-        const totalSections = 1 + bufferCount; // メイン + バッファー
+        // バッファー配列が表示されている場合のみ画面を分割
+        const showBuffers = bufferCount > 0 && !isSortCompleted;
+        const totalSections = showBuffers ? (1 + bufferCount) : 1;
         const sectionHeight = height / totalSections;
-        const mainArrayY = sectionHeight * bufferCount; // バッファーの下にメイン配列
+        const mainArrayY = showBuffers ? (sectionHeight * bufferCount) : 0; // バッファー表示時は下部、非表示時は画面全体
         
         // バーの幅と隙間を計算
         const minBarWidth = 1.0;
@@ -161,7 +162,7 @@ window.canvasRenderer = {
         this.ctx.restore();
         
         // バッファー配列を描画（ソート完了時は非表示）
-        if (bufferCount > 0 && !isSortCompleted) {
+        if (showBuffers) {
             const bufferIds = Object.keys(bufferArrays).sort((a, b) => parseInt(a) - parseInt(b));
             
             for (let bufferIndex = 0; bufferIndex < bufferIds.length; bufferIndex++) {
@@ -209,8 +210,8 @@ window.canvasRenderer = {
             }
         }
         
-        // メイン配列ラベルを表示（バッファーがある場合）
-        if (bufferCount > 0) {
+        // メイン配列ラベルを表示（バッファーが表示されている場合のみ）
+        if (showBuffers) {
             this.ctx.fillStyle = '#888';
             this.ctx.font = '12px monospace';
             this.ctx.fillText('Main Array', 10, mainArrayY + 20);
