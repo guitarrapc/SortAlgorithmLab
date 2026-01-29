@@ -1,9 +1,11 @@
 @using SortAlgorithm.VisualizationWeb.Models
+@inject IJSRuntime JSRuntime
+@implements IAsyncDisposable
 
 <div class="seek-bar">
-    <div class="seek-slider-container" @onclick="OnSliderClick" @ref="_sliderRef">
+    <div id="@_sliderId" class="seek-slider-container" @ref="_sliderRef">
         <div class="seek-progress" style="width: @ProgressPercentage%">
-            <div class="seek-handle" @onmousedown="OnHandleMouseDown"></div>
+            <div class="seek-handle"></div>
         </div>
     </div>
     <span class="time-display">@ProgressText</span>
@@ -20,7 +22,8 @@
     public EventCallback<int> OnSeek { get; set; }
     
     private ElementReference _sliderRef;
-    private bool _isDragging;
+    private string _sliderId = $"seekbar-{Guid.NewGuid():N}";
+    private DotNetObjectReference<SeekBar>? _dotNetHelper;
     
     private double ProgressPercentage => TotalOperations > 0 
         ? (double)CurrentIndex / TotalOperations * 100 
@@ -28,17 +31,29 @@
     
     private string ProgressText => $"{CurrentIndex:N0} / {TotalOperations:N0} ops ({ProgressPercentage:F1}%)";
     
-    private async Task OnSliderClick(MouseEventArgs e)
+    protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        // 簡略化: クリック位置からシーク位置を計算
-        // 実際の実装では要素のサイズと位置を取得して正確に計算
-        var percentage = 0.5; // 仮の値
+        if (firstRender)
+        {
+            _dotNetHelper = DotNetObjectReference.Create(this);
+            await JSRuntime.InvokeVoidAsync("seekBarInterop.setupDragDrop", _sliderId, _dotNetHelper);
+        }
+    }
+    
+    [JSInvokable]
+    public async Task OnDrag(double percentage)
+    {
+        if (TotalOperations <= 0) return;
+        
         var newIndex = (int)(TotalOperations * percentage);
+        newIndex = Math.Max(0, Math.Min(TotalOperations, newIndex));
+        
+        // ドラッグ中はスロットリングを有効にして呼び出し
         await OnSeek.InvokeAsync(newIndex);
     }
     
-    private void OnHandleMouseDown(MouseEventArgs e)
+    public async ValueTask DisposeAsync()
     {
-        _isDragging = true;
+        _dotNetHelper?.Dispose();
     }
 }

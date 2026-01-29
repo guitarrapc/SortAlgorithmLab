@@ -349,7 +349,8 @@ private string _runningAlgorithmName = string.Empty;
 
     private void OnSeek(int index)
     {
-        Playback.SeekTo(index);
+        // ドラッグ中のシークはスロットリングを有効化
+        Playback.SeekTo(index, throttle: true);
     }
 
     private void OnVisualizationModeChanged()

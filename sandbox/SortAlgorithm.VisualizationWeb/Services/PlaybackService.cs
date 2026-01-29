@@ -28,6 +28,10 @@ public class PlaybackService : IDisposable
     private CancellationTokenSource? _completionHighlightCts;
     private const int COMPLETION_HIGHLIGHT_DURATION_MS = 2000; // 2秒
     
+    // シークのスロットリング用
+    private DateTime _lastSeekTime = DateTime.MinValue;
+    private const int SEEK_THROTTLE_MS = 16; // 60 FPS
+    
     /// <summary>現在の状態</summary>
     public VisualizationState State { get; private set; } = new();
     
@@ -292,36 +296,84 @@ public class PlaybackService : IDisposable
     }
     
     /// <summary>
-    /// 指定位置にシーク
+    /// 指定位置にシーク（インクリメンタル方式で高速化）
     /// </summary>
-    public void SeekTo(int operationIndex)
+    public void SeekTo(int operationIndex, bool throttle = false)
     {
         if (operationIndex < 0 || operationIndex > _operations.Count)
             return;
         
+        // スロットリング: 連続シーク時は一定間隔でのみ処理
+        if (throttle)
+        {
+            var now = DateTime.UtcNow;
+            var elapsed = (now - _lastSeekTime).TotalMilliseconds;
+            if (elapsed < SEEK_THROTTLE_MS)
+            {
+                return; // スキップ
+            }
+            _lastSeekTime = now;
+        }
+        
+        var currentIndex = State.CurrentOperationIndex;
+        var targetIndex = operationIndex;
+        
+        // 現在位置と目的位置が近い場合は、インクリメンタルシーク
+        var distance = Math.Abs(targetIndex - currentIndex);
+        var replayThreshold = Math.Min(1000, _operations.Count / 4); // 閾値: 1000操作 or 全体の25%
+        
+        if (distance < replayThreshold && currentIndex <= targetIndex)
+        {
+            // 前方シーク: 現在位置から目的位置まで進める（高速）
+            SeekForward(currentIndex, targetIndex);
+        }
+        else
+        {
+            // 後方シークまたは距離が遠い場合: 初期状態からリプレイ
+            SeekFromBeginning(targetIndex);
+        }
+        
+        State.CurrentOperationIndex = targetIndex;
+        
+        // ソート完了状態を更新
+        State.IsSortCompleted = (operationIndex >= _operations.Count);
+        State.ShowCompletionHighlight = State.IsSortCompleted;
+        
+        // 現在の操作をハイライト（完了時はハイライトなし）
+        ClearHighlights();
+        if (targetIndex < _operations.Count)
+        {
+            ApplyOperation(_operations[targetIndex], applyToArray: false, updateStats: false);
+        }
+        
+        StateChanged?.Invoke();
+    }
+    
+    /// <summary>
+    /// 前方シーク: 現在位置から目的位置まで進める
+    /// </summary>
+    private void SeekForward(int fromIndex, int toIndex)
+    {
+        for (int i = fromIndex; i < toIndex && i < _operations.Count; i++)
+        {
+            ApplyOperation(_operations[i], applyToArray: true, updateStats: true);
+        }
+    }
+    
+    /// <summary>
+    /// 初期状態からリプレイ
+    /// </summary>
+    private void SeekFromBeginning(int targetIndex)
+    {
         // 初期状態から指定位置まで操作を適用
         State.MainArray = [.. _initialArray];
         State.BufferArrays.Clear();
         ResetStatistics();
-        ClearHighlights();
         
-        for (int i = 0; i < operationIndex && i < _operations.Count; i++)
+        for (int i = 0; i < targetIndex && i < _operations.Count; i++)
         {
             ApplyOperation(_operations[i], applyToArray: true, updateStats: true);
         }
-        
-        State.CurrentOperationIndex = operationIndex;
-        
-        // ソート完了状態を更新
-        State.IsSortCompleted = (operationIndex >= _operations.Count);
-        
-        // 現在の操作をハイライト（完了時はハイライトなし）
-        if (operationIndex < _operations.Count)
-        {
-            ApplyOperation(_operations[operationIndex], applyToArray: false, updateStats: false);
-        }
-        
-        StateChanged?.Invoke();
     }
     
     private void ApplyOperation(SortOperation operation, bool applyToArray, bool updateStats)
