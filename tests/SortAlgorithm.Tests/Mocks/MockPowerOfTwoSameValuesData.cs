@@ -11,6 +11,9 @@ public class MockPowerOfTwoSameValuesData : IEnumerable<object[]>
         testData.Add([new InputSample<int>() { InputType = InputType.Random, Samples = Enumerable.Repeat(42, 16).ToArray() }]);
         testData.Add([new InputSample<int>() { InputType = InputType.Random, Samples = Enumerable.Repeat(42, 64).ToArray() }]);
         testData.Add([new InputSample<int>() { InputType = InputType.Random, Samples = Enumerable.Repeat(42, 256).ToArray() }]);
+        testData.Add([new InputSample<int>() { InputType = InputType.Random, Samples = Enumerable.Repeat(42, 512).ToArray() }]);
+        testData.Add([new InputSample<int>() { InputType = InputType.Random, Samples = Enumerable.Repeat(42, 1024).ToArray() }]);
+        testData.Add([new InputSample<int>() { InputType = InputType.Random, Samples = Enumerable.Repeat(42, 2048).ToArray() }]);
     }
 
     public IEnumerator<object[]> GetEnumerator() => testData.GetEnumerator();

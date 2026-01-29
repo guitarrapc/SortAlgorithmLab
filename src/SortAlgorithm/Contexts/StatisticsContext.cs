@@ -22,16 +22,54 @@ public sealed class StatisticsContext : ISortContext
     public ulong IndexWriteCount => _indexWriteCount;
     private ulong _indexWriteCount;
 
-    public void OnCompare(int i, int j, int result, int bufferIdI, int bufferIdJ) => Interlocked.Increment(ref _compareCount);
-    public void OnSwap(int i, int j, int bufferId) => Interlocked.Increment(ref _swapCount);
-    public void OnIndexRead(int index, int bufferId) => Interlocked.Increment(ref _indexReadCount);
-    public void OnIndexWrite(int index, int bufferId) => Interlocked.Increment(ref _indexWriteCount);
+    public void OnCompare(int i, int j, int result, int bufferIdI, int bufferIdJ)
+    {
+        // Always count comparisons (even with negative buffer IDs)
+        // Negative buffer IDs in comparisons typically indicate index-less value comparisons,
+        // which are still logically part of the sorting algorithm
+        Interlocked.Increment(ref _compareCount);
+    }
+
+    public void OnSwap(int i, int j, int bufferId)
+    {
+        // Exclude swaps with negative buffer IDs (used for tree nodes or other non-array structures)
+        if (bufferId < 0)
+            return;
+
+        Interlocked.Increment(ref _swapCount);
+        // Swap操作は内部的にRead×2 + Write×2を含む
+        // temp = array[i] (Read), value = array[j] (Read), array[i] = value (Write), array[j] = temp (Write)
+        Interlocked.Add(ref _indexReadCount, 2);
+        Interlocked.Add(ref _indexWriteCount, 2);
+    }
+
+    public void OnIndexRead(int index, int bufferId)
+    {
+        // Exclude reads from negative buffer IDs (used for tree nodes or other non-array structures)
+        if (bufferId < 0)
+            return;
+
+        Interlocked.Increment(ref _indexReadCount);
+    }
+
+    public void OnIndexWrite(int index, int bufferId, object? value = null)
+    {
+        // Exclude writes to negative buffer IDs (used for tree nodes or other non-array structures)
+        if (bufferId < 0)
+            return;
+
+        Interlocked.Increment(ref _indexWriteCount);
+    }
 
     public void OnRangeCopy(int sourceIndex, int destinationIndex, int length, int sourceBufferId, int destinationBufferId)
     {
         // Range copy is counted as: length reads from source + length writes to destination
-        Interlocked.Add(ref _indexReadCount, (ulong)length);
-        Interlocked.Add(ref _indexWriteCount, (ulong)length);
+        // Exclude operations with negative buffer IDs (used for tree nodes or other non-array structures)
+        if (sourceBufferId >= 0)
+            Interlocked.Add(ref _indexReadCount, (ulong)length);
+
+        if (destinationBufferId >= 0)
+            Interlocked.Add(ref _indexWriteCount, (ulong)length);
     }
 
     /// <summary>

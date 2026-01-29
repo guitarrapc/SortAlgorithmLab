@@ -19,37 +19,61 @@ This is a C# sorting algorithm laboratory for educational and performance analys
 
 ### Running Tests
 
-```powershell
+```shell
 dotnet test
 ```
 
 ### Running Benchmarks
 
-```powershell
+```shell
 cd sandbox/SandboxBenchmark
 dotnet run -c Release
 ```
 
 ### Building the Project
 
-```powershell
+```shell
 dotnet build
 ```
 
 ### Run Some Script
 
-If you needd create some .cs file to verify somthing, you can create it in the `sandbox` folder and run it via:
+**IMPORTANT:** Never use `dotnet script` or `dotnet-script` command. This project does NOT use dotnet-script.
 
-```powershell
-cd sandbox
-dotnet run -c Release --project YourScriptProjectName.csproj
+If you need to create a .cs file to verify something, you can create it in the `sandbox/DotnetFiles/` folder and run it.
+
+See `dotnet run` details here: https://github.com/dotnet/sdk/blob/main/documentation/general/dotnet-run-file.md
+
+- For a standalone C# file (without .csproj):
+
+```csharp
+#:sdk Microsoft.NET.Sdk.Web
+#:property TargetFramework=net10.0
+#:project ../../src/SortAlgorithm
+using SortAlgorithm.Algorithms;
+using SortAlgorithm.Contexts;
+
+var stats = new StatisticsContext();
+PowerSort.Sort([ 5, 3, 8, 1, 2 ], stats);
+
+Console.WriteLine("Sorted array with PowerSort.");
+Console.WriteLine($"Compares: {stats.CompareCount}, Swaps: {stats.SwapCount}, IndexReads: {stats.IndexReadCount}, IndexWrites: {stats.IndexWriteCount}");
 ```
 
-or you can directly run a single C# file:
-
-```powershell
-dotnet run YourScriptFile.cs
+```shell
+# Create a single .cs file and run it directly
+dotnet run dotnet run sandbox/DotnetFiles/YourCsFile.cs
 ```
+
+- For a project folder with .csproj:
+
+```shell
+cd sandbox/YourProjectFolder
+dotnet run -c Release
+# Or specify the project file:
+dotnet run -c Release --project YourProjectName.csproj
+```
+
 
 ## Important Guidelines
 

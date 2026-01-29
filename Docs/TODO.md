@@ -1,0 +1,1 @@
+QuicksortのPivot、ShellSortの現在gapなど、アルゴリズムの進行状況を示すための変数を可視化する。

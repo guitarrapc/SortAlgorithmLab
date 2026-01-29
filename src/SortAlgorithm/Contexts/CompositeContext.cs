@@ -42,11 +42,11 @@ public sealed class CompositeContext : ISortContext
         }
     }
 
-    public void OnIndexWrite(int index, int bufferId)
+    public void OnIndexWrite(int index, int bufferId, object? value = null)
     {
         foreach (var context in _contexts)
         {
-            context.OnIndexWrite(index, bufferId);
+            context.OnIndexWrite(index, bufferId, value);
         }
     }
 

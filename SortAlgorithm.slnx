@@ -3,9 +3,19 @@
     <File Path="Directory.Build.props" />
     <File Path="Directory.Packages.props" />
   </Folder>
+  <Folder Name="/docs/">
+    <File Path="Docs/BlockQuickSort_DuplicateCheck.md" />
+    <File Path="Docs/SortArchitecture.md" />
+    <File Path="Docs/TODO.md" />
+    <File Path="Docs/VisualizationWeb.md" />
+    <File Path="Docs/VisualizationWeb_Implementation_Status.md" />
+    <File Path="Docs/VisualizationWeb_Performance_Analysis.md" />
+  </Folder>
   <Folder Name="/sandbox/">
     <Project Path="sandbox/AntiQuickSortDemo/AntiQuickSortDemo.csproj" />
+    <Project Path="sandbox/BitonicCompareTest/BitonicCompareTest.csproj" />
     <Project Path="sandbox/SandboxBenchmark/SandboxBenchmark.csproj" />
+    <Project Path="sandbox/SortAlgorithm.VisualizationWeb/SortAlgorithm.VisualizationWeb.csproj" />
   </Folder>
   <Folder Name="/src/">
     <Project Path="src/SortAlgorithm/SortAlgorithm.csproj" />

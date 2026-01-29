@@ -112,12 +112,23 @@
 - **ドラッグ**: スクラバーをドラッグして細かく位置調整
 - **キーボード**: 左右矢印キーで前後に移動（オプション）
 
-#### 2.2.4 再生速度（FPS）設定
-- **目的**: ソート処理は通常ミリ秒単位で完了するため、人間が認知可能な速度に調整
-- **設定範囲**: 1 FPS ~ 120 FPS
-- **デフォルト**: 30 FPS
+#### 2.2.4 再生速度設定
+- **方式**: Operations Per Frame（1フレームあたりの操作数）
+- **フレームレート**: 60 FPS固定
+- **設定範囲**: 1〜1000 ops/frame
+- **デフォルト**: 10 ops/frame（600 ops/sec）
 - **UI**: スライダーで調整
-- **プリセット**: 0.5x, 1x (30 FPS), 2x, 4x などの倍速ボタン（オプション）
+- **実効速度**:
+  - 1 ops/frame = 60 ops/sec（詳細観察用）
+  - 10 ops/frame = 600 ops/sec（標準速度）
+  - 100 ops/frame = 6,000 ops/sec（高速）
+  - 1000 ops/frame = 60,000 ops/sec（超高速）
+
+**速度の目安（QuickSort 256要素、約2,000操作の場合）:**
+- 1 ops/frame: 約33秒
+- 10 ops/frame: 約3.3秒
+- 100 ops/frame: 約0.33秒
+- 1000 ops/frame: 約0.03秒
 
 #### 2.2.5 制御ボタン
 - **[⏹ Reset]**: 初期状態に戻す（停止状態、シークバーを先頭に戻す）
@@ -194,7 +205,6 @@
    - MergeSort
    - TimSort
    - PowerSort
-   - DropMergeSort
    - ShiftSort
 
 5. **Heap Sorts** (ヒープソート) - O(n log n)
@@ -215,22 +225,25 @@
    - PDQSort
    - StdSort
 
-7. **Distribution Sorts** (分散ソート) - O(n) ~ O(nk)
+7. **Adaptive Sorts** (適応ソート) - O(n log n)
+   - DropMergeSort
+
+8. **Distribution Sorts** (分散ソート) - O(n) ~ O(nk)
    - CountingSort
    - BucketSort
    - RadixLSD4Sort
    - RadixLSD10Sort
 
-8. **Network Sorts** (ソーティングネットワーク) - O(log²n)
+9. **Network Sorts** (ソーティングネットワーク) - O(log²n)
    - BitonicSort
    - BitonicSortFill
    - BitonicSortParallel
 
-9. **Tree Sorts** (ツリーソート) - O(n log n)
+10. **Tree Sorts** (ツリーソート) - O(n log n)
    - BinaryTreeSort
    - BalancedBinaryTreeSort
 
-10. **Joke Sorts** (ジョークソート) - O(n!) ~ O(∞)
+11. **Joke Sorts** (ジョークソート) - O(n!) ~ O(∞)
     - BogoSort
     - SlowSort
     - StoogeSort
@@ -676,7 +689,7 @@ sortAlgorithm.Sort(span);
 
 ---
 
-**Document Version**: 1.1  
-**Last Updated**: 2024  
-**Author**: SortAlgorithmLab Team  
+**Document Version**: 1.1
+**Last Updated**: 2024
+**Author**: SortAlgorithmLab Team
 **Changelog**: v1.1 - 可視化モード（棒グラフ/円形）追加、画面レイアウト最適化、添付画像参照仕様追加

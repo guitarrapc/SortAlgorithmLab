@@ -1,0 +1,372 @@
+@page "/"
+@using SortAlgorithm.VisualizationWeb.Models
+@using SortAlgorithm.VisualizationWeb.Services
+@using SortAlgorithm.VisualizationWeb.Components
+@inject PlaybackService Playback
+@inject SortExecutor Executor
+@inject AlgorithmRegistry Registry
+@implements IDisposable
+
+<PageTitle>Sort Algorithm Visualization</PageTitle>
+
+<div class="visualization-page"
+     style="--sidebar-width: @(_sidebarCollapsed ? "40" : _sidebarWidth)px; user-select: @(_isResizing ? "none" : "auto");"
+     @onmousemove="OnMouseMove"
+     @onmouseup="OnMouseUp"
+     @onmousemove:preventDefault="@_isResizing">
+    <div class="header">
+        <h1>
+            🎨 Sort Algorithm Visualization
+            @if (!string.IsNullOrEmpty(_runningAlgorithmName))
+            {
+                <span style="font-size: 0.6em; color: #888; margin-left: 1em;">- @_runningAlgorithmName</span>
+            }
+        </h1>
+        <div>
+            <select @bind="SelectedCategory">
+                <option value="">All Categories</option>
+                @foreach (var category in Registry.GetCategories())
+                {
+                    <option value="@category">@category</option>
+                }
+            </select>
+        </div>
+    </div>
+
+    <div class="sidebar @(_sidebarCollapsed ? "collapsed" : "")">
+        <div class="sidebar-resizer"
+             @onmousedown="StartResize"
+             @onmousedown:preventDefault></div>
+
+        <button class="sidebar-toggle"
+                @onclick="ToggleSidebar"
+                title="@(_sidebarCollapsed ? "Show Sidebar" : "Hide Sidebar")">
+            @(_sidebarCollapsed ? "▶" : "◀")
+        </button>
+
+        <div class="sidebar-content">
+            <div class="statistics-panel">
+                <h3>⚙️ Settings</h3>
+
+                <div class="stat-item">
+                    <span class="stat-label">Algorithm</span>
+                    <select @bind="SelectedAlgorithm" @bind:after="OnAlgorithmChanged" style="width: 100%;">
+                        @if (string.IsNullOrEmpty(SelectedCategory))
+                        {
+                            @foreach (var group in GetAlgorithmsByCategory())
+                            {
+                                <optgroup label="@group.Key">
+                                    @foreach (var algo in group)
+                                    {
+                                        <option value="@algo.Name">@algo.Name</option>
+                                    }
+                                </optgroup>
+                            }
+                        }
+                        else
+                        {
+                            @foreach (var algo in GetFilteredAlgorithms())
+                            {
+                                <option value="@algo.Name">@algo.Name</option>
+                            }
+                        }
+                    </select>
+                </div>
+
+                <div class="stat-item">
+                    <span class="stat-label">Array Size @GetSizeRecommendation()</span>
+                    <select @bind="ArraySize">
+                        @foreach (var size in AvailableSizes)
+                        {
+                            <option value="@size">@size @(IsRecommendedSize(size) ? "⭐" : "")</option>
+                        }
+                    </select>
+                </div>
+
+
+                <div class="stat-item">
+                    <span class="stat-label">Visualization Mode</span>
+                    <select @bind="SelectedVisualizationMode" @bind:after="OnVisualizationModeChanged" style="width: 100%;">
+                        <option value="@VisualizationMode.BarChart">📊 Bar Chart</option>
+                        <option value="@VisualizationMode.Circular">⭕ Circular</option>
+                    </select>
+                </div>
+
+                <div class="stat-item">
+                    <button class="primary" @onclick="GenerateAndSort" style="width: 100%;">🎲 Generate & Sort</button>
+                </div>
+
+
+            <div class="stat-item">
+                <label class="toggle-switch">
+                    <input type="checkbox" @bind="Playback.AutoReset" />
+                    <span class="toggle-slider"></span>
+                    <span class="toggle-label">Auto Reset on Complete</span>
+                </label>
+            </div>
+            
+            <div class="stat-item">
+                <label class="toggle-switch">
+                    <input type="checkbox" @bind="Playback.InstantMode" />
+                    <span class="toggle-slider"></span>
+                    <span class="toggle-label">Instant Mode (No Animation)</span>
+                </label>
+            </div>
+            
+            <div class="stat-item stat-item-vertical">
+                    <span class="stat-label">Operations Per Frame</span>
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                        <span class="stat-value" style="font-size: 0.9rem;">@Playback.OperationsPerFrame ops/frame</span>
+                    </div>
+                    <input type="range" min="1" max="1000" @bind="Playback.OperationsPerFrame" @bind:after="StateHasChanged" style="width: 100%;" />
+                </div>
+
+            <div class="stat-item stat-item-vertical">
+                <span class="stat-label">Speed Multiplier</span>
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                    <span class="stat-value" style="font-size: 0.9rem;">@Playback.SpeedMultiplier.ToString("F1")x</span>
+                    <span style="font-size: 0.85rem; color: #999;">(@EffectiveFPS FPS)</span>
+                </div>
+                <input type="range" min="0.5" max="100" step="0.5" @bind="Playback.SpeedMultiplier" @bind:after="StateHasChanged" style="width: 100%;" />
+            </div>
+            </div>
+
+            <StatisticsPanel State="Playback.State" />
+
+            <div class="stat-item" style="margin-top: 20px;">
+                <span class="stat-label">Complexity</span>
+                <span class="stat-value" style="font-size: 0.9rem;">@GetSelectedAlgorithmComplexity()</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="visualization-area">
+        <div class="visualization-content">
+            @if (Playback.State.MainArray.Length > 0)
+            {
+                @if (Playback.State.Mode == VisualizationMode.BarChart)
+                {
+                    <CanvasChartRenderer State="Playback.State"
+                                      OnClick="OnVisualizationClick" />
+                }
+                else if (Playback.State.Mode == VisualizationMode.Circular)
+                {
+                    <CircularRenderer State="Playback.State"
+                                   OnClick="OnVisualizationClick" />
+                }
+            }
+            else
+            {
+                <div style="text-align: center; color: #999;">
+                    <p style="font-size: 2rem;">@(Playback.State.Mode == VisualizationMode.Circular ? "⭕" : "📊")</p>
+                    <p>Click "Generate & Sort" to start visualization</p>
+                </div>
+            }
+        </div>
+    </div>
+
+    <div class="controls">
+        <SeekBar CurrentIndex="Playback.State.CurrentOperationIndex"
+                 TotalOperations="Playback.State.TotalOperations"
+                 OnSeek="OnSeek" />
+
+        <div style="display: flex; gap: 10px; margin-top: 10px; align-items: center;">
+            <button @onclick="Playback.Stop">⏹ Reset</button>
+            <button @onclick="Playback.TogglePlayPause">
+                @(Playback.State.PlaybackState == PlaybackState.Playing ? "⏸ Pause" : "▶ Play")
+            </button>
+            <span style="flex: 1;"></span>
+            <span style="color: #999;">Mode: @Playback.State.Mode</span>
+        </div>
+    </div>
+</div>
+
+@code {
+private string SelectedAlgorithm { get; set; } = "Bubble sort";
+private string SelectedCategory { get; set; } = "";
+private int ArraySize { get; set; } = 64;
+private VisualizationMode SelectedVisualizationMode { get; set; } = VisualizationMode.BarChart;
+private string _runningAlgorithmName = string.Empty;
+
+    private int[] AvailableSizes = [8, 16, 32, 64, 128, 256, 512, 1024, 2048, 4096];
+
+    private int EffectiveFPS => (int)(60 * Playback.SpeedMultiplier);
+
+    // サイドバーリサイズ関連
+    private int _sidebarWidth = 280; // デフォルト幅（px）
+    private bool _sidebarCollapsed = false; // 折りたたみ状態
+    private bool _isResizing = false;
+    private int _resizeStartX = 0;
+    private int _resizeStartWidth = 0;
+
+    protected override void OnInitialized()
+    {
+        Playback.StateChanged += OnStateChanged;
+        // 初期アルゴリズムの推奨サイズを設定
+        SetRecommendedSize();
+        // 初期モードを同期
+        SelectedVisualizationMode = Playback.State.Mode;
+    }
+
+    private void ToggleSidebar()
+    {
+        _sidebarCollapsed = !_sidebarCollapsed;
+        StateHasChanged();
+    }
+    
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            // グローバルなマウスイベントリスナーを登録（JS Interop不要、Blazor側で処理）
+        }
+    }
+
+    private void StartResize(MouseEventArgs e)
+    {
+        _isResizing = true;
+        _resizeStartX = (int)e.ClientX;
+        _resizeStartWidth = _sidebarWidth;
+    }
+
+    private void OnMouseMove(MouseEventArgs e)
+    {
+        if (_isResizing)
+        {
+            var deltaX = (int)e.ClientX - _resizeStartX;
+            var newWidth = _resizeStartWidth + deltaX;
+
+            // 最小200px、最大500pxに制限
+            _sidebarWidth = Math.Clamp(newWidth, 200, 500);
+            StateHasChanged();
+        }
+    }
+
+    private void OnMouseUp()
+    {
+        _isResizing = false;
+    }
+
+    private void OnAlgorithmChanged()
+    {
+        SetRecommendedSize();
+        StateHasChanged();
+    }
+
+    private void SetRecommendedSize()
+    {
+        var algo = Registry.GetAllAlgorithms().FirstOrDefault(a => a.Name == SelectedAlgorithm);
+        if (algo != null)
+        {
+            ArraySize = algo.RecommendedSize;
+        }
+    }
+
+    private string GetSizeRecommendation()
+    {
+        var algo = Registry.GetAllAlgorithms().FirstOrDefault(a => a.Name == SelectedAlgorithm);
+        if (algo != null && algo.RecommendedSize != ArraySize)
+        {
+            return $"(Recommended: {algo.RecommendedSize})";
+        }
+        return "";
+    }
+
+    private bool IsRecommendedSize(int size)
+    {
+        var algo = Registry.GetAllAlgorithms().FirstOrDefault(a => a.Name == SelectedAlgorithm);
+        return algo?.RecommendedSize == size;
+    }
+
+    private IEnumerable<AlgorithmMetadata> GetFilteredAlgorithms()
+    {
+        var algorithms = string.IsNullOrEmpty(SelectedCategory)
+            ? Registry.GetAllAlgorithms()
+            : Registry.GetByCategory(SelectedCategory);
+
+        return algorithms;
+    }
+
+    private IEnumerable<IGrouping<string, AlgorithmMetadata>> GetAlgorithmsByCategory()
+    {
+        // AlgorithmRegistry に登録された順序を保持しながらカテゴリごとにグループ化
+        var allAlgorithms = Registry.GetAllAlgorithms();
+        
+        // カテゴリの最初の出現順序を記録
+        var categoryOrder = allAlgorithms
+            .Select((algo, index) => new { algo.Category, Index = index })
+            .GroupBy(x => x.Category)
+            .ToDictionary(g => g.Key, g => g.Min(x => x.Index));
+        
+        // カテゴリごとにグループ化し、カテゴリの最初の出現順でソート
+        return allAlgorithms
+            .GroupBy(a => a.Category)
+            .OrderBy(g => categoryOrder[g.Key]);
+    }
+
+    private string GetSelectedAlgorithmComplexity()
+    {
+        var algo = Registry.GetAllAlgorithms().FirstOrDefault(a => a.Name == SelectedAlgorithm);
+        return algo?.TimeComplexity ?? "Unknown";
+    }
+
+    private void GenerateAndSort()
+    {
+        var metadata = Registry.GetAllAlgorithms().FirstOrDefault(a => a.Name == SelectedAlgorithm);
+        if (metadata == null)
+        {
+            Console.WriteLine($"Algorithm not found: {SelectedAlgorithm}");
+            return;
+        }
+
+        // Update running algorithm name when sort is actually executed
+        _runningAlgorithmName = SelectedAlgorithm;
+
+        // 要素数制限を適用（すべてのアルゴリズムで4096まで対応）
+        var size = Math.Min(ArraySize, metadata.MaxElements);
+
+        // ランダム配列生成（一度だけ生成）
+        var random = new Random();
+        var array = Enumerable.Range(1, size).OrderBy(_ => random.Next()).ToArray();
+
+        // ソート実行と操作記録（ReadOnlySpanを使用）
+        try
+        {
+            var operations = Executor.ExecuteAndRecord(array.AsSpan(), metadata);
+            Playback.LoadOperations(array.AsSpan(), operations);
+            Console.WriteLine($"Loaded {operations.Count} operations for {SelectedAlgorithm}");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error executing sort: {ex.Message}");
+        }
+    }
+
+    private void OnVisualizationClick()
+    {
+        Playback.TogglePlayPause();
+    }
+
+    private void OnSeek(int index)
+    {
+        // ドラッグ中のシークはスロットリングを有効化
+        Playback.SeekTo(index, throttle: true);
+    }
+
+    private void OnVisualizationModeChanged()
+    {
+        Playback.State.Mode = SelectedVisualizationMode;
+        StateHasChanged();
+    }
+
+    private void OnStateChanged()
+    {
+        InvokeAsync(StateHasChanged);
+    }
+
+    public void Dispose()
+    {
+        Playback.StateChanged -= OnStateChanged;
+    }
+}
+

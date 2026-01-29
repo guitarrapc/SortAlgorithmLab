@@ -23,7 +23,7 @@ public sealed class NullContext : ISortContext
     {
     }
 
-    public void OnIndexWrite(int index, int bufferId)
+    public void OnIndexWrite(int index, int bufferId, object? value = null)
     {
     }
 

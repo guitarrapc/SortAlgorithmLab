@@ -1,0 +1,94 @@
+@using SortAlgorithm.VisualizationWeb.Models
+@using SortAlgorithm.VisualizationWeb.Services
+@using Microsoft.JSInterop
+@inject IJSRuntime JS
+@implements IAsyncDisposable
+
+<div class="circular-chart-container @(State?.PlaybackState == PlaybackState.Playing ? "playing" : "")" 
+     @onclick="OnCanvasClick" 
+     style="position: relative; width: 100%; height: 100%;">
+    
+    @if (State != null && State.MainArray.Length > 0)
+    {
+        <canvas id="@_canvasId" style="width: 100%; height: 100%; display: block;"></canvas>
+    }
+    else
+    {
+        <div style="text-align: center; color: #999; height: 100%; display: flex; flex-direction: column; justify-content: center; align-items: center;">
+            <p style="font-size: 2rem;">⭕</p>
+            <p>Click "Generate & Sort" to start visualization</p>
+        </div>
+    }
+</div>
+
+@code {
+    [Parameter]
+    public VisualizationState? State { get; set; }
+    
+    [Parameter]
+    public EventCallback OnClick { get; set; }
+    
+    private string _canvasId = $"sortCircularCanvas_{Guid.NewGuid():N}";
+    private bool _isInitialized = false;
+    
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            // Canvas初期化
+            var success = await JS.InvokeAsync<bool>("circularCanvasRenderer.initialize", _canvasId);
+            if (success)
+            {
+                _isInitialized = true;
+                await RenderCanvas();
+            }
+        }
+        else if (_isInitialized)
+        {
+            // 毎回再描画（Stateオブジェクトの参照は変わらないため）
+            await RenderCanvas();
+        }
+    }
+    
+    private async Task RenderCanvas()
+    {
+        if (!_isInitialized || State == null) return;
+        
+        try
+        {
+            await JS.InvokeVoidAsync("circularCanvasRenderer.render",
+                State.MainArray,
+                State.CompareIndices.ToArray(),
+                State.SwapIndices.ToArray(),
+                State.ReadIndices.ToArray(),
+                State.WriteIndices.ToArray(),
+                State.IsSortCompleted,
+                State.BufferArrays,
+                State.ShowCompletionHighlight);
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Circular Canvas render error: {ex.Message}");
+        }
+    }
+    
+    private async Task OnCanvasClick()
+    {
+        await OnClick.InvokeAsync();
+    }
+    
+    public async ValueTask DisposeAsync()
+    {
+        if (_isInitialized)
+        {
+            try
+            {
+                await JS.InvokeVoidAsync("circularCanvasRenderer.dispose");
+            }
+            catch
+            {
+                // クリーンアップエラーは無視
+            }
+        }
+    }
+}

@@ -142,6 +142,7 @@ public static class PowerSort
 
     /// <summary>
     /// Core PowerSort implementation.
+    /// Based on the algorithm from the PowerSort paper (Algorithm in Section 5.3).
     /// </summary>
     private static void SortCore<T>(Span<T> span, int first, int last, ISortContext context) where T : IComparable<T>
     {
@@ -151,67 +152,122 @@ public static class PowerSort
         // PowerSort uses a stack with node-power values to determine merge order
         Span<int> runBase = stackalloc int[85]; // 85 is enough for 2^64 elements
         Span<int> runLen = stackalloc int[85];
-        Span<int> power = stackalloc int[85];
+        Span<int> power = stackalloc int[85];   // power[i] is the power of node BETWEEN run[i-1] and run[i]
         var stackSize = 0;
 
-        var i = first;
-        while (i < last)
+        // Find the leftmost run (s1, e1)
+        var s1 = first;
+        var e1 = FindAndPrepareRun(s, s1, last);
+        
+        // Process runs using PowerSort algorithm
+        while (e1 < last)
         {
-            // Find next run (either ascending or strictly descending)
-            var runEnd = i + 1;
-            if (runEnd < last)
+            // Find next run (s2, e2)
+            var s2 = e1;
+            var e2 = FindAndPrepareRun(s, s2, last);
+            
+            // Calculate node power between current run [s1..e1) and next run [s2..e2)
+            // Convert to relative positions (0-based from 'first')
+            var p = ComputeNodePower(s1 - first, e1 - first, s2 - first, e2 - first, n);
+            
+            // Merge while P.top() > p (previous merge deeper in tree than current)
+            while (stackSize > 0 && power[stackSize - 1] > p)
             {
-                // Check if descending
-                if (s.Compare(i, runEnd) > 0)
-                {
-                    // Strictly descending run
-                    while (runEnd < last && s.Compare(runEnd - 1, runEnd) > 0)
-                    {
-                        runEnd++;
-                    }
-                    // Reverse the descending run to make it ascending
-                    Reverse(s, i, runEnd - 1);
-                }
-                else
-                {
-                    // Ascending run (allowing equals for stability)
-                    while (runEnd < last && s.Compare(runEnd - 1, runEnd) <= 0)
-                    {
-                        runEnd++;
-                    }
-                }
+                // Pop from stack and merge
+                stackSize--;
+                var prevBase = runBase[stackSize];
+                var prevLen = runLen[stackSize];
+                var currentLen = e1 - s1;
+                
+                // Merge prevRun [prevBase..prevBase+prevLen) with current run [s1..e1)
+                // These two runs are always adjacent (prevBase + prevLen == s1)
+                MergeRuns(span, prevBase, prevLen, s1, currentLen, context);
+                
+                // Update s1 to represent the merged result
+                s1 = prevBase;
+                // e1 stays the same (end of the merged region)
             }
-
-            var runLength = runEnd - i;
-
-            // If run is too small, extend it to MIN_MERGE using binary insertion sort
-            if (runLength < MIN_MERGE)
-            {
-                var force = Math.Min(MIN_MERGE, last - i);
-                BinaryInsertSort.SortCore(s, i, i + force, i + runLength);
-                runEnd = i + force;
-                runLength = force;
-            }
-
-            // Calculate node power for PowerSort merge strategy
-            var beginA = i - first;
-            var endB = runEnd - first;
-            var nodePower = ComputeNodePower(beginA, endB, n);
-
-            // Push run onto stack
-            runBase[stackSize] = i;
-            runLen[stackSize] = runLength;
-            power[stackSize] = nodePower;
+            
+            // Push current run onto stack with its power
+            runBase[stackSize] = s1;
+            runLen[stackSize] = e1 - s1;
+            power[stackSize] = p;
             stackSize++;
+            
+            // Move to next run
+            s1 = s2;
+            e1 = e2;
+        }
+        
+        // Now [s1..e1) is the rightmost run
+        // Merge all remaining runs from the stack with the rightmost run
+        while (stackSize > 0)
+        {
+            stackSize--;
+            var prevBase = runBase[stackSize];
+            var prevLen = runLen[stackSize];
+            
+            var currentLen = e1 - s1;
+            
+            // The previous run should be immediately before the current run [s1..e1)
+            if (prevBase + prevLen != s1)
+            {
+                throw new InvalidOperationException($"Runs are not adjacent in final collapse: prev ends at {prevBase + prevLen}, current starts at {s1}");
+            }
+            
+            MergeRuns(span, prevBase, prevLen, s1, currentLen, context);
+            
+            s1 = prevBase;
+            // e1 stays the same
+        }
+    }
 
-            // Merge runs based on PowerSort strategy
-            MergePowerCollapse(span, runBase, runLen, power, ref stackSize, context);
-
-            i = runEnd;
+    /// <summary>
+    /// Finds and prepares a run starting at position 'start'.
+    /// Returns the end position (exclusive) of the prepared run.
+    /// A run is either ascending or strictly descending (which is then reversed).
+    /// Short runs are extended to MIN_MERGE using binary insertion sort.
+    /// </summary>
+    private static int FindAndPrepareRun<T>(SortSpan<T> s, int start, int last) where T : IComparable<T>
+    {
+        var runEnd = start + 1;
+        
+        if (runEnd >= last)
+        {
+            return last;  // Single element run
+        }
+        
+        // Check if descending
+        if (s.Compare(start, runEnd) > 0)
+        {
+            // Strictly descending run
+            while (runEnd < last && s.Compare(runEnd - 1, runEnd) > 0)
+            {
+                runEnd++;
+            }
+            // Reverse the descending run to make it ascending
+            Reverse(s, start, runEnd - 1);
+        }
+        else
+        {
+            // Ascending run (allowing equals for stability)
+            while (runEnd < last && s.Compare(runEnd - 1, runEnd) <= 0)
+            {
+                runEnd++;
+            }
         }
 
-        // Force merge all remaining runs
-        MergeFinalCollapse(span, runBase, runLen, ref stackSize, context);
+        var runLength = runEnd - start;
+
+        // If run is too small, extend it to MIN_MERGE using binary insertion sort
+        if (runLength < MIN_MERGE)
+        {
+            var force = Math.Min(MIN_MERGE, last - start);
+            BinaryInsertSort.SortCore(s, start, start + force, start + runLength);
+            runEnd = start + force;
+        }
+
+        return runEnd;
     }
 
     /// <summary>
@@ -232,105 +288,39 @@ public static class PowerSort
     /// Computes the node power for PowerSort merge strategy.
     /// This is the key innovation of PowerSort over TimSort.
     /// The power value determines when to merge runs.
+    /// Based on the algorithm from the PowerSort paper:
+    /// NodePower(s1, e1, s2, e2, n):
+    ///   n1 = e1 - s1 + 1; n2 = e2 - s2 + 1; ℓ = 0
+    ///   a = (s1 + n1/2 - 1) / n
+    ///   b = (s2 + n2/2 - 1) / n
+    ///   while floor(a * 2^ℓ) == floor(b * 2^ℓ) do ℓ = ℓ + 1
+    ///   return ℓ
     /// </summary>
-    private static int ComputeNodePower(int beginA, int endB, int n)
+    private static int ComputeNodePower(int s1, int e1, int s2, int e2, int n)
     {
-        // Based on the PowerSort paper algorithm
-        // power(node) = floor(log2(n / (endB - beginA)))
-        // We use a more practical approximation
+        // Note: The paper uses 1-based indexing with inclusive ranges [s1..e1]
+        // Our implementation uses 0-based indexing with exclusive end [s1..e1)
+        // So we adjust: n1 = e1 - s1 (not +1), and the formula becomes:
+        // a = (s1 + n1/2) / n (not -1 since we're 0-based)
         
-        var length = endB - beginA;
-        if (length >= n) return 0;
+        var n1 = e1 - s1;
+        var n2 = e2 - s2;
         
-        // Calculate log2(n/length) ≈ log2(n) - log2(length)
-        var nBits = 32 - LeadingZeros(n - 1);
-        var lenBits = 32 - LeadingZeros(length);
+        // Calculate midpoint positions (as floating point for precision)
+        var a = (s1 + n1 / 2.0) / n;
+        var b = (s2 + n2 / 2.0) / n;
         
-        return nBits - lenBits;
-    }
-
-    /// <summary>
-    /// Counts leading zeros in an integer (32-bit).
-    /// </summary>
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private static int LeadingZeros(int value)
-    {
-        if (value == 0) return 32;
+        // Find the power: the level where a and b diverge in the binary tree
+        var power = 0;
+        var scale = 1;
         
-        var count = 0;
-        if ((value & 0xFFFF0000) == 0) { count += 16; value <<= 16; }
-        if ((value & 0xFF000000) == 0) { count += 8; value <<= 8; }
-        if ((value & 0xF0000000) == 0) { count += 4; value <<= 4; }
-        if ((value & 0xC0000000) == 0) { count += 2; value <<= 2; }
-        if ((value & 0x80000000) == 0) { count += 1; }
-        
-        return count;
-    }
-
-    /// <summary>
-    /// Maintains PowerSort merge invariants.
-    /// Merges runs when the power value indicates it's beneficial.
-    /// </summary>
-    private static void MergePowerCollapse<T>(Span<T> span, Span<int> runBase, Span<int> runLen, Span<int> power, ref int stackSize, ISortContext context) where T : IComparable<T>
-    {
-        // PowerSort invariant: merge when power[i-1] <= power[i]
-        while (stackSize > 1)
+        while ((int)(a * scale) == (int)(b * scale))
         {
-            var i = stackSize - 1;
-            
-            if (i > 0 && power[i - 1] <= power[i])
-            {
-                MergeAt(span, runBase, runLen, ref stackSize, i - 1, context);
-                
-                // Update power for merged run
-                if (stackSize > 0)
-                {
-                    var beginA = runBase[i - 1];
-                    var endB = runBase[i - 1] + runLen[i - 1];
-                    var n = span.Length;
-                    power[i - 1] = ComputeNodePower(beginA, endB, n);
-                }
-            }
-            else
-            {
-                break;
-            }
+            power++;
+            scale <<= 1;  // scale *= 2
         }
-    }
-
-    /// <summary>
-    /// Merges all runs on the stack until only one remains.
-    /// </summary>
-    private static void MergeFinalCollapse<T>(Span<T> span, Span<int> runBase, Span<int> runLen, ref int stackSize, ISortContext context) where T : IComparable<T>
-    {
-        while (stackSize > 1)
-        {
-            var i = stackSize - 2;
-            MergeAt(span, runBase, runLen, ref stackSize, i, context);
-        }
-    }
-
-    /// <summary>
-    /// Merges the run at stack position i with the run at position i+1.
-    /// </summary>
-    private static void MergeAt<T>(Span<T> span, Span<int> runBase, Span<int> runLen, ref int stackSize, int i, ISortContext context) where T : IComparable<T>
-    {
-        var base1 = runBase[i];
-        var len1 = runLen[i];
-        var base2 = runBase[i + 1];
-        var len2 = runLen[i + 1];
-
-        // Merge runs
-        MergeRuns(span, base1, len1, base2, len2, context);
-
-        // Update stack
-        runLen[i] = len1 + len2;
-        if (i == stackSize - 3)
-        {
-            runBase[i + 1] = runBase[i + 2];
-            runLen[i + 1] = runLen[i + 2];
-        }
-        stackSize--;
+        
+        return power;
     }
 
     /// <summary>

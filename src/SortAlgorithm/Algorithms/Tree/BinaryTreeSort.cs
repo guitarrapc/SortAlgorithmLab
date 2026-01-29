@@ -69,6 +69,7 @@ public static class BinaryTreeSort
 {
     // Buffer identifiers for visualization
     private const int BUFFER_MAIN = 0;       // Main input array
+    private const int BUFFER_TREE = -1;      // Tree nodes (virtual buffer for visualization, negative to exclude from statistics)
 
     /// <summary>
     /// Sorts the elements in the specified span in ascending order using the default comparer.
@@ -95,26 +96,29 @@ public static class BinaryTreeSort
         // The root node of the binary tree (null == the tree is empty).
         Node<T>? root = null;
 
+        // Node counter for visualization (assigns unique IDs to each node)
+        var nodeCounter = 0;
+
         for (var i = 0; i < s.Length; i++)
         {
             var value = s.Read(i);
-            InsertIterative(ref root, value, s);
+            InsertIterative(ref root, value, context, ref nodeCounter);
         }
 
         // Traverse the tree in inorder and write elements back into the array.
         var n = 0;
-        Inorder(s, root, ref n);
+        Inorder(s, root, ref n, context);
     }
 
     /// <summary>
     /// Iterative insertion. Instead of using recursion, it loops to find the child nodes.
     /// </summary>
-    private static void InsertIterative<T>(ref Node<T>? node, T value, SortSpan<T> s) where T : IComparable<T>
+    private static void InsertIterative<T>(ref Node<T>? node, T value, ISortContext context, ref int nodeCounter) where T : IComparable<T>
     {
         // If the tree is empty, create a new root and return.
         if (node is null)
         {
-            node = new Node<T>(value);
+            node = CreateNode(value, ref nodeCounter, context);
             return;
         }
 
@@ -123,8 +127,8 @@ public static class BinaryTreeSort
         Node<T> current = node;
         while (true)
         {
-            // Compare value with current node's item using SortSpan for statistics tracking
-            var cmp = s.Compare(value, current.Item);
+            // Compare value with current node's item (reads node value for visualization)
+            var cmp = CompareWithNode(value, current, context);
 
             // If the value is smaller than the current node, go left.
             if (cmp < 0)
@@ -132,7 +136,7 @@ public static class BinaryTreeSort
                 // If the left child is null, insert here.
                 if (current.Left is null)
                 {
-                    current.Left = new Node<T>(value);
+                    current.Left = CreateNode(value, ref nodeCounter, context);
                     break;
                 }
                 // Otherwise, move further down to the left child.
@@ -143,7 +147,7 @@ public static class BinaryTreeSort
                 // If the value is greater or equal, go right.
                 if (current.Right is null)
                 {
-                    current.Right = new Node<T>(value);
+                    current.Right = CreateNode(value, ref nodeCounter, context);
                     break;
                 }
                 // Otherwise, move further down to the right child.
@@ -152,13 +156,62 @@ public static class BinaryTreeSort
         }
     }
 
-    private static void Inorder<T>(SortSpan<T> s, Node<T>? node, ref int i) where T : IComparable<T>
+    private static void Inorder<T>(SortSpan<T> s, Node<T>? node, ref int i, ISortContext context) where T : IComparable<T>
     {
         if (node is null) return;
 
-        Inorder(s, node.Left, ref i);
-        s.Write(i++, node.Item);
-        Inorder(s, node.Right, ref i);
+        Inorder(s, node.Left, ref i, context);
+        
+        // Read node value for visualization and write to array
+        var value = ReadNodeValue(node, context);
+        s.Write(i++, value);
+        
+        Inorder(s, node.Right, ref i, context);
+    }
+
+    // Helper methods for node operations (encapsulates visualization tracking)
+
+    /// <summary>
+    /// Creates a new tree node and records its creation for visualization.
+    /// </summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private static Node<T> CreateNode<T>(T value, ref int nodeCounter, ISortContext context)
+    {
+        var nodeId = nodeCounter++;
+        var node = new Node<T>(value, nodeId);
+        // Record node creation in the tree buffer for visualization
+        context.OnIndexWrite(nodeId, BUFFER_TREE, value);
+        return node;
+    }
+
+    /// <summary>
+    /// Reads a node's value and records the access for visualization.
+    /// </summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private static T ReadNodeValue<T>(Node<T> node, ISortContext context)
+    {
+        // Visualize node access during traversal
+        context.OnIndexRead(node.Id, BUFFER_TREE);
+        return node.Item;
+    }
+
+    /// <summary>
+    /// Compares a value with a node's value and records the comparison for statistics.
+    /// Also records the node access for visualization.
+    /// </summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private static int CompareWithNode<T>(T value, Node<T> node, ISortContext context) where T : IComparable<T>
+    {
+        // Visualize node access during tree traversal
+        context.OnIndexRead(node.Id, BUFFER_TREE);
+        
+        // Compare value with node's item
+        // Note: This comparison is counted as a main array comparison (bufferId 0)
+        // because the values originated from the main array
+        var cmp = value.CompareTo(node.Item);
+        context.OnCompare(-1, -1, cmp, 0, 0);
+        
+        return cmp;
     }
 
     /// <summary>
@@ -169,8 +222,10 @@ public static class BinaryTreeSort
     /// </remarks>
     /// <typeparam name="T">The type of the value stored in the node.</typeparam>
     /// <param name="value">The value to store in the node.</param>
-    private class Node<T>(T value)
+    /// <param name="id">The unique identifier for this node (used for visualization).</param>
+    private class Node<T>(T value, int id)
     {
+        public int Id = id;          // Unique node ID for visualization
         public T Item = value;
         public Node<T>? Left;
         public Node<T>? Right;

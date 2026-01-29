@@ -1,0 +1,16 @@
+﻿using Microsoft.AspNetCore.Components.Web;
+using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
+using SortAlgorithm.VisualizationWeb.Services;
+
+var builder = WebAssemblyHostBuilder.CreateDefault(args);
+builder.RootComponents.Add<SortAlgorithm.VisualizationWeb.Pages.Index>("#app");
+builder.RootComponents.Add<HeadOutlet>("head::after");
+
+builder.Services.AddScoped(sp => new HttpClient { BaseAddress = new Uri(builder.HostEnvironment.BaseAddress) });
+
+// サービス登録
+builder.Services.AddSingleton<PlaybackService>();
+builder.Services.AddSingleton<SortExecutor>();
+builder.Services.AddSingleton<AlgorithmRegistry>();
+
+await builder.Build().RunAsync();

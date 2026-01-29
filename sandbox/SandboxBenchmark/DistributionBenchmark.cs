@@ -12,6 +12,7 @@ public class DistributionBenchmark
     private int[] _bucketArray = default!;
     private int[] _countingArray = default!;
     private int[] _radixLSD4Sort = default!;
+    private int[] _radixLSD256Sort = default!;
     private int[] _radixLSD10Sort = default!;
 
     [IterationSetup]
@@ -20,6 +21,7 @@ public class DistributionBenchmark
         _bucketArray = BenchmarkData.GenerateIntArray(Size, Pattern);
         _countingArray = BenchmarkData.GenerateIntArray(Size, Pattern);
         _radixLSD4Sort = BenchmarkData.GenerateIntArray(Size, Pattern);
+        _radixLSD256Sort = BenchmarkData.GenerateIntArray(Size, Pattern);
         _radixLSD10Sort = BenchmarkData.GenerateIntArray(Size, Pattern);
     }
 
@@ -39,6 +41,12 @@ public class DistributionBenchmark
     public void RadixLSD4Sort()
     {
         SortAlgorithm.Algorithms.RadixLSD4Sort.Sort(_radixLSD4Sort.AsSpan());
+    }
+
+    [Benchmark]
+    public void RadixLSD256Sort()
+    {
+        SortAlgorithm.Algorithms.RadixLSD256Sort.Sort(_radixLSD256Sort.AsSpan());
     }
 
     [Benchmark]

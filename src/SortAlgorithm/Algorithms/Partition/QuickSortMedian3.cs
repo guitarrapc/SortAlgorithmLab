@@ -179,30 +179,16 @@ public static class QuickSortMedian3
                 }
             }
 
-            // Phase 3. Tail recursion optimization: recurse on smaller partition, loop on larger
-            // This ensures stack depth is limited to O(log n) instead of potentially O(n)
+            // Phase 3. Tail recursion optimization: always process left first, then loop on right
+            // This ensures consistent left-to-right ordering for visualization
             // After partitioning: r is the last index of left partition, l is the first index of right partition
-            var leftSize = r - left + 1;
-            var rightSize = right - l + 1;
-
-            if (leftSize < rightSize)
+            if (left < r)
             {
-                // Left partition is smaller: recurse on left, loop on right
-                if (left < r)
-                {
-                    SortCore(s, left, r, context);
-                }
-                left = l; // Continue with right partition in next loop iteration
+                // Recurse on left partition
+                SortCore(s, left, r, context);
             }
-            else
-            {
-                // Right partition is smaller (or equal): recurse on right, loop on left
-                if (l < right)
-                {
-                    SortCore(s, l, right, context);
-                }
-                right = r; // Continue with left partition in next loop iteration
-            }
+            // Tail recursion: continue loop with right partition
+            left = l;
         }
     }
 

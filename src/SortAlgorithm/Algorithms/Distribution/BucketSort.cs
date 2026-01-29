@@ -1,5 +1,6 @@
 ﻿using SortAlgorithm.Contexts;
 using System.Buffers;
+using System.Numerics;
 using System.Runtime.CompilerServices;
 
 namespace SortAlgorithm.Algorithms;
@@ -177,8 +178,11 @@ public static class BucketSort
             }
         }
 
-        // Write sorted data back to original span using CopyTo for efficiency
-        tempSpan.CopyTo(0, s, 0, span.Length);
+        // Write sorted data back to original span (Want's use CopyTo, however Visualization cannot track dest -> main buffer copy)
+        for (var i = 0; i < span.Length; i++)
+        {
+            s.Write(i, tempSpan.Read(i));
+        }
     }
 
     /// <summary>
@@ -251,23 +255,28 @@ public static class BucketSortInteger
     private const int BUFFER_TEMP = 1;       // Temporary buffer
 
     /// <summary>
-    /// Sorts the elements in the specified span in ascending order.
+    /// Sorts integer values in the specified span (generic version for IBinaryInteger types).
     /// </summary>
-    public static void Sort(Span<int> span)
+    public static void Sort<T>(Span<T> span)
+        where T : IBinaryInteger<T>, IMinMaxValue<T>, IComparable<T>
     {
         Sort(span, NullContext.Default);
     }
 
     /// <summary>
-    /// Sorts the elements in the specified span using the provided sort context.
+    /// Sorts integer values in the specified span with sort context (generic version for IBinaryInteger types).
     /// </summary>
-    public static void Sort(Span<int> span, ISortContext context)
+    public static void Sort<T>(Span<T> span, ISortContext context)
+        where T : IBinaryInteger<T>, IMinMaxValue<T>, IComparable<T>
     {
         if (span.Length <= 1) return;
 
+        // Check if type is supported (64-bit or less)
+        var bitSize = GetBitSize<T>();
+
         // Rent arrays from ArrayPool for temporary storage
         var indicesArray = ArrayPool<int>.Shared.Rent(span.Length);
-        var tempArray = ArrayPool<int>.Shared.Rent(span.Length);
+        var tempArray = ArrayPool<T>.Shared.Rent(span.Length);
 
         try
         {
@@ -276,34 +285,39 @@ public static class BucketSortInteger
         finally
         {
             ArrayPool<int>.Shared.Return(indicesArray);
-            ArrayPool<int>.Shared.Return(tempArray);
+            ArrayPool<T>.Shared.Return(tempArray, clearArray: true);
         }
     }
 
     /// <summary>
-    /// Core bucket sort implementation for integers.
+    /// Core bucket sort implementation for generic IBinaryInteger types.
     /// </summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private static void SortCore(Span<int> span, Span<int> bucketIndices, Span<int> tempArray, ISortContext context)
+    private static void SortCore<T>(Span<T> span, Span<int> bucketIndices, Span<T> tempArray, ISortContext context)
+        where T : IBinaryInteger<T>, IComparable<T>
     {
-        var s = new SortSpan<int>(span, context, BUFFER_MAIN);
+        var s = new SortSpan<T>(span, context, BUFFER_MAIN);
 
         // Find min and max
-        var min = int.MaxValue;
-        var max = int.MinValue;
+        var minValue = span[0];
+        var maxValue = span[0];
 
-        for (var i = 0; i < span.Length; i++)
+        for (var i = 1; i < span.Length; i++)
         {
             var value = s.Read(i);
-            if (value < min) min = value;
-            if (value > max) max = value;
+            if (value.CompareTo(minValue) < 0) minValue = value;
+            if (value.CompareTo(maxValue) > 0) maxValue = value;
         }
 
         // If all elements are the same, no need to sort
-        if (min == max) return;
+        if (minValue.CompareTo(maxValue) == 0) return;
+
+        // Convert to long for range calculation
+        var min = ConvertToLong(minValue);
+        var max = ConvertToLong(maxValue);
 
         // Determine bucket count based on input size and range
-        long range = (long)max - (long)min + 1;
+        long range = max - min + 1;
 
         // Calculate optimal bucket count (sqrt(n) is a common heuristic)
         var bucketCount = Math.Max(MinBucketCount, Math.Min(MaxBucketCount, (int)Math.Sqrt(span.Length)));
@@ -328,7 +342,8 @@ public static class BucketSortInteger
         for (var i = 0; i < span.Length; i++)
         {
             var value = s.Read(i);
-            var bucketIndex = (int)((value - min) / bucketSize);
+            var valueLong = ConvertToLong(value);
+            var bucketIndex = (int)((valueLong - min) / bucketSize);
 
             // Handle edge case where value == max
             if (bucketIndex >= bucketCount)
@@ -350,7 +365,7 @@ public static class BucketSortInteger
         }
 
         // Second pass: distribute elements using cached bucket indices
-        var tempSpan = new SortSpan<int>(tempArray, context, BUFFER_TEMP);
+        var tempSpan = new SortSpan<T>(tempArray, context, BUFFER_TEMP);
         for (var i = 0; i < span.Length; i++)
         {
             var bucketIndex = bucketIndices[i]; // Reuse cached index (no division)
@@ -365,19 +380,23 @@ public static class BucketSortInteger
             if (count > 1)
             {
                 var start = bucketStarts[i];
-                InsertionSortIntBucket(tempArray.Slice(start, count));
+                InsertionSortGenericBucket(tempArray.Slice(start, count));
             }
         }
 
-        // Write sorted data back to original span using CopyTo for efficiency
-        tempSpan.CopyTo(0, s, 0, span.Length);
+        // Write sorted data back to original span (Want's use CopyTo, however Visualization cannot track dest -> main buffer copy)
+        for (var i = 0; i < span.Length; i++)
+        {
+            s.Write(i, tempSpan.Read(i));
+        }
     }
 
     /// <summary>
-    /// Insertion sort for integer bucket contents (stable sort)
+    /// Insertion sort for generic bucket contents (stable sort)
     /// </summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private static void InsertionSortIntBucket(Span<int> bucket)
+    private static void InsertionSortGenericBucket<T>(Span<T> bucket)
+        where T : IComparable<T>
     {
         for (var i = 1; i < bucket.Length; i++)
         {
@@ -391,5 +410,37 @@ public static class BucketSortInteger
             }
             bucket[j + 1] = key;
         }
+    }
+
+    /// <summary>
+    /// Get bit size of the type T and validate support.
+    /// Throws NotSupportedException for types larger than 64-bit.
+    /// </summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private static int GetBitSize<T>() where T : IBinaryInteger<T>
+    {
+        if (typeof(T) == typeof(byte) || typeof(T) == typeof(sbyte))
+            return 8;
+        else if (typeof(T) == typeof(short) || typeof(T) == typeof(ushort))
+            return 16;
+        else if (typeof(T) == typeof(int) || typeof(T) == typeof(uint))
+            return 32;
+        else if (typeof(T) == typeof(long) || typeof(T) == typeof(ulong))
+            return 64;
+        else if (typeof(T) == typeof(nint) || typeof(T) == typeof(nuint))
+            return IntPtr.Size * 8;
+        else if (typeof(T) == typeof(Int128) || typeof(T) == typeof(UInt128))
+            throw new NotSupportedException($"Type {typeof(T).Name} with 128-bit size is not supported. Maximum supported bit size is 64.");
+        else
+            throw new NotSupportedException($"Type {typeof(T).Name} is not supported.");
+    }
+
+    /// <summary>
+    /// Convert IBinaryInteger value to long for range calculation.
+    /// </summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private static long ConvertToLong<T>(T value) where T : IBinaryInteger<T>
+    {
+        return long.CreateTruncating(value);
     }
 }

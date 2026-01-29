@@ -7,7 +7,7 @@ namespace SortAlgorithm.Algorithms;
 /// バイトニックソート（並列版・2のべき乗専用） - バイトニック列を構築し、並列実行で再帰的にマージして整列列に変換するソーティングネットワークアルゴリズムです。
 /// 入力サイズは2のべき乗（2^n）でなければなりません。対象の要素が大きい場合、並列実行を活用します。
 /// <br/>
-/// Bitonic Sort (Parallel, Power-of-2 Only) - A sorting network algorithm that builds a bitonic sequence and merges it in parallel using Parallel.For.
+/// Bitonic Sort (Parallel, Power-of-2 Only) - A sorting network algorithm that builds a bitonic sequence and merges it using parallel divide-and-conquer.
 /// Input length must be a power of 2 (2^n). Leverages parallel execution for large datasets.
 /// </summary>
 /// <remarks>
@@ -19,10 +19,12 @@ namespace SortAlgorithm.Algorithms;
 /// This ensures the divide-and-conquer structure maintains balanced splits at each recursive level.</description></item>
 /// <item><description><strong>Recursive Bitonic Construction:</strong> Divide the input into two halves. Recursively sort the first half in ascending order
 /// and the second half in descending order to form a bitonic sequence.</description></item>
-/// <item><description><strong>Parallel Bitonic Merge:</strong> The compare-and-swap operations within BitonicMerge are independent and can be executed in parallel.
-/// Uses Parallel.For to distribute work across multiple threads.</description></item>
+/// <item><description><strong>Parallel Divide-and-Conquer:</strong> Uses Parallel.Invoke to process left and right halves concurrently
+/// in both the sort phase and merge phase, maximizing parallelism at the recursion level.</description></item>
+/// <item><description><strong>Sequential Compare-and-Swap:</strong> Individual comparison operations within BitonicMerge are executed sequentially
+/// to avoid excessive thread creation overhead, as each comparison is a lightweight operation.</description></item>
 /// <item><description><strong>Thread Safety:</strong> Since Parallel cannot capture ref struct (Span/SortSpan), this implementation accepts T[] array
-/// and creates thread-local SortSpan instances within parallel loops for statistics tracking.</description></item>
+/// and creates SortSpan instances at appropriate granularity for statistics tracking.</description></item>
 /// </list>
 /// <para><strong>Performance Characteristics:</strong></para>
 /// <list type="bullet">
@@ -32,13 +34,15 @@ namespace SortAlgorithm.Algorithms;
 /// <item><description>Sequential time: Θ(n log² n) - Same comparison count as non-parallel version</description></item>
 /// <item><description>Parallel time: O(log³ n) - Theoretical parallel depth with O(n) processors</description></item>
 /// <item><description>Comparisons : Θ(n log² n) - Exactly (log² n × (log n + 1)) / 4 × n comparisons for n = 2^k</description></item>
-/// <item><description>Parallelism : High - Compare-and-swap operations at each merge level are independent</description></item>
+/// <item><description>Parallelism : High - Divide-and-conquer recursion is parallelized, not individual comparisons</description></item>
 /// </list>
 /// <para><strong>Implementation Notes:</strong></para>
 /// <list type="bullet">
-/// <item><description>Accepts T[] array instead of Span due to Parallel.For limitation with ref struct</description></item>
-/// <item><description>Uses Parallel.For for compare-and-swap loops (threshold: 1024 elements minimum for parallelization)</description></item>
-/// <item><description>Creates thread-local SortSpan instances within parallel regions for statistics tracking</description></item>
+/// <item><description>Accepts T[] array instead of Span due to Parallel.Invoke limitation with ref struct</description></item>
+/// <item><description>Uses Parallel.Invoke for recursive divide-and-conquer (threshold: 256 elements minimum for parallelization)</description></item>
+/// <item><description>Compare-and-swap loops are executed sequentially to minimize thread overhead</description></item>
+/// <item><description>Creates SortSpan instances at merge level (not per-comparison) for efficient statistics tracking</description></item>
+/// <item><description>Automatically detects WebAssembly and single-core environments: falls back to sequential execution</description></item>
 /// <item><description>Strictly requires power-of-2 input length. Throws ArgumentException otherwise.</description></item>
 /// </list>
 /// <para><strong>Use Cases:</strong></para>
@@ -56,13 +60,39 @@ public static class BitonicSortParallel
     private const int BUFFER_MAIN = 0;       // Main input array
 
     // Threshold for parallelization - below this size, use sequential sorting
-    private const int PARALLEL_THRESHOLD = 512;
+    // This threshold is for parallelizing recursive divide-and-conquer, not individual comparisons
+    // Empirical testing on 32-core system shows:
+    // - With recursive-only parallelization: lower thresholds (128-256) work better
+    // - Below threshold: sequential execution to avoid thread creation overhead
+    private const int PARALLEL_THRESHOLD = 256;
+
+    // Detect if parallel execution is actually beneficial
+    // WebAssembly and single-core systems should use sequential execution
+    private static readonly bool _useParallelExecution = Environment.ProcessorCount > 1 && !IsWebAssembly();
 
     // Parallel options with max degree of parallelism set to number of processors
     private static readonly ParallelOptions parallelOptions = new ParallelOptions
     {
         MaxDegreeOfParallelism = Environment.ProcessorCount,
     };
+
+    /// <summary>
+    /// Detects if running in a WebAssembly environment.
+    /// WebAssembly is single-threaded and Parallel.Invoke executes sequentially.
+    /// </summary>
+    private static bool IsWebAssembly()
+    {
+        // Check for WebAssembly runtime
+        // In Blazor WebAssembly, RuntimeInformation.OSDescription contains "Browser"
+        try
+        {
+            return System.Runtime.InteropServices.RuntimeInformation.OSDescription.Contains("Browser", StringComparison.OrdinalIgnoreCase);
+        }
+        catch
+        {
+            return false;
+        }
+    }
 
     /// <summary>
     /// Sorts the elements in the specified array in ascending order using the default comparer.
@@ -112,7 +142,8 @@ public static class BitonicSortParallel
             int k = count / 2;
 
             // For large enough sequences, use parallel tasks for left and right halves
-            if (count >= PARALLEL_THRESHOLD * 2)
+            // Only parallelize if running on multi-core non-WebAssembly environment
+            if (_useParallelExecution && count >= PARALLEL_THRESHOLD)
             {
                 Parallel.Invoke(
                     parallelOptions,
@@ -147,30 +178,20 @@ public static class BitonicSortParallel
         {
             int k = count / 2;
 
-            // Parallelize the compare-and-swap loop if count is large enough
-            if (count >= PARALLEL_THRESHOLD)
+            // Perform compare-and-swap sequentially
+            // Parallelizing this loop has too much overhead for the lightweight comparison operations
+            var span = new SortSpan<T>(array.AsSpan(), context, BUFFER_MAIN);
+            for (int i = low; i < low + k; i++)
             {
-                Parallel.For(low, low + k, parallelOptions, i =>
-                {
-                    // Create thread-local SortSpan for this iteration
-                    var span = new SortSpan<T>(array.AsSpan(), context, BUFFER_MAIN);
-                    CompareAndSwap(span, i, i + k, ascending);
-                });
-            }
-            else
-            {
-                // Sequential compare-and-swap for small sequences
-                var span = new SortSpan<T>(array.AsSpan(), context, BUFFER_MAIN);
-                for (int i = low; i < low + k; i++)
-                {
-                    CompareAndSwap(span, i, i + k, ascending);
-                }
+                CompareAndSwap(span, i, i + k, ascending);
             }
 
-            // Recursively merge both halves (can also be parallelized)
-            if (k >= PARALLEL_THRESHOLD)
+            // Recursively merge both halves - parallelize if large enough
+            // Only parallelize if running on multi-core non-WebAssembly environment
+            if (_useParallelExecution && count >= PARALLEL_THRESHOLD)
             {
                 Parallel.Invoke(
+                    parallelOptions,
                     () => BitonicMerge(array, low, k, ascending, context),
                     () => BitonicMerge(array, low + k, k, ascending, context)
                 );

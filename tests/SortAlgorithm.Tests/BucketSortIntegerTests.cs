@@ -128,7 +128,7 @@ public class BucketSortIntegerTests
         var allSame = Enumerable.Repeat(42, n).ToArray();
         BucketSortInteger.Sort(allSame.AsSpan(), stats);
 
-        var expectedReads = (ulong)n;
+        var expectedReads = (ulong)n - 1;
         var expectedWrites = 0UL;
         var expectedCompares = 0UL;
 

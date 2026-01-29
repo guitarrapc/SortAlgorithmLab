@@ -113,6 +113,7 @@ namespace SortAlgorithm.Algorithms;
 /// </list>
 /// <para><strong>Reference:</strong></para>
 /// <para>Wiki: https://en.wikipedia.org/wiki/Introsort</para>
+/// <para>Paper: David R Musser https://webpages.charlotte.edu/rbunescu/courses/ou/cs4040/introsort.pdf</para>
 /// <para>LLVM implementation: https://github.com/llvm/llvm-project/blob/368faacac7525e538fa6680aea74e19a75e3458d/libcxx/include/__algorithm/sort.h#L272</para>
 /// </remarks>
 public static class IntroSort
@@ -173,7 +174,7 @@ public static class IntroSort
     internal static void SortCore<T>(SortSpan<T> s, int left, int right, ISortContext context) where T : IComparable<T>
     {
         var depthLimit = 2 * FloorLog2(right - left + 1);
-        IntroSortInternal(s, left, right, depthLimit, 30, context);
+        IntroSortInternal(s, left, right, depthLimit, 30, true, context);
     }
 
     /// <summary>
@@ -190,7 +191,7 @@ public static class IntroSort
 
         var s = new SortSpan<T>(span, NullContext.Default, BUFFER_MAIN);
         var depthLimit = 2 * FloorLog2(span.Length);
-        IntroSortInternal(s, 0, span.Length - 1, depthLimit, insertionSortThreshold, NullContext.Default);
+        IntroSortInternal(s, 0, span.Length - 1, depthLimit, insertionSortThreshold, true, NullContext.Default);
     }
 
     /// <summary>
@@ -202,17 +203,28 @@ public static class IntroSort
     /// <param name="right">The inclusive end index of the range to sort.</param>
     /// <param name="depthLimit">The recursion depth limit before switching to HeapSort.</param>
     /// <param name="insertionSortThreshold">The threshold size at which to switch to InsertionSort.</param>
+    /// <param name="leftmost">True if this is the leftmost partition (requires boundary checks in InsertionSort), 
     /// <param name="context">The sort context for tracking statistics and observations.</param>
-    private static void IntroSortInternal<T>(SortSpan<T> s, int left, int right, int depthLimit, int insertionSortThreshold, ISortContext context) where T : IComparable<T>
+    /// false otherwise (can use unguarded InsertionSort).</param>
+    private static void IntroSortInternal<T>(SortSpan<T> s, int left, int right, int depthLimit, int insertionSortThreshold, bool leftmost, ISortContext context) where T : IComparable<T>
     {
         while (right > left)
         {
             var size = right - left + 1;
 
             // Small arrays: use InsertionSort
+            // For leftmost partitions, use guarded version (needs boundary checks)
+            // For non-leftmost partitions, use unguarded version (pivot acts as sentinel)
             if (size <= insertionSortThreshold)
             {
-                InsertionSort.SortCore(s, left, right + 1);
+                if (leftmost)
+                {
+                    InsertionSort.SortCore(s, left, right + 1);
+                }
+                else
+                {
+                    InsertionSort.UnguardedSortCore(s, left, right + 1);
+                }
                 return;
             }
 
@@ -271,59 +283,56 @@ public static class IntroSort
                 // If pointers haven't crossed, swap and advance both
                 if (l <= r)
                 {
-                    s.Swap(l, r);
-                    swapCount++; // Track swaps for nearly-sorted detection
+                    if (l != r) // Only count actual swaps (not self-swaps)
+                    {
+                        s.Swap(l, r);
+                        swapCount++;
+                    }
                     l++;
                     r--;
                 }
             }
 
-            // Nearly-sorted detection: if no swaps occurred, the array is likely already sorted
+            // Nearly-sorted detection: if no swaps occurred, try InsertionSort
             // This is similar to C++ std::introsort's __insertion_sort_incomplete optimization
             if (swapCount == 0)
             {
                 // For nearly-sorted arrays, InsertionSort is very efficient
-                // Try InsertionSort on both partitions - if already sorted, it will complete quickly
-                var leftPartitionSize = r - left + 1;
-                var rightPartitionSize = right - l + 1;
-
-                // Only apply this optimization if partitions are reasonably sized
-                if (leftPartitionSize > 1 && leftPartitionSize <= size / 2)
+                // Try left partition first (left-to-right order for consistent visualization)
+                if (left < r)
                 {
-                    InsertionSort.SortCore(s, left, r + 1);
+                    if (leftmost)
+                    {
+                        InsertionSort.SortCore(s, left, r + 1);
+                    }
+                    else
+                    {
+                        InsertionSort.UnguardedSortCore(s, left, r + 1);
+                    }
                 }
 
-                if (rightPartitionSize > 1 && rightPartitionSize <= size / 2)
+                // Then process right partition (always non-leftmost after partitioning)
+                if (l < right)
                 {
-                    InsertionSort.SortCore(s, l, right + 1);
+                    InsertionSort.UnguardedSortCore(s, l, right + 1);
                 }
 
-                // Both partitions handled, we're done
+                // Both partitions handled
                 return;
             }
 
-            // Tail recursion optimization: recurse on smaller partition, loop on larger
-            var leftSize = r - left + 1;
-            var rightSize = right - l + 1;
-
-            if (leftSize < rightSize)
+            // Tail recursion optimization: always process left first, then loop on right
+            // This ensures consistent left-to-right ordering for visualization
+            // After partitioning, the right partition is never leftmost (pivot acts as sentinel)
+            if (left < r)
             {
-                // Left partition is smaller: recurse on left, loop on right
-                if (left < r)
-                {
-                    IntroSortInternal(s, left, r, depthLimit, insertionSortThreshold, context);
-                }
-                left = l; // Continue with right partition in next loop iteration
+                // Recurse on left partition (preserves leftmost flag)
+                IntroSortInternal(s, left, r, depthLimit, insertionSortThreshold, leftmost, context);
             }
-            else
-            {
-                // Right partition is smaller (or equal): recurse on right, loop on left
-                if (l < right)
-                {
-                    IntroSortInternal(s, l, right, depthLimit, insertionSortThreshold, context);
-                }
-                right = r; // Continue with left partition in next loop iteration
-            }
+            // Tail recursion: continue loop with right partition
+            // Right partition is never leftmost (element at position r acts as sentinel)
+            leftmost = false;
+            left = l;
         }
     }
 

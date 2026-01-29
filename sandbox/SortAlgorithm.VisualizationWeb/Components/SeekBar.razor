@@ -1,0 +1,59 @@
+@using SortAlgorithm.VisualizationWeb.Models
+@inject IJSRuntime JSRuntime
+@implements IAsyncDisposable
+
+<div class="seek-bar">
+    <div id="@_sliderId" class="seek-slider-container" @ref="_sliderRef">
+        <div class="seek-progress" style="width: @ProgressPercentage%">
+            <div class="seek-handle"></div>
+        </div>
+    </div>
+    <span class="time-display">@ProgressText</span>
+</div>
+
+@code {
+    [Parameter]
+    public int CurrentIndex { get; set; }
+    
+    [Parameter]
+    public int TotalOperations { get; set; }
+    
+    [Parameter]
+    public EventCallback<int> OnSeek { get; set; }
+    
+    private ElementReference _sliderRef;
+    private string _sliderId = $"seekbar-{Guid.NewGuid():N}";
+    private DotNetObjectReference<SeekBar>? _dotNetHelper;
+    
+    private double ProgressPercentage => TotalOperations > 0 
+        ? (double)CurrentIndex / TotalOperations * 100 
+        : 0;
+    
+    private string ProgressText => $"{CurrentIndex:N0} / {TotalOperations:N0} ops ({ProgressPercentage:F1}%)";
+    
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            _dotNetHelper = DotNetObjectReference.Create(this);
+            await JSRuntime.InvokeVoidAsync("seekBarInterop.setupDragDrop", _sliderId, _dotNetHelper);
+        }
+    }
+    
+    [JSInvokable]
+    public async Task OnDrag(double percentage)
+    {
+        if (TotalOperations <= 0) return;
+        
+        var newIndex = (int)(TotalOperations * percentage);
+        newIndex = Math.Max(0, Math.Min(TotalOperations, newIndex));
+        
+        // ドラッグ中はスロットリングを有効にして呼び出し
+        await OnSeek.InvokeAsync(newIndex);
+    }
+    
+    public async ValueTask DisposeAsync()
+    {
+        _dotNetHelper?.Dispose();
+    }
+}

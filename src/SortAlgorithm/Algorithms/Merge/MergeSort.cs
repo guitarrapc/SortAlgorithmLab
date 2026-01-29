@@ -88,7 +88,9 @@ public static class MergeSort
         var buffer = ArrayPool<T>.Shared.Rent(span.Length);
         try
         {
-            SortCore(span, buffer.AsSpan(0, span.Length), context);
+            var s = new SortSpan<T>(span, context, BUFFER_MAIN);
+            var b = new SortSpan<T>(buffer.AsSpan(0, span.Length), context, BUFFER_MERGE);
+            SortCore(s, b, 0, span.Length - 1);
         }
         finally
         {
@@ -99,57 +101,57 @@ public static class MergeSort
     /// <summary>
     /// Core recursive merge sort implementation.
     /// </summary>
-    /// <param name="span">The span to sort</param>
-    /// <param name="buffer">Auxiliary buffer for merging (same size as span)</param>
-    /// <param name="context">Sort context for statistics tracking</param>
-    private static void SortCore<T>(Span<T> span, Span<T> buffer, ISortContext context) where T : IComparable<T>
+    /// <param name="s">The SortSpan wrapping the span to sort</param>
+    /// <param name="b">The SortSpan wrapping the auxiliary buffer for merging</param>
+    /// <param name="left">The inclusive start index of the range to sort</param>
+    /// <param name="right">The inclusive end index of the range to sort</param>
+    private static void SortCore<T>(SortSpan<T> s, SortSpan<T> b, int left, int right) where T : IComparable<T>
     {
-        if (span.Length <= 1) return; // Base case: array of size 0 or 1 is sorted
+        if (right <= left) return; // Base case: array of size 0 or 1 is sorted
 
-        var mid = span.Length / 2;
-        var left = span.Slice(0, mid);
-        var right = span.Slice(mid);
+        var mid = left + (right - left) / 2;
 
         // Conquer: Recursively sort left and right halves
-        SortCore(left, buffer.Slice(0, mid), context);
-        SortCore(right, buffer.Slice(mid), context);
+        SortCore(s, b, left, mid);
+        SortCore(s, b, mid + 1, right);
 
         // Optimization: Skip merge if already sorted (left[last] <= right[first])
         // This dramatically improves performance on nearly-sorted data
-        var s = new SortSpan<T>(span, context, BUFFER_MAIN);
-        if (s.Compare(mid - 1, mid) <= 0)
+        if (s.Compare(mid, mid + 1) <= 0)
         {
             return; // Already sorted, no merge needed
         }
 
         // Merge: Combine two sorted halves
-        Merge(span, left, right, buffer, context);
+        Merge(s, b, left, mid, right);
     }
 
     /// <summary>
-    /// Merges two sorted subarrays (left and right) into span using buffer as auxiliary space.
+    /// Merges two sorted subarrays [left..mid] and [mid+1..right] using buffer as auxiliary space.
     /// </summary>
-    private static void Merge<T>(Span<T> span, Span<T> left, Span<T> right, Span<T> buffer, ISortContext context) where T : IComparable<T>
+    /// <param name="s">The SortSpan wrapping the main array</param>
+    /// <param name="b">The SortSpan wrapping the auxiliary buffer</param>
+    /// <param name="left">The inclusive start index of the left subarray</param>
+    /// <param name="mid">The inclusive end index of the left subarray</param>
+    /// <param name="right">The inclusive end index of the right subarray</param>
+    private static void Merge<T>(SortSpan<T> s, SortSpan<T> b, int left, int mid, int right) where T : IComparable<T>
     {
-        var s = new SortSpan<T>(span, context, BUFFER_MAIN);
-        var b = new SortSpan<T>(buffer.Slice(0, left.Length), context, BUFFER_MERGE);
+        var leftLength = mid - left + 1;
 
-        // Copy left partition to buffer to avoid overwriting during merge using CopyTo for efficiency
-        s.CopyTo(0, b, 0, left.Length);
+        // Copy left partition to buffer to avoid overwriting during merge
+        s.CopyTo(left, b, 0, leftLength);
 
-        var l = 0;           // Index in buffer (left partition copy)
-        var r = left.Length; // Index in span (right partition, starts after left)
-        var k = 0;           // Index in result (span)
+        var l = 0;           // Index in buffer (left partition copy, 0-based)
+        var r = mid + 1;     // Index in span (right partition starts after mid)
+        var k = left;        // Index in result (span, starts at left)
 
         // Merge: compare elements from buffer (left) and right partition
-        // Optimization: Read both values once and reuse them to minimize indirect access
-        while (l < left.Length && r < span.Length)
+        while (l < leftLength && r <= right)
         {
             var leftValue = b.Read(l);
             var rightValue = s.Read(r);
 
             // Stability: use <= to take from left when equal
-            // Use SortSpan.Compare(T, T) to track statistics while avoiding redundant Read
             if (s.Compare(leftValue, rightValue) <= 0)
             {
                 s.Write(k, leftValue);
@@ -163,10 +165,10 @@ public static class MergeSort
             k++;
         }
 
-        // Copy remaining elements from buffer (left partition) if any using CopyTo for efficiency
-        if (l < left.Length)
+        // Copy remaining elements from buffer (left partition) if any
+        if (l < leftLength)
         {
-            b.CopyTo(l, s, k, left.Length - l);
+            b.CopyTo(l, s, k, leftLength - l);
         }
 
         // Right partition elements are already in place, no need to copy
