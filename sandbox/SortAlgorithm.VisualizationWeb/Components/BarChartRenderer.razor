@@ -13,7 +13,9 @@
         var baseHeight = 600; // ベース高さ（アスペクト比の基準）
         var requiredWidth = Math.Max(baseWidth, (int)(arrayLength * minBarWidth));
         var barWidth = (double)requiredWidth / arrayLength;
-        var maxValue = State.MainArray.Max();
+        
+        // 最大値をキャッシュ（毎フレームMax()を呼ぶのは重い）
+        var maxValue = GetOrCacheMaxValue(State.MainArray);
         
         <svg width="100%" height="100%" viewBox="0 0 @requiredWidth @baseHeight" preserveAspectRatio="xMidYMax meet" style="display: block;">
             <g shape-rendering="crispEdges">
@@ -52,6 +54,24 @@
     [Parameter]
     public EventCallback OnClick { get; set; }
     
+    // キャッシュ用フィールド
+    private int _cachedMaxValue;
+    private int _lastArrayHashCode;
+    
+    /// <summary>
+    /// 最大値をキャッシュして返す（配列の内容が変わった時だけ再計算）
+    /// </summary>
+    private int GetOrCacheMaxValue(int[] array)
+    {
+        var currentHashCode = array.GetHashCode();
+        if (currentHashCode != _lastArrayHashCode || _cachedMaxValue == 0)
+        {
+            _cachedMaxValue = array.Max();
+            _lastArrayHashCode = currentHashCode;
+        }
+        return _cachedMaxValue;
+    }
+    
     private string GetBarColor(int index)
     {
         if (State == null) return "#3B82F6";
@@ -69,4 +89,5 @@
         await OnClick.InvokeAsync();
     }
 }
+
 
