@@ -178,8 +178,11 @@ public static class BucketSort
             }
         }
 
-        // Write sorted data back to original span using CopyTo for efficiency
-        tempSpan.CopyTo(0, s, 0, span.Length);
+        // Write sorted data back to original span (Want's use CopyTo, however Visualization cannot track dest -> main buffer copy)
+        for (var i = 0; i < span.Length; i++)
+        {
+            s.Write(i, tempSpan.Read(i));
+        }
     }
 
     /// <summary>
@@ -381,8 +384,11 @@ public static class BucketSortInteger
             }
         }
 
-        // Write sorted data back to original span using CopyTo for efficiency
-        tempSpan.CopyTo(0, s, 0, span.Length);
+        // Write sorted data back to original span (Want's use CopyTo, however Visualization cannot track dest -> main buffer copy)
+        for (var i = 0; i < span.Length; i++)
+        {
+            s.Write(i, tempSpan.Read(i));
+        }
     }
 
     /// <summary>
