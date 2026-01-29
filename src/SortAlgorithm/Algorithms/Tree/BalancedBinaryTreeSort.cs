@@ -93,6 +93,7 @@ public static class BalancedBinaryTreeSort
 {
     // Buffer identifiers for visualization
     private const int BUFFER_MAIN = 0;       // Main input array
+    private const int BUFFER_TREE = -1;      // Tree nodes (virtual buffer for visualization, negative to exclude from statistics)
     private const int NULL_INDEX = -1;       // Represents null reference in arena
 
     // Note: Arena (Node array) operations are not tracked via SortSpan because:
@@ -171,12 +172,12 @@ public static class BalancedBinaryTreeSort
         // Insert each element into the AVL tree (iteratively with rebalancing)
         for (int i = 0; i < s.Length; i++)
         {
-            rootIndex = InsertIterative(arena, rootIndex, ref nodeCount, i, s, pathStack);
+            rootIndex = InsertIterative(arena, rootIndex, ref nodeCount, i, s, pathStack, context);
         }
 
         // Traverse in order and write back into the array (iterative to avoid stack overflow)
         var writeIndex = 0;
-        Inorder(s, arena, rootIndex, ref writeIndex);
+        Inorder(s, arena, rootIndex, ref writeIndex, context);
     }
 
     /// <summary>
@@ -188,7 +189,7 @@ public static class BalancedBinaryTreeSort
     /// <param name="itemIndex">Index in the original span to read the value from.</param>
     /// <returns>Index of the new root of the tree.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private static int InsertIterative<T>(Span<Node<T>> arena, int rootIndex, ref int nodeCount, int itemIndex, SortSpan<T> s, Span<int> pathStack) where T : IComparable<T>
+    private static int InsertIterative<T>(Span<Node<T>> arena, int rootIndex, ref int nodeCount, int itemIndex, SortSpan<T> s, Span<int> pathStack, ISortContext context) where T : IComparable<T>
     {
         // Read the value to insert (tracked by SortSpan for statistics)
         var insertValue = s.Read(itemIndex);
@@ -196,9 +197,7 @@ public static class BalancedBinaryTreeSort
         // If tree is empty, create root
         if (rootIndex == NULL_INDEX)
         {
-            var newIndex = nodeCount++;
-            arena[newIndex] = new Node<T>(insertValue);
-            return newIndex;
+            return CreateNode(arena, insertValue, ref nodeCount, context);
         }
 
         // Phase 1: Navigate to insertion point and track path
@@ -209,7 +208,7 @@ public static class BalancedBinaryTreeSort
         {
             pathStack[stackTop++] = currentIndex;
             // Compare against cached value (no span indirection needed)
-            var cmp = s.Compare(insertValue, arena[currentIndex].Value);
+            var cmp = CompareWithNode(arena, currentIndex, insertValue, context);
 
             if (cmp < 0)
             {
@@ -218,8 +217,7 @@ public static class BalancedBinaryTreeSort
                 if (leftIndex == NULL_INDEX)
                 {
                     // Insert here
-                    var newIndex = nodeCount++;
-                    arena[newIndex] = new Node<T>(insertValue);
+                    var newIndex = CreateNode(arena, insertValue, ref nodeCount, context);
                     arena[currentIndex].Left = newIndex;
                     currentIndex = newIndex;
                     break;
@@ -233,8 +231,7 @@ public static class BalancedBinaryTreeSort
                 if (rightIndex == NULL_INDEX)
                 {
                     // Insert here
-                    var newIndex = nodeCount++;
-                    arena[newIndex] = new Node<T>(insertValue);
+                    var newIndex = CreateNode(arena, insertValue, ref nodeCount, context);
                     arena[currentIndex].Right = newIndex;
                     currentIndex = newIndex;
                     break;
@@ -286,7 +283,7 @@ public static class BalancedBinaryTreeSort
     /// Uses ArrayPool to avoid GC pressure.
     /// Reads actual data from original span using ItemIndex.
     /// </remarks>
-    private static void Inorder<T>(SortSpan<T> s, Span<Node<T>> arena, int rootIndex, ref int writeIndex) where T : IComparable<T>
+    private static void Inorder<T>(SortSpan<T> s, Span<Node<T>> arena, int rootIndex, ref int writeIndex, ISortContext context) where T : IComparable<T>
     {
         if (rootIndex == NULL_INDEX) return;
 
@@ -315,8 +312,9 @@ public static class BalancedBinaryTreeSort
 
                 // Process the node at top of stack
                 currentIndex = stack[--stackTop];
-                // Write cached value directly (no additional span read needed)
-                s.Write(writeIndex++, arena[currentIndex].Value);
+                // Read node value for visualization and write to array
+                var value = ReadNodeValue(arena, currentIndex, context);
+                s.Write(writeIndex++, value);
 
                 // Move to right subtree
                 currentIndex = arena[currentIndex].Right;
@@ -329,6 +327,52 @@ public static class BalancedBinaryTreeSort
                 ArrayPool<int>.Shared.Return(rented);
             }
         }
+    }
+
+    // Helper methods for node operations (encapsulates visualization tracking)
+
+    /// <summary>
+    /// Creates a new tree node in the arena and records its creation for visualization.
+    /// </summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private static int CreateNode<T>(Span<Node<T>> arena, T value, ref int nodeCount, ISortContext context)
+    {
+        var nodeId = nodeCount++;
+        arena[nodeId] = new Node<T>(value, nodeId);
+        // Record node creation in the tree buffer for visualization
+        context.OnIndexWrite(nodeId, BUFFER_TREE, value);
+        return nodeId;
+    }
+
+    /// <summary>
+    /// Reads a node's value and records the access for visualization.
+    /// </summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private static T ReadNodeValue<T>(Span<Node<T>> arena, int nodeIndex, ISortContext context)
+    {
+        // Visualize node access during traversal
+        context.OnIndexRead(arena[nodeIndex].Id, BUFFER_TREE);
+        return arena[nodeIndex].Value;
+    }
+
+    /// <summary>
+    /// Compares a value with a node's value and records the comparison for statistics.
+    /// Also records the node access for visualization.
+    /// Returns: value.CompareTo(node.Value)
+    /// </summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private static int CompareWithNode<T>(Span<Node<T>> arena, int nodeIndex, T value, ISortContext context) where T : IComparable<T>
+    {
+        // Visualize node access during tree traversal
+        context.OnIndexRead(arena[nodeIndex].Id, BUFFER_TREE);
+        
+        // Compare value with node's item
+        // Note: This comparison is counted as a main array comparison (bufferId 0)
+        // because the values originated from the main array
+        var cmp = value.CompareTo(arena[nodeIndex].Value);
+        context.OnCompare(-1, -1, cmp, 0, 0);
+        
+        return cmp;
     }
 
     // methods used to maintain AVL tree balance
@@ -458,13 +502,15 @@ public static class BalancedBinaryTreeSort
     /// </remarks>
     private struct Node<T>
     {
+        public int Id;          // Unique node ID for visualization
         public T Value;         // Cached value for direct comparison (avoids span indirection)
         public int Left;        // Index in arena, -1 = null
         public int Right;       // Index in arena, -1 = null
         public int Height;      // For AVL balancing
 
-        public Node(T value)
+        public Node(T value, int id)
         {
+            Id = id;
             Value = value;
             Left = -1;
             Right = -1;
