@@ -38,18 +38,26 @@ dotnet build
 
 ### Run Some Script
 
-If you needd create some .cs file to verify somthing, you can create it in the `sandbox` folder and run it via:
+**IMPORTANT:** Never use `dotnet script` or `dotnet-script` command. This project does NOT use dotnet-script.
 
+If you need to create a .cs file to verify something, you can create it in the `sandbox` folder and run it.
+
+For a standalone C# file (without .csproj):
 ```powershell
-cd sandbox
-dotnet run -c Release --project YourScriptProjectName.csproj
+# Create a single .cs file and run it directly
+dotnet run path/to/YourScript.cs
+# Example: dotnet run sandbox/TestScript.cs
 ```
 
-or you can directly run a single C# file:
-
+For a project folder with .csproj:
 ```powershell
-dotnet run YourScriptFile.cs
+cd sandbox/YourProjectFolder
+dotnet run -c Release
+# Or specify the project file:
+dotnet run -c Release --project YourProjectName.csproj
 ```
+
+See `dotnet run` details here: https://github.com/dotnet/sdk/blob/main/documentation/general/dotnet-run-file.md
 
 ## Important Guidelines
 
