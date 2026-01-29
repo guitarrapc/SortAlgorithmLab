@@ -2,7 +2,7 @@
 using SortAlgorithm.Algorithms;
 using SortAlgorithm.Contexts;
 
-var sizes = new[] { 64, 256, 512, 1024, 2048, 4096, 8192, 16384 };
+var sizes = new[] { 64, 256, 512, 1024, 2048, 4096, 8192, 16384, 32768, 65536 };
 var iterations = 10;
 
 Console.WriteLine("BitonicSort vs BitonicSortParallel Performance Comparison");
