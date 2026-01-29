@@ -40,17 +40,32 @@ dotnet build
 
 **IMPORTANT:** Never use `dotnet script` or `dotnet-script` command. This project does NOT use dotnet-script.
 
-If you need to create a .cs file to verify something, you can create it in the `sandbox` folder and run it.
+If you need to create a .cs file to verify something, you can create it in the `sandbox/DotnetFiles/` folder and run it.
 
-For a standalone C# file (without .csproj):
+See `dotnet run` details here: https://github.com/dotnet/sdk/blob/main/documentation/general/dotnet-run-file.md
+
+- For a standalone C# file (without .csproj):
+
+```csharp
+#:sdk Microsoft.NET.Sdk.Web
+#:property TargetFramework=net10.0
+#:project ../../src/SortAlgorithm
+using SortAlgorithm.Algorithms;
+using SortAlgorithm.Contexts;
+
+var stats = new StatisticsContext();
+PowerSort.Sort([ 5, 3, 8, 1, 2 ], stats);
+
+Console.WriteLine("Sorted array with PowerSort.");
+Console.WriteLine($"Compares: {stats.CompareCount}, Swaps: {stats.SwapCount}, IndexReads: {stats.IndexReadCount}, IndexWrites: {stats.IndexWriteCount}");
+```
 
 ```shell
 # Create a single .cs file and run it directly
-dotnet run path/to/YourScript.cs
-# Example: dotnet run sandbox/TestScript.cs
+dotnet run dotnet run sandbox/DotnetFiles/YourCsFile.cs
 ```
 
-For a project folder with .csproj:
+- For a project folder with .csproj:
 
 ```shell
 cd sandbox/YourProjectFolder
@@ -59,7 +74,6 @@ dotnet run -c Release
 dotnet run -c Release --project YourProjectName.csproj
 ```
 
-See `dotnet run` details here: https://github.com/dotnet/sdk/blob/main/documentation/general/dotnet-run-file.md
 
 ## Important Guidelines
 
