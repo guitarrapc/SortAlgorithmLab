@@ -61,7 +61,8 @@
                 State.CompareIndices.ToArray(),
                 State.SwapIndices.ToArray(),
                 State.ReadIndices.ToArray(),
-                State.WriteIndices.ToArray());
+                State.WriteIndices.ToArray(),
+                State.IsSortCompleted); // ソート完了フラグを渡す
         }
         catch (Exception ex)
         {

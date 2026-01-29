@@ -76,6 +76,9 @@
     {
         if (State == null) return "#3B82F6";
         
+        // ソート完了時は緑色でハイライト
+        if (State.IsSortCompleted) return "#10B981"; // Green - Sorted
+        
         if (State.SwapIndices.Contains(index)) return "#EF4444"; // Red - Swap
         if (State.CompareIndices.Contains(index)) return "#A855F7"; // Purple - Compare
         if (State.WriteIndices.Contains(index)) return "#F97316"; // Orange - Write

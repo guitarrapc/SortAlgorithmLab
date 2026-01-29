@@ -46,4 +46,7 @@ public class VisualizationState
     
     /// <summary>書き込み回数</summary>
     public ulong IndexWriteCount { get; set; }
+    
+    /// <summary>ソートが完了したかどうか</summary>
+    public bool IsSortCompleted { get; set; }
 }

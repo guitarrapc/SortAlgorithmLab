@@ -11,7 +11,8 @@ window.canvasRenderer = {
         compare: '#A855F7',     // 紫
         swap: '#EF4444',        // 赤
         write: '#F97316',       // 橙
-        read: '#FBBF24'         // 黄
+        read: '#FBBF24',        // 黄
+        sorted: '#10B981'       // 緑 - ソート完了
     },
     
     /**
@@ -61,12 +62,16 @@ window.canvasRenderer = {
      * @param {number[]} swapIndices - スワップ中のインデックス
      * @param {number[]} readIndices - 読み取り中のインデックス
      * @param {number[]} writeIndices - 書き込み中のインデックス
+     * @param {boolean} isSortCompleted - ソートが完了したかどうか
      */
-    render: function(array, compareIndices, swapIndices, readIndices, writeIndices) {
+    render: function(array, compareIndices, swapIndices, readIndices, writeIndices, isSortCompleted) {
         if (!this.canvas || !this.ctx) {
             console.error('Canvas not initialized');
             return;
         }
+        
+        // デフォルト値を設定
+        isSortCompleted = isSortCompleted || false;
         
         const rect = this.canvas.getBoundingClientRect();
         const width = rect.width;
@@ -122,7 +127,10 @@ window.canvasRenderer = {
             
             // 色を決定（優先度順）
             let color;
-            if (swapSet.has(i)) {
+            if (isSortCompleted) {
+                // ソート完了時はすべて緑色
+                color = this.colors.sorted;
+            } else if (swapSet.has(i)) {
                 color = this.colors.swap;
             } else if (compareSet.has(i)) {
                 color = this.colors.compare;

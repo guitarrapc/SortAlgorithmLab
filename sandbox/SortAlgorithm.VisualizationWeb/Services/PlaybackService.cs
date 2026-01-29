@@ -24,6 +24,10 @@ public class PlaybackService : IDisposable
     private CancellationTokenSource? _cancellationTokenSource;
     private Task? _playbackTask;
     
+    // 完了ハイライト用のタイマー
+    private CancellationTokenSource? _completionHighlightCts;
+    private const int COMPLETION_HIGHLIGHT_DURATION_MS = 2000; // 2秒
+    
     /// <summary>現在の状態</summary>
     public VisualizationState State { get; private set; } = new();
     
@@ -72,7 +76,8 @@ public class PlaybackService : IDisposable
             TotalOperations = operations.Count,
             CurrentOperationIndex = 0,
             PlaybackState = PlaybackState.Stopped,
-            Mode = currentMode // モードを引き継ぐ
+            Mode = currentMode, // モードを引き継ぐ
+            IsSortCompleted = false // 明示的にfalseに設定
         };
         
         StateChanged?.Invoke();
@@ -109,7 +114,7 @@ public class PlaybackService : IDisposable
     /// <summary>
     /// 描画なし超高速実行
     /// </summary>
-    private void PlayInstant()
+    private async void PlayInstant()
     {
         // UI更新を完全スキップして全操作を処理
         while (State.CurrentOperationIndex < _operations.Count)
@@ -121,18 +126,23 @@ public class PlaybackService : IDisposable
         
         // 完了
         ClearHighlights(); // ソート完了時にハイライトをクリア
+        State.IsSortCompleted = true; // ソート完了フラグを設定
+        State.PlaybackState = PlaybackState.Paused;
         
+        // 最終状態を描画（緑色ハイライト表示）
+        StateChanged?.Invoke();
+        
+        // AutoResetがONの場合は、少し待ってからリセット
         if (AutoReset)
         {
+            await Task.Delay(500); // 500ms緑色を表示
             Stop();
         }
         else
         {
-            State.PlaybackState = PlaybackState.Paused;
+            // 完了ハイライトを2秒後にクリア
+            ScheduleCompletionHighlightClear();
         }
-        
-        // 最終状態のみ描画
-        StateChanged?.Invoke();
     }
     
     /// <summary>
@@ -153,6 +163,7 @@ public class PlaybackService : IDisposable
     public void Stop()
     {
         _cancellationTokenSource?.Cancel();
+        _completionHighlightCts?.Cancel(); // 完了ハイライトタイマーもキャンセル
         State.CurrentOperationIndex = 0;
         
         // プールされた配列を再利用
@@ -164,6 +175,7 @@ public class PlaybackService : IDisposable
         
         State.BufferArrays.Clear();
         State.PlaybackState = PlaybackState.Stopped;
+        State.IsSortCompleted = false; // リセット時に完了フラグをクリア
         ClearHighlights();
         ResetStatistics();
         StateChanged?.Invoke();
@@ -235,17 +247,23 @@ public class PlaybackService : IDisposable
             if (State.CurrentOperationIndex >= _operations.Count)
             {
                 ClearHighlights(); // ソート完了時にハイライトをクリア
+                State.IsSortCompleted = true; // ソート完了フラグを設定
+                State.PlaybackState = PlaybackState.Paused;
                 
+                // 緑色ハイライトを表示
+                StateChanged?.Invoke();
+                
+                // AutoResetがONの場合は、少し待ってからリセット
                 if (AutoReset)
                 {
+                    await Task.Delay(500); // 500ms緑色を表示
                     Stop();
                 }
                 else
                 {
-                    State.PlaybackState = PlaybackState.Paused;
+                    // 完了ハイライトを2秒後にクリア
+                    ScheduleCompletionHighlightClear();
                 }
-                
-                StateChanged?.Invoke();
             }
         }
         catch (OperationCanceledException)
@@ -290,7 +308,10 @@ public class PlaybackService : IDisposable
         
         State.CurrentOperationIndex = operationIndex;
         
-        // 現在の操作をハイライト
+        // ソート完了状態を更新
+        State.IsSortCompleted = (operationIndex >= _operations.Count);
+        
+        // 現在の操作をハイライト（完了時はハイライトなし）
         if (operationIndex < _operations.Count)
         {
             ApplyOperation(_operations[operationIndex], applyToArray: false, updateStats: false);
@@ -405,11 +426,38 @@ public class PlaybackService : IDisposable
         State.IndexWriteCount = 0;
     }
     
+    /// <summary>
+    /// 完了ハイライトを指定時間後にクリア
+    /// </summary>
+    private async void ScheduleCompletionHighlightClear()
+    {
+        // 既存のタイマーをキャンセル
+        _completionHighlightCts?.Cancel();
+        _completionHighlightCts = new CancellationTokenSource();
+        
+        try
+        {
+            await Task.Delay(COMPLETION_HIGHLIGHT_DURATION_MS, _completionHighlightCts.Token);
+            
+            // ハイライトをクリア
+            State.IsSortCompleted = false;
+            StateChanged?.Invoke();
+        }
+        catch (TaskCanceledException)
+        {
+            // キャンセルされた場合は何もしない
+        }
+    }
+    
     public void Dispose()
     {
         // 再生中のタスクをキャンセル
         _cancellationTokenSource?.Cancel();
         _cancellationTokenSource?.Dispose();
+        
+        // 完了ハイライトタイマーをキャンセル
+        _completionHighlightCts?.Cancel();
+        _completionHighlightCts?.Dispose();
         
         // タスクの完了を待機（最大1秒）
         _playbackTask?.Wait(TimeSpan.FromSeconds(1));
