@@ -5,6 +5,7 @@
   </Folder>
   <Folder Name="/sandbox/">
     <Project Path="sandbox/AntiQuickSortDemo/AntiQuickSortDemo.csproj" />
+    <Project Path="sandbox/BitonicCompareTest/BitonicCompareTest.csproj" />
     <Project Path="sandbox/SandboxBenchmark/SandboxBenchmark.csproj" />
     <Project Path="sandbox/SortAlgorithm.VisualizationWeb/SortAlgorithm.VisualizationWeb.csproj" />
   </Folder>
