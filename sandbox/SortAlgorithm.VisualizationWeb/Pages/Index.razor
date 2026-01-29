@@ -87,6 +87,22 @@
                     <button class="primary" @onclick="GenerateAndSort" style="width: 100%;">🎲 Generate & Sort</button>
                 </div>
 
+                <div class="stat-item">
+                    <span class="stat-label">Visualization Mode</span>
+                    <div style="display: flex; gap: 8px; margin-top: 8px;">
+                        <button class="@(Playback.State.Mode == VisualizationMode.BarChart ? "mode-btn active" : "mode-btn")"
+                                @onclick="() => SetVisualizationMode(VisualizationMode.BarChart)"
+                                style="flex: 1;">
+                            📊 Bar Chart
+                        </button>
+                        <button class="@(Playback.State.Mode == VisualizationMode.Circular ? "mode-btn active" : "mode-btn")"
+                                @onclick="() => SetVisualizationMode(VisualizationMode.Circular)"
+                                style="flex: 1;">
+                            ⭕ Circular
+                        </button>
+                    </div>
+                </div>
+
             <div class="stat-item">
                 <label class="toggle-switch">
                     <input type="checkbox" @bind="Playback.AutoReset" />
@@ -134,13 +150,21 @@
         <div class="visualization-content">
             @if (Playback.State.MainArray.Length > 0)
             {
-                <CanvasChartRenderer State="Playback.State"
-                                  OnClick="OnVisualizationClick" />
+                @if (Playback.State.Mode == VisualizationMode.BarChart)
+                {
+                    <CanvasChartRenderer State="Playback.State"
+                                      OnClick="OnVisualizationClick" />
+                }
+                else if (Playback.State.Mode == VisualizationMode.Circular)
+                {
+                    <CircularRenderer State="Playback.State"
+                                   OnClick="OnVisualizationClick" />
+                }
             }
             else
             {
                 <div style="text-align: center; color: #999;">
-                    <p style="font-size: 2rem;">📊</p>
+                    <p style="font-size: 2rem;">@(Playback.State.Mode == VisualizationMode.Circular ? "⭕" : "📊")</p>
                     <p>Click "Generate & Sort" to start visualization</p>
                 </div>
             }
@@ -329,6 +353,12 @@ private string _runningAlgorithmName = string.Empty;
     private void OnSeek(int index)
     {
         Playback.SeekTo(index);
+    }
+
+    private void SetVisualizationMode(VisualizationMode mode)
+    {
+        Playback.State.Mode = mode;
+        StateHasChanged();
     }
 
     private void OnStateChanged()

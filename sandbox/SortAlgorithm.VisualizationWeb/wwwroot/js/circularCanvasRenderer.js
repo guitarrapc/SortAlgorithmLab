@@ -1,13 +1,13 @@
-// Canvas 2D レンダラー - 高速バーチャート描画
+// Canvas 2D 円形レンダラー - 高速円形ビジュアライゼーション
 
-window.canvasRenderer = {
+window.circularCanvasRenderer = {
     canvas: null,
     ctx: null,
     animationFrameId: null,
     
-    // 色定義
+    // 色定義（操作に基づく）
     colors: {
-        normal: '#3B82F6',      // 青
+        normal: null,           // HSLで動的に計算
         compare: '#A855F7',     // 紫
         swap: '#EF4444',        // 赤
         write: '#F97316',       // 橙
@@ -37,7 +37,7 @@ window.canvasRenderer = {
         this.canvas.height = rect.height * dpr;
         this.ctx.scale(dpr, dpr);
         
-        console.log('Canvas initialized:', rect.width, 'x', rect.height, 'DPR:', dpr);
+        console.log('Circular Canvas initialized:', rect.width, 'x', rect.height, 'DPR:', dpr);
         return true;
     },
     
@@ -55,7 +55,18 @@ window.canvasRenderer = {
     },
     
     /**
-     * バーチャートを描画
+     * 値をHSL色に変換（0-maxValue -> 0-360度）
+     * @param {number} value - 要素の値
+     * @param {number} maxValue - 配列の最大値
+     * @returns {string} HSL色文字列
+     */
+    valueToHSL: function(value, maxValue) {
+        const hue = (value / maxValue) * 360;
+        return `hsl(${hue}, 70%, 60%)`;
+    },
+    
+    /**
+     * 円形ビジュアライゼーションを描画
      * @param {number[]} array - 描画する配列
      * @param {number[]} compareIndices - 比較中のインデックス
      * @param {number[]} swapIndices - スワップ中のインデックス
@@ -80,21 +91,11 @@ window.canvasRenderer = {
         // 配列が空の場合は何もしない
         if (arrayLength === 0) return;
         
-        // バーの幅と隙間を計算
-        const minBarWidth = 1.0;
-        let gapRatio;
-        if (arrayLength <= 256) {
-            gapRatio = 0.15;
-        } else if (arrayLength <= 1024) {
-            gapRatio = 0.10;
-        } else {
-            gapRatio = 0.05;
-        }
-        
-        const requiredWidth = Math.max(width, arrayLength * minBarWidth / (1.0 - gapRatio));
-        const totalBarWidth = requiredWidth / arrayLength;
-        const barWidth = totalBarWidth * (1.0 - gapRatio);
-        const gap = totalBarWidth * gapRatio;
+        // 円の中心と半径を計算
+        const centerX = width / 2;
+        const centerY = height / 2;
+        const maxRadius = Math.min(width, height) * 0.45; // 90%の直径を使用（余白考慮）
+        const minRadius = maxRadius * 0.2; // 内側の空白（ドーナツ型）
         
         // 最大値を取得
         const maxValue = Math.max(...array);
@@ -105,20 +106,24 @@ window.canvasRenderer = {
         const readSet = new Set(readIndices);
         const writeSet = new Set(writeIndices);
         
-        // スケール調整（横スクロール対応）
-        const scale = Math.min(1.0, width / requiredWidth);
-        this.ctx.save();
-        if (scale < 1.0) {
-            // 横スクロールが必要な場合は左寄せ
-            this.ctx.scale(scale, 1.0);
-        }
+        // 各要素を円周上に配置
+        const angleStep = (2 * Math.PI) / arrayLength;
         
-        // バーを描画（一括描画で高速化）
+        // 線を描画（中心から外側へ）
         for (let i = 0; i < arrayLength; i++) {
             const value = array[i];
-            const barHeight = (value / maxValue) * (height - 20);
-            const x = i * totalBarWidth + (gap / 2);
-            const y = height - barHeight;
+            const angle = i * angleStep - Math.PI / 2; // -90度から開始（12時の位置）
+            
+            // 値に応じた半径（0 = minRadius, maxValue = maxRadius）
+            const radius = minRadius + (value / maxValue) * (maxRadius - minRadius);
+            
+            // 終点の座標
+            const endX = centerX + Math.cos(angle) * radius;
+            const endY = centerY + Math.sin(angle) * radius;
+            
+            // 開始点の座標（内側の円周上）
+            const startX = centerX + Math.cos(angle) * minRadius;
+            const startY = centerY + Math.sin(angle) * minRadius;
             
             // 色を決定（優先度順）
             let color;
@@ -131,14 +136,36 @@ window.canvasRenderer = {
             } else if (readSet.has(i)) {
                 color = this.colors.read;
             } else {
-                color = this.colors.normal;
+                // 通常時は値に基づくHSLグラデーション
+                color = this.valueToHSL(value, maxValue);
             }
             
-            this.ctx.fillStyle = color;
-            this.ctx.fillRect(x, y, barWidth, barHeight);
+            // 線の太さを配列サイズに応じて調整
+            let lineWidth;
+            if (arrayLength <= 64) {
+                lineWidth = 3;
+            } else if (arrayLength <= 256) {
+                lineWidth = 2;
+            } else if (arrayLength <= 1024) {
+                lineWidth = 1.5;
+            } else {
+                lineWidth = 1;
+            }
+            
+            // 線を描画
+            this.ctx.strokeStyle = color;
+            this.ctx.lineWidth = lineWidth;
+            this.ctx.beginPath();
+            this.ctx.moveTo(startX, startY);
+            this.ctx.lineTo(endX, endY);
+            this.ctx.stroke();
         }
         
-        this.ctx.restore();
+        // 中心円を描画（オプション、視覚的なアクセント）
+        this.ctx.fillStyle = '#2A2A2A';
+        this.ctx.beginPath();
+        this.ctx.arc(centerX, centerY, minRadius, 0, 2 * Math.PI);
+        this.ctx.fill();
         
         // 描画完了
         this.isRendering = false;
@@ -160,7 +187,7 @@ window.canvasRenderer = {
 
 // ウィンドウリサイズ時の処理
 window.addEventListener('resize', () => {
-    if (window.canvasRenderer.canvas) {
-        window.canvasRenderer.resize();
+    if (window.circularCanvasRenderer.canvas) {
+        window.circularCanvasRenderer.resize();
     }
 });
