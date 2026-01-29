@@ -120,6 +120,8 @@ public class PlaybackService : IDisposable
         }
         
         // 完了
+        ClearHighlights(); // ソート完了時にハイライトをクリア
+        
         if (AutoReset)
         {
             Stop();
@@ -232,6 +234,8 @@ public class PlaybackService : IDisposable
             // 完了処理
             if (State.CurrentOperationIndex >= _operations.Count)
             {
+                ClearHighlights(); // ソート完了時にハイライトをクリア
+                
                 if (AutoReset)
                 {
                     Stop();
