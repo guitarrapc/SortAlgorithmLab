@@ -81,15 +81,23 @@
                     <button class="primary" @onclick="GenerateAndSort" style="width: 100%;">🎲 Generate & Sort</button>
                 </div>
 
-                <div class="stat-item">
-                    <label class="toggle-switch">
-                        <input type="checkbox" @bind="Playback.AutoReset" />
-                        <span class="toggle-slider"></span>
-                        <span class="toggle-label">Auto Reset on Complete</span>
-                    </label>
-                </div>
-
-                <div class="stat-item stat-item-vertical">
+            <div class="stat-item">
+                <label class="toggle-switch">
+                    <input type="checkbox" @bind="Playback.AutoReset" />
+                    <span class="toggle-slider"></span>
+                    <span class="toggle-label">Auto Reset on Complete</span>
+                </label>
+            </div>
+            
+            <div class="stat-item">
+                <label class="toggle-switch">
+                    <input type="checkbox" @bind="Playback.InstantMode" />
+                    <span class="toggle-slider"></span>
+                    <span class="toggle-label">Instant Mode (No Animation)</span>
+                </label>
+            </div>
+            
+            <div class="stat-item stat-item-vertical">
                     <span class="stat-label">Operations Per Frame</span>
                     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
                         <span class="stat-value" style="font-size: 0.9rem;">@Playback.OperationsPerFrame ops/frame</span>
@@ -97,14 +105,14 @@
                     <input type="range" min="1" max="1000" @bind="Playback.OperationsPerFrame" @bind:after="StateHasChanged" style="width: 100%;" />
                 </div>
 
-                <div class="stat-item stat-item-vertical">
-                    <span class="stat-label">Speed Multiplier</span>
-                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
-                        <span class="stat-value" style="font-size: 0.9rem;">@Playback.SpeedMultiplier.ToString("F1")x</span>
-                        <span style="font-size: 0.85rem; color: #999;">(@EffectiveFPS FPS)</span>
-                    </div>
-                    <input type="range" min="0.1" max="100" step="0.5" @bind="Playback.SpeedMultiplier" @bind:after="OnSpeedMultiplierChanged" style="width: 100%;" />
+            <div class="stat-item stat-item-vertical">
+                <span class="stat-label">Speed Multiplier</span>
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                    <span class="stat-value" style="font-size: 0.9rem;">@Playback.SpeedMultiplier.ToString("F1")x</span>
+                    <span style="font-size: 0.85rem; color: #999;">(@EffectiveFPS FPS)</span>
                 </div>
+                <input type="range" min="0.1" max="100" step="0.5" @bind="Playback.SpeedMultiplier" @bind:after="StateHasChanged" style="width: 100%;" />
+            </div>
             </div>
 
             <StatisticsPanel State="Playback.State" />
@@ -177,18 +185,7 @@
         _sidebarCollapsed = !_sidebarCollapsed;
         StateHasChanged();
     }
-
-    private void OnSpeedMultiplierChanged()
-    {
-        // 再生中の場合、タイマー間隔を更新
-        if (Playback.State.PlaybackState == PlaybackState.Playing)
-        {
-            Playback.Pause();
-            Playback.Play();
-        }
-        StateHasChanged();
-    }
-
+    
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
         if (firstRender)

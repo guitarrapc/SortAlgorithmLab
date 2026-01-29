@@ -1,16 +1,13 @@
 ﻿using System.Buffers;
-using System.Timers;
 using SortAlgorithm.VisualizationWeb.Models;
-using Timer = System.Timers.Timer;
 
 namespace SortAlgorithm.VisualizationWeb.Services;
 
 /// <summary>
-/// 再生制御とシーク処理を行うサービス
+/// 再生制御とシーク処理を行うサービス（Task.Run高速ループ版）
 /// </summary>
 public class PlaybackService : IDisposable
 {
-    private readonly Timer _timer;
     private List<SortOperation> _operations = [];
     
     // ArrayPoolで配列を再利用
@@ -23,7 +20,9 @@ public class PlaybackService : IDisposable
     private const int MAX_ARRAY_SIZE = 4096; // 最大配列サイズ
     private const double RENDER_INTERVAL_MS = 16.67; // UI更新間隔（60 FPS）
     
-    private DateTime _lastRenderTime = DateTime.MinValue; // 最後の描画時刻
+    // Task.Run用のフィールド
+    private CancellationTokenSource? _cancellationTokenSource;
+    private Task? _playbackTask;
     
     /// <summary>現在の状態</summary>
     public VisualizationState State { get; private set; } = new();
@@ -37,24 +36,17 @@ public class PlaybackService : IDisposable
     /// <summary>ソート完了時に自動的にリセットするか</summary>
     public bool AutoReset { get; set; } = false;
     
+    /// <summary>描画なし超高速モード</summary>
+    public bool InstantMode { get; set; } = false;
+    
     /// <summary>状態が変更されたときのイベント</summary>
     public event Action? StateChanged;
     
     public PlaybackService()
     {
-        _timer = new Timer();
-        UpdateTimerInterval();
-        _timer.Elapsed += OnTimerElapsed;
-        
         // 最大サイズの配列をArrayPoolからレンタル
         _pooledArray = ArrayPool<int>.Shared.Rent(MAX_ARRAY_SIZE);
         _currentArraySize = 0;
-    }
-    
-    private void UpdateTimerInterval()
-    {
-        // ベースFPS × 速度倍率でタイマー間隔を計算
-        _timer.Interval = 1000.0 / (TARGET_FPS * SpeedMultiplier);
     }
     
     /// <summary>
@@ -90,8 +82,50 @@ public class PlaybackService : IDisposable
         if (State.PlaybackState == PlaybackState.Playing) return;
         
         State.PlaybackState = PlaybackState.Playing;
-        UpdateTimerInterval(); // 速度倍率を反映
-        _timer.Start();
+        
+        // 既存のタスクをキャンセル
+        _cancellationTokenSource?.Cancel();
+        
+        // 新しいキャンセルトークンを作成
+        _cancellationTokenSource = new CancellationTokenSource();
+        
+        // 描画なしモードの場合は即座に完了
+        if (InstantMode)
+        {
+            PlayInstant();
+            return;
+        }
+        
+        // バックグラウンドで高速ループを開始
+        _playbackTask = Task.Run(() => PlaybackLoopAsync(_cancellationTokenSource.Token));
+        
+        StateChanged?.Invoke();
+    }
+    
+    /// <summary>
+    /// 描画なし超高速実行
+    /// </summary>
+    private void PlayInstant()
+    {
+        // UI更新を完全スキップして全操作を処理
+        while (State.CurrentOperationIndex < _operations.Count)
+        {
+            var operation = _operations[State.CurrentOperationIndex];
+            ApplyOperation(operation, applyToArray: true, updateStats: true);
+            State.CurrentOperationIndex++;
+        }
+        
+        // 完了
+        if (AutoReset)
+        {
+            Stop();
+        }
+        else
+        {
+            State.PlaybackState = PlaybackState.Paused;
+        }
+        
+        // 最終状態のみ描画
         StateChanged?.Invoke();
     }
     
@@ -103,7 +137,7 @@ public class PlaybackService : IDisposable
         if (State.PlaybackState != PlaybackState.Playing) return;
         
         State.PlaybackState = PlaybackState.Paused;
-        _timer.Stop();
+        _cancellationTokenSource?.Cancel();
         StateChanged?.Invoke();
     }
     
@@ -112,7 +146,7 @@ public class PlaybackService : IDisposable
     /// </summary>
     public void Stop()
     {
-        _timer.Stop();
+        _cancellationTokenSource?.Cancel();
         State.CurrentOperationIndex = 0;
         
         // プールされた配列を再利用
@@ -127,6 +161,89 @@ public class PlaybackService : IDisposable
         ClearHighlights();
         ResetStatistics();
         StateChanged?.Invoke();
+    }
+    
+    /// <summary>
+    /// 高速再生ループ（SpinWait高精度版）
+    /// </summary>
+    private async Task PlaybackLoopAsync(CancellationToken cancellationToken)
+    {
+        var lastRenderTime = DateTime.UtcNow;
+        var sw = System.Diagnostics.Stopwatch.StartNew();
+        var nextFrameTime = 0.0;
+        
+        try
+        {
+            while (!cancellationToken.IsCancellationRequested && State.CurrentOperationIndex < _operations.Count)
+            {
+                // フレーム間隔を計算（ミリ秒）
+                var frameInterval = 1000.0 / (TARGET_FPS * SpeedMultiplier);
+                
+                // 次のフレーム時刻まで待機
+                var currentTime = sw.Elapsed.TotalMilliseconds;
+                if (currentTime < nextFrameTime)
+                {
+                    // 高精度待機: SpinWait
+                    var spinWait = new SpinWait();
+                    while (sw.Elapsed.TotalMilliseconds < nextFrameTime && !cancellationToken.IsCancellationRequested)
+                    {
+                        spinWait.SpinOnce(); // CPUビジーウェイト
+                    }
+                }
+                
+                nextFrameTime = sw.Elapsed.TotalMilliseconds + frameInterval;
+                
+                // 操作を処理
+                ClearHighlights();
+                
+                int opsToProcess = Math.Min(OperationsPerFrame, _operations.Count - State.CurrentOperationIndex);
+                for (int i = 0; i < opsToProcess && State.CurrentOperationIndex < _operations.Count; i++)
+                {
+                    if (cancellationToken.IsCancellationRequested) break;
+                    
+                    var operation = _operations[State.CurrentOperationIndex];
+                    ApplyOperation(operation, applyToArray: true, updateStats: true);
+                    State.CurrentOperationIndex++;
+                }
+                
+                // ハイライト更新
+                if (State.CurrentOperationIndex > 0 && State.CurrentOperationIndex < _operations.Count)
+                {
+                    var lastOperation = _operations[State.CurrentOperationIndex - 1];
+                    ApplyOperation(lastOperation, applyToArray: false, updateStats: false);
+                }
+                
+                // UI更新（60 FPS制限）
+                var now = DateTime.UtcNow;
+                var renderElapsed = (now - lastRenderTime).TotalMilliseconds;
+                
+                if (renderElapsed >= RENDER_INTERVAL_MS)
+                {
+                    lastRenderTime = now;
+                    StateChanged?.Invoke();
+                    await Task.Yield(); // UIスレッドに処理を譲る
+                }
+            }
+            
+            // 完了処理
+            if (State.CurrentOperationIndex >= _operations.Count)
+            {
+                if (AutoReset)
+                {
+                    Stop();
+                }
+                else
+                {
+                    State.PlaybackState = PlaybackState.Paused;
+                }
+                
+                StateChanged?.Invoke();
+            }
+        }
+        catch (OperationCanceledException)
+        {
+            // キャンセル時は何もしない
+        }
     }
     
     /// <summary>
@@ -172,66 +289,6 @@ public class PlaybackService : IDisposable
         }
         
         StateChanged?.Invoke();
-    }
-    
-    private void OnTimerElapsed(object? sender, ElapsedEventArgs e)
-    {
-        if (State.CurrentOperationIndex >= _operations.Count)
-        {
-            if (AutoReset)
-            {
-                Stop(); // 自動リセット
-            }
-            else
-            {
-                Pause(); // 最後のフレームで一時停止
-            }
-            return;
-        }
-        
-        ClearHighlights();
-        
-        // 1フレームで複数の操作を処理
-        int operationsToProcess = Math.Min(OperationsPerFrame, _operations.Count - State.CurrentOperationIndex);
-        
-        for (int i = 0; i < operationsToProcess; i++)
-        {
-            var operation = _operations[State.CurrentOperationIndex];
-            ApplyOperation(operation, applyToArray: true, updateStats: true);
-            State.CurrentOperationIndex++;
-            
-            if (State.CurrentOperationIndex >= _operations.Count)
-            {
-                if (AutoReset)
-                {
-                    Stop(); // 自動リセット
-                }
-                else
-                {
-                    Pause(); // 最後のフレームで一時停止
-                }
-                // 完了時は常に描画
-                StateChanged?.Invoke();
-                return;
-            }
-        }
-        
-        // 最後の操作をハイライト表示
-        if (State.CurrentOperationIndex < _operations.Count)
-        {
-            var lastOperation = _operations[State.CurrentOperationIndex - 1];
-            ApplyOperation(lastOperation, applyToArray: false, updateStats: false);
-        }
-        
-        // UI更新の間引き: 前回の描画から一定時間経過した場合のみ描画
-        var now = DateTime.UtcNow;
-        var elapsed = (now - _lastRenderTime).TotalMilliseconds;
-        
-        if (elapsed >= RENDER_INTERVAL_MS)
-        {
-            _lastRenderTime = now;
-            StateChanged?.Invoke();
-        }
     }
     
     private void ApplyOperation(SortOperation operation, bool applyToArray, bool updateStats)
@@ -342,7 +399,12 @@ public class PlaybackService : IDisposable
     
     public void Dispose()
     {
-        _timer?.Dispose();
+        // 再生中のタスクをキャンセル
+        _cancellationTokenSource?.Cancel();
+        _cancellationTokenSource?.Dispose();
+        
+        // タスクの完了を待機（最大1秒）
+        _playbackTask?.Wait(TimeSpan.FromSeconds(1));
         
         // ArrayPoolに配列を返却
         if (_pooledArray != null)
