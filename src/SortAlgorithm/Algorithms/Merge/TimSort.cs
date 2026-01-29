@@ -599,7 +599,7 @@ public static class TimSort
                     }
                     s.Write(dest++, t.Read(cursor1++));
                     len1--;
-                    if (len1 == 1)
+                    if (len1 == 0)
                     {
                         goto exitMerge;
                     }
@@ -617,15 +617,12 @@ public static class TimSort
             exitMerge:
             ms.MinGallop = minGallop < 1 ? 1 : minGallop;
 
-            if (len1 == 1)
+            if (len2 == 0)
             {
-                s.CopyTo(cursor2, s, dest, len2);
-                s.Write(dest + len2, t.Read(cursor1));
-            }
-            else if (len1 > 0)
-            {
+                // Run2 is exhausted, copy remaining run1 from temp
                 t.CopyTo(cursor1, s, dest, len1);
             }
+            // else: len1 == 0, run2 is already in correct position
         }
         finally
         {
@@ -727,7 +724,7 @@ public static class TimSort
                     }
                     s.Write(dest--, t.Read(cursor2--));
                     len2--;
-                    if (len2 == 1)
+                    if (len2 == 0)
                     {
                         goto exitMerge;
                     }
@@ -764,17 +761,12 @@ public static class TimSort
             exitMerge:
             ms.MinGallop = minGallop < 1 ? 1 : minGallop;
 
-            if (len2 == 1)
+            if (len1 == 0)
             {
-                dest -= len1;
-                cursor1 -= len1;
-                s.CopyTo(cursor1 + 1, s, dest + 1, len1);
-                s.Write(dest, t.Read(cursor2));
-            }
-            else if (len2 > 0)
-            {
+                // Run1 is exhausted, copy remaining run2 from temp
                 t.CopyTo(0, s, dest - (len2 - 1), len2);
             }
+            // else: len2 == 0, run1 is already in correct position
         }
         finally
         {
