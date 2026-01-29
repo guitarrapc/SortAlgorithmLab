@@ -15,7 +15,13 @@
      @onmouseup="OnMouseUp"
      @onmousemove:preventDefault="@_isResizing">
     <div class="header">
-        <h1>🎨 Sort Algorithm Visualization</h1>
+        <h1>
+            🎨 Sort Algorithm Visualization
+            @if (!string.IsNullOrEmpty(_runningAlgorithmName))
+            {
+                <span style="font-size: 0.6em; color: #888; margin-left: 1em;">- @_runningAlgorithmName</span>
+            }
+        </h1>
         <div>
             <select @bind="SelectedCategory">
                 <option value="">All Categories</option>
@@ -161,6 +167,7 @@
 private string SelectedAlgorithm { get; set; } = "Bubble sort";
 private string SelectedCategory { get; set; } = "";
 private int ArraySize { get; set; } = 64;
+private string _runningAlgorithmName = string.Empty;
 
     private int[] AvailableSizes = [8, 16, 32, 64, 128, 256, 512, 1024, 2048, 4096];
 
@@ -290,6 +297,9 @@ private int ArraySize { get; set; } = 64;
             Console.WriteLine($"Algorithm not found: {SelectedAlgorithm}");
             return;
         }
+
+        // Update running algorithm name when sort is actually executed
+        _runningAlgorithmName = SelectedAlgorithm;
 
         // 要素数制限を適用（すべてのアルゴリズムで4096まで対応）
         var size = Math.Min(ArraySize, metadata.MaxElements);
