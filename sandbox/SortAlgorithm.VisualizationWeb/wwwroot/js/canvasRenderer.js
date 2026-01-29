@@ -63,8 +63,10 @@ window.canvasRenderer = {
      * @param {number[]} readIndices - 読み取り中のインデックス
      * @param {number[]} writeIndices - 書き込み中のインデックス
      * @param {boolean} isSortCompleted - ソートが完了したかどうか
+     * @param {Object} bufferArrays - バッファー配列（BufferId -> 配列）
+     * @param {boolean} showCompletionHighlight - 完了ハイライトを表示するか
      */
-    render: function(array, compareIndices, swapIndices, readIndices, writeIndices, isSortCompleted) {
+    render: function(array, compareIndices, swapIndices, readIndices, writeIndices, isSortCompleted, bufferArrays, showCompletionHighlight) {
         if (!this.canvas || !this.ctx) {
             console.error('Canvas not initialized');
             return;
@@ -72,11 +74,16 @@ window.canvasRenderer = {
         
         // デフォルト値を設定
         isSortCompleted = isSortCompleted || false;
+        bufferArrays = bufferArrays || {};
+        showCompletionHighlight = showCompletionHighlight !== undefined ? showCompletionHighlight : false;
         
         const rect = this.canvas.getBoundingClientRect();
         const width = rect.width;
         const height = rect.height;
         const arrayLength = array.length;
+        
+        // バッファー配列の数を取得
+        const bufferCount = Object.keys(bufferArrays).length;
         
         // 背景をクリア（黒）
         this.ctx.fillStyle = '#1A1A1A';
@@ -84,6 +91,11 @@ window.canvasRenderer = {
         
         // 配列が空の場合は何もしない
         if (arrayLength === 0) return;
+        
+        // 領域の分割を計算（メイン配列 + バッファー配列）
+        const totalSections = 1 + bufferCount; // メイン + バッファー
+        const sectionHeight = height / totalSections;
+        const mainArrayY = sectionHeight * bufferCount; // バッファーの下にメイン配列
         
         // バーの幅と隙間を計算
         const minBarWidth = 1.0;
@@ -118,17 +130,17 @@ window.canvasRenderer = {
             this.ctx.scale(scale, 1.0);
         }
         
-        // バーを描画（一括描画で高速化）
+        // メイン配列のバーを描画（一括描画で高速化）
         for (let i = 0; i < arrayLength; i++) {
             const value = array[i];
-            const barHeight = (value / maxValue) * (height - 20);
+            const barHeight = (value / maxValue) * (sectionHeight - 20);
             const x = i * totalBarWidth + (gap / 2);
-            const y = height - barHeight;
+            const y = mainArrayY + (sectionHeight - barHeight);
             
             // 色を決定（優先度順）
             let color;
-            if (isSortCompleted) {
-                // ソート完了時はすべて緑色
+            if (showCompletionHighlight) {
+                // ソート完了ハイライト表示中はすべて緑色
                 color = this.colors.sorted;
             } else if (swapSet.has(i)) {
                 color = this.colors.swap;
@@ -147,6 +159,62 @@ window.canvasRenderer = {
         }
         
         this.ctx.restore();
+        
+        // バッファー配列を描画（ソート完了時は非表示）
+        if (bufferCount > 0 && !isSortCompleted) {
+            const bufferIds = Object.keys(bufferArrays).sort((a, b) => parseInt(a) - parseInt(b));
+            
+            for (let bufferIndex = 0; bufferIndex < bufferIds.length; bufferIndex++) {
+                const bufferId = bufferIds[bufferIndex];
+                const bufferArray = bufferArrays[bufferId];
+                const bufferY = bufferIndex * sectionHeight;
+                
+                if (!bufferArray || bufferArray.length === 0) continue;
+                
+                // バッファー配列の最大値
+                const bufferMaxValue = Math.max(...bufferArray);
+                const bufferLength = bufferArray.length;
+                
+                // バッファー配列用のバー幅計算（メイン配列と同じロジック）
+                const bufferRequiredWidth = Math.max(width, bufferLength * minBarWidth / (1.0 - gapRatio));
+                const bufferTotalBarWidth = bufferRequiredWidth / bufferLength;
+                const bufferBarWidth = bufferTotalBarWidth * (1.0 - gapRatio);
+                const bufferGap = bufferTotalBarWidth * gapRatio;
+                
+                // バッファー配列のスケール
+                const bufferScale = Math.min(1.0, width / bufferRequiredWidth);
+                this.ctx.save();
+                if (bufferScale < 1.0) {
+                    this.ctx.scale(bufferScale, 1.0);
+                }
+                
+                // バッファー配列のバーを描画
+                for (let i = 0; i < bufferLength; i++) {
+                    const value = bufferArray[i];
+                    const barHeight = (value / bufferMaxValue) * (sectionHeight - 20);
+                    const x = i * bufferTotalBarWidth + (bufferGap / 2);
+                    const y = bufferY + (sectionHeight - barHeight);
+                    
+                    // バッファー配列は薄いシアン色で表示
+                    this.ctx.fillStyle = '#06B6D4';
+                    this.ctx.fillRect(x, y, bufferBarWidth, barHeight);
+                }
+                
+                this.ctx.restore();
+                
+                // バッファーIDラベルを表示
+                this.ctx.fillStyle = '#888';
+                this.ctx.font = '12px monospace';
+                this.ctx.fillText(`Buffer #${bufferId}`, 10, bufferY + 20);
+            }
+        }
+        
+        // メイン配列ラベルを表示（バッファーがある場合）
+        if (bufferCount > 0) {
+            this.ctx.fillStyle = '#888';
+            this.ctx.font = '12px monospace';
+            this.ctx.fillText('Main Array', 10, mainArrayY + 20);
+        }
         
         // 描画完了
         this.isRendering = false;

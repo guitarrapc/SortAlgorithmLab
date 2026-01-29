@@ -49,4 +49,7 @@ public class VisualizationState
     
     /// <summary>ソートが完了したかどうか</summary>
     public bool IsSortCompleted { get; set; }
+    
+    /// <summary>ソート完了ハイライトを表示するかどうか（2秒間のみ）</summary>
+    public bool ShowCompletionHighlight { get; set; }
 }

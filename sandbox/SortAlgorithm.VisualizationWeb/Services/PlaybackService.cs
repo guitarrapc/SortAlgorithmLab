@@ -77,7 +77,8 @@ public class PlaybackService : IDisposable
             CurrentOperationIndex = 0,
             PlaybackState = PlaybackState.Stopped,
             Mode = currentMode, // モードを引き継ぐ
-            IsSortCompleted = false // 明示的にfalseに設定
+            IsSortCompleted = false, // 明示的にfalseに設定
+            ShowCompletionHighlight = false // ハイライト表示もfalse
         };
         
         StateChanged?.Invoke();
@@ -127,6 +128,7 @@ public class PlaybackService : IDisposable
         // 完了
         ClearHighlights(); // ソート完了時にハイライトをクリア
         State.IsSortCompleted = true; // ソート完了フラグを設定
+        State.ShowCompletionHighlight = true; // ハイライト表示を開始
         State.PlaybackState = PlaybackState.Paused;
         
         // 最終状態を描画（緑色ハイライト表示）
@@ -176,6 +178,7 @@ public class PlaybackService : IDisposable
         State.BufferArrays.Clear();
         State.PlaybackState = PlaybackState.Stopped;
         State.IsSortCompleted = false; // リセット時に完了フラグをクリア
+        State.ShowCompletionHighlight = false; // ハイライト表示もクリア
         ClearHighlights();
         ResetStatistics();
         StateChanged?.Invoke();
@@ -248,6 +251,7 @@ public class PlaybackService : IDisposable
             {
                 ClearHighlights(); // ソート完了時にハイライトをクリア
                 State.IsSortCompleted = true; // ソート完了フラグを設定
+                State.ShowCompletionHighlight = true; // ハイライト表示を開始
                 State.PlaybackState = PlaybackState.Paused;
                 
                 // 緑色ハイライトを表示
@@ -439,8 +443,8 @@ public class PlaybackService : IDisposable
         {
             await Task.Delay(COMPLETION_HIGHLIGHT_DURATION_MS, _completionHighlightCts.Token);
             
-            // ハイライトをクリア
-            State.IsSortCompleted = false;
+            // ハイライト表示だけをクリア（IsSortCompletedは維持）
+            State.ShowCompletionHighlight = false;
             StateChanged?.Invoke();
         }
         catch (TaskCanceledException)

@@ -74,8 +74,10 @@ window.circularCanvasRenderer = {
      * @param {number[]} readIndices - 読み取り中のインデックス
      * @param {number[]} writeIndices - 書き込み中のインデックス
      * @param {boolean} isSortCompleted - ソートが完了したかどうか
+     * @param {Object} bufferArrays - バッファー配列（BufferId -> 配列）
+     * @param {boolean} showCompletionHighlight - 完了ハイライトを表示するか
      */
-    render: function(array, compareIndices, swapIndices, readIndices, writeIndices, isSortCompleted) {
+    render: function(array, compareIndices, swapIndices, readIndices, writeIndices, isSortCompleted, bufferArrays, showCompletionHighlight) {
         if (!this.canvas || !this.ctx) {
             console.error('Canvas not initialized');
             return;
@@ -83,11 +85,16 @@ window.circularCanvasRenderer = {
         
         // デフォルト値を設定
         isSortCompleted = isSortCompleted || false;
+        bufferArrays = bufferArrays || {};
+        showCompletionHighlight = showCompletionHighlight !== undefined ? showCompletionHighlight : false;
         
         const rect = this.canvas.getBoundingClientRect();
         const width = rect.width;
         const height = rect.height;
         const arrayLength = array.length;
+        
+        // バッファー配列の数を取得
+        const bufferCount = Object.keys(bufferArrays).length;
         
         // 背景をクリア（黒）
         this.ctx.fillStyle = '#1A1A1A';
@@ -100,7 +107,15 @@ window.circularCanvasRenderer = {
         const centerX = width / 2;
         const centerY = height / 2;
         const maxRadius = Math.min(width, height) * 0.45; // 90%の直径を使用（余白考慮）
+        
+        // バッファー配列がある場合は同心円リングとして配置
+        const totalRings = 1 + bufferCount; // メイン + バッファー
+        const ringWidth = (maxRadius * 0.8) / totalRings; // 各リングの幅
         const minRadius = maxRadius * 0.2; // 内側の空白（ドーナツ型）
+        
+        // メイン配列の半径範囲
+        const mainMinRadius = minRadius;
+        const mainMaxRadius = minRadius + ringWidth;
         
         // 最大値を取得
         const maxValue = Math.max(...array);
@@ -114,26 +129,26 @@ window.circularCanvasRenderer = {
         // 各要素を円周上に配置
         const angleStep = (2 * Math.PI) / arrayLength;
         
-        // 線を描画（中心から外側へ）
+        // メイン配列の線を描画
         for (let i = 0; i < arrayLength; i++) {
             const value = array[i];
             const angle = i * angleStep - Math.PI / 2; // -90度から開始（12時の位置）
             
-            // 値に応じた半径（0 = minRadius, maxValue = maxRadius）
-            const radius = minRadius + (value / maxValue) * (maxRadius - minRadius);
+            // 値に応じた半径（メイン配列のリング内）
+            const radius = mainMinRadius + (value / maxValue) * (mainMaxRadius - mainMinRadius);
             
             // 終点の座標
             const endX = centerX + Math.cos(angle) * radius;
             const endY = centerY + Math.sin(angle) * radius;
             
-            // 開始点の座標（内側の円周上）
-            const startX = centerX + Math.cos(angle) * minRadius;
-            const startY = centerY + Math.sin(angle) * minRadius;
+            // 開始点の座標（メイン配列リングの内側）
+            const startX = centerX + Math.cos(angle) * mainMinRadius;
+            const startY = centerY + Math.sin(angle) * mainMinRadius;
             
             // 色を決定（優先度順）
             let color;
-            if (isSortCompleted) {
-                // ソート完了時はすべて緑色
+            if (showCompletionHighlight) {
+                // ソート完了ハイライト表示中はすべて緑色
                 color = this.colors.sorted;
             } else if (swapSet.has(i)) {
                 color = this.colors.swap;
@@ -167,6 +182,79 @@ window.circularCanvasRenderer = {
             this.ctx.moveTo(startX, startY);
             this.ctx.lineTo(endX, endY);
             this.ctx.stroke();
+        }
+        
+        // バッファー配列を同心円リングとして描画（ソート完了時は非表示）
+        if (bufferCount > 0 && !isSortCompleted) {
+            const bufferIds = Object.keys(bufferArrays).sort((a, b) => parseInt(a) - parseInt(b));
+            
+            for (let bufferIndex = 0; bufferIndex < bufferIds.length; bufferIndex++) {
+                const bufferId = bufferIds[bufferIndex];
+                const bufferArray = bufferArrays[bufferId];
+                
+                if (!bufferArray || bufferArray.length === 0) continue;
+                
+                // このバッファー配列のリング範囲
+                const ringIndex = bufferIndex + 1; // メイン配列の外側
+                const bufferMinRadius = minRadius + ringIndex * ringWidth;
+                const bufferMaxRadius = bufferMinRadius + ringWidth;
+                
+                // バッファー配列の最大値
+                const bufferMaxValue = Math.max(...bufferArray);
+                const bufferLength = bufferArray.length;
+                const bufferAngleStep = (2 * Math.PI) / bufferLength;
+                
+                // バッファー配列の線を描画
+                for (let i = 0; i < bufferLength; i++) {
+                    const value = bufferArray[i];
+                    const angle = i * bufferAngleStep - Math.PI / 2;
+                    
+                    // 値に応じた半径（バッファーリング内）
+                    const radius = bufferMinRadius + (value / bufferMaxValue) * (bufferMaxRadius - bufferMinRadius);
+                    
+                    // 終点の座標
+                    const endX = centerX + Math.cos(angle) * radius;
+                    const endY = centerY + Math.sin(angle) * radius;
+                    
+                    // 開始点の座標（バッファーリングの内側）
+                    const startX = centerX + Math.cos(angle) * bufferMinRadius;
+                    const startY = centerY + Math.sin(angle) * bufferMinRadius;
+                    
+                    // バッファー配列は薄いシアン色で表示
+                    const bufferColor = '#06B6D4';
+                    
+                    // 線の太さを配列サイズに応じて調整
+                    let lineWidth;
+                    if (bufferLength <= 64) {
+                        lineWidth = 3;
+                    } else if (bufferLength <= 256) {
+                        lineWidth = 2;
+                    } else if (bufferLength <= 1024) {
+                        lineWidth = 1.5;
+                    } else {
+                        lineWidth = 1;
+                    }
+                    
+                    // 線を描画
+                    this.ctx.strokeStyle = bufferColor;
+                    this.ctx.lineWidth = lineWidth;
+                    this.ctx.beginPath();
+                    this.ctx.moveTo(startX, startY);
+                    this.ctx.lineTo(endX, endY);
+                    this.ctx.stroke();
+                }
+                
+                // バッファーIDラベルを表示（円の外側）
+                const labelAngle = -Math.PI / 2; // 12時の位置
+                const labelRadius = bufferMaxRadius + 15;
+                const labelX = centerX + Math.cos(labelAngle) * labelRadius;
+                const labelY = centerY + Math.sin(labelAngle) * labelRadius;
+                
+                this.ctx.fillStyle = '#888';
+                this.ctx.font = '12px monospace';
+                this.ctx.textAlign = 'center';
+                this.ctx.fillText(`Buf#${bufferId}`, labelX, labelY);
+            }
         }
         
         // 中心円を描画（オプション、視覚的なアクセント）
