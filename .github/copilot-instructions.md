@@ -19,20 +19,20 @@ This is a C# sorting algorithm laboratory for educational and performance analys
 
 ### Running Tests
 
-```powershell
+```shell
 dotnet test
 ```
 
 ### Running Benchmarks
 
-```powershell
+```shell
 cd sandbox/SandboxBenchmark
 dotnet run -c Release
 ```
 
 ### Building the Project
 
-```powershell
+```shell
 dotnet build
 ```
 
@@ -43,14 +43,16 @@ dotnet build
 If you need to create a .cs file to verify something, you can create it in the `sandbox` folder and run it.
 
 For a standalone C# file (without .csproj):
-```powershell
+
+```shell
 # Create a single .cs file and run it directly
 dotnet run path/to/YourScript.cs
 # Example: dotnet run sandbox/TestScript.cs
 ```
 
 For a project folder with .csproj:
-```powershell
+
+```shell
 cd sandbox/YourProjectFolder
 dotnet run -c Release
 # Or specify the project file:
