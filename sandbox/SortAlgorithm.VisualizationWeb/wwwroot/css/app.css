@@ -78,34 +78,6 @@ html, body {
     content: '⏸';
 }
 
-.mode-btn {
-    padding: 8px 12px;
-    background-color: #3A3A3A;
-    color: var(--text-light);
-    border: 2px solid #4A4A4A;
-    border-radius: 6px;
-    cursor: pointer;
-    font-size: 0.9rem;
-    font-weight: 500;
-    transition: all 0.2s;
-}
-
-.mode-btn:hover {
-    background-color: #4A4A4A;
-    border-color: var(--color-compare);
-}
-
-.mode-btn.active {
-    background-color: var(--color-compare);
-    border-color: var(--color-compare);
-    color: var(--text-light);
-    box-shadow: 0 2px 8px rgba(168, 85, 247, 0.4);
-}
-
-.mode-btn.active:hover {
-    background-color: #9333EA;
-    border-color: #9333EA;
-}
 
 
 .visualization-page {

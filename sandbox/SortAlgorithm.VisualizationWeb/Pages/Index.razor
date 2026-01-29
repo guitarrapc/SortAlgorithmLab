@@ -83,25 +83,19 @@
                     </select>
                 </div>
 
+
+                <div class="stat-item">
+                    <span class="stat-label">Visualization Mode</span>
+                    <select @bind="SelectedVisualizationMode" @bind:after="OnVisualizationModeChanged" style="width: 100%;">
+                        <option value="@VisualizationMode.BarChart">📊 Bar Chart</option>
+                        <option value="@VisualizationMode.Circular">⭕ Circular</option>
+                    </select>
+                </div>
+
                 <div class="stat-item">
                     <button class="primary" @onclick="GenerateAndSort" style="width: 100%;">🎲 Generate & Sort</button>
                 </div>
 
-                <div class="stat-item">
-                    <span class="stat-label">Visualization Mode</span>
-                    <div style="display: flex; gap: 8px; margin-top: 8px;">
-                        <button class="@(Playback.State.Mode == VisualizationMode.BarChart ? "mode-btn active" : "mode-btn")"
-                                @onclick="() => SetVisualizationMode(VisualizationMode.BarChart)"
-                                style="flex: 1;">
-                            📊 Bar Chart
-                        </button>
-                        <button class="@(Playback.State.Mode == VisualizationMode.Circular ? "mode-btn active" : "mode-btn")"
-                                @onclick="() => SetVisualizationMode(VisualizationMode.Circular)"
-                                style="flex: 1;">
-                            ⭕ Circular
-                        </button>
-                    </div>
-                </div>
 
             <div class="stat-item">
                 <label class="toggle-switch">
@@ -191,6 +185,7 @@
 private string SelectedAlgorithm { get; set; } = "Bubble sort";
 private string SelectedCategory { get; set; } = "";
 private int ArraySize { get; set; } = 64;
+private VisualizationMode SelectedVisualizationMode { get; set; } = VisualizationMode.BarChart;
 private string _runningAlgorithmName = string.Empty;
 
     private int[] AvailableSizes = [8, 16, 32, 64, 128, 256, 512, 1024, 2048, 4096];
@@ -209,6 +204,8 @@ private string _runningAlgorithmName = string.Empty;
         Playback.StateChanged += OnStateChanged;
         // 初期アルゴリズムの推奨サイズを設定
         SetRecommendedSize();
+        // 初期モードを同期
+        SelectedVisualizationMode = Playback.State.Mode;
     }
 
     private void ToggleSidebar()
@@ -355,9 +352,9 @@ private string _runningAlgorithmName = string.Empty;
         Playback.SeekTo(index);
     }
 
-    private void SetVisualizationMode(VisualizationMode mode)
+    private void OnVisualizationModeChanged()
     {
-        Playback.State.Mode = mode;
+        Playback.State.Mode = SelectedVisualizationMode;
         StateHasChanged();
     }
 
