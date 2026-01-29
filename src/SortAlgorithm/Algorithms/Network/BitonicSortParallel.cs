@@ -42,6 +42,7 @@ namespace SortAlgorithm.Algorithms;
 /// <item><description>Uses Parallel.Invoke for recursive divide-and-conquer (threshold: 256 elements minimum for parallelization)</description></item>
 /// <item><description>Compare-and-swap loops are executed sequentially to minimize thread overhead</description></item>
 /// <item><description>Creates SortSpan instances at merge level (not per-comparison) for efficient statistics tracking</description></item>
+/// <item><description>Automatically detects WebAssembly and single-core environments: falls back to sequential execution</description></item>
 /// <item><description>Strictly requires power-of-2 input length. Throws ArgumentException otherwise.</description></item>
 /// </list>
 /// <para><strong>Use Cases:</strong></para>
@@ -65,11 +66,33 @@ public static class BitonicSortParallel
     // - Below threshold: sequential execution to avoid thread creation overhead
     private const int PARALLEL_THRESHOLD = 256;
 
+    // Detect if parallel execution is actually beneficial
+    // WebAssembly and single-core systems should use sequential execution
+    private static readonly bool _useParallelExecution = Environment.ProcessorCount > 1 && !IsWebAssembly();
+
     // Parallel options with max degree of parallelism set to number of processors
     private static readonly ParallelOptions parallelOptions = new ParallelOptions
     {
         MaxDegreeOfParallelism = Environment.ProcessorCount,
     };
+
+    /// <summary>
+    /// Detects if running in a WebAssembly environment.
+    /// WebAssembly is single-threaded and Parallel.Invoke executes sequentially.
+    /// </summary>
+    private static bool IsWebAssembly()
+    {
+        // Check for WebAssembly runtime
+        // In Blazor WebAssembly, RuntimeInformation.OSDescription contains "Browser"
+        try
+        {
+            return System.Runtime.InteropServices.RuntimeInformation.OSDescription.Contains("Browser", StringComparison.OrdinalIgnoreCase);
+        }
+        catch
+        {
+            return false;
+        }
+    }
 
     /// <summary>
     /// Sorts the elements in the specified array in ascending order using the default comparer.
@@ -119,7 +142,8 @@ public static class BitonicSortParallel
             int k = count / 2;
 
             // For large enough sequences, use parallel tasks for left and right halves
-            if (count >= PARALLEL_THRESHOLD)
+            // Only parallelize if running on multi-core non-WebAssembly environment
+            if (_useParallelExecution && count >= PARALLEL_THRESHOLD)
             {
                 Parallel.Invoke(
                     parallelOptions,
@@ -163,7 +187,8 @@ public static class BitonicSortParallel
             }
 
             // Recursively merge both halves - parallelize if large enough
-            if (count >= PARALLEL_THRESHOLD)
+            // Only parallelize if running on multi-core non-WebAssembly environment
+            if (_useParallelExecution && count >= PARALLEL_THRESHOLD)
             {
                 Parallel.Invoke(
                     parallelOptions,
