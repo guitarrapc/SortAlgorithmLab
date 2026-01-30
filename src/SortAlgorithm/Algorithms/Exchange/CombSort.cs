@@ -88,30 +88,32 @@ public static class CombSort
 
         var s = new SortSpan<T>(span, context, BUFFER_MAIN);
 
-        var length = s.Length;
-        var h = s.Length;
+        var len = s.Length;
+        var gap = len;
+        var bubbleEnd = len;  // Scan range for bubble phase (last swap index optimization)
         var swapped = true;
-        var n = s.Length;  // Scan range for bubble phase (last swap index optimization)
 
-        while (h != 1 || swapped)
+        while (gap != 1 || swapped)
         {
             // Reduce gap by shrink factor 1.3 (multiply by 10/13)
-            h = h * 10 / 13;
-            if (h < 1) h = 1;
+            gap = gap * 10 / 13;
+            if (gap < 1) gap = 1;
 
             // Apply Comb11 optimization
-            if (h == 9 || h == 10)
+            if (gap == 9 || gap == 10)
             {
-                h = 11;
+                gap = 11;
             }
 
             swapped = false;
 
-            if (h == 1)
+            if (gap == 1)
             {
+                bubbleEnd = len;
+
                 // Final bubble sort pass with last swap index optimization
                 var newN = 0;
-                for (var i = 0; i + 1 < n; i++)
+                for (var i = 0; i + 1 < bubbleEnd; i++)
                 {
                     if (s.Compare(i, i + 1) > 0)
                     {
@@ -120,16 +122,17 @@ public static class CombSort
                         newN = i + 1;  // Record last swap position
                     }
                 }
-                n = newN;  // Shrink scan range for next pass
+                bubbleEnd = newN;  // Shrink scan range for next pass
             }
             else
             {
                 // Gap-based comb sort pass
-                for (var i = 0; i + h < length; i++)
+                var end = len - gap;
+                for (var i = 0; i < end; i++)
                 {
-                    if (s.Compare(i, i + h) > 0)
+                    if (s.Compare(i, i + gap) > 0)
                     {
-                        s.Swap(i, i + h);
+                        s.Swap(i, i + gap);
                         swapped = true;
                     }
                 }
