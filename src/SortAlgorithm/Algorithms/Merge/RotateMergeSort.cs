@@ -26,9 +26,10 @@ namespace SortAlgorithm.Algorithms;
 /// The left subarray [left..mid] and right subarray [mid+1..right] are sorted before merging.</description></item>
 /// <item><description><strong>In-Place Merge Step:</strong> Two sorted subarrays must be merged without using additional memory.
 /// This is achieved using array rotation, which rearranges elements by shifting blocks of the array.</description></item>
-/// <item><description><strong>Rotation Algorithm (Block Reversal):</strong> Array rotation is implemented using three reversals:
-/// To rotate array A of length n by k positions: Reverse(A[0..k-1]), Reverse(A[k..n-1]), Reverse(A[0..n-1]).
-/// This achieves O(n) time rotation with O(1) space and preserves element stability.</description></item>
+/// <item><description><strong>Rotation Algorithm (GCD-Cycle / Juggling):</strong> Array rotation is implemented using GCD-based cycle detection.
+/// To rotate array A of length n by k positions: Find GCD(n, k) cycles, and for each cycle, move elements using assignments.
+/// This achieves O(n) time rotation with O(1) space using only writes (no swaps needed).
+/// The algorithm divides rotation into GCD(n,k) independent cycles, rotating elements within each cycle.</description></item>
 /// <item><description><strong>Merge via Rotation:</strong> During merge, find the position where the first element of the right partition
 /// should be inserted in the left partition (using binary search). Rotate elements to place it correctly, then recursively
 /// merge the remaining elements. This maintains sorted order while being in-place.</description></item>
@@ -44,7 +45,8 @@ namespace SortAlgorithm.Algorithms;
 /// <item><description>Average case: O(n log² n) - Binary search (log n) + rotation (n) per merge level (log n levels)</description></item>
 /// <item><description>Worst case  : O(n log² n) - Rotation adds O(n) factor to each merge operation</description></item>
 /// <item><description>Comparisons : Best O(n), Average/Worst O(n log² n) - Insertion sort reduces comparisons for small subarrays</description></item>
-/// <item><description>Writes      : Best O(n), Average/Worst O(n² log n) - Insertion sort reduces writes for small subarrays</description></item>
+/// <item><description>Writes      : Best O(n), Average/Worst O(n² log n) - GCD-cycle rotation uses assignments only (no swaps)</description></item>
+/// <item><description>Swaps       : 0 - GCD-cycle rotation uses only write operations, no swaps needed</description></item>
 /// <item><description>Space       : O(log n) - Only recursion stack space, no auxiliary buffer needed</description></item>
 /// </list>
 /// <para><strong>Advantages of Rotate Merge Sort:</strong></para>
@@ -53,6 +55,7 @@ namespace SortAlgorithm.Algorithms;
 /// <item><description>Stable - Preserves relative order of equal elements</description></item>
 /// <item><description>Hybrid optimization - Insertion sort improves performance for small subarrays</description></item>
 /// <item><description>Block rotation - Processes consecutive elements together, reducing operations</description></item>
+/// <item><description>GCD-cycle rotation - Efficient assignment-based rotation without swaps</description></item>
 /// </list>
 /// <para><strong>Disadvantages:</strong></para>
 /// <list type="bullet">
@@ -193,8 +196,9 @@ public static class RotateMergeSort
     }
 
     /// <summary>
-    /// Rotates a subarray by k positions to the left using the reversal algorithm.
-    /// Rotation is achieved by three reversals: Reverse[0..k-1], Reverse[k..n-1], Reverse[0..n-1].
+    /// Rotates a subarray by k positions to the left using the GCD-cycle (Juggling) algorithm.
+    /// This algorithm divides the rotation into GCD(n, k) independent cycles and moves elements
+    /// within each cycle using assignments only (no swaps needed).
     /// </summary>
     /// <param name="s">The SortSpan wrapping the array</param>
     /// <param name="left">The start index of the subarray to rotate</param>
@@ -205,32 +209,58 @@ public static class RotateMergeSort
     {
         if (k == 0 || left >= right) return;
 
-        // Normalize k to be within range
         var n = right - left + 1;
         k = k % n;
         if (k == 0) return;
 
-        // Three-reversal rotation algorithm
-        Reverse(s, left, left + k - 1);
-        Reverse(s, left + k, right);
-        Reverse(s, left, right);
+        // GCD-cycle rotation (Juggling algorithm)
+        // Divide rotation into gcd(n, k) independent cycles
+        var cycles = GCD(n, k);
+        
+        for (var cycle = 0; cycle < cycles; cycle++)
+        {
+            // Save the first element of this cycle
+            var startIdx = left + cycle;
+            var temp = s.Read(startIdx);
+            var currentIdx = startIdx;
+
+            // Move elements in this cycle
+            while (true)
+            {
+                var nextIdx = currentIdx + k;
+                if (nextIdx > right)
+                    nextIdx = left + (nextIdx - right - 1);
+
+                // If we've completed the cycle, break
+                if (nextIdx == startIdx)
+                    break;
+
+                // Move element from nextIdx to currentIdx
+                s.Write(currentIdx, s.Read(nextIdx));
+                currentIdx = nextIdx;
+            }
+
+            // Place the saved element in its final position
+            s.Write(currentIdx, temp);
+        }
     }
 
     /// <summary>
-    /// Reverses a subarray in-place.
+    /// Calculates the greatest common divisor (GCD) of two numbers using Euclid's algorithm.
     /// </summary>
-    /// <param name="s">The SortSpan wrapping the array</param>
-    /// <param name="left">The start index of the subarray to reverse</param>
-    /// <param name="right">The end index of the subarray to reverse</param>
+    /// <param name="a">First number</param>
+    /// <param name="b">Second number</param>
+    /// <returns>GCD of a and b</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private static void Reverse<T>(SortSpan<T> s, int left, int right) where T : IComparable<T>
+    private static int GCD(int a, int b)
     {
-        while (left < right)
+        while (b != 0)
         {
-            s.Swap(left, right);
-            left++;
-            right--;
+            var temp = b;
+            b = a % b;
+            a = temp;
         }
+        return a;
     }
 
     /// <summary>

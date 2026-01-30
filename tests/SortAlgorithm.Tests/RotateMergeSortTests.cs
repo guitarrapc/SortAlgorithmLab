@@ -184,13 +184,10 @@ public class RotateMergeSortTests
         var minWrites = n <= 16 ? (ulong)(n * 4.0) : (ulong)(n * logN * 1.0);
         var maxWrites = n <= 16 ? (ulong)(n * 5.5) : (ulong)(n * logN * 20.0);
 
-        // Swaps significantly reduced due to insertion sort (uses shifts instead)
-        // n=10:  0 swaps       (insertion sort uses shifts, not swaps)
-        // n=20:  20 swaps      (only in rotation parts)
-        // n=50:  165 swaps
-        // n=100: 294 swaps
+        // Swaps: GCD-cycle rotation uses assignments only (no swaps)
+        // All rotation implementations should have 0 swaps
         var minSwaps = 0UL;
-        var maxSwaps = n <= 16 ? 0UL : (ulong)(n * logN * 2.0);
+        var maxSwaps = 0UL;
 
         var minReads = stats.CompareCount * 2;
 
@@ -233,9 +230,9 @@ public class RotateMergeSortTests
         var minWrites = n <= 16 ? (ulong)(n * 1.5) : (ulong)(n * logN * 0.5);
         var maxWrites = n <= 16 ? (ulong)(n * 4.0) : (ulong)(n * logN * 15.0);
 
-        // Swaps reduced by insertion sort optimization
+        // Swaps: GCD-cycle rotation uses assignments only (no swaps)
         var minSwaps = 0UL;
-        var maxSwaps = n <= 16 ? (ulong)(n * 1.5) : (ulong)(n * logN * 8.0);
+        var maxSwaps = 0UL;
 
         var minReads = stats.CompareCount * 2;
 
