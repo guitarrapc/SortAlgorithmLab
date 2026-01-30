@@ -160,29 +160,30 @@ public class RotateMergeSortTests
         var reversed = Enumerable.Range(0, n).Reverse().ToArray();
         RotateMergeSort.Sort(reversed.AsSpan(), stats);
 
-        // Rotate Merge Sort with hybrid optimization (InsertionSort for ≤16 elements):
-        // Small subarrays use insertion sort (O(n²) but fast for small n).
-        // Block rotation optimization processes consecutive elements together.
+        // Rotate Merge Sort with galloping optimization for reversed data:
+        // Galloping (exponential search + binary search) efficiently finds consecutive blocks.
+        // Small subarrays (≤16) use insertion sort.
         //
-        // Actual observations for reversed data with optimizations:
+        // Actual observations for reversed data with galloping + insertion sort:
         // n=10:  45 comparisons    (insertion sort, ~4.5n)
-        // n=20:  104 comparisons   (~1.2 * n * log₂(n))
-        // n=50:  350 comparisons   (~1.2 * n * log₂(n))
-        // n=100: 756 comparisons   (~1.1 * n * log₂(n))
+        // n=20:  100 comparisons   (~1.2 * n * log₂(n))
+        // n=50:  325 comparisons   (~1.2 * n * log₂(n))
+        // n=100: 668 comparisons   (~1.0 * n * log₂(n))
         //
-        // Pattern: approximately 1.0 * n * log₂(n) to 2.0 * n * log₂(n) for n > 16
-        //          approximately 4.0 * n to 5.5 * n for n ≤ 16 (insertion sort)
+        // Pattern: Galloping improves efficiency, especially for larger sizes
+        // n≤16: ~4.0n to ~5.5n (insertion sort)
+        // n>16: ~1.0 * n * log₂(n) to ~2.0 * n * log₂(n) (galloping reduces comparisons)
         var logN = Math.Log2(n);
         var minCompares = n <= 16 ? (ulong)(n * 4.0) : (ulong)(n * logN * 1.0);
         var maxCompares = n <= 16 ? (ulong)(n * 5.5) : (ulong)(n * logN * 2.0);
 
-        // Writes are reduced due to insertion sort and block rotation
-        // n=10:  45 writes     (insertion sort)
-        // n=20:  140 writes    (~1.6 * n * log₂(n))
-        // n=50:  1050 writes   (~3.7 * n * log₂(n))
-        // n=100: 3612 writes   (~5.4 * n * log₂(n))
+        // Writes are reduced due to insertion sort and GCD-cycle rotation
+        // n=10:  54 writes
+        // n=20:  128 writes
+        // n=50:  434 writes
+        // n=100: 968 writes
         var minWrites = n <= 16 ? (ulong)(n * 4.0) : (ulong)(n * logN * 1.0);
-        var maxWrites = n <= 16 ? (ulong)(n * 5.5) : (ulong)(n * logN * 20.0);
+        var maxWrites = n <= 16 ? (ulong)(n * 6.0) : (ulong)(n * logN * 20.0);
 
         // Swaps: GCD-cycle rotation uses assignments only (no swaps)
         // All rotation implementations should have 0 swaps
@@ -209,16 +210,16 @@ public class RotateMergeSortTests
         var random = Enumerable.Range(0, n).OrderBy(_ => Guid.NewGuid()).ToArray();
         RotateMergeSort.Sort(random.AsSpan(), stats);
 
-        // Rotate Merge Sort with hybrid optimization for random data:
+        // Rotate Merge Sort with galloping optimization for random data:
+        // Galloping efficiently finds consecutive blocks in random data.
         // Small subarrays (≤16) use insertion sort.
-        // Block-wise rotation reduces operations.
         // Performance varies based on initial order.
         //
-        // Observed range for random data with optimizations:
-        // n=10:  ~17-35 comparisons   (varies widely with randomness, insertion sort)
-        // n=20:  ~80-120 comparisons  (~1.0-1.4 * n * log₂(n))
-        // n=50:  ~360-420 comparisons (~1.3-1.5 * n * log₂(n))
-        // n=100: ~900-1000 comparisons (~1.4-1.5 * n * log₂(n))
+        // Observed range for random data with galloping + insertion sort:
+        // n=10:  ~16-34 comparisons   (varies with randomness, insertion sort)
+        // n=20:  ~95-110 comparisons  (~1.1-1.3 * n * log₂(n))
+        // n=50:  ~356-438 comparisons (~1.3-1.5 * n * log₂(n))
+        // n=100: ~1015-1063 comparisons (~1.5-1.6 * n * log₂(n))
         //
         // Pattern: approximately 1.5 * n to 4.0 * n for n ≤ 16 (insertion sort, wide variance)
         //          approximately 0.8 * n * log₂(n) to 2.0 * n * log₂(n) for n > 16

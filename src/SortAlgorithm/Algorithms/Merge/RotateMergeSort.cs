@@ -7,18 +7,21 @@ namespace SortAlgorithm.Algorithms;
 /// 最適化したRotate Merge Sortです。
 /// 配列を再帰的に半分に分割し、それぞれをソートした後、回転アルゴリズムを使用してインプレースでマージする分割統治アルゴリズムです。
 /// 安定ソートであり、追加メモリを使用せずにO(n log² n)の性能を保証します。
-/// 小さい配列（≤16要素）ではInsertionSortを使用、ローテートにGCDを用いる実用的な最適化を含みます。
+/// 小さい配列（≤16要素）ではInsertionSortを使用、ローテートにGCD-cycle、連続ブロック検索にGallopingを用いる実用的な最適化を含みます。
 /// <br/>
 /// Optimized Rotate Merge Sort.
 /// Recursively divides the array in half, sorts each part, then merges sorted subarrays in-place using array rotation.
 /// This divide-and-conquer algorithm is stable and guarantees O(n log² n) performance without requiring auxiliary space.
-/// Includes practical optimization using insertion sort for small subarrays (≤16 elements) and GCD-based rotation.
+/// Includes practical optimizations: insertion sort for small subarrays (≤16 elements), GCD-cycle rotation, and galloping for finding consecutive blocks.
 /// </summary>
 /// <remarks>
 /// <para><strong>Theoretical Conditions for Correct Rotate Merge Sort:</strong></para>
 /// <list type="number">
 /// <item><description><strong>Hybrid Optimization:</strong> For subarrays with ≤16 elements, insertion sort is used instead of rotation-based merge.
 /// This is a practical optimization similar to TimSort and IntroSort, reducing overhead for small sizes.</description></item>
+/// <item><description><strong>Galloping Optimization:</strong> Uses exponential search (1, 2, 4, 8, ...) followed by binary search to efficiently find
+/// long runs of consecutive elements from the right partition. This is similar to TimSort's galloping mode and reduces comparisons
+/// when merging data with long consecutive blocks.</description></item>
 /// <item><description><strong>Divide Step (Binary Partitioning):</strong> The array must be divided into two roughly equal halves at each recursion level.
 /// The midpoint is calculated as mid = (left + right) / 2, ensuring balanced subdivision.
 /// This guarantees a recursion depth of ⌈log₂(n)⌉.</description></item>
@@ -40,13 +43,13 @@ namespace SortAlgorithm.Algorithms;
 /// </list>
 /// <para><strong>Performance Characteristics:</strong></para>
 /// <list type="bullet">
-/// <item><description>Family      : Hybrid (Merge + Insertion)</description></item>
+/// <item><description>Family      : Hybrid (Merge + Insertion + Galloping)</description></item>
 /// <item><description>Stable      : Yes (binary search with &lt;= comparison preserves relative order)</description></item>
 /// <item><description>In-place    : Yes (O(1) auxiliary space, uses rotation instead of buffer)</description></item>
 /// <item><description>Best case   : O(n) - Sorted data with insertion sort optimization for small partitions</description></item>
 /// <item><description>Average case: O(n log² n) - Binary search (log n) + rotation (n) per merge level (log n levels)</description></item>
 /// <item><description>Worst case  : O(n log² n) - Rotation adds O(n) factor to each merge operation</description></item>
-/// <item><description>Comparisons : Best O(n), Average/Worst O(n log² n) - Insertion sort reduces comparisons for small subarrays</description></item>
+/// <item><description>Comparisons : Best O(n), Average/Worst O(n log² n) - Galloping reduces comparisons for consecutive blocks</description></item>
 /// <item><description>Writes      : Best O(n), Average/Worst O(n² log n) - GCD-cycle rotation uses assignments only (no swaps)</description></item>
 /// <item><description>Swaps       : 0 - GCD-cycle rotation uses only write operations, no swaps needed</description></item>
 /// <item><description>Space       : O(log n) - Only recursion stack space, no auxiliary buffer needed</description></item>
@@ -56,14 +59,14 @@ namespace SortAlgorithm.Algorithms;
 /// <item><description>True in-place sorting - O(1) auxiliary space (only recursion stack)</description></item>
 /// <item><description>Stable - Preserves relative order of equal elements</description></item>
 /// <item><description>Hybrid optimization - Insertion sort improves performance for small subarrays</description></item>
-/// <item><description>Block rotation - Processes consecutive elements together, reducing operations</description></item>
+/// <item><description>Galloping search - Efficiently finds consecutive blocks (TimSort-style)</description></item>
 /// <item><description>GCD-cycle rotation - Efficient assignment-based rotation without swaps</description></item>
 /// </list>
 /// <para><strong>Disadvantages:</strong></para>
 /// <list type="bullet">
 /// <item><description>Slower than buffer-based merge sort - Additional log n factor from binary search and rotation overhead</description></item>
 /// <item><description>More writes than standard merge sort - Rotation requires multiple element movements</description></item>
-/// <item><description>Not adaptive - Doesn't exploit existing order in data</description></item>
+/// <item><description>Complexity - Multiple optimizations (insertion sort, galloping, GCD-cycle) increase code complexity</description></item>
 /// </list>
 /// <para><strong>Use Cases:</strong></para>
 /// <list type="bullet">
@@ -150,18 +153,20 @@ public static class RotateMergeSort
     /// <summary>
     /// Merges two sorted subarrays [left..mid] and [mid+1..right] in-place using rotation.
     /// Uses binary search to find insertion points and rotation to rearrange elements.
-    /// Optimization: Processes multiple consecutive elements from the right partition at once.
+    /// Optimization: Uses galloping (exponential search + binary search) to efficiently find
+    /// long runs of consecutive elements from the right partition.
     /// </summary>
     /// <param name="s">The SortSpan wrapping the array</param>
     /// <param name="left">The inclusive start index of the left subarray</param>
     /// <param name="mid">The inclusive end index of the left subarray</param>
     /// <param name="right">The inclusive end index of the right subarray</param>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private static void MergeInPlace<T>(SortSpan<T> s, int left, int mid, int right) where T : IComparable<T>
     {
         var start1 = left;
         var start2 = mid + 1;
 
-        // Main merge loop using rotation algorithm
+        // Main merge loop using rotation algorithm with galloping optimization
         while (start1 <= mid && start2 <= right)
         {
             // If element at start1 is in correct position
@@ -171,17 +176,13 @@ public static class RotateMergeSort
             }
             else
             {
-                // Optimization: Find how many consecutive elements from right partition
-                // can be moved to the current position in left partition
+                // Use binary search to find the position where start2 element should be inserted in [start1..mid]
                 var value = s.Read(start2);
                 var insertPos = BinarySearch(s, start1, mid, value);
                 
-                // Find the end of consecutive elements in right partition that belong here
-                var start2End = start2;
-                while (start2End < right && s.Compare(insertPos, start2End + 1) > 0)
-                {
-                    start2End++;
-                }
+                // Galloping optimization: Find the end of consecutive elements in right partition
+                // that belong before insertPos using exponential search + binary search
+                var start2End = GallopingSearchEnd(s, insertPos, start2, right);
                 
                 var blockSize = start2End - start2 + 1;
                 var rotateDistance = start2 - insertPos;
@@ -195,6 +196,52 @@ public static class RotateMergeSort
                 start2 = start2End + 1;
             }
         }
+    }
+
+    /// <summary>
+    /// Finds the end position of consecutive elements from the right partition using galloping.
+    /// Uses exponential search followed by binary search for efficiency.
+    /// This is similar to TimSort's galloping mode.
+    /// </summary>
+    /// <param name="s">The SortSpan wrapping the array</param>
+    /// <param name="insertPos">The position where elements should be inserted</param>
+    /// <param name="start">The start position in the right partition</param>
+    /// <param name="end">The end position in the right partition</param>
+    /// <returns>The last index where elements should still be inserted before insertPos</returns>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private static int GallopingSearchEnd<T>(SortSpan<T> s, int insertPos, int start, int end) where T : IComparable<T>
+    {
+        // Phase 1: Exponential search (galloping) - find rough upper bound
+        // Step size: 1, 2, 4, 8, 16, ... (exponentially increasing)
+        var lastGood = start;
+        var step = 1;
+        
+        while (start + step <= end && s.Compare(insertPos, start + step) > 0)
+        {
+            lastGood = start + step;
+            step *= 2;  // Exponential growth
+        }
+        
+        // Phase 2: Binary search for exact boundary in [lastGood..min(start+step, end)]
+        var low = lastGood;
+        var high = Math.Min(start + step, end);
+        
+        // Binary search to find the last element that should be before insertPos
+        while (low < high)
+        {
+            var mid = low + (high - low + 1) / 2;
+            
+            if (s.Compare(insertPos, mid) > 0)
+            {
+                low = mid;
+            }
+            else
+            {
+                high = mid - 1;
+            }
+        }
+        
+        return low;
     }
 
     /// <summary>
