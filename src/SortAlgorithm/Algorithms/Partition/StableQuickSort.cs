@@ -17,10 +17,10 @@ namespace SortAlgorithm.Algorithms;
 /// <remarks>
 /// <para><strong>Theoretical Conditions for Correct Stable QuickSort:</strong></para>
 /// <list type="number">
-/// <item><description><strong>Median-of-3 Pivot Selection:</strong> The pivot value is selected as the median of three sampled elements 
+/// <item><description><strong>Median-of-3 Pivot Selection:</strong> The pivot value is selected as the median of three sampled elements
 /// at quartile positions: array[q1], array[mid], and array[q3], where q1 = left + length/4, mid = left + length/2, q3 = left + 3*length/4.
 /// This selection method is computed using 2-3 comparisons and ensures better pivot quality than random selection or simple left/mid/right sampling.
-/// The quartile-based median-of-3 strategy provides robust performance across various data patterns including mountain-shaped, valley-shaped, 
+/// The quartile-based median-of-3 strategy provides robust performance across various data patterns including mountain-shaped, valley-shaped,
 /// and partially sorted arrays, while maintaining the O(1/n³) probability of worst-case partitioning.</description></item>
 /// <item><description><strong>Stable Three-Way Partitioning:</strong> The array is partitioned into three groups while maintaining stability:
 /// Elements are classified into three categories (less than, equal to, greater than pivot) and copied to temporary storage.
@@ -153,7 +153,7 @@ public static class StableQuickSort
             var pivot = MedianOf3Value(s, q1, mid, q3);
 
             // Phase 2. Stable partition using ArrayPool buffer
-            var (lessEnd, greaterStart) = StablePartition(s, left, right, pivot);
+            var (lessEnd, greaterStart) = StablePartition(s, left, right, pivot, context);
 
             // Phase 3. Recursively sort partitions with tail recursion optimization
             // Always sort left partition first (recursively), then loop on right partition
@@ -175,11 +175,13 @@ public static class StableQuickSort
     /// - [lessEnd, greaterStart): elements equal to pivot
     /// - [greaterStart, right + 1): elements greater than pivot
     /// </summary>
-    private static (int lessEnd, int greaterStart) StablePartition<T>(SortSpan<T> s, int left, int right, T pivot) where T : IComparable<T>
+    private static (int lessEnd, int greaterStart) StablePartition<T>(SortSpan<T> s, int left, int right, T pivot, ISortContext context) where T : IComparable<T>
     {
         var length = right - left + 1;
-        var buffer = ArrayPool<T>.Shared.Rent(length);
-        var bufferSpan = buffer.AsSpan(0, length);
+        // BufferId=1: TEMPバッファーとして可視化・統計に反映
+        var tempBuffer = ArrayPool<T>.Shared.Rent(length);
+        var tempSpan = new Span<T>(tempBuffer, 0, length);
+        var tempSortSpan = new SortSpan<T>(tempSpan, context, 1);
 
         try
         {
@@ -206,30 +208,30 @@ public static class StableQuickSort
             equalIdx = lessEnd;
             greaterIdx = equalEnd;
 
-            // Phase 2: Distribute elements to buffer maintaining order
+            // Phase 2: Distribute elements to buffer maintaining order (SortSpan経由)
             for (var i = left; i <= right; i++)
             {
                 var element = s.Read(i);
                 var cmp = element.CompareTo(pivot);
                 if (cmp < 0)
-                    bufferSpan[lessIdx++] = element;
+                    tempSortSpan.Write(lessIdx++, element);
                 else if (cmp == 0)
-                    bufferSpan[equalIdx++] = element;
+                    tempSortSpan.Write(equalIdx++, element);
                 else
-                    bufferSpan[greaterIdx++] = element;
+                    tempSortSpan.Write(greaterIdx++, element);
             }
 
-            // Phase 3: Copy back to original array
+            // Phase 3: Copy back to original array (SortSpan経由)
             for (var i = 0; i < length; i++)
             {
-                s.Write(left + i, bufferSpan[i]);
+                s.Write(left + i, tempSortSpan.Read(i));
             }
 
             return (left + lessEnd, left + equalEnd);
         }
         finally
         {
-            ArrayPool<T>.Shared.Return(buffer);
+            ArrayPool<T>.Shared.Return(tempBuffer);
         }
     }
 
