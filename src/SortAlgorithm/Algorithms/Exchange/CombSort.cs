@@ -80,15 +80,16 @@ public static class CombSort
         var h = s.Length * 10 / 13;
         if (h < 1) h = 1;
 
-        while (true)
+        var swapped = true;
+        while (h > 1 || swapped)
         {
-            // Apply Comb11 optimization
+            // Apply Comb11 optimization after gap reduction
             if (h == 9 || h == 10)
             {
                 h = 11;
             }
 
-            var swapped = false;
+            swapped = false;
             for (var i = 0; i + h < s.Length; i++)
             {
                 if (s.Compare(i, i + h) > 0)
@@ -98,14 +99,9 @@ public static class CombSort
                 }
             }
 
-            // If gap is 1 and no swaps occurred, array is sorted
-            if (h == 1)
+            // Reduce gap by shrink factor 1.3
+            if (h > 1)
             {
-                if (!swapped) break;
-            }
-            else
-            {
-                // Reduce gap by shrink factor 1.3
                 h = h * 10 / 13;
                 if (h < 1) h = 1;
             }
