@@ -218,12 +218,12 @@ public static class StableQuickSort
             for (var i = left; i <= right; i++)
             {
                 var element = s.Read(i);
-                var cmp = element.CompareTo(pivot);
-                if (cmp < 0)
+                // Use SortSpan for comparison tracking
+                if (s.Compare(i, pivot) < 0)
                 {
                     tempSortSpan.Write(lessIdx++, element);
                 }
-                else if (cmp == 0)
+                else if (s.Compare(i, pivot) == 0)
                 {
                     tempSortSpan.Write(equalIdx++, element);
                 }
