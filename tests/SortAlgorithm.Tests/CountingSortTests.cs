@@ -1,5 +1,5 @@
-﻿using SortAlgorithm.Contexts;
-using CountingSort = SortAlgorithm.Algorithms.CountingSort;
+﻿using SortAlgorithm.Algorithms;
+using SortAlgorithm.Contexts;
 
 namespace SortAlgorithm.Tests;
 

@@ -1,5 +1,5 @@
-﻿using SortAlgorithm.Contexts;
-using BucketSort = SortAlgorithm.Algorithms.BucketSort;
+﻿using SortAlgorithm.Algorithms;
+using SortAlgorithm.Contexts;
 
 namespace SortAlgorithm.Tests;
 
