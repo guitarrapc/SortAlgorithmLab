@@ -101,6 +101,8 @@ public static class BlockQuickSort
     
     // Buffer identifiers for visualization
     const int BUFFER_MAIN = 0;       // Main input array
+    const int BUFFER_INDEX_L = 1;    // Left index buffer for block partitioning
+    const int BUFFER_INDEX_R = 2;    // Right index buffer for block partitioning
     
     /// <summary>
     /// Result of partitioning operation.
@@ -160,7 +162,7 @@ public static class BlockQuickSort
         if (last - first <= 1) return;
 
         var s = new SortSpan<T>(span, context, BUFFER_MAIN);
-        SortCore(s, first, last - 1);
+        SortCore(s, first, last - 1, context);
     }
 
     /// <summary>
@@ -172,7 +174,7 @@ public static class BlockQuickSort
     /// <param name="s">The SortSpan wrapping the span to sort.</param>
     /// <param name="left">The inclusive start index of the range to sort.</param>
     /// <param name="right">The inclusive end index of the range to sort.</param>
-    internal static void SortCore<T>(SortSpan<T> s, int left, int right) where T : IComparable<T>
+    internal static void SortCore<T>(SortSpan<T> s, int left, int right, ISortContext context) where T : IComparable<T>
     {
         while (right > left)
         {
@@ -186,7 +188,7 @@ public static class BlockQuickSort
             }
 
             // Partition using block-based Hoare partition
-            var result = HoareBlockPartition(s, left, right);
+            var result = HoareBlockPartition(s, left, right, context);
 
             // Tail recursion optimization: recurse on smaller partition, loop on larger
             // Note: elements in [result.Left, result.Right] are already in final position (equal to pivot)
@@ -195,7 +197,7 @@ public static class BlockQuickSort
                 // Left partition is smaller: recurse on left [left, result.Left-1], iterate on right [result.Right+1, right]
                 if (result.Left > left)
                 {
-                    SortCore(s, left, result.Left - 1);
+                    SortCore(s, left, result.Left - 1, context);
                 }
                 left = result.Right + 1;
             }
@@ -204,7 +206,7 @@ public static class BlockQuickSort
                 // Right partition is smaller: recurse on right [result.Right+1, right], iterate on left [left, result.Left-1]
                 if (result.Right < right)
                 {
-                    SortCore(s, result.Right + 1, right);
+                    SortCore(s, result.Right + 1, right, context);
                 }
                 right = result.Left - 1;
             }
@@ -226,7 +228,7 @@ public static class BlockQuickSort
     /// <param name="right">The inclusive end index.</param>
     /// <returns>The range of elements equal to the pivot.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    static PartitionResult HoareBlockPartition<T>(SortSpan<T> s, int left, int right) where T : IComparable<T>
+    static PartitionResult HoareBlockPartition<T>(SortSpan<T> s, int left, int right, ISortContext context) where T : IComparable<T>
     {
         var size = right - left + 1;
         int pivotIndex;
@@ -255,7 +257,7 @@ public static class BlockQuickSort
             pivotIndex = MedianOf3(s, left, (left + right) / 2, right);
         }
         
-        var pivotPos = HoareBlockPartitionCore(s, left, right, pivotIndex);
+        var pivotPos = HoareBlockPartitionCore(s, left, right, pivotIndex, context);
         
         // Apply duplicate check for small arrays
         if (size <= DuplicateCheckThreshold)
@@ -278,12 +280,11 @@ public static class BlockQuickSort
     /// </para>
     /// </summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    static int HoareBlockPartitionCore<T>(SortSpan<T> s, int left, int right, int pivotIndex) where T : IComparable<T>
+    static int HoareBlockPartitionCore<T>(SortSpan<T> s, int left, int right, int pivotIndex, ISortContext context) where T : IComparable<T>
     {
         // Move pivot to the end and extract its value
         var pivotEnd = right;
         s.Swap(pivotIndex, pivotEnd);
-        var pivot = s.Read(pivotEnd);
         var last = pivotEnd - 1;
 
         // Index buffers for storing positions of elements to swap
@@ -291,6 +292,8 @@ public static class BlockQuickSort
         // indexR: stores offsets of elements <= pivot on the right side
         Span<int> indexL = stackalloc int[BLOCKSIZE];
         Span<int> indexR = stackalloc int[BLOCKSIZE];
+        var sIndexL = new SortSpan<int>(indexL, context, BUFFER_INDEX_L);
+        var sIndexR = new SortSpan<int>(indexR, context, BUFFER_INDEX_R);
 
         var begin = left;
         var end = last;
@@ -309,9 +312,10 @@ public static class BlockQuickSort
                 startLeft = 0;
                 for (var j = 0; j < BLOCKSIZE; j++)
                 {
-                    indexL[numLeft] = j;
+                    // Store index and compare element with pivot using SortSpan
+                    sIndexL.Write(numLeft, j);
                     // Increment counter when: !(begin[j] < pivot), i.e., begin[j] >= pivot
-                    numLeft += s.Compare(begin + j, pivot) < 0 ? 0 : 1;
+                    numLeft += s.Compare(begin + j, pivotEnd) < 0 ? 0 : 1;
                 }
             }
 
@@ -322,9 +326,10 @@ public static class BlockQuickSort
                 startRight = 0;
                 for (var j = 0; j < BLOCKSIZE; j++)
                 {
-                    indexR[numRight] = j;
+                    // Store index and compare pivot with element using SortSpan
+                    sIndexR.Write(numRight, j);
                     // Increment counter when: !(pivot < end[j]), i.e., pivot >= end[j], meaning end[j] <= pivot
-                    numRight += s.Compare(pivot, end - j) < 0 ? 0 : 1;
+                    numRight += s.Compare(pivotEnd, end - j) < 0 ? 0 : 1;
                 }
             }
 
@@ -332,7 +337,7 @@ public static class BlockQuickSort
             var num = Math.Min(numLeft, numRight);
             for (var j = 0; j < num; j++)
             {
-                s.Swap(begin + indexL[startLeft + j], end - indexR[startRight + j]);
+                s.Swap(begin + sIndexL.Read(startLeft + j), end - sIndexR.Read(startRight + j));
             }
 
             numLeft -= num;
@@ -359,19 +364,20 @@ public static class BlockQuickSort
 
             for (var j = 0; j < shiftL; j++)
             {
-                indexL[numLeft] = j;
                 // Left: count elements >= pivot
-                numLeft += s.Compare(begin + j, pivot) < 0 ? 0 : 1;
-                indexR[numRight] = j;
+                sIndexL.Write(numLeft, j);
+                numLeft += s.Compare(begin + j, pivotEnd) < 0 ? 0 : 1;
+                
                 // Right: count elements <= pivot
-                numRight += s.Compare(pivot, end - j) < 0 ? 0 : 1;
+                sIndexR.Write(numRight, j);
+                numRight += s.Compare(pivotEnd, end - j) < 0 ? 0 : 1;
             }
 
             if (shiftL < shiftR)
             {
-                indexR[numRight] = shiftR - 1;
                 // Right: count if last element <= pivot
-                numRight += s.Compare(pivot, end - shiftR + 1) < 0 ? 0 : 1;
+                sIndexR.Write(numRight, shiftR - 1);
+                numRight += s.Compare(pivotEnd, end - shiftR + 1) < 0 ? 0 : 1;
             }
         }
         else if (numRight != 0)
@@ -383,9 +389,9 @@ public static class BlockQuickSort
 
             for (var j = 0; j < shiftL; j++)
             {
-                indexL[numLeft] = j;
                 // Left: count elements >= pivot
-                numLeft += s.Compare(begin + j, pivot) < 0 ? 0 : 1;
+                sIndexL.Write(numLeft, j);
+                numLeft += s.Compare(begin + j, pivotEnd) < 0 ? 0 : 1;
             }
         }
         else
@@ -397,9 +403,9 @@ public static class BlockQuickSort
 
             for (var j = 0; j < shiftR; j++)
             {
-                indexR[numRight] = j;
                 // Right: count elements <= pivot
-                numRight += s.Compare(pivot, end - j) < 0 ? 0 : 1;
+                sIndexR.Write(numRight, j);
+                numRight += s.Compare(pivotEnd, end - j) < 0 ? 0 : 1;
             }
         }
 
@@ -407,7 +413,7 @@ public static class BlockQuickSort
         var numFinal = Math.Min(numLeft, numRight);
         for (var j = 0; j < numFinal; j++)
         {
-            s.Swap(begin + indexL[startLeft + j], end - indexR[startRight + j]);
+            s.Swap(begin + sIndexL.Read(startLeft + j), end - sIndexR.Read(startRight + j));
         }
 
         numLeft -= numFinal;
@@ -431,7 +437,7 @@ public static class BlockQuickSort
             var upper = end - begin;
 
             // Find first element to swap
-            while (lowerI >= startLeft && indexL[lowerI] == upper)
+            while (lowerI >= startLeft && sIndexL.Read(lowerI) == upper)
             {
                 upper--;
                 lowerI--;
@@ -440,7 +446,7 @@ public static class BlockQuickSort
             // Swap remaining elements
             while (lowerI >= startLeft)
             {
-                s.Swap(begin + upper, begin + indexL[lowerI]);
+                s.Swap(begin + upper, begin + sIndexL.Read(lowerI));
                 upper--;
                 lowerI--;
             }
@@ -455,7 +461,7 @@ public static class BlockQuickSort
             var upper = end - begin;
 
             // Find first element to swap
-            while (lowerI >= startRight && indexR[lowerI] == upper)
+            while (lowerI >= startRight && sIndexR.Read(lowerI) == upper)
             {
                 upper--;
                 lowerI--;
@@ -464,7 +470,7 @@ public static class BlockQuickSort
             // Swap remaining elements
             while (lowerI >= startRight)
             {
-                s.Swap(end - upper, end - indexR[lowerI]);
+                s.Swap(end - upper, end - sIndexR.Read(lowerI));
                 upper--;
                 lowerI--;
             }
@@ -617,17 +623,17 @@ public static class BlockQuickSort
         {
             // Use median-of-3 for pivot
             var pivotIdx = MedianOf3(s, left, (left + right) / 2, right - 1);
-            var pivot = s.Read(pivotIdx);
             
             // Partition
             s.Swap(pivotIdx, right - 1);
+            var pivotPos = right - 1;
             var i = left;
             var j = right - 2;
 
             while (i <= j)
             {
-                while (i < right - 1 && s.Compare(i, pivot) < 0) i++;
-                while (j > left && s.Compare(j, pivot) > 0) j--;
+                while (i < right - 1 && s.Compare(i, pivotPos) < 0) i++;
+                while (j > left && s.Compare(j, pivotPos) > 0) j--;
                 
                 if (i <= j)
                 {
@@ -678,7 +684,6 @@ public static class BlockQuickSort
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     static PartitionResult CheckForDuplicates<T>(SortSpan<T> s, int left, int right, int pivotPos) where T : IComparable<T>
     {
-        var pivot = s.Read(pivotPos);
         var leftSize = pivotPos - left;
         var rightSize = right - pivotPos;
         
@@ -695,7 +700,7 @@ public static class BlockQuickSort
                 scanned++;
                 
                 // Check if element equals pivot (elements on left are <= pivot, so only need == check)
-                if (s.Compare(i, pivot) == 0)
+                if (s.Compare(i, pivotPos) == 0)
                 {
                     found++;
                     equalLeft--;
@@ -727,7 +732,7 @@ public static class BlockQuickSort
                 scanned++;
                 
                 // Check if element equals pivot (elements on right are >= pivot, so only need == check)
-                if (s.Compare(i, pivot) == 0)
+                if (s.Compare(i, pivotPos) == 0)
                 {
                     found++;
                     equalRight++;
