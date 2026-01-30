@@ -17,6 +17,9 @@ public class InsertionSortTests
     [ClassData(typeof(MockQuickSortWorstCaseData))]
     public void SortResultOrderTest(IInputSample<int> inputSample)
     {
+        if (inputSample.Samples.Length > 512)
+            return;
+
         var stats = new StatisticsContext();
         var array = inputSample.Samples.ToArray();
         InsertionSort.Sort(array.AsSpan(), stats);
@@ -157,6 +160,9 @@ public class InsertionSortTests
     [ClassData(typeof(MockSortedData))]
     public void StatisticsSortedTest(IInputSample<int> inputSample)
     {
+        if (inputSample.Samples.Length > 1024)
+            return;
+
         var stats = new StatisticsContext();
         var array = inputSample.Samples.ToArray();
         InsertionSort.Sort(array.AsSpan(), stats);

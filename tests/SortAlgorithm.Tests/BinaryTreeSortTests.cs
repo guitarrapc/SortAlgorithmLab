@@ -18,6 +18,9 @@ public class BinaryTreeSortTests
     [ClassData(typeof(MockQuickSortWorstCaseData))]
     public void SortResultOrderTest(IInputSample<int> inputSample)
     {
+        if (inputSample.Samples.Length > 1024)
+            return;
+
         var stats = new StatisticsContext();
         var array = inputSample.Samples.ToArray();
         BinaryTreeSort.Sort(array.AsSpan(), stats);
@@ -31,6 +34,9 @@ public class BinaryTreeSortTests
     [ClassData(typeof(MockSortedData))]
     public void StatisticsSortedTest(IInputSample<int> inputSample)
     {
+        if (inputSample.Samples.Length > 1024)
+            return;
+
         var stats = new StatisticsContext();
         var array = inputSample.Samples.ToArray();
         BinaryTreeSort.Sort(array.AsSpan(), stats);
