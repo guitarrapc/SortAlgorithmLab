@@ -362,34 +362,59 @@ public class StableQuickSortTest
         // - Equal partition is already sorted, so no recursion occurs
         // - This is an OPTIMIZATION: O(n) time instead of O(n log n)
         //
-        // Expected behavior:
-        // - Comparisons: O(n) - Only pivot selection (median-of-3: 2-3 compares) + partition scan
-        // - Reads: O(n) - Read pivot candidates + all elements once during partitioning
-        // - Writes: O(n) - Write all elements back once
-        // - Swaps: 0 - This algorithm uses Read/Write, not Swap
-        // - No recursion: all elements go to equal partition
+        // Expected behavior with SortSpan-based temporary buffer:
+        //
+        // MedianOf3Value (all elements equal):
+        //   - s.Compare(lowIdx, midIdx): 2 reads (low, mid)
+        //   - low == mid, so else branch
+        //   - s.Compare(midIdx, highIdx): 2 reads (mid, high)  
+        //   - mid == high, so else branch
+        //   - s.Read(midIdx): 1 read
+        //   Total: 5 reads, 2 compares
+        //
+        // StablePartition Phase 1 (count):
+        //   - for loop: n iterations
+        //   - s.Read(i): n reads
+        //   - element.CompareTo(pivot): not tracked by SortSpan
+        //   Total: n reads, 0 compares
+        //
+        // StablePartition Phase 2 (distribute to temp):
+        //   - for loop: n iterations
+        //   - s.Read(i): n reads (store to element)
+        //   - s.Compare(i, pivot): n reads + n compares (all equal, so false)
+        //   - else if s.Compare(i, pivot) == 0: n reads + n compares (all true)
+        //   - tempSortSpan.Write(equalIdx++, element): n writes to temp buffer
+        //   Total: 3n reads (n + n + n), 2n compares, n writes to temp
+        //
+        // StablePartition Phase 3 (copy back):
+        //   - for loop: n iterations
+        //   - tempSortSpan.Read(i): n reads from temp buffer
+        //   - s.Write(left + i, ...): n writes to main buffer
+        //   Total: n reads from temp, n writes to main
+        //
+        // Grand Total:
+        //   - Reads: 5 (median) + n (phase1) + 3n (phase2) + n (phase3) = 5 + 5n
+        //   - Writes: n (phase2 to temp) + n (phase3 to main) = 2n
+        //   - Compares: 2 (median) + 2n (phase2) = 2 + 2n
+        //   - Swaps: 0
 
-        // With quartile-based median-of-3, we make 2-3 comparisons for pivot selection
-        var minCompares = 2UL; // Minimum for median-of-3
-        var maxCompares = 3UL; // Maximum for median-of-3
+        // Comparisons: 2 (median-of-3) + 2n (partition)
+        var expectedCompares = (ulong)(2 + 2 * n);
+        Assert.Equal(expectedCompares, stats.CompareCount);
 
         // StableQuickSort doesn't use Swap
         Assert.Equal(0UL, stats.SwapCount);
 
-        Assert.InRange(stats.CompareCount, minCompares, maxCompares);
-
         // Verify the array is still correct (all values unchanged)
         Assert.All(sameValues, val => Assert.Equal(42, val));
 
-        // IndexReads: At least read all elements once
-        var minIndexReads = (ulong)n;
-        Assert.True(stats.IndexReadCount >= minIndexReads,
-            $"IndexReadCount ({stats.IndexReadCount}) should be >= {minIndexReads}");
+        // IndexReads: 5 (median) + n (phase1) + 3n (phase2) + n (phase3) = 5 + 5n
+        var expectedIndexReads = (ulong)(5 + 5 * n);
+        Assert.Equal(expectedIndexReads, stats.IndexReadCount);
 
-        // IndexWrites: At least write all elements once
-        var minIndexWrites = (ulong)n;
-        Assert.True(stats.IndexWriteCount >= minIndexWrites,
-            $"IndexWriteCount ({stats.IndexWriteCount}) should be >= {minIndexWrites}");
+        // IndexWrites: n (phase2 to temp) + n (phase3 to main) = 2n
+        var expectedIndexWrites = (ulong)(2 * n);
+        Assert.Equal(expectedIndexWrites, stats.IndexWriteCount);
     }
 
 #endif
