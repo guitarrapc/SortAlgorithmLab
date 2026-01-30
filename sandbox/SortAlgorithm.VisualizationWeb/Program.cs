@@ -12,5 +12,6 @@ builder.Services.AddScoped(sp => new HttpClient { BaseAddress = new Uri(builder.
 builder.Services.AddSingleton<PlaybackService>();
 builder.Services.AddSingleton<SortExecutor>();
 builder.Services.AddSingleton<AlgorithmRegistry>();
+builder.Services.AddSingleton<ArrayPatternGenerator>();
 
 await builder.Build().RunAsync();

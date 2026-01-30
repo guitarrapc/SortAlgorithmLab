@@ -5,6 +5,7 @@
 @inject PlaybackService Playback
 @inject SortExecutor Executor
 @inject AlgorithmRegistry Registry
+@inject ArrayPatternGenerator PatternGenerator
 @implements IDisposable
 
 <PageTitle>Sort Algorithm Visualization</PageTitle>
@@ -83,6 +84,15 @@
                     </select>
                 </div>
 
+                <div class="stat-item">
+                    <span class="stat-label">Array Pattern</span>
+                    <select @bind="SelectedPattern" style="width: 100%;">
+                        @foreach (ArrayPattern pattern in Enum.GetValues(typeof(ArrayPattern)))
+                        {
+                            <option value="@pattern">@PatternGenerator.GetDisplayName(pattern)</option>
+                        }
+                    </select>
+                </div>
 
                 <div class="stat-item">
                     <span class="stat-label">Visualization Mode</span>
@@ -185,6 +195,7 @@
 private string SelectedAlgorithm { get; set; } = "Bubble sort";
 private string SelectedCategory { get; set; } = "";
 private int ArraySize { get; set; } = 64;
+private ArrayPattern SelectedPattern { get; set; } = ArrayPattern.Random;
 private VisualizationMode SelectedVisualizationMode { get; set; } = VisualizationMode.BarChart;
 private string _runningAlgorithmName = string.Empty;
 
@@ -325,16 +336,15 @@ private string _runningAlgorithmName = string.Empty;
         // 要素数制限を適用（すべてのアルゴリズムで4096まで対応）
         var size = Math.Min(ArraySize, metadata.MaxElements);
 
-        // ランダム配列生成（一度だけ生成）
-        var random = new Random();
-        var array = Enumerable.Range(1, size).OrderBy(_ => random.Next()).ToArray();
+        // 選択されたパターンで配列生成
+        var array = PatternGenerator.Generate(size, SelectedPattern);
 
         // ソート実行と操作記録（ReadOnlySpanを使用）
         try
         {
             var operations = Executor.ExecuteAndRecord(array.AsSpan(), metadata);
             Playback.LoadOperations(array.AsSpan(), operations);
-            Console.WriteLine($"Loaded {operations.Count} operations for {SelectedAlgorithm}");
+            Console.WriteLine($"Loaded {operations.Count} operations for {SelectedAlgorithm} with {PatternGenerator.GetDisplayName(SelectedPattern)} pattern");
         }
         catch (Exception ex)
         {
