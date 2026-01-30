@@ -117,7 +117,6 @@ public static class RotateMergeSort
     /// <param name="s">The SortSpan wrapping the span to sort</param>
     /// <param name="left">The inclusive start index of the range to sort</param>
     /// <param name="right">The inclusive end index of the range to sort</param>
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private static void SortCore<T>(SortSpan<T> s, int left, int right) where T : IComparable<T>
     {
         if (right <= left) return; // Base case: array of size 0 or 1 is sorted
@@ -160,7 +159,6 @@ public static class RotateMergeSort
     /// <param name="left">The inclusive start index of the left subarray</param>
     /// <param name="mid">The inclusive end index of the left subarray</param>
     /// <param name="right">The inclusive end index of the right subarray</param>
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private static void MergeInPlace<T>(SortSpan<T> s, int left, int mid, int right) where T : IComparable<T>
     {
         var start1 = left;
@@ -208,7 +206,6 @@ public static class RotateMergeSort
     /// <param name="start">The start position in the right partition</param>
     /// <param name="end">The end position in the right partition</param>
     /// <returns>The last index where elements should still be inserted before insertPos</returns>
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private static int GallopingSearchEnd<T>(SortSpan<T> s, int insertPos, int start, int end) where T : IComparable<T>
     {
         // Phase 1: Exponential search (galloping) - find rough upper bound
@@ -253,7 +250,6 @@ public static class RotateMergeSort
     /// <param name="left">The start index of the subarray to rotate</param>
     /// <param name="right">The end index of the subarray to rotate</param>
     /// <param name="k">The number of positions to rotate left</param>
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private static void Rotate<T>(SortSpan<T> s, int left, int right, int k) where T : IComparable<T>
     {
         if (k == 0 || left >= right) return;
