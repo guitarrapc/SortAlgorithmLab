@@ -3,7 +3,7 @@ using SortAlgorithm.Contexts;
 
 namespace SortAlgorithm.Tests;
 
-public class RadixMSD4SortTests
+public class RadixMSD10SortTests
 {
     [Theory]
     [ClassData(typeof(MockRandomData))]
@@ -19,7 +19,7 @@ public class RadixMSD4SortTests
     {
         var stats = new StatisticsContext();
         var array = inputSample.Samples.ToArray();
-        RadixMSD4Sort.Sort(array.AsSpan(), stats);
+        RadixMSD10Sort.Sort(array.AsSpan(), stats);
 
         Assert.Equal((ulong)inputSample.Samples.Length, (ulong)array.Length);
     }
@@ -38,16 +38,16 @@ public class RadixMSD4SortTests
         };
 
         var keys = records.Select(r => r.value).ToArray();
-        RadixLSD4Sort.Sort(keys.AsSpan());
+        RadixMSD10Sort.Sort(keys.AsSpan());
 
         // After sorting by value, records with same value should maintain original order
         // Since we only sorted keys, we verify the sort is stable by checking
         // that multiple sorts preserve order
         var firstSort = records.Select(r => r.value).ToArray();
-        RadixLSD4Sort.Sort(firstSort.AsSpan());
+        RadixMSD10Sort.Sort(firstSort.AsSpan());
 
         var secondSort = firstSort.ToArray();
-        RadixLSD4Sort.Sort(secondSort.AsSpan());
+        RadixMSD10Sort.Sort(secondSort.AsSpan());
 
         Assert.Equal(firstSort, secondSort);
     }
@@ -58,7 +58,7 @@ public class RadixMSD4SortTests
         var stats = new StatisticsContext();
         // Test that int.MinValue is handled correctly (no overflow)
         var array = new[] { int.MinValue, -1, 0, 1, int.MaxValue };
-        RadixLSD4Sort.Sort(array.AsSpan(), stats);
+        RadixMSD10Sort.Sort(array.AsSpan(), stats);
 
         Assert.Equal(new[] { int.MinValue, -1, 0, 1, int.MaxValue }, array);
     }
@@ -69,7 +69,7 @@ public class RadixMSD4SortTests
         var stats = new StatisticsContext();
         var array = new[] { -5, 3, -1, 0, 2, -3, 1 };
         var expected = new[] { -5, -3, -1, 0, 1, 2, 3 };
-        RadixMSD4Sort.Sort(array.AsSpan(), stats);
+        RadixMSD10Sort.Sort(array.AsSpan(), stats);
 
         Assert.Equal(expected, array);
     }
@@ -79,7 +79,7 @@ public class RadixMSD4SortTests
     {
         var stats = new StatisticsContext();
         var array = new[] { 5, 5, 5, 5, 5 };
-        RadixMSD4Sort.Sort(array.AsSpan(), stats);
+        RadixMSD10Sort.Sort(array.AsSpan(), stats);
 
         Assert.All(array, x => Assert.Equal(5, x));
     }
@@ -100,49 +100,49 @@ public class RadixMSD4SortTests
         if (type == typeof(byte))
         {
             var array = new byte[] { 5, 2, 8, 1, 9 };
-            RadixMSD4Sort.Sort(array.AsSpan(), stats);
+            RadixMSD10Sort.Sort(array.AsSpan(), stats);
             Assert.True(IsSorted(array));
         }
         else if (type == typeof(sbyte))
         {
             var array = new sbyte[] { -5, 2, -8, 1, 9 };
-            RadixMSD4Sort.Sort(array.AsSpan(), stats);
+            RadixMSD10Sort.Sort(array.AsSpan(), stats);
             Assert.True(IsSorted(array));
         }
         else if (type == typeof(short))
         {
             var array = new short[] { -5, 2, -8, 1, 9 };
-            RadixMSD4Sort.Sort(array.AsSpan(), stats);
+            RadixMSD10Sort.Sort(array.AsSpan(), stats);
             Assert.True(IsSorted(array));
         }
         else if (type == typeof(ushort))
         {
             var array = new ushort[] { 5, 2, 8, 1, 9 };
-            RadixMSD4Sort.Sort(array.AsSpan(), stats);
+            RadixMSD10Sort.Sort(array.AsSpan(), stats);
             Assert.True(IsSorted(array));
         }
         else if (type == typeof(int))
         {
             var array = new int[] { -5, 2, -8, 1, 9 };
-            RadixMSD4Sort.Sort(array.AsSpan(), stats);
+            RadixMSD10Sort.Sort(array.AsSpan(), stats);
             Assert.True(IsSorted(array));
         }
         else if (type == typeof(uint))
         {
             var array = new uint[] { 5, 2, 8, 1, 9 };
-            RadixMSD4Sort.Sort(array.AsSpan(), stats);
+            RadixMSD10Sort.Sort(array.AsSpan(), stats);
             Assert.True(IsSorted(array));
         }
         else if (type == typeof(long))
         {
             var array = new long[] { -5, 2, -8, 1, 9 };
-            RadixMSD4Sort.Sort(array.AsSpan(), stats);
+            RadixMSD10Sort.Sort(array.AsSpan(), stats);
             Assert.True(IsSorted(array));
         }
         else if (type == typeof(ulong))
         {
             var array = new ulong[] { 5, 2, 8, 1, 9 };
-            RadixMSD4Sort.Sort(array.AsSpan(), stats);
+            RadixMSD10Sort.Sort(array.AsSpan(), stats);
             Assert.True(IsSorted(array));
         }
     }
@@ -161,7 +161,7 @@ public class RadixMSD4SortTests
     public void EmptyArrayTest()
     {
         var array = Array.Empty<int>();
-        RadixMSD4Sort.Sort(array.AsSpan());
+        RadixMSD10Sort.Sort(array.AsSpan());
         Assert.Empty(array);
     }
 
@@ -169,7 +169,7 @@ public class RadixMSD4SortTests
     public void SingleElementTest()
     {
         var array = new[] { 42 };
-        RadixMSD4Sort.Sort(array.AsSpan());
+        RadixMSD10Sort.Sort(array.AsSpan());
         Assert.Single(array);
         Assert.Equal(42, array[0]);
     }
@@ -178,7 +178,7 @@ public class RadixMSD4SortTests
     public void TwoElementsTest()
     {
         var array = new[] { 2, 1 };
-        RadixMSD4Sort.Sort(array.AsSpan());
+        RadixMSD10Sort.Sort(array.AsSpan());
         Assert.Equal(new[] { 1, 2 }, array);
     }
 
@@ -188,7 +188,7 @@ public class RadixMSD4SortTests
         // Test values that cross decimal digit boundaries (9→10, 99→100, etc.)
         var array = new[] { 100, 9, 99, 10, 1, 999, 1000 };
         var expected = new[] { 1, 9, 10, 99, 100, 999, 1000 };
-        RadixMSD4Sort.Sort(array.AsSpan());
+        RadixMSD10Sort.Sort(array.AsSpan());
         Assert.Equal(expected, array);
     }
 
@@ -198,7 +198,7 @@ public class RadixMSD4SortTests
         // Test specifically for decimal (base-10) radix characteristics
         var array = new[] { 123, 456, 789, 12, 45, 78, 1, 4, 7 };
         var expected = new[] { 1, 4, 7, 12, 45, 78, 123, 456, 789 };
-        RadixMSD4Sort.Sort(array.AsSpan());
+        RadixMSD10Sort.Sort(array.AsSpan());
         Assert.Equal(expected, array);
     }
 
@@ -208,7 +208,7 @@ public class RadixMSD4SortTests
         // Test with array smaller than insertion sort cutoff (16)
         var array = new[] { 10, 5, 3, 8, 1, 9, 2, 7, 4, 6 };
         var expected = new[] { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 };
-        RadixMSD4Sort.Sort(array.AsSpan());
+        RadixMSD10Sort.Sort(array.AsSpan());
         Assert.Equal(expected, array);
     }
 
@@ -220,11 +220,13 @@ public class RadixMSD4SortTests
     {
         var stats = new StatisticsContext();
         var array = inputSample.Samples.ToArray();
-        RadixMSD4Sort.Sort(array.AsSpan(), stats);
+        RadixMSD10Sort.Sort(array.AsSpan(), stats);
 
         Assert.Equal((ulong)inputSample.Samples.Length, (ulong)array.Length);
         Assert.NotEqual(0UL, stats.IndexReadCount);
         Assert.NotEqual(0UL, stats.IndexWriteCount);
+        Assert.NotEqual(0UL, stats.CompareCount);
+        Assert.Equal(0UL, stats.SwapCount);
         // MSD radix sort uses comparisons in insertion sort for small buckets
         // For sorted data, insertion sort should have minimal comparisons
     }
@@ -238,24 +240,21 @@ public class RadixMSD4SortTests
     {
         var stats = new StatisticsContext();
         var sorted = Enumerable.Range(0, n).ToArray();
-        RadixMSD4Sort.Sort(sorted.AsSpan(), stats);
+        RadixMSD10Sort.Sort(sorted.AsSpan(), stats);
 
-        // MSD Radix Sort (Radix-4, 2-bit per pass) with sign-bit flipping and early termination:
-        // For 32-bit integers with range [0, n-1]:
-        // 
-        // MSD processes from most significant digit, recursively partitioning buckets.
-        // For sorted input, elements tend to distribute into buckets naturally,
-        // and small buckets (<=16 elements) switch to insertion sort.
-        //
-        // Initial scan: n reads (to find min/max)
-        // MSD pass complexity varies based on bucket distribution and insertion sort cutoff.
-        //
-        // For sorted data:
-        // - Elements may cluster in certain buckets
-        // - Small buckets use insertion sort (includes comparisons and swaps)
+        // MSD Radix Sort (decimal base-10):
+        // MSD processes most significant digit first recursively.
+        // Performance depends on:
+        // - Data distribution (how elements spread across buckets)
+        // - Small buckets (<=16 elements) use insertion sort (includes comparisons and swaps)
         // - Larger buckets continue with MSD partitioning
         //
-        // We verify that the sort completes successfully with non-zero statistics.
+        // For sorted data, elements distribute across buckets based on decimal digits.
+        // Initial min/max scan: n reads
+        // MSD passes: variable reads/writes depending on bucket distribution
+        // Insertion sort in small buckets: comparisons and swaps occur
+        //
+        // Statistics validation:
         Assert.Equal((ulong)n, (ulong)sorted.Length);
         Assert.NotEqual(0UL, stats.IndexReadCount);
 
@@ -284,7 +283,7 @@ public class RadixMSD4SortTests
     {
         var stats = new StatisticsContext();
         var reversed = Enumerable.Range(0, n).Reverse().ToArray();
-        RadixMSD4Sort.Sort(reversed.AsSpan(), stats);
+        RadixMSD10Sort.Sort(reversed.AsSpan(), stats);
 
         // MSD Radix Sort on reversed data:
         // Similar to sorted data, but distribution pattern is reversed.
@@ -316,7 +315,7 @@ public class RadixMSD4SortTests
         var stats = new StatisticsContext();
         var random = new Random(42);
         var array = Enumerable.Range(0, n).OrderBy(_ => random.Next()).ToArray();
-        RadixMSD4Sort.Sort(array.AsSpan(), stats);
+        RadixMSD10Sort.Sort(array.AsSpan(), stats);
 
         // MSD Radix Sort on random data:
         // Random distribution tends to spread elements across buckets more evenly.
@@ -348,7 +347,7 @@ public class RadixMSD4SortTests
         var stats = new StatisticsContext();
         // Mix of negative and positive: [-n/2, ..., -1, 0, 1, ..., n/2-1]
         var mixed = Enumerable.Range(-n / 2, n).ToArray();
-        RadixMSD4Sort.Sort(mixed.AsSpan(), stats);
+        RadixMSD10Sort.Sort(mixed.AsSpan(), stats);
 
         // MSD Radix Sort on mixed negative/positive data:
         // With sign-bit flipping, negative and positive numbers are processed uniformly.
@@ -375,7 +374,7 @@ public class RadixMSD4SortTests
     {
         var stats = new StatisticsContext();
         var array = Array.Empty<int>();
-        RadixMSD4Sort.Sort(array.AsSpan(), stats);
+        RadixMSD10Sort.Sort(array.AsSpan(), stats);
 
         Assert.Empty(array);
         Assert.Equal(0UL, stats.IndexReadCount);
@@ -389,7 +388,7 @@ public class RadixMSD4SortTests
     {
         var stats = new StatisticsContext();
         var array = new[] { 42 };
-        RadixMSD4Sort.Sort(array.AsSpan(), stats);
+        RadixMSD10Sort.Sort(array.AsSpan(), stats);
 
         Assert.Single(array);
         Assert.Equal(42, array[0]);
@@ -400,4 +399,5 @@ public class RadixMSD4SortTests
     }
 
 #endif
+
 }
