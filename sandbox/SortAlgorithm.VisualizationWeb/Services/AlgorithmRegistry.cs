@@ -86,6 +86,7 @@ public class AlgorithmRegistry
         Add("LSD Radix sort (b=10)", "Distribution Sorts", "O(nk)", MAX_SIZE, 4096, (arr, ctx) => RadixLSD10Sort.Sort(arr.AsSpan(), ctx));
         Add("LSD Radix sort (b=256)", "Distribution Sorts", "O(nk)", MAX_SIZE, 4096, (arr, ctx) => RadixLSD256Sort.Sort(arr.AsSpan(), ctx));
         Add("MSD Radix sort (b=4)", "Distribution Sorts", "O(nk)", MAX_SIZE, 4096, (arr, ctx) => RadixMSD4Sort.Sort(arr.AsSpan(), ctx));
+        Add("MSD Radix sort (b=10)", "Distribution Sorts", "O(nk)", MAX_SIZE, 4096, (arr, ctx) => RadixMSD10Sort.Sort(arr.AsSpan(), ctx));
 
         // Network Sorts - O(log²n) - 推奨2048
         Add("Bitonic sort", "Network Sorts", "O(log²n)", MAX_SIZE, 2048, (arr, ctx) => BitonicSort.Sort(arr.AsSpan(), ctx));
