@@ -76,14 +76,16 @@ public static class CombSort
 
         var s = new SortSpan<T>(span, context, BUFFER_MAIN);
 
-        // Initialize gap with shrink factor 1.3 (multiply by 10/13)
-        var h = s.Length * 10 / 13;
-        if (h < 1) h = 1;
-
+        var h = s.Length;
         var swapped = true;
-        while (h > 1 || swapped)
+
+        while (h != 1 || swapped)
         {
-            // Apply Comb11 optimization after gap reduction
+            // Reduce gap by shrink factor 1.3 (multiply by 10/13)
+            h = h * 10 / 13;
+            if (h < 1) h = 1;
+
+            // Apply Comb11 optimization
             if (h == 9 || h == 10)
             {
                 h = 11;
@@ -97,13 +99,6 @@ public static class CombSort
                     s.Swap(i, i + h);
                     swapped = true;
                 }
-            }
-
-            // Reduce gap by shrink factor 1.3
-            if (h > 1)
-            {
-                h = h * 10 / 13;
-                if (h < 1) h = 1;
             }
         }
     }
