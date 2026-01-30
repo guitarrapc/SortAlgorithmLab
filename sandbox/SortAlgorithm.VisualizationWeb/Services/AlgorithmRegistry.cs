@@ -80,6 +80,7 @@ public class AlgorithmRegistry
 
         // Distribution Sorts - O(n) ~ O(nk) - 推奨4096
         Add("Counting sort", "Distribution Sorts", "O(n+k)", MAX_SIZE, 4096, (arr, ctx) => CountingSortInteger.Sort(arr.AsSpan(), ctx));
+        Add("Pigeonhole sort", "Distribution Sorts", "O(n+k)", MAX_SIZE, 4096, (arr, ctx) => PigeonholeSortInteger.Sort(arr.AsSpan(), ctx));
         Add("Bucket sort", "Distribution Sorts", "O(n)", MAX_SIZE, 4096, (arr, ctx) => BucketSortInteger.Sort(arr.AsSpan(), ctx));
         Add("LSD Radix sort (b=4)", "Distribution Sorts", "O(nk)", MAX_SIZE, 4096, (arr, ctx) => RadixLSD4Sort.Sort(arr.AsSpan(), ctx));
         Add("LSD Radix sort (b=10)", "Distribution Sorts", "O(nk)", MAX_SIZE, 4096, (arr, ctx) => RadixLSD10Sort.Sort(arr.AsSpan(), ctx));
