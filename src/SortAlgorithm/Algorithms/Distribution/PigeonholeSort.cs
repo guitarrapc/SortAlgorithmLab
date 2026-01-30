@@ -29,15 +29,16 @@ namespace SortAlgorithm.Algorithms;
 /// <item><description><strong>Correctness Guarantee:</strong> Since holes are traversed in index order (0 to range-1),
 /// and each index i corresponds to key (i - offset), elements are written back in ascending key order.
 /// The algorithm correctly sorts as long as the key selector function produces consistent integer keys.</description></item>
-/// <item><description><strong>Stability:</strong> This implementation is NOT stable because elements with equal keys
-/// are written back without preserving their original relative order. Only counts are stored, not the actual elements.</description></item>
+/// <item><description><strong>Stability:</strong> This implementation IS stable because elements with equal keys
+/// are written back in their original relative order. By iterating forward through the temp array and incrementing hole positions,
+/// elements with the same key are placed in the order they appeared in the input.</description></item>
 /// <item><description><strong>Range Limitation:</strong> The key range must be reasonable (≤ {MaxHoleArraySize}).
 /// Excessive ranges cause memory allocation failures or out-of-memory errors.</description></item>
 /// </list>
 /// <para><strong>Performance Characteristics:</strong></para>
 /// <list type="bullet">
 /// <item><description>Family      : Distribution</description></item>
-/// <item><description>Stable      : No (elements with equal keys may be reordered)</description></item>
+/// <item><description>Stable      : Yes (preserves relative order of elements with equal keys)</description></item>
 /// <item><description>In-place    : No (O(n + k) auxiliary space where k = range of keys)</description></item>
 /// <item><description>Best case   : O(n + k) - All cases have the same complexity</description></item>
 /// <item><description>Average case: O(n + k) - Linear in input size plus key range</description></item>
@@ -173,11 +174,11 @@ public static class PigeonholeSort
 
 /// <summary>
 /// 整数値を直接ピジョンホールソートでソートします。
-/// 各値を対応する「穴」（バケット）に配置してソートする、不安定なソートアルゴリズムです。
+/// 各値を対応する「穴」（バケット）に配置してソートする、安定なソートアルゴリズムです。
 /// 値の範囲が狭い場合に非常に高速ですが、範囲が広いとメモリを大量に消費します。
 /// <br/>
 /// Directly sorts integer values using pigeonhole sort.
-/// An unstable sorting algorithm that places each value into its corresponding "hole" (bucket).
+/// A stable sorting algorithm that places each value into its corresponding "hole" (bucket).
 /// Very fast when the value range is narrow, but consumes significant memory for wide ranges.
 /// </summary>
 /// <remarks>
@@ -193,7 +194,7 @@ public static class PigeonholeSort
 /// <para><strong>Performance Characteristics:</strong></para>
 /// <list type="bullet">
 /// <item><description>Family      : Distribution</description></item>
-/// <item><description>Stable      : No (elements with equal values may be reordered)</description></item>
+/// <item><description>Stable      : Yes (preserves relative order of elements with equal values)</description></item>
 /// <item><description>In-place    : No (O(n + k) where k = range of values)</description></item>
 /// <item><description>Comparisons : 0 (No comparison operations)</description></item>
 /// <item><description>Swaps       : 0</description></item>
@@ -312,7 +313,7 @@ public static class PigeonholeSortInteger
         }
 
         // Phase 3: Place elements in sorted order (O(n))
-        // Unlike counting sort, we don't preserve stability here
+        // Stability is preserved by iterating forward and incrementing hole positions
         for (var i = 0; i < s.Length; i++)
         {
             var value = tempSpan.Read(i);
