@@ -262,16 +262,38 @@ SVG vs Canvas の比較
 
 #### ✅ 7.2 配列パターンの選択
 - [x] ランダム (Random)
-- [ ] ソート済み (Sorted)
-- [ ] 逆ソート済み (Reversed)
-- [ ] 山型 (Mountain)
-- [ ] 谷型 (Valley)
-- [ ] ジグザグ (Zigzag)
-- [ ] 半分ソート済み (Half Sorted)
-- [ ] ほぼソート済み (Nearly Sorted - Last 10% shuffled)
-- [ ] ほぼソート済み (Nearly Sorted - Start 10% shuffled)
-- [ ] 重複多数 (Many Duplicates)
-- [ ] 固定値多数 (Few Unique Values)
+- [x] ソート済み (Sorted)
+- [x] 逆ソート済み (Reversed)
+- [x] 山型 (Mountain)
+- [x] 谷型 (Valley)
+- [x] ジグザグ (Zigzag)
+- [x] 半分ソート済み (Half Sorted)
+- [x] ほぼソート済み (Nearly Sorted - 10% Random)
+- [x] ほぼソート済み (Nearly Sorted - Last 10% shuffled)
+- [x] ほぼソート済み (Nearly Sorted - Start 10% shuffled)
+- [x] 重複多数 (Many Duplicates)
+- [x] 固定値多数 (Few Unique Values)
+
+**実装場所:**
+- `ArrayPattern.cs` - 12種類のパターン定義
+- `ArrayPatternGenerator.cs` - 各パターンの生成ロジック
+- `Index.razor` - パターン選択ドロップダウン
+
+**機能詳細:**
+- ランダム配列
+- ソート済み配列（昇順）
+- 逆順配列（降順）
+- 山型（中央が最大値、両端が小さい値）
+- 谷型（中央が最小値、両端が大きい値）
+- ジグザグ（小さい値と大きい値を交互に配置）
+- 半分ソート済み（前半のみソート済み、後半はランダム）
+- ほぼソート済み（要素の10%をランダムに入れ替え）
+- ほぼソート済み（最後の10%のみシャッフル）
+- ほぼソート済み（最初の10%のみシャッフル）
+- 重複多数（ユニーク値は最大40個、大きな配列でも高い重複率を維持）
+- 固定値多数（ユニーク値は最大20個、大きな配列でも高い重複率を維持）
+
+**推定工数:** ✅ 完了
 
 
 
