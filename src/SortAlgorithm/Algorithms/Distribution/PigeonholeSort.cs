@@ -201,6 +201,8 @@ public static class PigeonholeSort
 /// <item><description>Memory      : O(n + k)</description></item>
 /// <item><description>Note        : 値の範囲が大きいとメモリ使用量が膨大になります。最大範囲は{MaxHoleArraySize}です。</description></item>
 /// </list>
+/// <para><strong>Reference:</strong></para>
+/// <para>Wiki: https://en.wikipedia.org/wiki/Pigeonhole_sort</para>
 /// </remarks>
 public static class PigeonholeSortInteger
 {
