@@ -24,6 +24,139 @@ public class RadixLSD256SortTests
         Assert.Equal((ulong)inputSample.Samples.Length, (ulong)array.Length);
     }
 
+    [Fact]
+    public void StabilityTest()
+    {
+        // Test stability: elements with same key maintain relative order
+        var records = new[]
+        {
+            (value: 5, id: 1),
+            (value: 3, id: 2),
+            (value: 5, id: 3),
+            (value: 3, id: 4),
+            (value: 5, id: 5)
+        };
+
+        var keys = records.Select(r => r.value).ToArray();
+        RadixLSD256Sort.Sort(keys.AsSpan());
+
+        // After sorting by value, records with same value should maintain original order
+        // Since we only sorted keys, we verify the sort is stable by checking
+        // that multiple sorts preserve order
+        var firstSort = records.Select(r => r.value).ToArray();
+        RadixLSD256Sort.Sort(firstSort.AsSpan());
+
+        var secondSort = firstSort.ToArray();
+        RadixLSD256Sort.Sort(secondSort.AsSpan());
+
+        Assert.Equal(firstSort, secondSort);
+    }
+
+    [Fact]
+    public void MinValueHandlingTest()
+    {
+        var stats = new StatisticsContext();
+        // Test that int.MinValue is handled correctly (no overflow)
+        var array = new[] { int.MinValue, -1, 0, 1, int.MaxValue };
+        RadixLSD256Sort.Sort(array.AsSpan(), stats);
+
+        Assert.Equal(new[] { int.MinValue, -1, 0, 1, int.MaxValue }, array);
+    }
+
+    [Fact]
+    public void SortWithNegativeNumbers()
+    {
+        var stats = new StatisticsContext();
+        var array = new[] { -5, 3, -1, 0, 2, -3, 1 };
+        var expected = new[] { -5, -3, -1, 0, 1, 2, 3 };
+        RadixLSD256Sort.Sort(array.AsSpan(), stats);
+
+        Assert.Equal(expected, array);
+    }
+
+    [Fact]
+    public void SortWithAllSameValues()
+    {
+        var stats = new StatisticsContext();
+        var array = new[] { 5, 5, 5, 5, 5 };
+        RadixLSD256Sort.Sort(array.AsSpan(), stats);
+
+        Assert.All(array, x => Assert.Equal(5, x));
+    }
+
+    [Theory]
+    [InlineData(typeof(byte))]
+    [InlineData(typeof(sbyte))]
+    [InlineData(typeof(short))]
+    [InlineData(typeof(ushort))]
+    [InlineData(typeof(int))]
+    [InlineData(typeof(uint))]
+    [InlineData(typeof(long))]
+    [InlineData(typeof(ulong))]
+    public void SortDifferentIntegerTypes(Type type)
+    {
+        var stats = new StatisticsContext();
+
+        if (type == typeof(byte))
+        {
+            var array = new byte[] { 5, 2, 8, 1, 9 };
+            RadixLSD256Sort.Sort(array.AsSpan(), stats);
+            Assert.True(IsSorted(array));
+        }
+        else if (type == typeof(sbyte))
+        {
+            var array = new sbyte[] { -5, 2, -8, 1, 9 };
+            RadixLSD256Sort.Sort(array.AsSpan(), stats);
+            Assert.True(IsSorted(array));
+        }
+        else if (type == typeof(short))
+        {
+            var array = new short[] { -5, 2, -8, 1, 9 };
+            RadixLSD256Sort.Sort(array.AsSpan(), stats);
+            Assert.True(IsSorted(array));
+        }
+        else if (type == typeof(ushort))
+        {
+            var array = new ushort[] { 5, 2, 8, 1, 9 };
+            RadixLSD256Sort.Sort(array.AsSpan(), stats);
+            Assert.True(IsSorted(array));
+        }
+        else if (type == typeof(int))
+        {
+            var array = new int[] { -5, 2, -8, 1, 9 };
+            RadixLSD256Sort.Sort(array.AsSpan(), stats);
+            Assert.True(IsSorted(array));
+        }
+        else if (type == typeof(uint))
+        {
+            var array = new uint[] { 5, 2, 8, 1, 9 };
+            RadixLSD256Sort.Sort(array.AsSpan(), stats);
+            Assert.True(IsSorted(array));
+        }
+        else if (type == typeof(long))
+        {
+            var array = new long[] { -5, 2, -8, 1, 9 };
+            RadixLSD256Sort.Sort(array.AsSpan(), stats);
+            Assert.True(IsSorted(array));
+        }
+        else if (type == typeof(ulong))
+        {
+            var array = new ulong[] { 5, 2, 8, 1, 9 };
+            RadixLSD256Sort.Sort(array.AsSpan(), stats);
+            Assert.True(IsSorted(array));
+        }
+    }
+
+    private static bool IsSorted<T>(T[] array) where T : IComparable<T>
+    {
+        for (int i = 1; i < array.Length; i++)
+        {
+            if (array[i - 1].CompareTo(array[i]) > 0)
+                return false;
+        }
+        return true;
+    }
+
 #if DEBUG
 
     [Theory]
@@ -159,45 +292,6 @@ public class RadixLSD256SortTests
 
         // Verify result is sorted
         Assert.Equal(mixed.OrderBy(x => x), mixed);
-    }
-
-    [Fact]
-    public void MinValueHandlingTest()
-    {
-        var stats = new StatisticsContext();
-        // Test that int.MinValue is handled correctly (no overflow)
-        var array = new[] { int.MinValue, -1, 0, 1, int.MaxValue };
-        RadixLSD256Sort.Sort(array.AsSpan(), stats);
-
-        Assert.Equal(new[] { int.MinValue, -1, 0, 1, int.MaxValue }, array);
-    }
-
-    [Fact]
-    public void StabilityTest()
-    {
-        // Test stability: elements with same key maintain relative order
-        var records = new[]
-        {
-            (value: 5, id: 1),
-            (value: 3, id: 2),
-            (value: 5, id: 3),
-            (value: 3, id: 4),
-            (value: 5, id: 5)
-        };
-
-        var keys = records.Select(r => r.value).ToArray();
-        RadixLSD256Sort.Sort(keys.AsSpan());
-
-        // After sorting by value, records with same value should maintain original order
-        // Since we only sorted keys, we verify the sort is stable by checking
-        // that multiple sorts preserve order
-        var firstSort = records.Select(r => r.value).ToArray();
-        RadixLSD256Sort.Sort(firstSort.AsSpan());
-        
-        var secondSort = firstSort.ToArray();
-        RadixLSD256Sort.Sort(secondSort.AsSpan());
-
-        Assert.Equal(firstSort, secondSort);
     }
 
 #endif
