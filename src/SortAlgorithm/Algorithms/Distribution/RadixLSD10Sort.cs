@@ -25,8 +25,8 @@ namespace SortAlgorithm.Algorithms;
 /// This ensures that lower-order digits are already sorted when processing higher-order digits.</description></item>
 /// <item><description><strong>Complete Pass Coverage:</strong> Must perform d passes where d = ⌈log₁₀(max)⌉ + 1 (number of decimal digits in the maximum value).
 /// Incomplete passes result in partially sorted arrays.</description></item>
-/// <item><description><strong>Negative Number Handling:</strong> For signed integers, negative values require special treatment.
-/// This implementation separates negative and non-negative values, sorts them independently, then concatenates (negatives reversed, then non-negatives).</description></item>
+/// <item><description><strong>Negative Number Handling:</strong> For signed integers, uses sign-bit flipping to convert all values to unsigned representation.
+/// This ensures negative values sort before positive values without requiring absolute value calculation (avoiding int.MinValue overflow).</description></item>
 /// </list>
 /// <para><strong>Performance Characteristics:</strong></para>
 /// <list type="bullet">
@@ -53,8 +53,6 @@ public static class RadixLSD10Sort
     // Buffer identifiers for visualization
     private const int BUFFER_MAIN = 0;           // Main input array
     private const int BUFFER_TEMP = 1;           // Temporary buffer for digit redistribution
-    private const int BUFFER_NEGATIVE = 2;       // Negative numbers buffer
-    private const int BUFFER_NONNEGATIVE = 3;    // Non-negative numbers buffer
 
 
     /// <summary>
@@ -62,7 +60,7 @@ public static class RadixLSD10Sort
     /// </summary>
     /// <typeparam name="T">The type of elements in the span. Must implement <see cref="IComparable{T}"/> and <see cref="IBinaryInteger{T}"/>.</typeparam>
     /// <param name="span">The span of elements to sort in place.</param>
-    public static void Sort<T>(Span<T> span) where T : IComparable<T>, IBinaryInteger<T>
+    public static void Sort<T>(Span<T> span) where T : IComparable<T>, IBinaryInteger<T>, IMinMaxValue<T>
     {
         Sort(span, NullContext.Default);
     }
@@ -73,330 +71,185 @@ public static class RadixLSD10Sort
     /// <typeparam name="T">The type of elements in the span. Must implement <see cref="IComparable{T}"/> and <see cref="IBinaryInteger{T}"/>.</typeparam>
     /// <param name="span">The span of elements to sort. The elements within this span will be reordered in place.</param>
     /// <param name="context">The sort context that defines the sorting strategy or options to use during the operation. Cannot be null.</param>
-    public static void Sort<T>(Span<T> span, ISortContext context) where T : IComparable<T>, IBinaryInteger<T>
+    public static void Sort<T>(Span<T> span, ISortContext context) where T : IComparable<T>, IBinaryInteger<T>, IMinMaxValue<T>
     {
         if (span.Length <= 1) return;
 
         // Rent buffers from ArrayPool
         var tempArray = ArrayPool<T>.Shared.Rent(span.Length);
         var bucketCountsArray = ArrayPool<int>.Shared.Rent(RadixBase);
-        var negativeArray = ArrayPool<T>.Shared.Rent(span.Length);
-        var nonNegativeArray = ArrayPool<T>.Shared.Rent(span.Length);
 
         try
         {
             var tempBuffer = tempArray.AsSpan(0, span.Length);
             var bucketCounts = bucketCountsArray.AsSpan(0, RadixBase);
-            var negativeBuffer = negativeArray.AsSpan(0, span.Length);
-            var nonNegativeBuffer = nonNegativeArray.AsSpan(0, span.Length);
 
-            SortCore(span, tempBuffer, bucketCounts, negativeBuffer, nonNegativeBuffer, context);
+            SortCore(span, tempBuffer, bucketCounts, context);
         }
         finally
         {
             ArrayPool<T>.Shared.Return(tempArray, clearArray: true);
             ArrayPool<int>.Shared.Return(bucketCountsArray);
-            ArrayPool<T>.Shared.Return(negativeArray, clearArray: true);
-            ArrayPool<T>.Shared.Return(nonNegativeArray, clearArray: true);
         }
     }
 
+
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private static void SortCore<T>(Span<T> span, Span<T> tempBuffer, Span<int> bucketCounts, Span<T> negativeBuffer, Span<T> nonNegativeBuffer, ISortContext context) where T : IComparable<T>, IBinaryInteger<T>
+    private static void SortCore<T>(Span<T> span, Span<T> tempBuffer, Span<int> bucketCounts, ISortContext context) 
+        where T : IComparable<T>, IBinaryInteger<T>, IMinMaxValue<T>
     {
         var s = new SortSpan<T>(span, context, BUFFER_MAIN);
+        var temp = new SortSpan<T>(tempBuffer, context, BUFFER_TEMP);
 
-        // Check if we have negative numbers
-        var hasNegative = false;
-        var zero = T.Zero;
-        for (var i = 0; i < s.Length; i++)
-        {
-            var value = s.Read(i);
-            if (value.CompareTo(zero) < 0)
-            {
-                hasNegative = true;
-                break;
-            }
-        }
+        // Determine bit size for sign-bit flipping
+        var bitSize = GetBitSize<T>();
 
-        if (hasNegative)
-        {
-            SortCoreNegative(s, tempBuffer, bucketCounts, negativeBuffer, nonNegativeBuffer, context);
-        }
-        else
-        {
-            SortCorePositive(s, tempBuffer, bucketCounts, context);
-        }
-    }
-
-    private static void SortCorePositive<T>(SortSpan<T> s, Span<T> tempBuffer, Span<int> bucketCounts, ISortContext context) where T : IComparable<T>, IBinaryInteger<T>
-    {
-        if (s.Length <= 1) return;
-
-        // Find max to determine number of digits
-        var max = s.Read(0);
-        for (var i = 1; i < s.Length; i++)
-        {
-            var value = s.Read(i);
-            if (value.CompareTo(max) > 0)
-            {
-                max = value;
-            }
-        }
-
-        // Calculate number of decimal digits
-        var digitCount = GetDigitCount(max);
-
-        Span<int> bucketStarts = stackalloc int[RadixBase];
-        var divisor = T.One;
-        var ten = T.CreateChecked(10);
-        var tempSpan = new SortSpan<T>(tempBuffer, context, BUFFER_TEMP);
-
-        for (var d = 0; d < digitCount; d++)
-        {
-            // Clear bucket counts
-            bucketCounts.Slice(0, RadixBase).Clear();
-
-            // Count elements per bucket
-            for (var i = 0; i < s.Length; i++)
-            {
-                var value = s.Read(i);
-                var digit = GetDecimalDigit(value, divisor);
-                bucketCounts[digit]++;
-            }
-
-            // Calculate starting positions (cumulative sum)
-            var offset = 0;
-            for (var i = 0; i < RadixBase; i++)
-            {
-                bucketStarts[i] = offset;
-                offset += bucketCounts[i];
-            }
-
-            // Distribute elements into temp buffer
-            for (var i = 0; i < s.Length; i++)
-            {
-                var value = s.Read(i);
-                var digit = GetDecimalDigit(value, divisor);
-                var pos = bucketStarts[digit]++;
-                tempSpan.Write(pos, value);
-            }
-
-            // Copy back from temp buffer using CopyTo for efficiency
-            tempSpan.CopyTo(0, s, 0, s.Length);
-
-            divisor *= ten;
-        }
-    }
-
-    private static void SortCoreNegative<T>(SortSpan<T> s, Span<T> tempBuffer, Span<int> bucketCounts, Span<T> negativeBuffer, Span<T> nonNegativeBuffer, ISortContext context) where T : IComparable<T>, IBinaryInteger<T>
-    {
-        // Separate negative and non-negative numbers using index-based approach
-        var negativeCount = 0;
-        var nonNegativeCount = 0;
-        var zero = T.Zero;
+        // Find min and max unsigned keys to determine required digit count
+        var minKey = ulong.MaxValue;
+        var maxKey = ulong.MinValue;
 
         for (var i = 0; i < s.Length; i++)
         {
             var value = s.Read(i);
-            if (value.CompareTo(zero) < 0)
-            {
-                negativeBuffer[negativeCount++] = value;
-            }
-            else
-            {
-                nonNegativeBuffer[nonNegativeCount++] = value;
-            }
+            var key = GetUnsignedKey(value, bitSize);
+            if (key < minKey) minKey = key;
+            if (key > maxKey) maxKey = key;
         }
 
-        // Sort negative numbers using their absolute values
-        // Create SortSpan for internal buffer to track statistics with specific buffer ID
-        if (negativeCount > 0)
-        {
-            var negativeSpan = new SortSpan<T>(negativeBuffer.Slice(0, negativeCount), context, BUFFER_NEGATIVE);
-            SortNegativeValues(negativeSpan, tempBuffer, bucketCounts, context);
-        }
-
-        // Sort non-negative numbers
-        // Create SortSpan for internal buffer to track statistics with specific buffer ID
-        if (nonNegativeCount > 0)
-        {
-            var nonNegativeSpan = new SortSpan<T>(nonNegativeBuffer.Slice(0, nonNegativeCount), context, BUFFER_NONNEGATIVE);
-            SortPositiveValues(nonNegativeSpan, tempBuffer, bucketCounts, context);
-        }
-
-        // Merge: reversed negative numbers + non-negative numbers
-        var writeIndex = 0;
-        // Negative numbers must be reversed, so we can't use CopyTo
-        for (var i = negativeCount - 1; i >= 0; i--)
-        {
-            s.Write(writeIndex++, negativeBuffer[i]);
-        }
-        // Non-negative numbers are in order, so we can use CopyTo for efficiency
-        if (nonNegativeCount > 0)
-        {
-            var nonNegativeSpan = new SortSpan<T>(nonNegativeBuffer, context, BUFFER_NONNEGATIVE);
-            nonNegativeSpan.CopyTo(0, s, negativeCount, nonNegativeCount);
-        }
-    }
-
-    /// <summary>
-    /// Sort negative values by their absolute values (smallest absolute value first).
-    /// After sorting, the array will be in order: -1, -2, -3, ... (smallest to largest absolute value)
-    /// </summary>
-    private static void SortNegativeValues<T>(SortSpan<T> s, Span<T> tempBuffer, Span<int> bucketCounts, ISortContext context) where T : IBinaryInteger<T>
-    {
-        if (s.Length <= 1) return;
-
-        // Find max absolute value to determine number of digits
-        var maxAbs = T.Abs(s.Read(0));
-        for (var i = 1; i < s.Length; i++)
-        {
-            var abs = T.Abs(s.Read(i));
-            if (abs.CompareTo(maxAbs) > 0)
-            {
-                maxAbs = abs;
-            }
-        }
-
-        var digitCount = GetDigitCount(maxAbs);
+        // Calculate required number of decimal digits
+        // For the range [minKey, maxKey], we need enough digits to represent maxKey
+        var digitCount = GetDigitCountFromUlong(maxKey);
 
         Span<int> bucketStarts = stackalloc int[RadixBase];
-        var divisor = T.One;
-        var ten = T.CreateChecked(10);
-        var tempSpan = new SortSpan<T>(tempBuffer, context, BUFFER_TEMP);
+        var divisor = 1UL;
 
-        for (var d = 0; d < digitCount; d++)
+        // Perform LSD radix sort on unsigned keys
+        for (int d = 0; d < digitCount; d++)
         {
             // Clear bucket counts
-            bucketCounts.Slice(0, RadixBase).Clear();
+            bucketCounts.Clear();
 
-            // Count elements per bucket based on absolute value
+            // Count occurrences of each decimal digit
             for (var i = 0; i < s.Length; i++)
             {
                 var value = s.Read(i);
-                var digit = GetDecimalDigit(T.Abs(value), divisor);
+                var key = GetUnsignedKey(value, bitSize);
+                var digit = (int)((key / divisor) % 10);
                 bucketCounts[digit]++;
             }
 
-            // Calculate starting positions (cumulative sum)
-            var offset = 0;
-            for (var i = 0; i < RadixBase; i++)
+            // Calculate cumulative bucket positions
+            bucketStarts[0] = 0;
+            for (var i = 1; i < RadixBase; i++)
             {
-                bucketStarts[i] = offset;
-                offset += bucketCounts[i];
+                bucketStarts[i] = bucketStarts[i - 1] + bucketCounts[i - 1];
             }
 
-            // Distribute elements into temp buffer
+            // Distribute elements into temp buffer based on current digit
             for (var i = 0; i < s.Length; i++)
             {
                 var value = s.Read(i);
-                var digit = GetDecimalDigit(T.Abs(value), divisor);
+                var key = GetUnsignedKey(value, bitSize);
+                var digit = (int)((key / divisor) % 10);
                 var pos = bucketStarts[digit]++;
-                tempSpan.Write(pos, value);
+                temp.Write(pos, value);
             }
 
-            // Copy back from temp buffer using CopyTo for efficiency
-            tempSpan.CopyTo(0, s, 0, s.Length);
+            // Copy back from temp buffer
+            temp.CopyTo(0, s, 0, s.Length);
 
-            divisor *= ten;
+            divisor *= 10;
         }
     }
 
     /// <summary>
-    /// Sort non-negative values (standard LSD radix sort)
-    /// </summary>
-    private static void SortPositiveValues<T>(SortSpan<T> s, Span<T> tempBuffer, Span<int> bucketCounts, ISortContext context) where T : IBinaryInteger<T>
-    {
-        if (s.Length <= 1) return;
-
-        // Find max to determine number of digits
-        var max = s.Read(0);
-        for (var i = 1; i < s.Length; i++)
-        {
-            var value = s.Read(i);
-            if (value.CompareTo(max) > 0)
-            {
-                max = value;
-            }
-        }
-
-        // Calculate number of decimal digits
-        var digitCount = GetDigitCount(max);
-
-        Span<int> bucketStarts = stackalloc int[RadixBase];
-        var divisor = T.One;
-        var ten = T.CreateChecked(10);
-        var tempSpan = new SortSpan<T>(tempBuffer, context, BUFFER_TEMP);
-
-        for (var d = 0; d < digitCount; d++)
-        {
-            // Clear bucket counts
-            bucketCounts.Slice(0, RadixBase).Clear();
-
-            // Count elements per bucket
-            for (var i = 0; i < s.Length; i++)
-            {
-                var value = s.Read(i);
-                var digit = GetDecimalDigit(value, divisor);
-                bucketCounts[digit]++;
-            }
-
-            // Calculate starting positions (cumulative sum)
-            var offset = 0;
-            for (var i = 0; i < RadixBase; i++)
-            {
-                bucketStarts[i] = offset;
-                offset += bucketCounts[i];
-            }
-
-            // Distribute elements into temp buffer
-            for (var i = 0; i < s.Length; i++)
-            {
-                var value = s.Read(i);
-                var digit = GetDecimalDigit(value, divisor);
-                var pos = bucketStarts[digit]++;
-                tempSpan.Write(pos, value);
-            }
-
-            // Copy back from temp buffer using CopyTo for efficiency
-            tempSpan.CopyTo(0, s, 0, s.Length);
-
-            divisor *= ten;
-        }
-    }
-
-    /// <summary>
-    /// Get the number of decimal digits in a value
+    /// Get the bit size of the type T.
     /// </summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private static int GetDigitCount<T>(T value) where T : IBinaryInteger<T>
+    private static int GetBitSize<T>() where T : IBinaryInteger<T>
     {
-        if (value == T.Zero)
-            return 1;
+        if (typeof(T) == typeof(sbyte) || typeof(T) == typeof(byte))
+            return 8;
+        else if (typeof(T) == typeof(short) || typeof(T) == typeof(ushort))
+            return 16;
+        else if (typeof(T) == typeof(int) || typeof(T) == typeof(uint))
+            return 32;
+        else if (typeof(T) == typeof(long) || typeof(T) == typeof(ulong))
+            return 64;
+        else if (typeof(T) == typeof(Int128) || typeof(T) == typeof(UInt128))
+            throw new NotSupportedException($"Type {typeof(T).Name} with 128-bit size is not supported. Maximum supported bit size is 64.");
+        else
+            throw new NotSupportedException($"Type {typeof(T).Name} is not supported.");
+    }
+
+    /// <summary>
+    /// Convert a signed or unsigned value to an unsigned key for radix sorting.
+    /// For signed types, flips the sign bit to ensure correct ordering (negative values sort before positive).
+    /// For unsigned types, returns the value as-is.
+    /// </summary>
+    /// <remarks>
+    /// Sign-bit flipping technique:
+    /// - 32-bit signed: key = (uint)value ^ 0x8000_0000
+    /// - 64-bit signed: key = (ulong)value ^ 0x8000_0000_0000_0000
+    /// 
+    /// This ensures:
+    /// - int.MinValue (-2147483648) → 0x0000_0000 (sorts first)
+    /// - -1 → 0x7FFF_FFFF (sorts before 0)
+    /// - 0 → 0x8000_0000 (sorts after negatives)
+    /// - int.MaxValue (2147483647) → 0xFFFF_FFFF (sorts last)
+    /// 
+    /// Advantages:
+    /// - No Abs() needed, avoids MinValue overflow
+    /// - Single unified pass for all values
+    /// - Maintains stability
+    /// </remarks>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private static ulong GetUnsignedKey<T>(T value, int bitSize) where T : IBinaryInteger<T>
+    {
+        if (bitSize <= 8)
+        {
+            var byteValue = byte.CreateTruncating(value);
+            if (typeof(T) == typeof(sbyte))
+                return (byte)(byteValue ^ 0x80); // Flip sign bit for signed byte
+            return byteValue;
+        }
+        else if (bitSize <= 16)
+        {
+            var ushortValue = ushort.CreateTruncating(value);
+            if (typeof(T) == typeof(short))
+                return (ushort)(ushortValue ^ 0x8000); // Flip sign bit for signed short
+            return ushortValue;
+        }
+        else if (bitSize <= 32)
+        {
+            var uintValue = uint.CreateTruncating(value);
+            if (typeof(T) == typeof(int))
+                return uintValue ^ 0x8000_0000; // Flip sign bit for signed int
+            return uintValue;
+        }
+        else // 64-bit
+        {
+            var ulongValue = ulong.CreateTruncating(value);
+            if (typeof(T) == typeof(long))
+                return ulongValue ^ 0x8000_0000_0000_0000; // Flip sign bit for signed long
+            return ulongValue;
+        }
+    }
+
+    /// <summary>
+    /// Get the number of decimal digits needed to represent a ulong value
+    /// </summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private static int GetDigitCountFromUlong(ulong value)
+    {
+        if (value == 0) return 1;
 
         var count = 0;
-        var temp = T.Abs(value);
-        var zero = T.Zero;
-        var ten = T.CreateChecked(10);
-
-        while (temp.CompareTo(zero) > 0)
+        while (value > 0)
         {
-            temp /= ten;
+            value /= 10;
             count++;
         }
-
         return count;
-    }
-
-    /// <summary>
-    /// Extract a decimal digit at the given position (divisor = 10^position)
-    /// </summary>
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private static int GetDecimalDigit<T>(T value, T divisor) where T : IBinaryInteger<T>
-    {
-        var ten = T.CreateChecked(10);
-        var digit = (value / divisor) % ten;
-        return int.CreateChecked(digit);
     }
 }
