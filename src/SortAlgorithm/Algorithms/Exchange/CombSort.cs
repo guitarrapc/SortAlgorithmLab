@@ -77,6 +77,7 @@ public static class CombSort
         var s = new SortSpan<T>(span, context, BUFFER_MAIN);
 
         var h = s.Length;
+        var length = s.Length;
         var swapped = true;
 
         while (h != 1 || swapped)
@@ -92,7 +93,7 @@ public static class CombSort
             }
 
             swapped = false;
-            for (var i = 0; i + h < s.Length; i++)
+            for (var i = 0; i + h < length; i++)
             {
                 if (s.Compare(i, i + h) > 0)
                 {
