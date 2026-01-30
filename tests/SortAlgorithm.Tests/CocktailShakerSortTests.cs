@@ -15,6 +15,11 @@ public class CocktailShakerSortTests
     [ClassData(typeof(MockSameValuesData))]
     [ClassData(typeof(MockAntiQuickSortData))]
     [ClassData(typeof(MockQuickSortWorstCaseData))]
+    [ClassData(typeof(MockAllIdenticalData))]
+    [ClassData(typeof(MockTwoDistinctValuesData))]
+    [ClassData(typeof(MockHalfZeroHalfOneData))]
+    [ClassData(typeof(MockManyDuplicatesSqrtRangeData))]
+    [ClassData(typeof(MockHighlySkewedData))]
     public void SortResultOrderTest(IInputSample<int> inputSample)
     {
         if (inputSample.Samples.Length > 512)

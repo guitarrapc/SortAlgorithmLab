@@ -15,6 +15,11 @@ public class RadixMSD4SortTests
     [ClassData(typeof(MockSameValuesData))]
     [ClassData(typeof(MockAntiQuickSortData))]
     [ClassData(typeof(MockQuickSortWorstCaseData))]
+    [ClassData(typeof(MockAllIdenticalData))]
+    [ClassData(typeof(MockTwoDistinctValuesData))]
+    [ClassData(typeof(MockHalfZeroHalfOneData))]
+    [ClassData(typeof(MockManyDuplicatesSqrtRangeData))]
+    [ClassData(typeof(MockHighlySkewedData))]
     public void SortResultOrderTest(IInputSample<int> inputSample)
     {
         var stats = new StatisticsContext();
@@ -242,7 +247,7 @@ public class RadixMSD4SortTests
 
         // MSD Radix Sort (Radix-4, 2-bit per pass) with sign-bit flipping and early termination:
         // For 32-bit integers with range [0, n-1]:
-        // 
+        //
         // MSD processes from most significant digit, recursively partitioning buckets.
         // For sorted input, elements tend to distribute into buckets naturally,
         // and small buckets (<=16 elements) switch to insertion sort.

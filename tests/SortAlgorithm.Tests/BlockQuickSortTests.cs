@@ -280,7 +280,7 @@ public class BlockQuickSortTests
         // Verify sorted and count occurrences
         for (var i = 0; i < shuffled.Length - 1; i++)
         {
-            Assert.True(shuffled[i] <= shuffled[i + 1], 
+            Assert.True(shuffled[i] <= shuffled[i + 1],
                 $"Array not sorted at index {i}: {shuffled[i]} > {shuffled[i + 1]}");
         }
 
@@ -325,7 +325,7 @@ public class BlockQuickSortTests
         // Verify sorted
         for (var i = 0; i < shuffled.Length - 1; i++)
         {
-            Assert.True(shuffled[i] <= shuffled[i + 1], 
+            Assert.True(shuffled[i] <= shuffled[i + 1],
                 $"Array not sorted at index {i}: {shuffled[i]} > {shuffled[i + 1]}");
         }
     }
@@ -353,7 +353,7 @@ public class BlockQuickSortTests
         // Verify sorted
         for (var i = 0; i < size - 1; i++)
         {
-            Assert.True(array[i] <= array[i + 1], 
+            Assert.True(array[i] <= array[i + 1],
                 $"Array not sorted at index {i}: {array[i]} > {array[i + 1]}");
         }
     }
@@ -381,7 +381,7 @@ public class BlockQuickSortTests
         // Verify sorted
         for (var i = 0; i < size - 1; i++)
         {
-            Assert.True(array[i] <= array[i + 1], 
+            Assert.True(array[i] <= array[i + 1],
                 $"Array not sorted at index {i}: {array[i]} > {array[i + 1]}");
         }
 
@@ -414,7 +414,7 @@ public class BlockQuickSortTests
         // Verify sorted
         for (var i = 0; i < size - 1; i++)
         {
-            Assert.True(array[i] <= array[i + 1], 
+            Assert.True(array[i] <= array[i + 1],
                 $"Array not sorted at index {i}: {array[i]} > {array[i + 1]}");
         }
     }
@@ -450,7 +450,7 @@ public class BlockQuickSortTests
         // Verify sorted
         for (var i = 0; i < size - 1; i++)
         {
-            Assert.True(shuffled[i] <= shuffled[i + 1], 
+            Assert.True(shuffled[i] <= shuffled[i + 1],
                 $"Array not sorted at index {i}: {shuffled[i]} > {shuffled[i + 1]}");
         }
     }

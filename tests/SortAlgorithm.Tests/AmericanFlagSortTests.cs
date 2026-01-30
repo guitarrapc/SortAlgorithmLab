@@ -15,6 +15,11 @@ public class AmericanFlagSortTests
     [ClassData(typeof(MockSameValuesData))]
     [ClassData(typeof(MockAntiQuickSortData))]
     [ClassData(typeof(MockQuickSortWorstCaseData))]
+    [ClassData(typeof(MockAllIdenticalData))]
+    [ClassData(typeof(MockTwoDistinctValuesData))]
+    [ClassData(typeof(MockHalfZeroHalfOneData))]
+    [ClassData(typeof(MockManyDuplicatesSqrtRangeData))]
+    [ClassData(typeof(MockHighlySkewedData))]
     public void SortResultOrderTest(IInputSample<int> inputSample)
     {
         var stats = new StatisticsContext();
@@ -194,7 +199,7 @@ public class AmericanFlagSortTests
         // Use larger array to exceed InsertionSortCutoff (16)
         var array = new[] { 25, 13, 28, 11, 22, 29, 14, 27, 16, 30, 15, 26, 17, 31, 18, 24, 19, 23, 20, 21 };
         var expected = new[] { 11, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31 };
-        AmericanFlagSort.Sort(array.AsSpan(), stats);        
+        AmericanFlagSort.Sort(array.AsSpan(), stats);
         Assert.Equal(expected, array);
     }
 
@@ -275,7 +280,7 @@ public class AmericanFlagSortTests
         Assert.Equal((ulong)n, (ulong)array.Length);
         Assert.NotEqual(0UL, stats.IndexReadCount);
         Assert.True(IsSorted(array));
-        
+
         // Random data should require swap operations when n > InsertionSortCutoff (16)
         if (n > 16)
         {

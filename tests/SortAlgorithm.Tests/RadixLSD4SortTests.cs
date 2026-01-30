@@ -15,6 +15,11 @@ public class RadixLSD4SortTests
     [ClassData(typeof(MockSameValuesData))]
     [ClassData(typeof(MockAntiQuickSortData))]
     [ClassData(typeof(MockQuickSortWorstCaseData))]
+    [ClassData(typeof(MockAllIdenticalData))]
+    [ClassData(typeof(MockTwoDistinctValuesData))]
+    [ClassData(typeof(MockHalfZeroHalfOneData))]
+    [ClassData(typeof(MockManyDuplicatesSqrtRangeData))]
+    [ClassData(typeof(MockHighlySkewedData))]
     public void SortResultOrderTest(IInputSample<int> inputSample)
     {
         var stats = new StatisticsContext();
@@ -187,7 +192,7 @@ public class RadixLSD4SortTests
 
         // LSD Radix Sort (Radix-4, 2-bit per pass) with sign-bit flipping and early termination:
         // For 32-bit integers with range [0, n-1]:
-        // 
+        //
         // Early termination optimization:
         // - Find min/max keys: n reads
         // - Calculate required bits from range (max ^ min)
@@ -216,7 +221,7 @@ public class RadixLSD4SortTests
         var range = (ulong)maxValue; // min=0 after sign-bit flip, range = max - min
         var requiredBits = range == 0 ? 0 : (64 - System.Numerics.BitOperations.LeadingZeroCount(range));
         var digitCount = Math.Max(1, (requiredBits + 2 - 1) / 2); // ceil(requiredBits / 2)
-        
+
         var expectedReads = (ulong)(n + digitCount * 3 * n);  // Initial + (count + distribute + copy) × passes
         var expectedWrites = (ulong)(digitCount * 2 * n);     // (temp write + main write) × passes
 
@@ -243,7 +248,7 @@ public class RadixLSD4SortTests
         var range = (ulong)maxValue;
         var requiredBits = range == 0 ? 0 : (64 - System.Numerics.BitOperations.LeadingZeroCount(range));
         var digitCount = Math.Max(1, (requiredBits + 1) / 2); // ceil(requiredBits / 2)
-        
+
         var expectedReads = (ulong)(n + digitCount * 3 * n);
         var expectedWrites = (ulong)(digitCount * 2 * n);
 
@@ -270,7 +275,7 @@ public class RadixLSD4SortTests
         var range = (ulong)maxValue;
         var requiredBits = range == 0 ? 0 : (64 - System.Numerics.BitOperations.LeadingZeroCount(range));
         var digitCount = Math.Max(1, (requiredBits + 2 - 1) / 2);
-        
+
         var expectedReads = (ulong)(n + digitCount * 3 * n);
         var expectedWrites = (ulong)(digitCount * 2 * n);
 
@@ -295,7 +300,7 @@ public class RadixLSD4SortTests
         // With sign-bit flipping and early termination:
         // For mixed negative/positive data, verify the sort is correct
         // The actual pass count depends on the range after sign-bit flipping
-        
+
         Assert.NotEqual(0UL, stats.IndexReadCount);
         Assert.NotEqual(0UL, stats.IndexWriteCount);
         Assert.Equal(0UL, stats.CompareCount);

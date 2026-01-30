@@ -15,6 +15,11 @@ public class StableQuickSortTest
     [ClassData(typeof(MockSameValuesData))]
     [ClassData(typeof(MockAntiQuickSortData))]
     [ClassData(typeof(MockQuickSortWorstCaseData))]
+    [ClassData(typeof(MockAllIdenticalData))]
+    [ClassData(typeof(MockTwoDistinctValuesData))]
+    [ClassData(typeof(MockHalfZeroHalfOneData))]
+    [ClassData(typeof(MockManyDuplicatesSqrtRangeData))]
+    [ClassData(typeof(MockHighlySkewedData))]
     public void SortResultOrderTest(IInputSample<int> inputSample)
     {
         var stats = new StatisticsContext();
@@ -367,7 +372,7 @@ public class StableQuickSortTest
         // MedianOf3Value (all elements equal):
         //   - s.Compare(lowIdx, midIdx): 2 reads (low, mid)
         //   - low == mid, so else branch
-        //   - s.Compare(midIdx, highIdx): 2 reads (mid, high)  
+        //   - s.Compare(midIdx, highIdx): 2 reads (mid, high)
         //   - mid == high, so else branch
         //   - s.Read(midIdx): 1 read
         //   Total: 5 reads, 2 compares
