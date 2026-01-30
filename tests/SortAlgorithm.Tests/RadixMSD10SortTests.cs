@@ -302,7 +302,7 @@ public class RadixMSD10SortTests
         // Reversed data typically causes more swaps in insertion sort
         // Exact values depend on bucket distribution and are data-dependent
         Assert.NotEqual(0UL, stats.CompareCount);
-        Assert.NotEqual(0UL, stats.SwapCount);
+        Assert.Equal(0UL, stats.SwapCount);
     }
 
     [Theory]
@@ -334,7 +334,7 @@ public class RadixMSD10SortTests
         // Random data means varied bucket sizes, so statistics vary by run
         // Exact values are data-dependent and vary with bucket distribution
         Assert.NotEqual(0UL, stats.CompareCount);
-        Assert.NotEqual(0UL, stats.SwapCount);
+        Assert.Equal(0UL, stats.SwapCount);
     }
 
     [Theory]

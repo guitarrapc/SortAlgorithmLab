@@ -127,7 +127,7 @@ public static class RadixMSD4Sort
         // Base case: if length is small, use insertion sort
         if (length <= InsertionSortCutoff)
         {
-            InsertionSort(s, start, length);
+            InsertionSort.SortCore(s, start, start + length);
             return;
         }
 
@@ -187,28 +187,6 @@ public static class RadixMSD4Sort
             if (bucketLength > 1)
             {
                 MSDSort(s, temp, start + bucketStart, bucketLength, digit - 1, bitSize, bucketOffsets);
-            }
-        }
-    }
-
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private static void InsertionSort<T>(SortSpan<T> s, int start, int length)
-        where T : IBinaryInteger<T>, IMinMaxValue<T>, IComparable<T>
-    {
-        for (var i = 1; i < length; i++)
-        {
-            var key = s.Read(start + i);
-            var j = i - 1;
-
-            while (j >= 0 && s.Compare(start + j, key) > 0)
-            {
-                s.Swap(start + j + 1, start + j);
-                j--;
-            }
-
-            if (j + 1 != i)
-            {
-                s.Write(start + j + 1, key);
             }
         }
     }
