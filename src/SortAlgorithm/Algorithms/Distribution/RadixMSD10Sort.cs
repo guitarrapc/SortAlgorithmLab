@@ -109,20 +109,9 @@ public static class RadixMSD10Sort
         // Determine the bit size for sign-bit flipping
         var bitSize = GetBitSize<T>();
 
-        // Find min and max to determine actual required digit count
-        var minKey = ulong.MaxValue;
-        var maxKey = ulong.MinValue;
-        
-        for (var i = 0; i < s.Length; i++)
-        {
-            var value = s.Read(i);
-            var key = GetUnsignedKey(value, bitSize);
-            if (key < minKey) minKey = key;
-            if (key > maxKey) maxKey = key;
-        }
-
-        // Calculate required number of decimal digits based on the maximum value
-        var digitCount = GetDigitCountFromUlong(maxKey);
+        // Calculate maximum number of decimal digits based on the type's bit size
+        // MSD doesn't need to scan for min/max - empty buckets are naturally skipped
+        var digitCount = GetMaxDigitCountFromBitSize(bitSize);
 
         // Start MSD radix sort from the most significant digit
         MSDSort(s, temp, 0, s.Length, digitCount - 1, bitSize, bucketOffsets);
@@ -345,19 +334,26 @@ public static class RadixMSD10Sort
     }
 
     /// <summary>
-    /// Get the number of decimal digits needed to represent a ulong value
+    /// Get the maximum number of decimal digits for a given bit size.
+    /// Returns the digit count needed to represent the maximum unsigned value for that bit size.
     /// </summary>
+    /// <remarks>
+    /// Examples:
+    /// - 8-bit: max 255 → 3 digits
+    /// - 16-bit: max 65,535 → 5 digits
+    /// - 32-bit: max 4,294,967,295 → 10 digits
+    /// - 64-bit: max 18,446,744,073,709,551,615 → 20 digits
+    /// </remarks>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private static int GetDigitCountFromUlong(ulong value)
+    private static int GetMaxDigitCountFromBitSize(int bitSize)
     {
-        if (value == 0) return 1;
-
-        var count = 0;
-        while (value > 0)
+        return bitSize switch
         {
-            value /= 10;
-            count++;
-        }
-        return count;
+            8 => 3,   // byte/sbyte: max 255
+            16 => 5,  // short/ushort: max 65535
+            32 => 10, // int/uint: max 4294967295
+            64 => 20, // long/ulong: max 18446744073709551615
+            _ => throw new NotSupportedException($"Bit size {bitSize} is not supported")
+        };
     }
 }

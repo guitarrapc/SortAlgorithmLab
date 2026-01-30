@@ -112,24 +112,9 @@ public static class RadixMSD4Sort
         // GetBitSize throws NotSupportedException for unsupported types (>64-bit)
         var bitSize = GetBitSize<T>();
 
-        // Find min and max to determine actual required passes
-        // This optimization skips unnecessary high-order digit passes
-        var minKey = ulong.MaxValue;
-        var maxKey = ulong.MinValue;
-        
-        for (var i = 0; i < s.Length; i++)
-        {
-            var value = s.Read(i);
-            var key = GetUnsignedKey(value, bitSize);
-            if (key < minKey) minKey = key;
-            if (key > maxKey) maxKey = key;
-        }
-
-        // Calculate required number of passes based on the range
-        // XOR to find differing bits, then count bits needed
-        var range = maxKey ^ minKey;
-        var requiredBits = range == 0 ? 0 : (64 - System.Numerics.BitOperations.LeadingZeroCount(range));
-        var digitCount = Math.Max(1, (requiredBits + RadixBits - 1) / RadixBits);
+        // Calculate digit count from bit size (2 bits per digit)
+        // MSD doesn't need to scan for min/max - empty buckets are naturally skipped
+        var digitCount = (bitSize + RadixBits - 1) / RadixBits;
 
         // Start MSD radix sort from the most significant digit
         MSDSort(s, temp, 0, s.Length, digitCount - 1, bitSize, bucketOffsets);
