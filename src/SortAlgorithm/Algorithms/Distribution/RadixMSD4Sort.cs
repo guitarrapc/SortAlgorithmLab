@@ -136,13 +136,13 @@ public static class RadixMSD4Sort
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private static void MSDSort<T>(SortSpan<T> source, SortSpan<T> temp, int start, int length, int digit, int bitSize, Span<int> bucketOffsets)
+    private static void MSDSort<T>(SortSpan<T> s, SortSpan<T> temp, int start, int length, int digit, int bitSize, Span<int> bucketOffsets)
         where T : IBinaryInteger<T>, IMinMaxValue<T>, IComparable<T>
     {
         // Base case: if length is small, use insertion sort
         if (length <= InsertionSortCutoff)
         {
-            InsertionSort(source, start, length);
+            InsertionSort(s, start, length);
             return;
         }
 
@@ -160,7 +160,7 @@ public static class RadixMSD4Sort
         // Count occurrences of each digit in the current range
         for (var i = 0; i < length; i++)
         {
-            var value = source.Read(start + i);
+            var value = s.Read(start + i);
             var key = GetUnsignedKey(value, bitSize);
             var digitValue = (int)((key >> shift) & 0b11);  // Extract 2-bit digit
             bucketOffsets[digitValue + 1]++;
@@ -182,7 +182,7 @@ public static class RadixMSD4Sort
         // Distribute elements into temp buffer based on current digit
         for (var i = 0; i < length; i++)
         {
-            var value = source.Read(start + i);
+            var value = s.Read(start + i);
             var key = GetUnsignedKey(value, bitSize);
             var digitValue = (int)((key >> shift) & 0b11);  // Extract 2-bit digit
             var destIndex = bucketOffsets[digitValue]++;
@@ -190,7 +190,7 @@ public static class RadixMSD4Sort
         }
 
         // Copy back from temp to source
-        temp.CopyTo(start, source, start, length);
+        temp.CopyTo(start, s, start, length);
 
         // Recursively sort each bucket for the next digit
         for (var i = 0; i < RadixSize; i++)
@@ -201,7 +201,7 @@ public static class RadixMSD4Sort
 
             if (bucketLength > 1)
             {
-                MSDSort(source, temp, start + bucketStart, bucketLength, digit - 1, bitSize, bucketOffsets);
+                MSDSort(s, temp, start + bucketStart, bucketLength, digit - 1, bitSize, bucketOffsets);
             }
         }
     }

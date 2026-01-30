@@ -81,51 +81,61 @@ public static class PigeonholeSort
         // Rent arrays from ArrayPool for temporary storage
         var keysArray = ArrayPool<int>.Shared.Rent(span.Length);
         var tempArray = ArrayPool<T>.Shared.Rent(span.Length);
-        int[]? rentedHoleArray = null;
-
         try
         {
+            // Create SortSpan for temp buffer to track operations
+            var tempSpan = new SortSpan<T>(tempArray.AsSpan(0, span.Length), context, BUFFER_TEMP);
             var keys = keysArray.AsSpan(0, span.Length);
-            var temp = tempArray.AsSpan(0, span.Length);
 
-            // Find min/max and cache keys in single pass
-            var min = int.MaxValue;
-            var max = int.MinValue;
-
-            for (var i = 0; i < span.Length; i++)
-            {
-                var key = keySelector(s.Read(i));
-                keys[i] = key;
-                if (key < min) min = key;
-                if (key > max) max = key;
-            }
-
-            // If all keys are the same, no need to sort
-            if (min == max) return;
-
-            // Check for overflow and validate range
-            long range = (long)max - (long)min + 1;
-            if (range > int.MaxValue)
-                throw new ArgumentException($"Key range is too large for PigeonholeSort: {range}. Maximum supported range is {int.MaxValue}.");
-            if (range > MaxHoleArraySize)
-                throw new ArgumentException($"Key range ({range}) exceeds maximum hole array size ({MaxHoleArraySize}). Consider using QuickSort or another comparison-based sort.");
-
-            var offset = -min; // Offset to normalize keys to 0-based index
-            var size = (int)range;
-
-            // Use stackalloc for small hole arrays, ArrayPool for larger ones
-            Span<int> holes = size <= StackAllocThreshold
-                ? stackalloc int[size]
-                : (rentedHoleArray = ArrayPool<int>.Shared.Rent(size)).AsSpan(0, size);
-            holes.Clear();
-
-            SortCore(s, keys, temp, holes, offset, context);
+            SortCore(span, keySelector, s, tempSpan, keys);
         }
         finally
         {
             ArrayPool<int>.Shared.Return(keysArray);
             ArrayPool<T>.Shared.Return(tempArray, clearArray: true);
-            if (rentedHoleArray != null)
+        }
+    }
+
+    private static void SortCore<T>(Span<T> span, Func<T, int> keySelector, SortSpan<T> s, SortSpan<T> tempSpan, Span<int> keys) where T : IComparable<T>
+    {
+        // Find min/max and cache keys in single pass
+        var min = int.MaxValue;
+        var max = int.MinValue;
+
+        for (var i = 0; i < span.Length; i++)
+        {
+            var key = keySelector(s.Read(i));
+            keys[i] = key;
+            if (key < min) min = key;
+            if (key > max) max = key;
+        }
+
+        // If all keys are the same, no need to sort
+        if (min == max) return;
+
+        // Check for overflow and validate range
+        long range = (long)max - (long)min + 1;
+        if (range > int.MaxValue)
+            throw new ArgumentException($"Key range is too large for PigeonholeSort: {range}. Maximum supported range is {int.MaxValue}.");
+        if (range > MaxHoleArraySize)
+            throw new ArgumentException($"Key range ({range}) exceeds maximum hole array size ({MaxHoleArraySize}). Consider using QuickSort or another comparison-based sort.");
+
+        var offset = -min; // Offset to normalize keys to 0-based index
+        var size = (int)range;
+
+        // Use stackalloc for small hole arrays, ArrayPool for larger ones
+        int[]? rentedHoleArray = null;
+        Span<int> holes = size <= StackAllocThreshold
+            ? stackalloc int[size]
+            : (rentedHoleArray = ArrayPool<int>.Shared.Rent(size)).AsSpan(0, size);
+        holes.Clear();
+        try
+        {
+            PigeonholeDistribute(s, tempSpan, keys, holes, offset);
+        }
+        finally
+        {
+            if (rentedHoleArray is not null)
             {
                 ArrayPool<int>.Shared.Return(rentedHoleArray);
             }
@@ -133,19 +143,16 @@ public static class PigeonholeSort
     }
 
     /// <summary>
-    /// Core pigeonhole sort implementation.
+    /// Pigeonhole distribution implementation.
     /// Achieves O(n + k) complexity by processing elements in a single pass.
     /// </summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private static void SortCore<T>(SortSpan<T> s, Span<int> keys, Span<T> temp, Span<int> holes, int offset, ISortContext context) where T : IComparable<T>
+    private static void PigeonholeDistribute<T>(SortSpan<T> source, SortSpan<T> temp, Span<int> keys, Span<int> holes, int offset) where T : IComparable<T>
     {
-        // Create SortSpan for temp buffer to track operations
-        var tempSpan = new SortSpan<T>(temp, context, BUFFER_TEMP);
-
         // Phase 1: Copy elements to temp array and count occurrences (O(n))
-        for (var i = 0; i < s.Length; i++)
+        for (var i = 0; i < source.Length; i++)
         {
-            tempSpan.Write(i, s.Read(i));
+            temp.Write(i, source.Read(i));
             holes[keys[i] + offset]++;
         }
 
@@ -162,11 +169,11 @@ public static class PigeonholeSort
 
         // Phase 3: Place elements in sorted order (O(n))
         // Iterate through temp array and place each element at its correct position
-        for (var i = 0; i < s.Length; i++)
+        for (var i = 0; i < source.Length; i++)
         {
             var holeIndex = keys[i] + offset;
             var targetPos = holes[holeIndex];
-            s.Write(targetPos, tempSpan.Read(i));
+            source.Write(targetPos, temp.Read(i));
             holes[holeIndex]++; // Move to next position for this key
         }
     }
@@ -236,50 +243,63 @@ public static class PigeonholeSortInteger
 
         // Rent arrays from ArrayPool for temporary storage
         var tempArray = ArrayPool<T>.Shared.Rent(span.Length);
-        int[]? rentedHoleArray = null;
-
         try
         {
-            // Find min and max to determine range
-            var minValue = T.MaxValue;
-            var maxValue = T.MinValue;
+            // Create SortSpan for temp buffer to track operations
+            var tempSpan = new SortSpan<T>(tempArray.AsSpan(0, span.Length), context, BUFFER_TEMP);
 
-            for (var i = 0; i < s.Length; i++)
-            {
-                var value = s.Read(i);
-                if (value.CompareTo(minValue) < 0) minValue = value;
-                if (value.CompareTo(maxValue) > 0) maxValue = value;
-            }
-
-            // If all elements are the same, no need to sort
-            if (minValue.CompareTo(maxValue) == 0) return;
-
-            // Convert to long for range calculation
-            var min = ConvertToLong(minValue);
-            var max = ConvertToLong(maxValue);
-
-            // Check for overflow and validate range
-            long range = max - min + 1;
-            if (range > int.MaxValue)
-                throw new ArgumentException($"Value range is too large for PigeonholeSort: {range}. Maximum supported range is {int.MaxValue}.");
-            if (range > MaxHoleArraySize)
-                throw new ArgumentException($"Value range ({range}) exceeds maximum hole array size ({MaxHoleArraySize}). Consider using QuickSort or another comparison-based sort.");
-
-            var offset = -min; // Offset to normalize values to 0-based index
-            var size = (int)range;
-
-            // Use stackalloc for small hole arrays, ArrayPool for larger ones
-            Span<int> holes = size <= StackAllocThreshold
-                ? stackalloc int[size]
-                : (rentedHoleArray = ArrayPool<int>.Shared.Rent(size)).AsSpan(0, size);
-            holes.Clear();
-
-            SortCore(s, tempArray.AsSpan(0, span.Length), holes, offset, context);
+            SortCore(span, s, tempSpan);
         }
         finally
         {
             ArrayPool<T>.Shared.Return(tempArray, clearArray: true);
-            if (rentedHoleArray != null)
+        }
+    }
+
+    private static void SortCore<T>(Span<T> span, SortSpan<T> s, SortSpan<T> tempSpan)
+        where T : IBinaryInteger<T>, IMinMaxValue<T>, IComparable<T>
+    {
+        // Find min and max to determine range
+        var minValue = T.MaxValue;
+        var maxValue = T.MinValue;
+
+        for (var i = 0; i < s.Length; i++)
+        {
+            var value = s.Read(i);
+            if (value.CompareTo(minValue) < 0) minValue = value;
+            if (value.CompareTo(maxValue) > 0) maxValue = value;
+        }
+
+        // If all elements are the same, no need to sort
+        if (minValue.CompareTo(maxValue) == 0) return;
+
+        // Convert to long for range calculation
+        var min = ConvertToLong(minValue);
+        var max = ConvertToLong(maxValue);
+
+        // Check for overflow and validate range
+        long range = max - min + 1;
+        if (range > int.MaxValue)
+            throw new ArgumentException($"Value range is too large for PigeonholeSort: {range}. Maximum supported range is {int.MaxValue}.");
+        if (range > MaxHoleArraySize)
+            throw new ArgumentException($"Value range ({range}) exceeds maximum hole array size ({MaxHoleArraySize}). Consider using QuickSort or another comparison-based sort.");
+
+        var offset = -min; // Offset to normalize values to 0-based index
+        var size = (int)range;
+
+        // Use stackalloc for small hole arrays, ArrayPool for larger ones
+        int[]? rentedHoleArray = null;
+        Span<int> holes = size <= StackAllocThreshold
+            ? stackalloc int[size]
+            : (rentedHoleArray = ArrayPool<int>.Shared.Rent(size)).AsSpan(0, size);
+        holes.Clear();
+        try
+        {
+            PigeonholeDistribute(s, tempSpan, holes, offset);
+        }
+        finally
+        {
+            if (rentedHoleArray is not null)
             {
                 ArrayPool<int>.Shared.Return(rentedHoleArray);
             }
@@ -287,17 +307,14 @@ public static class PigeonholeSortInteger
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private static void SortCore<T>(SortSpan<T> s, Span<T> tempArray, Span<int> holes, long offset, ISortContext context) 
+    private static void PigeonholeDistribute<T>(SortSpan<T> source, SortSpan<T> temp, Span<int> holes, long offset) 
         where T : IBinaryInteger<T>, IComparable<T>
     {
-        // Create SortSpan for temp buffer to track operations
-        var tempSpan = new SortSpan<T>(tempArray, context, BUFFER_TEMP);
-
         // Phase 1: Copy elements to temp array and count occurrences (O(n))
-        for (var i = 0; i < s.Length; i++)
+        for (var i = 0; i < source.Length; i++)
         {
-            var value = s.Read(i);
-            tempSpan.Write(i, value);
+            var value = source.Read(i);
+            temp.Write(i, value);
             var index = (int)(ConvertToLong(value) + offset);
             holes[index]++;
         }
@@ -314,12 +331,12 @@ public static class PigeonholeSortInteger
 
         // Phase 3: Place elements in sorted order (O(n))
         // Stability is preserved by iterating forward and incrementing hole positions
-        for (var i = 0; i < s.Length; i++)
+        for (var i = 0; i < source.Length; i++)
         {
-            var value = tempSpan.Read(i);
+            var value = temp.Read(i);
             var index = (int)(ConvertToLong(value) + offset);
             var targetPos = holes[index];
-            s.Write(targetPos, value);
+            source.Write(targetPos, value);
             holes[index]++; // Move to next position for this value
         }
     }

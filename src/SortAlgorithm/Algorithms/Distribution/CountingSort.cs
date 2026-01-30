@@ -75,50 +75,61 @@ public static class CountingSort
         // Rent arrays from ArrayPool for temporary storage
         var keysArray = ArrayPool<int>.Shared.Rent(span.Length);
         var tempArray = ArrayPool<T>.Shared.Rent(span.Length);
-        int[]? rentedCountArray = null;
-
         try
         {
+            // Create SortSpan for temp buffer to track operations
+            var tempSpan = new SortSpan<T>(tempArray.AsSpan(0, span.Length), context, BUFFER_MAIN);
             var keys = keysArray.AsSpan(0, span.Length);
 
-            // Find min/max and cache keys in single pass
-            var min = int.MaxValue;
-            var max = int.MinValue;
-
-            for (var i = 0; i < span.Length; i++)
-            {
-                var key = keySelector(s.Read(i));
-                keys[i] = key;
-                if (key < min) min = key;
-                if (key > max) max = key;
-            }
-
-            // If all keys are the same, no need to sort
-            if (min == max) return;
-
-            // Check for overflow and validate range
-            long range = (long)max - (long)min + 1;
-            if (range > int.MaxValue)
-                throw new ArgumentException($"Key range is too large for CountingSort: {range}. Maximum supported range is {int.MaxValue}.");
-            if (range > MaxCountArraySize)
-                throw new ArgumentException($"Key range ({range}) exceeds maximum count array size ({MaxCountArraySize}). Consider using QuickSort or another comparison-based sort.");
-
-            var offset = -min; // Offset to normalize keys to 0-based index
-            var size = (int)range;
-
-            // Use stackalloc for small count arrays, ArrayPool for larger ones
-            Span<int> countArray = size <= StackAllocThreshold
-                ? stackalloc int[size]
-                : (rentedCountArray = ArrayPool<int>.Shared.Rent(size)).AsSpan(0, size);
-            countArray.Clear();
-
-            SortCore(s, keys, tempArray.AsSpan(0, span.Length), countArray, offset, context);
+            SortCore(span, keySelector, s, tempSpan, keys);
         }
         finally
         {
             ArrayPool<int>.Shared.Return(keysArray);
             ArrayPool<T>.Shared.Return(tempArray, clearArray: true);
-            if (rentedCountArray != null)
+        }
+    }
+
+    private static void SortCore<T>(Span<T> span, Func<T, int> keySelector, SortSpan<T> s, SortSpan<T> tempSpan, Span<int> keys) where T : IComparable<T>
+    {
+        // Find min/max and cache keys in single pass
+        var min = int.MaxValue;
+        var max = int.MinValue;
+
+        for (var i = 0; i < span.Length; i++)
+        {
+            var key = keySelector(s.Read(i));
+            keys[i] = key;
+            if (key < min) min = key;
+            if (key > max) max = key;
+        }
+
+        // If all keys are the same, no need to sort
+        if (min == max) return;
+
+        // Check for overflow and validate range
+        long range = (long)max - (long)min + 1;
+        if (range > int.MaxValue)
+            throw new ArgumentException($"Key range is too large for CountingSort: {range}. Maximum supported range is {int.MaxValue}.");
+        if (range > MaxCountArraySize)
+            throw new ArgumentException($"Key range ({range}) exceeds maximum count array size ({MaxCountArraySize}). Consider using QuickSort or another comparison-based sort.");
+
+        var offset = -min; // Offset to normalize keys to 0-based index
+        var size = (int)range;
+
+        // Use stackalloc for small count arrays, ArrayPool for larger ones
+        int[]? rentedCountArray = null;
+        Span<int> countArray = size <= StackAllocThreshold
+            ? stackalloc int[size]
+            : (rentedCountArray = ArrayPool<int>.Shared.Rent(size)).AsSpan(0, size);
+        countArray.Clear();
+        try
+        {
+            CountSort(s, keys, tempSpan, countArray, offset);
+        }
+        finally
+        {
+            if (rentedCountArray is not null)
             {
                 ArrayPool<int>.Shared.Return(rentedCountArray);
             }
@@ -129,11 +140,8 @@ public static class CountingSort
     /// Core counting sort implementation.
     /// </summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private static void SortCore<T>(SortSpan<T> s, Span<int> keys, Span<T> tempArray, Span<int> countArray, int offset, ISortContext context) where T : IComparable<T>
+    private static void CountSort<T>(SortSpan<T> s, Span<int> keys, SortSpan<T> tempSpan, Span<int> countArray, int offset) where T : IComparable<T>
     {
-        // Create SortSpan for temp buffer to track operations
-        var tempSpan = new SortSpan<T>(tempArray, context, BUFFER_TEMP);
-
         // Count occurrences of each key
         for (var i = 0; i < s.Length; i++)
         {
@@ -225,51 +233,64 @@ public static class CountingSortInteger
 
         // Rent arrays from ArrayPool for temporary storage
         var tempArray = ArrayPool<T>.Shared.Rent(span.Length);
-        int[]? rentedCountArray = null;
-
         try
         {
-            // Find min and max to determine range
-            // Convert to long for range calculation
-            var minValue = T.MaxValue;
-            var maxValue = T.MinValue;
+            // Create SortSpan for temp buffer to track operations
+            var tempSpan = new SortSpan<T>(tempArray.AsSpan(0, span.Length), context, BUFFER_TEMP);
 
-            for (var i = 0; i < s.Length; i++)
-            {
-                var value = s.Read(i);
-                if (value.CompareTo(minValue) < 0) minValue = value;
-                if (value.CompareTo(maxValue) > 0) maxValue = value;
-            }
-
-            // If all elements are the same, no need to sort
-            if (minValue.CompareTo(maxValue) == 0) return;
-
-            // Convert to long for range calculation
-            var min = ConvertToLong(minValue);
-            var max = ConvertToLong(maxValue);
-
-            // Check for overflow and validate range
-            long range = max - min + 1;
-            if (range > int.MaxValue)
-                throw new ArgumentException($"Value range is too large for CountingSort: {range}. Maximum supported range is {int.MaxValue}.");
-            if (range > MaxCountArraySize)
-                throw new ArgumentException($"Value range ({range}) exceeds maximum count array size ({MaxCountArraySize}). Consider using QuickSort or another comparison-based sort.");
-
-            var offset = -min; // Offset to normalize values to 0-based index
-            var size = (int)range;
-
-            // Use stackalloc for small count arrays, ArrayPool for larger ones
-            Span<int> countArray = size <= StackAllocThreshold
-                ? stackalloc int[size]
-                : (rentedCountArray = ArrayPool<int>.Shared.Rent(size)).AsSpan(0, size);
-            countArray.Clear();
-
-            SortCore(s, tempArray.AsSpan(0, span.Length), countArray, offset, context);
+            SortCore(span, s, tempSpan);
         }
         finally
         {
             ArrayPool<T>.Shared.Return(tempArray, clearArray: true);
-            if (rentedCountArray != null)
+        }
+    }
+
+    private static void SortCore<T>(Span<T> span, SortSpan<T> s, SortSpan<T> tempSpan)
+        where T : IBinaryInteger<T>, IMinMaxValue<T>, IComparable<T>
+    {
+        // Find min and max to determine range
+        // Convert to long for range calculation
+        var minValue = T.MaxValue;
+        var maxValue = T.MinValue;
+
+        for (var i = 0; i < s.Length; i++)
+        {
+            var value = s.Read(i);
+            if (value.CompareTo(minValue) < 0) minValue = value;
+            if (value.CompareTo(maxValue) > 0) maxValue = value;
+        }
+
+        // If all elements are the same, no need to sort
+        if (minValue.CompareTo(maxValue) == 0) return;
+
+        // Convert to long for range calculation
+        var min = ConvertToLong(minValue);
+        var max = ConvertToLong(maxValue);
+
+        // Check for overflow and validate range
+        long range = max - min + 1;
+        if (range > int.MaxValue)
+            throw new ArgumentException($"Value range is too large for CountingSort: {range}. Maximum supported range is {int.MaxValue}.");
+        if (range > MaxCountArraySize)
+            throw new ArgumentException($"Value range ({range}) exceeds maximum count array size ({MaxCountArraySize}). Consider using QuickSort or another comparison-based sort.");
+
+        var offset = -min; // Offset to normalize values to 0-based index
+        var size = (int)range;
+
+        // Use stackalloc for small count arrays, ArrayPool for larger ones
+        int[]? rentedCountArray = null;
+        Span<int> countArray = size <= StackAllocThreshold
+            ? stackalloc int[size]
+            : (rentedCountArray = ArrayPool<int>.Shared.Rent(size)).AsSpan(0, size);
+        countArray.Clear();
+        try
+        {
+            CountSort(s, tempSpan, countArray, offset);
+        }
+        finally
+        {
+            if (rentedCountArray is not null)
             {
                 ArrayPool<int>.Shared.Return(rentedCountArray);
             }
@@ -277,12 +298,9 @@ public static class CountingSortInteger
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private static void SortCore<T>(SortSpan<T> s, Span<T> tempArray, Span<int> countArray, long offset, ISortContext context) 
+    private static void CountSort<T>(SortSpan<T> s, SortSpan<T> tempSpan, Span<int> countArray, long offset) 
         where T : IBinaryInteger<T>, IComparable<T>
     {
-        // Create SortSpan for temp buffer to track operations
-        var tempSpan = new SortSpan<T>(tempArray, context, BUFFER_TEMP);
-
         // Count occurrences
         for (var i = 0; i < s.Length; i++)
         {

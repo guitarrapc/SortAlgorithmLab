@@ -72,13 +72,18 @@ public static class BucketSort
     {
         if (span.Length <= 1) return;
 
+        var s = new SortSpan<T>(span, context, BUFFER_MAIN);
+
         // Rent arrays from ArrayPool for temporary storage
         var keysArray = ArrayPool<int>.Shared.Rent(span.Length);
         var tempArray = ArrayPool<T>.Shared.Rent(span.Length);
-
         try
         {
-            SortCore(span, keysArray.AsSpan(0, span.Length), tempArray.AsSpan(0, span.Length), keySelector, context);
+            // Create SortSpan for temp buffer to track operations
+            var tempSpan = new SortSpan<T>(tempArray.AsSpan(0, span.Length), context, BUFFER_TEMP);
+            var keys = keysArray.AsSpan(0, span.Length);
+
+            SortCore(span, keySelector, s, tempSpan, tempArray.AsSpan(0, span.Length), keys, context);
         }
         finally
         {
@@ -87,14 +92,8 @@ public static class BucketSort
         }
     }
 
-    /// <summary>
-    /// Core bucket sort implementation.
-    /// </summary>
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private static void SortCore<T>(Span<T> span, Span<int> keys, Span<T> tempArray, Func<T, int> keySelector, ISortContext context) where T : IComparable<T>
+    private static void SortCore<T>(Span<T> span, Func<T, int> keySelector, SortSpan<T> s, SortSpan<T> tempSpan, Span<T> tempArray, Span<int> keys, ISortContext context) where T : IComparable<T>
     {
-        var s = new SortSpan<T>(span, context, BUFFER_MAIN);
-
         // Find min/max and cache keys in single pass
         var min = int.MaxValue;
         var max = int.MinValue;
@@ -125,6 +124,13 @@ public static class BucketSort
         // Calculate bucket size (range divided by bucket count)
         var bucketSize = Math.Max(1, (range + bucketCount - 1) / bucketCount);
 
+        // Perform bucket distribution and sorting
+        BucketDistribute(s, tempSpan, tempArray, keys, bucketCount, bucketSize, min, context);
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private static void BucketDistribute<T>(SortSpan<T> s, SortSpan<T> temp, Span<T> tempArray, Span<int> keys, int bucketCount, long bucketSize, int min, ISortContext context) where T : IComparable<T>
+    {
         // Count elements per bucket and calculate bucket positions (stackalloc)
         Span<int> bucketCounts = stackalloc int[bucketCount];
         Span<int> bucketStarts = stackalloc int[bucketCount];
@@ -133,7 +139,7 @@ public static class BucketSort
 
         // First pass: convert keys to bucket indices and count
         // Reuse keys array to store bucket indices (eliminates division in second pass)
-        for (var i = 0; i < span.Length; i++)
+        for (var i = 0; i < s.Length; i++)
         {
             var key = keys[i];
             var bucketIndex = (int)((key - min) / bucketSize);
@@ -158,12 +164,11 @@ public static class BucketSort
         }
 
         // Second pass: distribute elements using cached bucket indices
-        var tempSpan = new SortSpan<T>(tempArray, context, BUFFER_TEMP);
-        for (var i = 0; i < span.Length; i++)
+        for (var i = 0; i < s.Length; i++)
         {
             var bucketIndex = keys[i]; // Reuse bucket index (no division)
             var pos = bucketPositions[bucketIndex]++;
-            tempSpan.Write(pos, s.Read(i));
+            temp.Write(pos, s.Read(i));
         }
 
         // Sort each bucket using Span slicing with SortSpan for tracking
@@ -179,9 +184,9 @@ public static class BucketSort
         }
 
         // Write sorted data back to original span (Want's use CopyTo, however Visualization cannot track dest -> main buffer copy)
-        for (var i = 0; i < span.Length; i++)
+        for (var i = 0; i < s.Length; i++)
         {
-            s.Write(i, tempSpan.Read(i));
+            s.Write(i, temp.Read(i));
         }
     }
 
@@ -274,13 +279,18 @@ public static class BucketSortInteger
         // Check if type is supported (64-bit or less)
         var bitSize = GetBitSize<T>();
 
+        var s = new SortSpan<T>(span, context, BUFFER_MAIN);
+
         // Rent arrays from ArrayPool for temporary storage
         var indicesArray = ArrayPool<int>.Shared.Rent(span.Length);
         var tempArray = ArrayPool<T>.Shared.Rent(span.Length);
-
         try
         {
-            SortCore(span, indicesArray.AsSpan(0, span.Length), tempArray.AsSpan(0, span.Length), context);
+            // Create SortSpan for temp buffer to track operations
+            var tempSpan = new SortSpan<T>(tempArray.AsSpan(0, span.Length), context, BUFFER_TEMP);
+            var indices = indicesArray.AsSpan(0, span.Length);
+
+            SortCore(span, s, tempSpan, tempArray.AsSpan(0, span.Length), indices, context);
         }
         finally
         {
@@ -289,15 +299,9 @@ public static class BucketSortInteger
         }
     }
 
-    /// <summary>
-    /// Core bucket sort implementation for generic IBinaryInteger types.
-    /// </summary>
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private static void SortCore<T>(Span<T> span, Span<int> bucketIndices, Span<T> tempArray, ISortContext context)
-        where T : IBinaryInteger<T>, IComparable<T>
+    private static void SortCore<T>(Span<T> span, SortSpan<T> s, SortSpan<T> tempSpan, Span<T> tempArray, Span<int> bucketIndices, ISortContext context)
+        where T : IBinaryInteger<T>, IMinMaxValue<T>, IComparable<T>
     {
-        var s = new SortSpan<T>(span, context, BUFFER_MAIN);
-
         // Find min and max
         var minValue = span[0];
         var maxValue = span[0];
@@ -331,6 +335,14 @@ public static class BucketSortInteger
         // Calculate bucket size (range divided by bucket count)
         var bucketSize = Math.Max(1, (range + bucketCount - 1) / bucketCount);
 
+        // Perform bucket distribution and sorting
+        BucketDistribute(s, tempSpan, tempArray, bucketIndices, bucketCount, bucketSize, min, context);
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private static void BucketDistribute<T>(SortSpan<T> source, SortSpan<T> temp, Span<T> tempArray, Span<int> bucketIndices, int bucketCount, long bucketSize, long min, ISortContext context)
+        where T : IBinaryInteger<T>, IComparable<T>
+    {
         // Count elements per bucket and calculate bucket positions (stackalloc)
         Span<int> bucketCounts = stackalloc int[bucketCount];
         Span<int> bucketStarts = stackalloc int[bucketCount];
@@ -339,9 +351,9 @@ public static class BucketSortInteger
 
         // First pass: calculate bucket indices and count
         // Cache bucket indices to avoid division in second pass
-        for (var i = 0; i < span.Length; i++)
+        for (var i = 0; i < source.Length; i++)
         {
-            var value = s.Read(i);
+            var value = source.Read(i);
             var valueLong = ConvertToLong(value);
             var bucketIndex = (int)((valueLong - min) / bucketSize);
 
@@ -365,12 +377,11 @@ public static class BucketSortInteger
         }
 
         // Second pass: distribute elements using cached bucket indices
-        var tempSpan = new SortSpan<T>(tempArray, context, BUFFER_TEMP);
-        for (var i = 0; i < span.Length; i++)
+        for (var i = 0; i < source.Length; i++)
         {
             var bucketIndex = bucketIndices[i]; // Reuse cached index (no division)
             var pos = bucketPositions[bucketIndex]++;
-            tempSpan.Write(pos, s.Read(i));
+            temp.Write(pos, source.Read(i));
         }
 
         // Sort each bucket using Span slicing
@@ -385,9 +396,9 @@ public static class BucketSortInteger
         }
 
         // Write sorted data back to original span (Want's use CopyTo, however Visualization cannot track dest -> main buffer copy)
-        for (var i = 0; i < span.Length; i++)
+        for (var i = 0; i < source.Length; i++)
         {
-            s.Write(i, tempSpan.Read(i));
+            source.Write(i, temp.Read(i));
         }
     }
 

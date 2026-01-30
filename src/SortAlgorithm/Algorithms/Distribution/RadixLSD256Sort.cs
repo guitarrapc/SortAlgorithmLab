@@ -142,6 +142,14 @@ public static class RadixLSD256Sort
         var requiredBits = range == 0 ? 0 : (64 - System.Numerics.BitOperations.LeadingZeroCount(range));
         var digitCount = Math.Max(1, (requiredBits + RadixBits - 1) / RadixBits);
 
+        // Start LSD radix sort from the least significant digit
+        LSDSort(s, temp, digitCount, bitSize, bucketOffsets);
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private static void LSDSort<T>(SortSpan<T> s, SortSpan<T> temp, int digitCount, int bitSize, Span<int> bucketOffsets)
+        where T : IBinaryInteger<T>, IMinMaxValue<T>, IComparable<T>
+    {
         // Perform LSD radix sort (only required passes)
         for (int d = 0; d < digitCount; d++)
         {

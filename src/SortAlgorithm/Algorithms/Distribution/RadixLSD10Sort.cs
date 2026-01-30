@@ -120,6 +120,14 @@ public static class RadixLSD10Sort
         // For the range [minKey, maxKey], we need enough digits to represent maxKey
         var digitCount = GetDigitCountFromUlong(maxKey);
 
+        // Start LSD radix sort from the least significant digit
+        LSDSort(s, temp, digitCount, bitSize, bucketCounts);
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private static void LSDSort<T>(SortSpan<T> source, SortSpan<T> temp, int digitCount, int bitSize, Span<int> bucketCounts)
+        where T : IComparable<T>, IBinaryInteger<T>, IMinMaxValue<T>
+    {
         Span<int> bucketStarts = stackalloc int[RadixBase];
         var divisor = 1UL;
 
@@ -130,9 +138,9 @@ public static class RadixLSD10Sort
             bucketCounts.Clear();
 
             // Count occurrences of each decimal digit
-            for (var i = 0; i < s.Length; i++)
+            for (var i = 0; i < source.Length; i++)
             {
-                var value = s.Read(i);
+                var value = source.Read(i);
                 var key = GetUnsignedKey(value, bitSize);
                 var digit = (int)((key / divisor) % 10);
                 bucketCounts[digit]++;
@@ -146,9 +154,9 @@ public static class RadixLSD10Sort
             }
 
             // Distribute elements into temp buffer based on current digit
-            for (var i = 0; i < s.Length; i++)
+            for (var i = 0; i < source.Length; i++)
             {
-                var value = s.Read(i);
+                var value = source.Read(i);
                 var key = GetUnsignedKey(value, bitSize);
                 var digit = (int)((key / divisor) % 10);
                 var pos = bucketStarts[digit]++;
@@ -156,7 +164,7 @@ public static class RadixLSD10Sort
             }
 
             // Copy back from temp buffer
-            temp.CopyTo(0, s, 0, s.Length);
+            temp.CopyTo(0, source, 0, source.Length);
 
             divisor *= 10;
         }
