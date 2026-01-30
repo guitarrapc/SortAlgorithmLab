@@ -76,9 +76,10 @@ public static class CombSort
 
         var s = new SortSpan<T>(span, context, BUFFER_MAIN);
 
-        var h = s.Length;
         var length = s.Length;
+        var h = s.Length;
         var swapped = true;
+        var n = s.Length;  // Scan range for bubble phase (last swap index optimization)
 
         while (h != 1 || swapped)
         {
@@ -93,12 +94,32 @@ public static class CombSort
             }
 
             swapped = false;
-            for (var i = 0; i + h < length; i++)
+
+            if (h == 1)
             {
-                if (s.Compare(i, i + h) > 0)
+                // Final bubble sort pass with last swap index optimization
+                var newN = 0;
+                for (var i = 0; i + 1 < n; i++)
                 {
-                    s.Swap(i, i + h);
-                    swapped = true;
+                    if (s.Compare(i, i + 1) > 0)
+                    {
+                        s.Swap(i, i + 1);
+                        swapped = true;
+                        newN = i + 1;  // Record last swap position
+                    }
+                }
+                n = newN;  // Shrink scan range for next pass
+            }
+            else
+            {
+                // Gap-based comb sort pass
+                for (var i = 0; i + h < length; i++)
+                {
+                    if (s.Compare(i, i + h) > 0)
+                    {
+                        s.Swap(i, i + h);
+                        swapped = true;
+                    }
                 }
             }
         }
