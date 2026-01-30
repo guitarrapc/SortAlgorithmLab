@@ -207,7 +207,9 @@ public static class StdSort
                     return;
                 case 2:
                     if (s.Compare(last - 1, first) < 0)
+                    {
                         s.Swap(first, last - 1);
+                    }
                     return;
                 case 3:
                     Sort3(s, first, first + 1, last - 1);
@@ -336,7 +338,9 @@ public static class StdSort
                 return true;
             case 2:
                 if (s.Compare(last - 1, first) < 0)
+                {
                     s.Swap(first, last - 1);
+                }
                 return true;
             case 3:
                 Sort3(s, first, first + 1, last - 1);
@@ -369,9 +373,11 @@ public static class StdSort
                     j = k;
                 } while (j != first && s.Compare(tmp, --k) < 0);
                 s.Write(j, tmp);
-                
+
                 if (++count == limit)
+                {
                     return i + 1 == last;
+                }
             }
             j = i;
         }

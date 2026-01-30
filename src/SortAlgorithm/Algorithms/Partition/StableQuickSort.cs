@@ -195,11 +195,17 @@ public static class StableQuickSort
                 var element = s.Read(i);
                 var cmp = element.CompareTo(pivot);
                 if (cmp < 0)
+                {
                     lessIdx++;
+                }
                 else if (cmp == 0)
+                {
                     equalIdx++;
+                }
                 else
+                {
                     greaterIdx++;
+                }
             }
 
             var lessEnd = lessIdx;
@@ -214,11 +220,17 @@ public static class StableQuickSort
                 var element = s.Read(i);
                 var cmp = element.CompareTo(pivot);
                 if (cmp < 0)
+                {
                     tempSortSpan.Write(lessIdx++, element);
+                }
                 else if (cmp == 0)
+                {
                     tempSortSpan.Write(equalIdx++, element);
+                }
                 else
+                {
                     tempSortSpan.Write(greaterIdx++, element);
+                }
             }
 
             // Phase 3: Copy back to original array (SortSpan経由)

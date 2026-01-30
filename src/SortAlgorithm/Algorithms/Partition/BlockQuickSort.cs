@@ -415,8 +415,14 @@ public static class BlockQuickSort
         startLeft += numFinal;
         startRight += numFinal;
 
-        if (numLeft == 0) begin += shiftL;
-        if (numRight == 0) end -= shiftR;
+        if (numLeft == 0)
+        {
+            begin += shiftL;
+        }
+        if (numRight == 0)
+        {
+            end -= shiftR;
+        }
 
         // Rearrange remaining elements in buffer
         if (numLeft != 0)
@@ -636,10 +642,15 @@ public static class BlockQuickSort
             // Recurse on the side containing k
             if (i == k)
                 return;
-            else if (i < k)
+
+            if (i < k)
+            {
                 left = i + 1;
+            }
             else
+            {
                 right = i;
+            }
         }
     }
 

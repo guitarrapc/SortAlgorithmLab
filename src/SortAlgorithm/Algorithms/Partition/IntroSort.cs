@@ -411,9 +411,13 @@ public static class IntroSort
         if (s.Compare(i2, i4) > 0)
         {
             if (s.Compare(i3, i4) > 0)
+            {
                 return s.Read(i4);
+            }
             else
+            {
                 return s.Read(i3);
+            }
         }
 
         return s.Read(i2);
