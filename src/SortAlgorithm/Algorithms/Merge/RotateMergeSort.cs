@@ -5,16 +5,18 @@ namespace SortAlgorithm.Algorithms;
 
 /// <summary>
 /// 配列を再帰的に半分に分割し、それぞれをソートした後、回転アルゴリズムを使用してインプレースでマージする分割統治アルゴリズムです。
-/// 安定ソートであり、追加メモリを使用せずにO(n log n)の性能を保証します。
-/// 回転をするため、要素の移動が多くなるため、標準のマージソートよりも遅くなります。
+/// 安定ソートであり、追加メモリを使用せずにO(n log² n)の性能を保証します。
+/// 小さい配列（≤16要素）ではInsertionSortを使用する実用的な最適化を含みます。
 /// <br/>
 /// Recursively divides the array in half, sorts each part, then merges sorted subarrays in-place using array rotation.
-/// This divide-and-conquer algorithm is stable and guarantees O(n log n) performance without requiring auxiliary space.
-/// However, due to the rotations, it involves more element movements and is slower than standard merge sort.
+/// This divide-and-conquer algorithm is stable and guarantees O(n log² n) performance without requiring auxiliary space.
+/// Includes practical optimization using insertion sort for small subarrays (≤16 elements).
 /// </summary>
 /// <remarks>
 /// <para><strong>Theoretical Conditions for Correct Rotate Merge Sort:</strong></para>
 /// <list type="number">
+/// <item><description><strong>Hybrid Optimization:</strong> For subarrays with ≤16 elements, insertion sort is used instead of rotation-based merge.
+/// This is a practical optimization similar to TimSort and IntroSort, reducing overhead for small sizes.</description></item>
 /// <item><description><strong>Divide Step (Binary Partitioning):</strong> The array must be divided into two roughly equal halves at each recursion level.
 /// The midpoint is calculated as mid = (left + right) / 2, ensuring balanced subdivision.
 /// This guarantees a recursion depth of ⌈log₂(n)⌉.</description></item>
@@ -35,22 +37,22 @@ namespace SortAlgorithm.Algorithms;
 /// </list>
 /// <para><strong>Performance Characteristics:</strong></para>
 /// <list type="bullet">
-/// <item><description>Family      : Merge (In-Place variant)</description></item>
+/// <item><description>Family      : Hybrid (Merge + Insertion)</description></item>
 /// <item><description>Stable      : Yes (binary search with &lt;= comparison preserves relative order)</description></item>
 /// <item><description>In-place    : Yes (O(1) auxiliary space, uses rotation instead of buffer)</description></item>
-/// <item><description>Best case   : O(n log n) - Even sorted data requires ⌈log₂(n)⌉ levels of merging</description></item>
+/// <item><description>Best case   : O(n) - Sorted data with insertion sort optimization for small partitions</description></item>
 /// <item><description>Average case: O(n log² n) - Binary search (log n) + rotation (n) per merge level (log n levels)</description></item>
 /// <item><description>Worst case  : O(n log² n) - Rotation adds O(n) factor to each merge operation</description></item>
-/// <item><description>Comparisons : O(n log² n) - Binary search adds log n comparisons per merge</description></item>
-/// <item><description>Writes      : O(n² log n) - Rotation requires multiple element movements (n writes per level)</description></item>
+/// <item><description>Comparisons : Best O(n), Average/Worst O(n log² n) - Insertion sort reduces comparisons for small subarrays</description></item>
+/// <item><description>Writes      : Best O(n), Average/Worst O(n² log n) - Insertion sort reduces writes for small subarrays</description></item>
 /// <item><description>Space       : O(log n) - Only recursion stack space, no auxiliary buffer needed</description></item>
 /// </list>
 /// <para><strong>Advantages of Rotate Merge Sort:</strong></para>
 /// <list type="bullet">
 /// <item><description>True in-place sorting - O(1) auxiliary space (only recursion stack)</description></item>
 /// <item><description>Stable - Preserves relative order of equal elements</description></item>
-/// <item><description>Predictable performance - O(n log² n) guaranteed in all cases</description></item>
-/// <item><description>Cache-friendly - Better locality than standard merge sort with buffer</description></item>
+/// <item><description>Hybrid optimization - Insertion sort improves performance for small subarrays</description></item>
+/// <item><description>Block rotation - Processes consecutive elements together, reducing operations</description></item>
 /// </list>
 /// <para><strong>Disadvantages:</strong></para>
 /// <list type="bullet">
@@ -70,6 +72,10 @@ namespace SortAlgorithm.Algorithms;
 /// </remarks>
 public static class RotateMergeSort
 {
+    // Threshold for using insertion sort instead of rotation-based merge
+    // Small subarrays benefit from insertion sort's lower overhead
+    private const int InsertionSortThreshold = 16;
+
     // Buffer identifiers for visualization
     private const int BUFFER_MAIN = 0;       // Main input array (in-place operations only)
 
@@ -107,6 +113,18 @@ public static class RotateMergeSort
     private static void SortCore<T>(SortSpan<T> s, int left, int right) where T : IComparable<T>
     {
         if (right <= left) return; // Base case: array of size 0 or 1 is sorted
+
+        var length = right - left + 1;
+
+        // Optimization: Use insertion sort for small subarrays
+        // Rotation overhead is too high for small sizes, and insertion sort has better cache locality
+        if (length <= InsertionSortThreshold)
+        {
+            // Reuse existing InsertionSort.SortCore
+            // Note: SortCore uses exclusive end index [first, last), so we pass right + 1
+            InsertionSort.SortCore(s, left, right + 1);
+            return;
+        }
 
         var mid = left + (right - left) / 2;
 

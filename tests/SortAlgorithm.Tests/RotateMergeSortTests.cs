@@ -160,38 +160,37 @@ public class RotateMergeSortTests
         var reversed = Enumerable.Range(0, n).Reverse().ToArray();
         RotateMergeSort.Sort(reversed.AsSpan(), stats);
 
-        // Rotate Merge Sort comparisons for reversed data:
-        // Reversed data requires all merge operations with binary search + rotation.
-        // Time complexity: O(n log² n) due to binary search (log n) at each merge level (log n).
-        // Block rotation optimization processes consecutive elements together, reducing comparisons.
+        // Rotate Merge Sort with hybrid optimization (InsertionSort for ≤16 elements):
+        // Small subarrays use insertion sort (O(n²) but fast for small n).
+        // Block rotation optimization processes consecutive elements together.
         //
-        // Actual observations for reversed data with block rotation optimization:
-        // n=10:  36-57 comparisons    (~1.1-1.7 * n * log₂(n))
-        // n=20:  86-156 comparisons   (~1.0-1.8 * n * log₂(n))
-        // n=50:  252-547 comparisons  (~0.9-1.9 * n * log₂(n))
-        // n=100: 560-1396 comparisons (~0.8-2.1 * n * log₂(n))
+        // Actual observations for reversed data with optimizations:
+        // n=10:  45 comparisons    (insertion sort, ~4.5n)
+        // n=20:  104 comparisons   (~1.2 * n * log₂(n))
+        // n=50:  350 comparisons   (~1.2 * n * log₂(n))
+        // n=100: 756 comparisons   (~1.1 * n * log₂(n))
         //
-        // Pattern for reversed with block optimization: approximately 0.8 * n * log₂(n) to 2.5 * n * log₂(n)
-        // (varies based on how effectively consecutive elements can be grouped)
+        // Pattern: approximately 1.0 * n * log₂(n) to 2.0 * n * log₂(n) for n > 16
+        //          approximately 4.0 * n to 5.5 * n for n ≤ 16 (insertion sort)
         var logN = Math.Log2(n);
-        var minCompares = (ulong)(n * logN * 0.8);
-        var maxCompares = (ulong)(n * logN * 2.5);
+        var minCompares = n <= 16 ? (ulong)(n * 4.0) : (ulong)(n * logN * 1.0);
+        var maxCompares = n <= 16 ? (ulong)(n * 5.5) : (ulong)(n * logN * 2.0);
 
-        // Writes are reduced due to block rotation optimization
-        // n=10:  50-90 writes       (~1.5-2.7 * n * log₂(n))
-        // n=20:  140-380 writes     (~1.6-4.4 * n * log₂(n))
-        // n=50:  482-2450 writes    (~1.7-8.7 * n * log₂(n))
-        // n=100: 1164-9900 writes   (~1.8-14.9 * n * log₂(n))
-        var minWrites = (ulong)(n * logN * 1.5);
-        var maxWrites = (ulong)(n * logN * 20.0);
+        // Writes are reduced due to insertion sort and block rotation
+        // n=10:  45 writes     (insertion sort)
+        // n=20:  140 writes    (~1.6 * n * log₂(n))
+        // n=50:  1050 writes   (~3.7 * n * log₂(n))
+        // n=100: 3612 writes   (~5.4 * n * log₂(n))
+        var minWrites = n <= 16 ? (ulong)(n * 4.0) : (ulong)(n * logN * 1.0);
+        var maxWrites = n <= 16 ? (ulong)(n * 5.5) : (ulong)(n * logN * 20.0);
 
-        // Swaps reduced by block rotation (fewer, larger rotations)
-        // n=10:  25-45 swaps
-        // n=20:  70-190 swaps
-        // n=50:  241-1225 swaps
-        // n=100: 582-4950 swaps
-        var minSwaps = (ulong)(n * logN * 0.5);
-        var maxSwaps = (ulong)(n * logN * 10.0);
+        // Swaps significantly reduced due to insertion sort (uses shifts instead)
+        // n=10:  0 swaps       (insertion sort uses shifts, not swaps)
+        // n=20:  20 swaps      (only in rotation parts)
+        // n=50:  165 swaps
+        // n=100: 294 swaps
+        var minSwaps = 0UL;
+        var maxSwaps = n <= 16 ? 0UL : (ulong)(n * logN * 2.0);
 
         var minReads = stats.CompareCount * 2;
 
@@ -213,35 +212,30 @@ public class RotateMergeSortTests
         var random = Enumerable.Range(0, n).OrderBy(_ => Guid.NewGuid()).ToArray();
         RotateMergeSort.Sort(random.AsSpan(), stats);
 
-        // Rotate Merge Sort for random data:
-        // Random data requires merge operations with binary search + rotation.
-        // Performance varies based on initial order, but generally follows O(n log² n).
-        // Block rotation optimization reduces rotation count but maintains complexity.
+        // Rotate Merge Sort with hybrid optimization for random data:
+        // Small subarrays (≤16) use insertion sort.
+        // Block-wise rotation reduces operations.
+        // Performance varies based on initial order.
         //
-        // Observed range for random data with block rotation optimization:
-        // n=10:  ~40-60 comparisons   (~1.2-1.8 * n * log₂(n))
-        // n=20:  ~120-180 comparisons (~1.4-2.1 * n * log₂(n))
-        // n=50:  ~400-600 comparisons (~1.4-2.1 * n * log₂(n))
-        // n=100: ~1100-1500 comparisons (~1.7-2.3 * n * log₂(n))
+        // Observed range for random data with optimizations:
+        // n=10:  ~17-35 comparisons   (varies widely with randomness, insertion sort)
+        // n=20:  ~80-120 comparisons  (~1.0-1.4 * n * log₂(n))
+        // n=50:  ~360-420 comparisons (~1.3-1.5 * n * log₂(n))
+        // n=100: ~900-1000 comparisons (~1.4-1.5 * n * log₂(n))
         //
-        // Pattern for random: approximately 1.0 * n * log₂(n) to 2.5 * n * log₂(n)
-        // (wider range due to randomness and varying partition patterns)
+        // Pattern: approximately 1.5 * n to 4.0 * n for n ≤ 16 (insertion sort, wide variance)
+        //          approximately 0.8 * n * log₂(n) to 2.0 * n * log₂(n) for n > 16
         var logN = Math.Log2(n);
-        var minCompares = (ulong)(n * logN * 1.0);
-        var maxCompares = (ulong)(n * logN * 2.5);
+        var minCompares = n <= 16 ? (ulong)(n * 1.5) : (ulong)(n * logN * 0.8);
+        var maxCompares = n <= 16 ? (ulong)(n * 4.0) : (ulong)(n * logN * 2.0);
 
         // Writes vary based on how much rotation is needed
-        // n=10:  ~20-50 writes
-        // n=20:  ~150-250 writes
-        // n=50:  ~800-1200 writes
-        // n=100: ~4000-6500 writes
-        var minWrites = (ulong)(n * logN * 0.5);
-        var maxWrites = (ulong)(n * logN * 15.0);
+        var minWrites = n <= 16 ? (ulong)(n * 1.5) : (ulong)(n * logN * 0.5);
+        var maxWrites = n <= 16 ? (ulong)(n * 4.0) : (ulong)(n * logN * 15.0);
 
-        // Swaps occur during Reverse operations (part of rotation)
-        // Range is similar to reversed but generally less
-        var minSwaps = 0UL;  // Could be low if data is partially sorted
-        var maxSwaps = (ulong)(n * logN * 8.0);
+        // Swaps reduced by insertion sort optimization
+        var minSwaps = 0UL;
+        var maxSwaps = n <= 16 ? (ulong)(n * 1.5) : (ulong)(n * logN * 8.0);
 
         var minReads = stats.CompareCount * 2;
 
