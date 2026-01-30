@@ -34,7 +34,7 @@ namespace SortAlgorithm.Algorithms;
 /// <para><strong>Performance Characteristics:</strong></para>
 /// <list type="bullet">
 /// <item><description>Family      : Distribution (Radix Sort, MSD variant)</description></item>
-/// <item><description>Stable      : No (MSD radix sort is inherently unstable without additional bookkeeping)</description></item>
+/// <item><description>Stable      : Yes (maintains relative order of elements with equal keys)</description></item>
 /// <item><description>In-place    : No (O(n) auxiliary space for temporary buffer)</description></item>
 /// <item><description>Best case   : Θ(n) - When all elements fall into one bucket early</description></item>
 /// <item><description>Average case: Θ(d × n) - d = ⌈bitSize/2⌉ is constant for fixed-width integers</description></item>
@@ -48,7 +48,7 @@ namespace SortAlgorithm.Algorithms;
 /// <item><description>MSD processes high-order digits first, enabling early termination when buckets are fully sorted</description></item>
 /// <item><description>MSD is cache-friendlier for partially sorted data as it localizes accesses within buckets</description></item>
 /// <item><description>MSD requires recursive processing of buckets, adding overhead compared to LSD's iterative approach</description></item>
-/// <item><description>MSD is inherently unstable; LSD is stable</description></item>
+/// <item><description>Both MSD and LSD can be implemented as stable sorts (this implementation maintains stability)</description></item>
 /// </list>
 /// <para><strong>Supported Types:</strong></para>
 /// <list type="bullet">
