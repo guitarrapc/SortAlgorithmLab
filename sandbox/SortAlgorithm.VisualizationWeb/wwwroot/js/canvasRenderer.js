@@ -1,9 +1,7 @@
-// Canvas 2D レンダラー - 高速バーチャート描画
+// Canvas 2D レンダラー - 高速バーチャート描画（複数Canvas対応）
 
 window.canvasRenderer = {
-    canvas: null,
-    ctx: null,
-    animationFrameId: null,
+    instances: new Map(), // Canvas ID -> インスタンスのマップ
     
     // 色定義
     colors: {
@@ -20,25 +18,28 @@ window.canvasRenderer = {
      * @param {string} canvasId - Canvas要素のID
      */
     initialize: function(canvasId) {
-        this.canvas = document.getElementById(canvasId);
-        if (!this.canvas) {
+        const canvas = document.getElementById(canvasId);
+        if (!canvas) {
             console.error('Canvas element not found:', canvasId);
             return false;
         }
         
-        this.ctx = this.canvas.getContext('2d', {
+        const ctx = canvas.getContext('2d', {
             alpha: false,           // 透明度不要（高速化）
             desynchronized: true    // 非同期描画（高速化）
         });
         
         // 高DPI対応
         const dpr = window.devicePixelRatio || 1;
-        const rect = this.canvas.getBoundingClientRect();
-        this.canvas.width = rect.width * dpr;
-        this.canvas.height = rect.height * dpr;
-        this.ctx.scale(dpr, dpr);
+        const rect = canvas.getBoundingClientRect();
+        canvas.width = rect.width * dpr;
+        canvas.height = rect.height * dpr;
+        ctx.scale(dpr, dpr);
         
-        console.log('Canvas initialized:', rect.width, 'x', rect.height, 'DPR:', dpr);
+        // インスタンスを保存
+        this.instances.set(canvasId, { canvas, ctx });
+        
+        console.log('Canvas initialized:', canvasId, rect.width, 'x', rect.height, 'DPR:', dpr);
         return true;
     },
     
@@ -46,17 +47,24 @@ window.canvasRenderer = {
      * リサイズ処理
      */
     resize: function() {
-        if (!this.canvas) return;
-        
-        const dpr = window.devicePixelRatio || 1;
-        const rect = this.canvas.getBoundingClientRect();
-        this.canvas.width = rect.width * dpr;
-        this.canvas.height = rect.height * dpr;
-        this.ctx.scale(dpr, dpr);
+        // すべてのCanvasをリサイズ
+        this.instances.forEach((instance, canvasId) => {
+            const { canvas, ctx } = instance;
+            if (!canvas) return;
+            
+            const dpr = window.devicePixelRatio || 1;
+            const rect = canvas.getBoundingClientRect();
+            canvas.width = rect.width * dpr;
+            canvas.height = rect.height * dpr;
+            ctx.scale(dpr, dpr);
+            
+            console.log('Canvas resized:', canvasId, rect.width, 'x', rect.height);
+        });
     },
     
     /**
      * バーチャートを描画
+     * @param {string} canvasId - Canvas要素のID
      * @param {number[]} array - 描画する配列
      * @param {number[]} compareIndices - 比較中のインデックス
      * @param {number[]} swapIndices - スワップ中のインデックス
@@ -66,9 +74,16 @@ window.canvasRenderer = {
      * @param {Object} bufferArrays - バッファー配列（BufferId -> 配列）
      * @param {boolean} showCompletionHighlight - 完了ハイライトを表示するか
      */
-    render: function(array, compareIndices, swapIndices, readIndices, writeIndices, isSortCompleted, bufferArrays, showCompletionHighlight) {
-        if (!this.canvas || !this.ctx) {
-            console.error('Canvas not initialized');
+    render: function(canvasId, array, compareIndices, swapIndices, readIndices, writeIndices, isSortCompleted, bufferArrays, showCompletionHighlight) {
+        const instance = this.instances.get(canvasId);
+        if (!instance) {
+            console.error('Canvas instance not found:', canvasId);
+            return;
+        }
+        
+        const { canvas, ctx } = instance;
+        if (!canvas || !ctx) {
+            console.error('Canvas not initialized:', canvasId);
             return;
         }
         
@@ -77,7 +92,7 @@ window.canvasRenderer = {
         bufferArrays = bufferArrays || {};
         showCompletionHighlight = showCompletionHighlight !== undefined ? showCompletionHighlight : false;
         
-        const rect = this.canvas.getBoundingClientRect();
+        const rect = canvas.getBoundingClientRect();
         const width = rect.width;
         const height = rect.height;
         const arrayLength = array.length;
@@ -86,8 +101,8 @@ window.canvasRenderer = {
         const bufferCount = Object.keys(bufferArrays).length;
         
         // 背景をクリア（黒）
-        this.ctx.fillStyle = '#1A1A1A';
-        this.ctx.fillRect(0, 0, width, height);
+        ctx.fillStyle = '#1A1A1A';
+        ctx.fillRect(0, 0, width, height);
         
         // 配列が空の場合は何もしない
         if (arrayLength === 0) return;
@@ -125,10 +140,10 @@ window.canvasRenderer = {
         
         // スケール調整（横スクロール対応）
         const scale = Math.min(1.0, width / requiredWidth);
-        this.ctx.save();
+        ctx.save();
         if (scale < 1.0) {
             // 横スクロールが必要な場合は左寄せ
-            this.ctx.scale(scale, 1.0);
+            ctx.scale(scale, 1.0);
         }
         
         // メイン配列のバーを描画（一括描画で高速化）
@@ -155,11 +170,11 @@ window.canvasRenderer = {
                 color = this.colors.normal;
             }
             
-            this.ctx.fillStyle = color;
-            this.ctx.fillRect(x, y, barWidth, barHeight);
+            ctx.fillStyle = color;
+            ctx.fillRect(x, y, barWidth, barHeight);
         }
         
-        this.ctx.restore();
+        ctx.restore();
         
         // バッファー配列を描画（ソート完了時は非表示）
         if (showBuffers) {
@@ -184,9 +199,9 @@ window.canvasRenderer = {
                 
                 // バッファー配列のスケール
                 const bufferScale = Math.min(1.0, width / bufferRequiredWidth);
-                this.ctx.save();
+                ctx.save();
                 if (bufferScale < 1.0) {
-                    this.ctx.scale(bufferScale, 1.0);
+                    ctx.scale(bufferScale, 1.0);
                 }
                 
                 // バッファー配列のバーを描画
@@ -197,41 +212,33 @@ window.canvasRenderer = {
                     const y = bufferY + (sectionHeight - barHeight);
                     
                     // バッファー配列は薄いシアン色で表示
-                    this.ctx.fillStyle = '#06B6D4';
-                    this.ctx.fillRect(x, y, bufferBarWidth, barHeight);
+                    ctx.fillStyle = '#06B6D4';
+                    ctx.fillRect(x, y, bufferBarWidth, barHeight);
                 }
                 
-                this.ctx.restore();
+                ctx.restore();
                 
                 // バッファーIDラベルを表示
-                this.ctx.fillStyle = '#888';
-                this.ctx.font = '12px monospace';
-                this.ctx.fillText(`Buffer #${bufferId}`, 10, bufferY + 20);
+                ctx.fillStyle = '#888';
+                ctx.font = '12px monospace';
+                ctx.fillText(`Buffer #${bufferId}`, 10, bufferY + 20);
             }
         }
         
         // メイン配列ラベルを表示（バッファーが表示されている場合のみ）
         if (showBuffers) {
-            this.ctx.fillStyle = '#888';
-            this.ctx.font = '12px monospace';
-            this.ctx.fillText('Main Array', 10, mainArrayY + 20);
+            ctx.fillStyle = '#888';
+            ctx.font = '12px monospace';
+            ctx.fillText('Main Array', 10, mainArrayY + 20);
         }
-        
-        // 描画完了
-        this.isRendering = false;
-        this.pendingRenderData = null;
     },
     
     /**
      * クリーンアップ
      */
     dispose: function() {
-        if (this.animationFrameId) {
-            cancelAnimationFrame(this.animationFrameId);
-            this.animationFrameId = null;
-        }
-        this.canvas = null;
-        this.ctx = null;
+        // すべてのインスタンスをクリア
+        this.instances.clear();
     }
 };
 

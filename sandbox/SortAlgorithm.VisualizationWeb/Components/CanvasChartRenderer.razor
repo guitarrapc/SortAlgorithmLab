@@ -45,6 +45,16 @@
         }
         else if (_isInitialized)
         {
+            // グリッドサイズが変わった可能性があるので、Canvasをリサイズ
+            try
+            {
+                await JS.InvokeVoidAsync("canvasRenderer.resize");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Canvas resize error: {ex.Message}");
+            }
+            
             // 毎回再描画（Stateオブジェクトの参照は変わらないため）
             await RenderCanvas();
         }
@@ -57,6 +67,7 @@
         try
         {
             await JS.InvokeVoidAsync("canvasRenderer.render",
+                _canvasId,  // Canvas IDを最初の引数として渡す
                 State.MainArray,
                 State.CompareIndices.ToArray(),
                 State.SwapIndices.ToArray(),

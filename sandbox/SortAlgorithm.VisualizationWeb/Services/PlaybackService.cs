@@ -459,8 +459,10 @@ public class PlaybackService : IDisposable
     {
         if (bufferId == 0) return State.MainArray;
         
+        // バッファー配列が存在しない場合のみ作成
         if (!State.BufferArrays.ContainsKey(bufferId))
         {
+            Console.WriteLine($"[PlaybackService] Creating buffer array for BufferId: {bufferId}");
             State.BufferArrays[bufferId] = new int[State.MainArray.Length];
         }
         return State.BufferArrays[bufferId];
