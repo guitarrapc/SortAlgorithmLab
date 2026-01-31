@@ -254,6 +254,7 @@ public class PlaybackService : IDisposable
             if (State.CurrentOperationIndex >= _operations.Count)
             {
                 ClearHighlights(); // ソート完了時にハイライトをクリア
+                State.BufferArrays.Clear(); // 🔧 バッファー配列をクリア（表示を消す）
                 State.IsSortCompleted = true; // ソート完了フラグを設定
                 State.ShowCompletionHighlight = true; // ハイライト表示を開始
                 State.PlaybackState = PlaybackState.Paused;
