@@ -1,9 +1,9 @@
-// Canvas 2D 円形レンダラー - 高速円形ビジュアライゼーション
+// Canvas 2D 円形レンダラー - 高速円形ビジュアライゼーション（複数Canvas対応）
 
 window.circularCanvasRenderer = {
-    canvas: null,
-    ctx: null,
-    animationFrameId: null,
+    instances: new Map(), // Canvas ID -> インスタンスのマップ
+    resizeObserver: null, // ResizeObserver インスタンス
+    lastRenderParams: new Map(), // Canvas ID -> 最後の描画パラメータ
     
     // 色定義（操作に基づく）
     colors: {
@@ -20,39 +20,69 @@ window.circularCanvasRenderer = {
      * @param {string} canvasId - Canvas要素のID
      */
     initialize: function(canvasId) {
-        this.canvas = document.getElementById(canvasId);
-        if (!this.canvas) {
-            console.error('Canvas element not found:', canvasId);
+        const canvas = document.getElementById(canvasId);
+        if (!canvas) {
+            console.error('Circular Canvas element not found:', canvasId);
             return false;
         }
         
-        this.ctx = this.canvas.getContext('2d', {
+        const ctx = canvas.getContext('2d', {
             alpha: false,           // 透明度不要（高速化）
             desynchronized: true    // 非同期描画（高速化）
         });
         
         // 高DPI対応
         const dpr = window.devicePixelRatio || 1;
-        const rect = this.canvas.getBoundingClientRect();
-        this.canvas.width = rect.width * dpr;
-        this.canvas.height = rect.height * dpr;
-        this.ctx.scale(dpr, dpr);
+        const rect = canvas.getBoundingClientRect();
+        canvas.width = rect.width * dpr;
+        canvas.height = rect.height * dpr;
+        ctx.scale(dpr, dpr);
         
-        console.log('Circular Canvas initialized:', rect.width, 'x', rect.height, 'DPR:', dpr);
+        // インスタンスを保存
+        this.instances.set(canvasId, { canvas, ctx });
+        
+        // ResizeObserverを初期化（まだ存在しない場合）
+        if (!this.resizeObserver) {
+            this.resizeObserver = new ResizeObserver(entries => {
+                for (const entry of entries) {
+                    const canvas = entry.target;
+                    const canvasId = canvas.id;
+                    const instance = this.instances.get(canvasId);
+                    
+                    if (instance) {
+                        const { ctx } = instance;
+                        const dpr = window.devicePixelRatio || 1;
+                        const rect = canvas.getBoundingClientRect();
+                        
+                        // サイズが実際に変わった場合のみリサイズ
+                        const newWidth = rect.width * dpr;
+                        const newHeight = rect.height * dpr;
+                        
+                        if (canvas.width !== newWidth || canvas.height !== newHeight) {
+                            canvas.width = newWidth;
+                            canvas.height = newHeight;
+                            ctx.scale(dpr, dpr);
+                            
+                            console.log('Circular Canvas auto-resized:', canvasId, rect.width, 'x', rect.height);
+                            
+                            // リサイズ後、最後の描画パラメータで即座に再描画（黒画面を防ぐ）
+                            const lastParams = this.lastRenderParams.get(canvasId);
+                            if (lastParams) {
+                                requestAnimationFrame(() => {
+                                    this.renderInternal(canvasId, lastParams);
+                                });
+                            }
+                        }
+                    }
+                }
+            });
+        }
+        
+        // このCanvasを監視対象に追加
+        this.resizeObserver.observe(canvas);
+        
+        console.log('Circular Canvas initialized:', canvasId, rect.width, 'x', rect.height, 'DPR:', dpr);
         return true;
-    },
-    
-    /**
-     * リサイズ処理
-     */
-    resize: function() {
-        if (!this.canvas) return;
-        
-        const dpr = window.devicePixelRatio || 1;
-        const rect = this.canvas.getBoundingClientRect();
-        this.canvas.width = rect.width * dpr;
-        this.canvas.height = rect.height * dpr;
-        this.ctx.scale(dpr, dpr);
     },
     
     /**
@@ -68,6 +98,7 @@ window.circularCanvasRenderer = {
     
     /**
      * 円形ビジュアライゼーションを描画
+     * @param {string} canvasId - Canvas要素のID
      * @param {number[]} array - 描画する配列
      * @param {number[]} compareIndices - 比較中のインデックス
      * @param {number[]} swapIndices - スワップ中のインデックス
@@ -77,18 +108,46 @@ window.circularCanvasRenderer = {
      * @param {Object} bufferArrays - バッファー配列（BufferId -> 配列）
      * @param {boolean} showCompletionHighlight - 完了ハイライトを表示するか
      */
-    render: function(array, compareIndices, swapIndices, readIndices, writeIndices, isSortCompleted, bufferArrays, showCompletionHighlight) {
-        if (!this.canvas || !this.ctx) {
-            console.error('Canvas not initialized');
+    render: function(canvasId, array, compareIndices, swapIndices, readIndices, writeIndices, isSortCompleted, bufferArrays, showCompletionHighlight) {
+        // 描画パラメータを保存（ResizeObserver用）
+        const params = {
+            array,
+            compareIndices,
+            swapIndices,
+            readIndices,
+            writeIndices,
+            isSortCompleted: isSortCompleted || false,
+            bufferArrays: bufferArrays || {},
+            showCompletionHighlight: showCompletionHighlight !== undefined ? showCompletionHighlight : false
+        };
+        this.lastRenderParams.set(canvasId, params);
+        
+        // 実際の描画処理
+        this.renderInternal(canvasId, params);
+    },
+    
+    /**
+     * 内部描画処理（実際のCanvas描画）
+     * @param {string} canvasId - Canvas要素のID
+     * @param {Object} params - 描画パラメータ
+     */
+    renderInternal: function(canvasId, params) {
+        const instance = this.instances.get(canvasId);
+        if (!instance) {
+            console.error('Circular Canvas instance not found:', canvasId);
             return;
         }
         
-        // デフォルト値を設定
-        isSortCompleted = isSortCompleted || false;
-        bufferArrays = bufferArrays || {};
-        showCompletionHighlight = showCompletionHighlight !== undefined ? showCompletionHighlight : false;
+        const { canvas, ctx } = instance;
+        if (!canvas || !ctx) {
+            console.error('Circular Canvas not initialized:', canvasId);
+            return;
+        }
         
-        const rect = this.canvas.getBoundingClientRect();
+        // パラメータ展開
+        const { array, compareIndices, swapIndices, readIndices, writeIndices, isSortCompleted, bufferArrays, showCompletionHighlight } = params;
+        
+        const rect = canvas.getBoundingClientRect();
         const width = rect.width;
         const height = rect.height;
         const arrayLength = array.length;
@@ -97,8 +156,8 @@ window.circularCanvasRenderer = {
         const bufferCount = Object.keys(bufferArrays).length;
         
         // 背景をクリア（黒）
-        this.ctx.fillStyle = '#1A1A1A';
-        this.ctx.fillRect(0, 0, width, height);
+        ctx.fillStyle = '#1A1A1A';
+        ctx.fillRect(0, 0, width, height);
         
         // 配列が空の場合は何もしない
         if (arrayLength === 0) return;
@@ -185,12 +244,12 @@ window.circularCanvasRenderer = {
             }
             
             // 線を描画
-            this.ctx.strokeStyle = color;
-            this.ctx.lineWidth = lineWidth;
-            this.ctx.beginPath();
-            this.ctx.moveTo(startX, startY);
-            this.ctx.lineTo(endX, endY);
-            this.ctx.stroke();
+            ctx.strokeStyle = color;
+            ctx.lineWidth = lineWidth;
+            ctx.beginPath();
+            ctx.moveTo(startX, startY);
+            ctx.lineTo(endX, endY);
+            ctx.stroke();
         }
         
         // バッファー配列を同心円リングとして描画（ソート完了時は非表示）
@@ -245,12 +304,12 @@ window.circularCanvasRenderer = {
                     }
                     
                     // 線を描画
-                    this.ctx.strokeStyle = bufferColor;
-                    this.ctx.lineWidth = lineWidth;
-                    this.ctx.beginPath();
-                    this.ctx.moveTo(startX, startY);
-                    this.ctx.lineTo(endX, endY);
-                    this.ctx.stroke();
+                    ctx.strokeStyle = bufferColor;
+                    ctx.lineWidth = lineWidth;
+                    ctx.beginPath();
+                    ctx.moveTo(startX, startY);
+                    ctx.lineTo(endX, endY);
+                    ctx.stroke();
                 }
                 
                 // バッファーIDラベルを表示（円の外側）
@@ -259,40 +318,55 @@ window.circularCanvasRenderer = {
                 const labelX = centerX + Math.cos(labelAngle) * labelRadius;
                 const labelY = centerY + Math.sin(labelAngle) * labelRadius;
                 
-                this.ctx.fillStyle = '#888';
-                this.ctx.font = '12px monospace';
-                this.ctx.textAlign = 'center';
-                this.ctx.fillText(`Buf#${bufferId}`, labelX, labelY);
+                ctx.fillStyle = '#888';
+                ctx.font = '12px monospace';
+                ctx.textAlign = 'center';
+                ctx.fillText(`Buf#${bufferId}`, labelX, labelY);
             }
         }
         
         // 中心円を描画（オプション、視覚的なアクセント）
-        this.ctx.fillStyle = '#2A2A2A';
-        this.ctx.beginPath();
-        this.ctx.arc(centerX, centerY, minRadius, 0, 2 * Math.PI);
-        this.ctx.fill();
-        
-        // 描画完了
-        this.isRendering = false;
-        this.pendingRenderData = null;
+        ctx.fillStyle = '#2A2A2A';
+        ctx.beginPath();
+        ctx.arc(centerX, centerY, minRadius, 0, 2 * Math.PI);
+        ctx.fill();
     },
     
     /**
      * クリーンアップ
      */
-    dispose: function() {
-        if (this.animationFrameId) {
-            cancelAnimationFrame(this.animationFrameId);
-            this.animationFrameId = null;
+    dispose: function(canvasId) {
+        if (canvasId) {
+            // Canvas要素を取得
+            const canvas = document.getElementById(canvasId);
+            
+            // ResizeObserverの監視を解除
+            if (canvas && this.resizeObserver) {
+                this.resizeObserver.unobserve(canvas);
+            }
+            
+            // 特定のCanvasインスタンスを削除
+            const deleted = this.instances.delete(canvasId);
+            if (deleted) {
+                console.log('Circular Canvas instance disposed:', canvasId);
+            } else {
+                console.warn('Circular Canvas instance not found for disposal:', canvasId);
+            }
+            
+            // 描画パラメータも削除
+            this.lastRenderParams.delete(canvasId);
+        } else {
+            // ResizeObserverをリセット
+            if (this.resizeObserver) {
+                this.resizeObserver.disconnect();
+                this.resizeObserver = null;
+            }
+            
+            // すべてのインスタンスをクリア
+            this.instances.clear();
+            this.lastRenderParams.clear();
         }
-        this.canvas = null;
-        this.ctx = null;
     }
 };
 
-// ウィンドウリサイズ時の処理
-window.addEventListener('resize', () => {
-    if (window.circularCanvasRenderer.canvas) {
-        window.circularCanvasRenderer.resize();
-    }
-});
+// ウィンドウリサイズ時の処理は不要（ResizeObserverが自動処理）

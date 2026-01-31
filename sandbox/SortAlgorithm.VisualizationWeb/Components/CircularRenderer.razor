@@ -28,8 +28,12 @@
     [Parameter]
     public EventCallback OnClick { get; set; }
     
+    [Parameter]
+    public int GridColumnCount { get; set; } = 1;
+    
     private string _canvasId = $"sortCircularCanvas_{Guid.NewGuid():N}";
     private bool _isInitialized = false;
+    private int _previousGridColumnCount = 0;
     
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
@@ -40,11 +44,19 @@
             if (success)
             {
                 _isInitialized = true;
+                _previousGridColumnCount = GridColumnCount;
                 await RenderCanvas();
             }
         }
         else if (_isInitialized)
         {
+            // グリッド列数が変わった場合の記録（ResizeObserverが自動リサイズ＆再描画）
+            if (_previousGridColumnCount != GridColumnCount)
+            {
+                Console.WriteLine($"[CircularRenderer] Grid column count changed: {_previousGridColumnCount} -> {GridColumnCount} for canvas {_canvasId}");
+                _previousGridColumnCount = GridColumnCount;
+            }
+            
             // 毎回再描画（Stateオブジェクトの参照は変わらないため）
             await RenderCanvas();
         }
@@ -57,6 +69,7 @@
         try
         {
             await JS.InvokeVoidAsync("circularCanvasRenderer.render",
+                _canvasId,  // Canvas IDを最初の引数として渡す
                 State.MainArray,
                 State.CompareIndices.ToArray(),
                 State.SwapIndices.ToArray(),
@@ -79,16 +92,23 @@
     
     public async ValueTask DisposeAsync()
     {
+        Console.WriteLine($"[CircularRenderer] DisposeAsync called for canvas: {_canvasId}");
+        
         if (_isInitialized)
         {
             try
             {
-                await JS.InvokeVoidAsync("circularCanvasRenderer.dispose");
+                await JS.InvokeVoidAsync("circularCanvasRenderer.dispose", _canvasId);
+                Console.WriteLine($"[CircularRenderer] Successfully disposed canvas: {_canvasId}");
             }
-            catch
+            catch (Exception ex)
             {
-                // クリーンアップエラーは無視
+                Console.WriteLine($"[CircularRenderer] ERROR disposing canvas {_canvasId}: {ex.Message}");
             }
+        }
+        else
+        {
+            Console.WriteLine($"[CircularRenderer] Canvas {_canvasId} was not initialized, skipping dispose");
         }
     }
 }
