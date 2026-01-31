@@ -150,18 +150,25 @@ public class ComparisonModeService : IDisposable
         var speedMultiplier = _playbackServices.FirstOrDefault()?.SpeedMultiplier ?? 10.0;
         var frameInterval = 1000.0 / (60 * speedMultiplier);
         
+        Console.WriteLine($"[ComparisonMode] Starting playback loop. OpsPerFrame: {opsPerFrame}, SpeedMultiplier: {speedMultiplier}, FrameInterval: {frameInterval}ms");
+        
+        int frameCount = 0;
+        var lastLogTime = DateTime.UtcNow;
+        
         try
         {
             while (!cancellationToken.IsCancellationRequested && 
                    _playbackServices.Any(p => p.State.CurrentOperationIndex < p.State.TotalOperations))
             {
                 var currentTime = sw.Elapsed.TotalMilliseconds;
+                
+                // SpinWaitの代わりにTask.Delayを使用（CPU消費を抑える）
                 if (currentTime < nextFrameTime)
                 {
-                    var spinWait = new SpinWait();
-                    while (sw.Elapsed.TotalMilliseconds < nextFrameTime && !cancellationToken.IsCancellationRequested)
+                    var delayMs = (int)(nextFrameTime - currentTime);
+                    if (delayMs > 0)
                     {
-                        spinWait.SpinOnce();
+                        await Task.Delay(delayMs, cancellationToken);
                     }
                 }
                 
@@ -185,6 +192,16 @@ public class ComparisonModeService : IDisposable
                     _lastRenderTime = now;
                     NotifyStateChanged();
                     await Task.Yield();
+                    frameCount++;
+                }
+                
+                // 1秒ごとにFPSをログ出力
+                var logElapsed = (now - lastLogTime).TotalSeconds;
+                if (logElapsed >= 1.0)
+                {
+                    Console.WriteLine($"[ComparisonMode] FPS: {frameCount / logElapsed:F1}");
+                    frameCount = 0;
+                    lastLogTime = now;
                 }
             }
             
@@ -200,11 +217,12 @@ public class ComparisonModeService : IDisposable
                 playback.State.PlaybackState = PlaybackState.Paused;
             }
             
+            Console.WriteLine($"[ComparisonMode] Playback completed");
             NotifyStateChanged();
         }
         catch (OperationCanceledException)
         {
-            // キャンセル時は何もしない
+            Console.WriteLine($"[ComparisonMode] Playback cancelled");
         }
     }
     

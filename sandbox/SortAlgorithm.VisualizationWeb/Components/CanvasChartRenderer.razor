@@ -22,30 +22,40 @@
 </div>
 
 @code {
-    [Parameter]
-    public VisualizationState? State { get; set; }
+[Parameter]
+public VisualizationState? State { get; set; }
     
-    [Parameter]
-    public EventCallback OnClick { get; set; }
+[Parameter]
+public EventCallback OnClick { get; set; }
     
-    private string _canvasId = $"sortCanvas_{Guid.NewGuid():N}";
-    private bool _isInitialized = false;
+[Parameter]
+public int GridColumnCount { get; set; } = 1;
     
-    protected override async Task OnAfterRenderAsync(bool firstRender)
+private string _canvasId = $"sortCanvas_{Guid.NewGuid():N}";
+private bool _isInitialized = false;
+private int _previousGridColumnCount = 0;
+    
+protected override async Task OnAfterRenderAsync(bool firstRender)
+{
+    if (firstRender)
     {
-        if (firstRender)
+        // Canvas初期化
+        var success = await JS.InvokeAsync<bool>("canvasRenderer.initialize", _canvasId);
+        if (success)
         {
-            // Canvas初期化
-            var success = await JS.InvokeAsync<bool>("canvasRenderer.initialize", _canvasId);
-            if (success)
-            {
-                _isInitialized = true;
-                await RenderCanvas();
-            }
+            _isInitialized = true;
+            _previousGridColumnCount = GridColumnCount;
+            await RenderCanvas();
         }
-        else if (_isInitialized)
+    }
+    else if (_isInitialized)
+    {
+        // グリッド列数が変わった時だけリサイズ
+        if (_previousGridColumnCount != GridColumnCount)
         {
-            // グリッドサイズが変わった可能性があるので、Canvasをリサイズ
+            Console.WriteLine($"[CanvasRenderer] Grid column count changed: {_previousGridColumnCount} -> {GridColumnCount}, resizing canvas {_canvasId}");
+            _previousGridColumnCount = GridColumnCount;
+                
             try
             {
                 await JS.InvokeVoidAsync("canvasRenderer.resize");
@@ -54,11 +64,12 @@
             {
                 Console.WriteLine($"Canvas resize error: {ex.Message}");
             }
-            
-            // 毎回再描画（Stateオブジェクトの参照は変わらないため）
-            await RenderCanvas();
         }
+            
+        // 描画
+        await RenderCanvas();
     }
+}
     
     private async Task RenderCanvas()
     {

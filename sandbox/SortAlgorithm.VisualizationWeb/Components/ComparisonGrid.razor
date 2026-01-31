@@ -25,7 +25,8 @@
                 @if (VisualizationMode == VisualizationMode.BarChart)
                 {
                     <CanvasChartRenderer 
-                        State="@instance.State" />
+                        State="@instance.State"
+                        GridColumnCount="@GetGridColumns()" />
                 }
                 else if (VisualizationMode == VisualizationMode.Circular)
                 {
