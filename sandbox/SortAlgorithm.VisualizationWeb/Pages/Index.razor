@@ -588,13 +588,18 @@ private string _runningAlgorithmName = string.Empty;
 
     private void OnComparisonVisualizationClick()
     {
-        // 比較モード時：クリックですべてのアルゴリズムを停止
+        // 比較モード時：クリックですべてのアルゴリズムをトグル（再生⇔停止）
         if (_isComparisonPlaying)
         {
             ComparisonMode.Pause();
             _isComparisonPlaying = false;
-            StateHasChanged();
         }
+        else
+        {
+            ComparisonMode.Play();
+            _isComparisonPlaying = true;
+        }
+        StateHasChanged();
     }
 
     private void OnSeek(int index)
