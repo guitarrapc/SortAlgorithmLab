@@ -153,8 +153,16 @@
 
     <div class="visualization-area">
         <div class="visualization-content">
-            @if (Playback.State.MainArray.Length > 0)
+            @if (_isComparisonMode && ComparisonMode.State.Instances.Any())
             {
+                @* 比較モード: グリッド表示 *@
+                <ComparisonGrid 
+                    Instances="ComparisonMode.State.Instances"
+                    VisualizationMode="SelectedVisualizationMode" />
+            }
+            else if (Playback.State.MainArray.Length > 0)
+            {
+                @* 通常モード: 単一アルゴリズム表示 *@
                 @if (Playback.State.Mode == VisualizationMode.BarChart)
                 {
                     <CanvasChartRenderer State="Playback.State"
@@ -177,18 +185,34 @@
     </div>
 
     <div class="controls">
-        <SeekBar CurrentIndex="Playback.State.CurrentOperationIndex"
-                 TotalOperations="Playback.State.TotalOperations"
-                 OnSeek="OnSeek" />
+        @if (_isComparisonMode && ComparisonMode.State.Instances.Any())
+        {
+            @* 比較モード用のコントロール（実装は後で） *@
+            <div style="display: flex; gap: 10px; margin-top: 10px; align-items: center;">
+                <button @onclick="ComparisonMode.Reset">⏹ Reset</button>
+                <button @onclick="ToggleComparisonPlayPause">
+                    @(_isComparisonPlaying ? "⏸ Pause" : "▶ Play")
+                </button>
+                <span style="flex: 1;"></span>
+                <span style="color: #999;">Comparing @ComparisonMode.State.Instances.Count algorithms</span>
+            </div>
+        }
+        else
+        {
+            @* 通常モード用のコントロール *@
+            <SeekBar CurrentIndex="Playback.State.CurrentOperationIndex"
+                     TotalOperations="Playback.State.TotalOperations"
+                     OnSeek="OnSeek" />
 
-        <div style="display: flex; gap: 10px; margin-top: 10px; align-items: center;">
-            <button @onclick="Playback.Stop">⏹ Reset</button>
-            <button @onclick="Playback.TogglePlayPause">
-                @(Playback.State.PlaybackState == PlaybackState.Playing ? "⏸ Pause" : "▶ Play")
-            </button>
-            <span style="flex: 1;"></span>
-            <span style="color: #999;">Mode: @Playback.State.Mode</span>
-        </div>
+            <div style="display: flex; gap: 10px; margin-top: 10px; align-items: center;">
+                <button @onclick="Playback.Stop">⏹ Reset</button>
+                <button @onclick="Playback.TogglePlayPause">
+                    @(Playback.State.PlaybackState == PlaybackState.Playing ? "⏸ Pause" : "▶ Play")
+                </button>
+                <span style="flex: 1;"></span>
+                <span style="color: #999;">Mode: @Playback.State.Mode</span>
+            </div>
+        }
     </div>
 </div>
 
@@ -199,6 +223,11 @@ private int ArraySize { get; set; } = 64;
 private ArrayPattern SelectedPattern { get; set; } = ArrayPattern.Random;
 private VisualizationMode SelectedVisualizationMode { get; set; } = VisualizationMode.BarChart;
 private string _runningAlgorithmName = string.Empty;
+
+    // 比較モード関連
+    private bool _isComparisonMode = false;
+    private string _selectedAlgorithmToAdd = "Bubble sort";
+    private bool _isComparisonPlaying = false;
 
     private int[] AvailableSizes = [8, 16, 32, 64, 128, 256, 512, 1024, 2048, 4096];
 
@@ -374,6 +403,22 @@ private string _runningAlgorithmName = string.Empty;
     {
         InvokeAsync(StateHasChanged);
     }
+
+    private void ToggleComparisonPlayPause()
+    {
+        if (_isComparisonPlaying)
+        {
+            ComparisonMode.Pause();
+            _isComparisonPlaying = false;
+        }
+        else
+        {
+            ComparisonMode.Play();
+            _isComparisonPlaying = true;
+        }
+        StateHasChanged();
+    }
+
 
     public void Dispose()
     {

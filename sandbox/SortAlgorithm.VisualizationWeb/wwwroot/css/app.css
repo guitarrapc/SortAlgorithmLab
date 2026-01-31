@@ -701,3 +701,88 @@ code {
     transform: scale(0.95);
 }
 
+/* 比較グリッド */
+.comparison-grid {
+    display: grid;
+    gap: 20px;
+    width: 100%;
+    height: 100%;
+    padding: 1rem;
+}
+
+.comparison-grid-item {
+    display: flex;
+    flex-direction: column;
+    background: #1a1a1a;
+    border-radius: 8px;
+    border: 2px solid #333;
+    overflow: hidden;
+    transition: border-color 0.3s;
+}
+
+.comparison-grid-item.completed {
+    border-color: #10B981;
+    box-shadow: 0 0 10px rgba(16, 185, 129, 0.3);
+}
+
+.comparison-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.75rem 1rem;
+    background: #252525;
+    border-bottom: 1px solid #333;
+}
+
+.algorithm-title {
+    margin: 0;
+    font-size: 1em;
+    color: #e0e0e0;
+    font-weight: 600;
+}
+
+.complexity-badge {
+    font-size: 0.8em;
+    color: #888;
+    font-family: 'Courier New', monospace;
+    background: #1e1e1e;
+    padding: 0.25rem 0.5rem;
+    border-radius: 4px;
+}
+
+.comparison-visualization {
+    flex: 1;
+    min-height: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.comparison-stats-summary {
+    display: flex;
+    justify-content: space-around;
+    padding: 0.75rem;
+    background: #1e1e1e;
+    border-top: 1px solid #333;
+    font-size: 0.85em;
+}
+
+.stat-mini {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.25rem;
+}
+
+.stat-mini .label {
+    color: #888;
+    font-size: 0.9em;
+}
+
+.stat-mini .value {
+    color: #e0e0e0;
+    font-weight: bold;
+    font-family: 'Courier New', monospace;
+}
+
+

@@ -1,0 +1,27 @@
+@using SortAlgorithm.VisualizationWeb.Models
+
+<div class="comparison-stats-summary">
+    <div class="stat-mini">
+        <span class="label">Compares:</span>
+        <span class="value">@State.CompareCount.ToString("N0")</span>
+    </div>
+    <div class="stat-mini">
+        <span class="label">Swaps:</span>
+        <span class="value">@State.SwapCount.ToString("N0")</span>
+    </div>
+    <div class="stat-mini">
+        <span class="label">Progress:</span>
+        <span class="value">@GetProgressPercentage()%</span>
+    </div>
+</div>
+
+@code {
+    [Parameter, EditorRequired]
+    public VisualizationState State { get; set; } = null!;
+    
+    private int GetProgressPercentage()
+    {
+        if (State.TotalOperations == 0) return 0;
+        return (int)((State.CurrentOperationIndex / (double)State.TotalOperations) * 100);
+    }
+}

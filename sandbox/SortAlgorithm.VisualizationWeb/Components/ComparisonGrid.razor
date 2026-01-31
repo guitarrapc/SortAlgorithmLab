@@ -1,0 +1,58 @@
+@using SortAlgorithm.VisualizationWeb.Models
+@using SortAlgorithm.VisualizationWeb.Services
+
+<div class="comparison-grid" 
+     style="grid-template-columns: repeat(@GetGridColumns(), 1fr);">
+    @for (int i = 0; i < Instances.Count; i++)
+    {
+        var instance = Instances[i];
+        var index = i;
+        
+        <div class="comparison-grid-item @(instance.State.IsSortCompleted ? "completed" : "")">
+            <div class="comparison-header">
+                <h4 class="algorithm-title">@instance.AlgorithmName</h4>
+                <span class="complexity-badge">@instance.Metadata.TimeComplexity</span>
+            </div>
+            
+            <div class="comparison-visualization">
+                @if (VisualizationMode == VisualizationMode.BarChart)
+                {
+                    <CanvasChartRenderer 
+                        State="@instance.State" />
+                }
+                else if (VisualizationMode == VisualizationMode.Circular)
+                {
+                    <CircularRenderer 
+                        State="@instance.State" />
+                }
+            </div>
+            
+            <ComparisonStatsSummary State="@instance.State" />
+        </div>
+    }
+</div>
+
+@code {
+    [Parameter, EditorRequired]
+    public List<ComparisonInstance> Instances { get; set; } = null!;
+    
+    [Parameter]
+    public VisualizationMode VisualizationMode { get; set; } = VisualizationMode.BarChart;
+    
+    private int GetGridColumns()
+    {
+        return Instances.Count switch
+        {
+            1 => 1,
+            2 => 2,
+            3 => 3,
+            4 => 2,
+            5 => 3,
+            6 => 3,
+            7 => 3,
+            8 => 3,
+            9 => 3,
+            _ => 1
+        };
+    }
+}
