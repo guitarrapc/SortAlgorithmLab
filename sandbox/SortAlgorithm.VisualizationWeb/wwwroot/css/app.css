@@ -731,6 +731,7 @@ code {
     width: 100%;
     height: 100%;
     padding: 1rem;
+    grid-auto-rows: 1fr; /* すべての行を同じ高さに */
 }
 
 .comparison-grid-item {
@@ -741,6 +742,7 @@ code {
     border: 2px solid #333;
     overflow: hidden;
     transition: border-color 0.3s;
+    min-height: 0; /* Flexboxでの縮小を許可 */
 }
 
 .comparison-grid-item.completed {

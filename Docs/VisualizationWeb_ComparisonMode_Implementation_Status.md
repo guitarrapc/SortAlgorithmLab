@@ -706,6 +706,7 @@ builder.Services.AddScoped<ComparisonPlaybackService>();
 - [ ] グリッドレイアウトCSS追加完了
 - [ ] `Index.razor` に統合完了
 - [ ] 動作確認（1-9個のアルゴリズムが正しくグリッド表示される）
+- [ ] それぞれのグリッドを同じ大きさで表示する
 
 ---
 
