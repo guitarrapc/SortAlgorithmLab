@@ -54,21 +54,11 @@ protected override async Task OnAfterRenderAsync(bool firstRender)
     }
     else if (_isInitialized)
     {
-        // グリッド列数が変わった時だけリサイズ
+        // グリッド列数が変わった場合の記録（ResizeObserverが自動リサイズ＆再描画）
         if (_previousGridColumnCount != GridColumnCount)
         {
-            Console.WriteLine($"[CanvasRenderer] Grid column count changed: {_previousGridColumnCount} -> {GridColumnCount}, resizing canvas {_canvasId}");
+            Console.WriteLine($"[CanvasRenderer] Grid column count changed: {_previousGridColumnCount} -> {GridColumnCount} for canvas {_canvasId}");
             _previousGridColumnCount = GridColumnCount;
-                
-            try
-            {
-                // 特定のCanvasのみをリサイズ
-                await JS.InvokeVoidAsync("canvasRenderer.resize", _canvasId);
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"Canvas resize error: {ex.Message}");
-            }
         }
             
         // 描画

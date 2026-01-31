@@ -2,6 +2,8 @@
 
 window.canvasRenderer = {
 instances: new Map(), // Canvas ID -> インスタンスのマップ
+resizeObserver: null, // ResizeObserver インスタンス
+lastRenderParams: new Map(), // Canvas ID -> 最後の描画パラメータ
     
 // デバッグ用：FPS計測
 renderCounts: new Map(),
@@ -43,6 +45,46 @@ colors: {
         // インスタンスを保存
         this.instances.set(canvasId, { canvas, ctx });
         
+        // ResizeObserverを初期化（まだ存在しない場合）
+        if (!this.resizeObserver) {
+            this.resizeObserver = new ResizeObserver(entries => {
+                for (const entry of entries) {
+                    const canvas = entry.target;
+                    const canvasId = canvas.id;
+                    const instance = this.instances.get(canvasId);
+                    
+                    if (instance) {
+                        const { ctx } = instance;
+                        const dpr = window.devicePixelRatio || 1;
+                        const rect = canvas.getBoundingClientRect();
+                        
+                        // サイズが実際に変わった場合のみリサイズ
+                        const newWidth = rect.width * dpr;
+                        const newHeight = rect.height * dpr;
+                        
+                        if (canvas.width !== newWidth || canvas.height !== newHeight) {
+                            canvas.width = newWidth;
+                            canvas.height = newHeight;
+                            ctx.scale(dpr, dpr);
+                            
+                            console.log('Canvas auto-resized:', canvasId, rect.width, 'x', rect.height);
+                            
+                            // リサイズ後、最後の描画パラメータで即座に再描画（黒画面を防ぐ）
+                            const lastParams = this.lastRenderParams.get(canvasId);
+                            if (lastParams) {
+                                requestAnimationFrame(() => {
+                                    this.renderInternal(canvasId, lastParams);
+                                });
+                            }
+                        }
+                    }
+                }
+            });
+        }
+        
+        // このCanvasを監視対象に追加
+        this.resizeObserver.observe(canvas);
+        
         console.log('Canvas initialized:', canvasId, rect.width, 'x', rect.height, 'DPR:', dpr);
         return true;
     },
@@ -52,38 +94,41 @@ colors: {
      * @param {string} canvasId - リサイズするCanvas要素のID（省略時は全Canvas）
      */
     resize: function(canvasId) {
-        if (canvasId) {
-            // 特定のCanvasをリサイズ
-            const instance = this.instances.get(canvasId);
-            if (instance) {
-                const { canvas, ctx } = instance;
-                if (canvas) {
+        // レイアウトの更新を待つためにrequestAnimationFrameを使用
+        requestAnimationFrame(() => {
+            if (canvasId) {
+                // 特定のCanvasをリサイズ
+                const instance = this.instances.get(canvasId);
+                if (instance) {
+                    const { canvas, ctx } = instance;
+                    if (canvas) {
+                        const dpr = window.devicePixelRatio || 1;
+                        const rect = canvas.getBoundingClientRect();
+                        canvas.width = rect.width * dpr;
+                        canvas.height = rect.height * dpr;
+                        ctx.scale(dpr, dpr);
+                        
+                        console.log('Canvas resized:', canvasId, rect.width, 'x', rect.height);
+                    }
+                } else {
+                    console.warn('Canvas instance not found for resize:', canvasId);
+                }
+            } else {
+                // すべてのCanvasをリサイズ
+                this.instances.forEach((instance, id) => {
+                    const { canvas, ctx } = instance;
+                    if (!canvas) return;
+                    
                     const dpr = window.devicePixelRatio || 1;
                     const rect = canvas.getBoundingClientRect();
                     canvas.width = rect.width * dpr;
                     canvas.height = rect.height * dpr;
                     ctx.scale(dpr, dpr);
                     
-                    console.log('Canvas resized:', canvasId, rect.width, 'x', rect.height);
-                }
-            } else {
-                console.warn('Canvas instance not found for resize:', canvasId);
+                    console.log('Canvas resized:', id, rect.width, 'x', rect.height);
+                });
             }
-        } else {
-            // すべてのCanvasをリサイズ
-            this.instances.forEach((instance, id) => {
-                const { canvas, ctx } = instance;
-                if (!canvas) return;
-                
-                const dpr = window.devicePixelRatio || 1;
-                const rect = canvas.getBoundingClientRect();
-                canvas.width = rect.width * dpr;
-                canvas.height = rect.height * dpr;
-                ctx.scale(dpr, dpr);
-                
-                console.log('Canvas resized:', id, rect.width, 'x', rect.height);
-            });
-        }
+        });
     },
     
     /**
@@ -99,6 +144,29 @@ colors: {
      * @param {boolean} showCompletionHighlight - 完了ハイライトを表示するか
      */
     render: function(canvasId, array, compareIndices, swapIndices, readIndices, writeIndices, isSortCompleted, bufferArrays, showCompletionHighlight) {
+        // 描画パラメータを保存（ResizeObserver用）
+        const params = {
+            array,
+            compareIndices,
+            swapIndices,
+            readIndices,
+            writeIndices,
+            isSortCompleted: isSortCompleted || false,
+            bufferArrays: bufferArrays || {},
+            showCompletionHighlight: showCompletionHighlight !== undefined ? showCompletionHighlight : false
+        };
+        this.lastRenderParams.set(canvasId, params);
+        
+        // 実際の描画処理
+        this.renderInternal(canvasId, params);
+    },
+    
+    /**
+     * 内部描画処理（実際のCanvas描画）
+     * @param {string} canvasId - Canvas要素のID
+     * @param {Object} params - 描画パラメータ
+     */
+    renderInternal: function(canvasId, params) {
         const instance = this.instances.get(canvasId);
         if (!instance) {
             console.error('Canvas instance not found:', canvasId);
@@ -110,6 +178,9 @@ colors: {
             console.error('Canvas not initialized:', canvasId);
             return;
         }
+        
+        // パラメータ展開
+        const { array, compareIndices, swapIndices, readIndices, writeIndices, isSortCompleted, bufferArrays, showCompletionHighlight } = params;
         
         // 🔍 デバッグ：render() 呼び出し回数をカウント
         if (!this.renderCounts.has(canvasId)) {
@@ -128,11 +199,6 @@ colors: {
             this.renderCounts.set(canvasId, 0);
             this.lastFpsLogs.set(canvasId, now);
         }
-        
-        // デフォルト値を設定
-        isSortCompleted = isSortCompleted || false;
-        bufferArrays = bufferArrays || {};
-        showCompletionHighlight = showCompletionHighlight !== undefined ? showCompletionHighlight : false;
         
         const rect = canvas.getBoundingClientRect();
         const width = rect.width;
@@ -281,6 +347,14 @@ colors: {
      */
     dispose: function(canvasId) {
         if (canvasId) {
+            // Canvas要素を取得
+            const canvas = document.getElementById(canvasId);
+            
+            // ResizeObserverの監視を解除
+            if (canvas && this.resizeObserver) {
+                this.resizeObserver.unobserve(canvas);
+            }
+            
             // 特定のCanvasインスタンスを削除
             const deleted = this.instances.delete(canvasId);
             if (deleted) {
@@ -289,14 +363,22 @@ colors: {
                 console.warn('Canvas instance not found for disposal:', canvasId);
             }
             
-            // FPS計測用のデータも削除
+            // FPS計測用のデータと描画パラメータも削除
             this.renderCounts.delete(canvasId);
             this.lastFpsLogs.delete(canvasId);
+            this.lastRenderParams.delete(canvasId);
         } else {
+            // ResizeObserverをリセット
+            if (this.resizeObserver) {
+                this.resizeObserver.disconnect();
+                this.resizeObserver = null;
+            }
+            
             // すべてのインスタンスをクリア
             this.instances.clear();
             this.renderCounts.clear();
             this.lastFpsLogs.clear();
+            this.lastRenderParams.clear();
         }
     }
 };
