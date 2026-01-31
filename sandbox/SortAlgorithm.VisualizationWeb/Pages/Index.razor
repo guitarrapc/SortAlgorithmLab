@@ -194,7 +194,8 @@
                 <ComparisonGrid 
                     Instances="ComparisonMode.State.Instances"
                     VisualizationMode="SelectedVisualizationMode"
-                    OnRemove="RemoveAlgorithmFromComparison" />
+                    OnRemove="RemoveAlgorithmFromComparison"
+                    OnVisualizationClick="OnComparisonVisualizationClick" />
             }
             else if (Playback.State.MainArray.Length > 0)
             {
@@ -583,6 +584,17 @@ private string _runningAlgorithmName = string.Empty;
     private void OnVisualizationClick()
     {
         Playback.TogglePlayPause();
+    }
+
+    private void OnComparisonVisualizationClick()
+    {
+        // 比較モード時：クリックですべてのアルゴリズムを停止
+        if (_isComparisonPlaying)
+        {
+            ComparisonMode.Pause();
+            _isComparisonPlaying = false;
+            StateHasChanged();
+        }
     }
 
     private void OnSeek(int index)

@@ -14,6 +14,7 @@
             VisualizationMode="@VisualizationMode"
             GridColumnCount="@GetGridColumns()"
             OnRemove="@(() => OnRemoveInstance(index))"
+            OnVisualizationClick="@OnVisualizationClick"
             @key="instance.AlgorithmName" />
     }
 </div>
@@ -27,6 +28,9 @@
     
     [Parameter]
     public EventCallback<int> OnRemove { get; set; }
+    
+    [Parameter]
+    public EventCallback OnVisualizationClick { get; set; }
     
     private int GetGridColumns()
     {

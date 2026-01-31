@@ -20,13 +20,15 @@
         {
             <CanvasChartRenderer 
                 State="@Instance.State"
-                GridColumnCount="@GridColumnCount" />
+                GridColumnCount="@GridColumnCount"
+                OnClick="@OnVisualizationClick" />
         }
         else if (VisualizationMode == VisualizationMode.Circular)
         {
             <CircularRenderer 
                 State="@Instance.State"
-                GridColumnCount="@GridColumnCount" />
+                GridColumnCount="@GridColumnCount"
+                OnClick="@OnVisualizationClick" />
         }
     </div>
     
@@ -48,6 +50,9 @@
     
     [Parameter]
     public EventCallback OnRemove { get; set; }
+    
+    [Parameter]
+    public EventCallback OnVisualizationClick { get; set; }
     
     private PlaybackService? _previousPlayback;
     
