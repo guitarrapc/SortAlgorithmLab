@@ -71,8 +71,18 @@
     
     public void Dispose()
     {
-        // イベント購読解除
-        Playback.StateChanged -= OnPlaybackStateChanged;
+        Console.WriteLine($"[ComparisonGridItem] Disposing item: {Instance.AlgorithmName}");
+        
+        try
+        {
+            // イベント購読解除
+            Playback.StateChanged -= OnPlaybackStateChanged;
+            Console.WriteLine($"[ComparisonGridItem] Event unsubscribed successfully for {Instance.AlgorithmName}");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"[ComparisonGridItem] ERROR during dispose: {ex.Message}");
+        }
     }
 }
 

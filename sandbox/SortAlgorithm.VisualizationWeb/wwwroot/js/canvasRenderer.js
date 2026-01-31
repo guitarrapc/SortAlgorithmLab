@@ -49,21 +49,41 @@ colors: {
     
     /**
      * リサイズ処理
+     * @param {string} canvasId - リサイズするCanvas要素のID（省略時は全Canvas）
      */
-    resize: function() {
-        // すべてのCanvasをリサイズ
-        this.instances.forEach((instance, canvasId) => {
-            const { canvas, ctx } = instance;
-            if (!canvas) return;
-            
-            const dpr = window.devicePixelRatio || 1;
-            const rect = canvas.getBoundingClientRect();
-            canvas.width = rect.width * dpr;
-            canvas.height = rect.height * dpr;
-            ctx.scale(dpr, dpr);
-            
-            console.log('Canvas resized:', canvasId, rect.width, 'x', rect.height);
-        });
+    resize: function(canvasId) {
+        if (canvasId) {
+            // 特定のCanvasをリサイズ
+            const instance = this.instances.get(canvasId);
+            if (instance) {
+                const { canvas, ctx } = instance;
+                if (canvas) {
+                    const dpr = window.devicePixelRatio || 1;
+                    const rect = canvas.getBoundingClientRect();
+                    canvas.width = rect.width * dpr;
+                    canvas.height = rect.height * dpr;
+                    ctx.scale(dpr, dpr);
+                    
+                    console.log('Canvas resized:', canvasId, rect.width, 'x', rect.height);
+                }
+            } else {
+                console.warn('Canvas instance not found for resize:', canvasId);
+            }
+        } else {
+            // すべてのCanvasをリサイズ
+            this.instances.forEach((instance, id) => {
+                const { canvas, ctx } = instance;
+                if (!canvas) return;
+                
+                const dpr = window.devicePixelRatio || 1;
+                const rect = canvas.getBoundingClientRect();
+                canvas.width = rect.width * dpr;
+                canvas.height = rect.height * dpr;
+                ctx.scale(dpr, dpr);
+                
+                console.log('Canvas resized:', id, rect.width, 'x', rect.height);
+            });
+        }
     },
     
     /**
@@ -257,10 +277,27 @@ colors: {
     
     /**
      * クリーンアップ
+     * @param {string} canvasId - 削除するCanvas要素のID（省略時は全削除）
      */
-    dispose: function() {
-        // すべてのインスタンスをクリア
-        this.instances.clear();
+    dispose: function(canvasId) {
+        if (canvasId) {
+            // 特定のCanvasインスタンスを削除
+            const deleted = this.instances.delete(canvasId);
+            if (deleted) {
+                console.log('Canvas instance disposed:', canvasId);
+            } else {
+                console.warn('Canvas instance not found for disposal:', canvasId);
+            }
+            
+            // FPS計測用のデータも削除
+            this.renderCounts.delete(canvasId);
+            this.lastFpsLogs.delete(canvasId);
+        } else {
+            // すべてのインスタンスをクリア
+            this.instances.clear();
+            this.renderCounts.clear();
+            this.lastFpsLogs.clear();
+        }
     }
 };
 

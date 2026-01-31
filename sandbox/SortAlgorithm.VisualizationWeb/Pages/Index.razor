@@ -446,12 +446,20 @@ private string _runningAlgorithmName = string.Empty;
         Console.WriteLine($"[Index] ComparisonMode.State.IsEnabled: {ComparisonMode.State.IsEnabled}");
         Console.WriteLine($"[Index] ComparisonMode.State.InitialArray.Length: {ComparisonMode.State.InitialArray.Length}");
         Console.WriteLine($"[Index] Current ArraySize: {ArraySize}");
+        Console.WriteLine($"[Index] Existing instances count: {ComparisonMode.State.Instances.Count}");
+        foreach (var inst in ComparisonMode.State.Instances)
+        {
+            Console.WriteLine($"[Index]   - {inst.AlgorithmName}: {inst.State.MainArray.Length} elements");
+        }
 
         // 🔧 Array Sizeが変更されている場合、既存のアルゴリズムを新しいサイズで再実行
         var currentSize = Math.Min(ArraySize, 4096);
+        Console.WriteLine($"[Index] Comparing: InitialArray.Length ({ComparisonMode.State.InitialArray.Length}) != currentSize ({currentSize}) ? {ComparisonMode.State.InitialArray.Length != currentSize}");
+        Console.WriteLine($"[Index] Instances.Any() ? {ComparisonMode.State.Instances.Any()}");
+        
         if (ComparisonMode.State.InitialArray.Length != currentSize && ComparisonMode.State.Instances.Any())
         {
-            Console.WriteLine($"[Index] Array size changed: {ComparisonMode.State.InitialArray.Length} -> {currentSize}");
+            Console.WriteLine($"[Index] ✅ Array size changed: {ComparisonMode.State.InitialArray.Length} -> {currentSize}");
             Console.WriteLine($"[Index] Regenerating all existing algorithms with new size");
             
             // 既存のアルゴリズム情報を保存
@@ -459,9 +467,14 @@ private string _runningAlgorithmName = string.Empty;
                 .Select(i => new { i.AlgorithmName, i.Metadata })
                 .ToList();
             
+            Console.WriteLine($"[Index] Saved {existingAlgorithms.Count} existing algorithms");
+            
             // 新しい配列を生成
             var newArray = PatternGenerator.Generate(currentSize, SelectedPattern);
+            Console.WriteLine($"[Index] Generated new array: {newArray.Length} elements");
+            
             ComparisonMode.Enable(newArray);
+            Console.WriteLine($"[Index] Called Enable() - instances should be cleared now");
             
             // すべてのアルゴリズムを新しいサイズで再追加
             foreach (var algo in existingAlgorithms)
@@ -469,12 +482,19 @@ private string _runningAlgorithmName = string.Empty;
                 ComparisonMode.AddAlgorithm(algo.AlgorithmName, algo.Metadata);
                 Console.WriteLine($"[Index] Re-added {algo.AlgorithmName} with new array size");
             }
+            
+            Console.WriteLine($"[Index] After re-adding, instances count: {ComparisonMode.State.Instances.Count}");
         }
         else if (ComparisonMode.State.InitialArray.Length != currentSize)
         {
+            Console.WriteLine($"[Index] ⚠️ No existing instances, just updating initial array");
             // アルゴリズムがまだない場合は、単純に配列を再生成
             var newArray = PatternGenerator.Generate(currentSize, SelectedPattern);
             ComparisonMode.Enable(newArray);
+        }
+        else
+        {
+            Console.WriteLine($"[Index] ❌ Array size unchanged, skipping regeneration");
         }
 
         // 現在選択中のアルゴリズムを追加
@@ -492,8 +512,9 @@ private string _runningAlgorithmName = string.Empty;
             return;
         }
 
+        Console.WriteLine($"[Index] Adding new algorithm: {SelectedAlgorithm}");
         ComparisonMode.AddAlgorithm(SelectedAlgorithm, metadata);
-        Console.WriteLine($"[Index] Called AddAlgorithm for {SelectedAlgorithm}");
+        Console.WriteLine($"[Index] After adding, instances count: {ComparisonMode.State.Instances.Count}");
         
         StateHasChanged();
     }
@@ -503,7 +524,18 @@ private string _runningAlgorithmName = string.Empty;
 
     private void RemoveAlgorithmFromComparison(int index)
     {
+        Console.WriteLine($"[Index] RemoveAlgorithmFromComparison called for index: {index}");
+        Console.WriteLine($"[Index] Before removal, instances count: {ComparisonMode.State.Instances.Count}");
+        
+        if (index >= 0 && index < ComparisonMode.State.Instances.Count)
+        {
+            var algorithmName = ComparisonMode.State.Instances[index].AlgorithmName;
+            Console.WriteLine($"[Index] Removing algorithm: {algorithmName}");
+        }
+        
         ComparisonMode.RemoveAlgorithm(index);
+        
+        Console.WriteLine($"[Index] After removal, instances count: {ComparisonMode.State.Instances.Count}");
         StateHasChanged();
     }
 

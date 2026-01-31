@@ -64,12 +64,34 @@ public class ComparisonModeService : IDisposable
     }
     public void RemoveAlgorithm(int index)
     {
+        Console.WriteLine($"[ComparisonModeService] RemoveAlgorithm called for index: {index}");
+        Console.WriteLine($"[ComparisonModeService] Before removal, _playbackServices.Count: {_playbackServices.Count}, _state.Instances.Count: {_state.Instances.Count}");
+        
         if (index >= 0 && index < _state.Instances.Count)
         {
-            _playbackServices[index].Dispose();
+            var algorithmName = _state.Instances[index].AlgorithmName;
+            Console.WriteLine($"[ComparisonModeService] Removing algorithm: {algorithmName}");
+            
+            try
+            {
+                _playbackServices[index].Dispose();
+                Console.WriteLine($"[ComparisonModeService] PlaybackService disposed successfully");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"[ComparisonModeService] ERROR disposing PlaybackService: {ex.Message}");
+            }
+            
             _playbackServices.RemoveAt(index);
             _state.Instances.RemoveAt(index);
+            
+            Console.WriteLine($"[ComparisonModeService] After removal, _playbackServices.Count: {_playbackServices.Count}, _state.Instances.Count: {_state.Instances.Count}");
+            
             NotifyStateChanged();
+        }
+        else
+        {
+            Console.WriteLine($"[ComparisonModeService] ERROR: Invalid index {index} (valid range: 0-{_state.Instances.Count - 1})");
         }
     }
     public void Play()

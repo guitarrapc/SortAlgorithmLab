@@ -62,7 +62,8 @@ protected override async Task OnAfterRenderAsync(bool firstRender)
                 
             try
             {
-                await JS.InvokeVoidAsync("canvasRenderer.resize");
+                // 特定のCanvasのみをリサイズ
+                await JS.InvokeVoidAsync("canvasRenderer.resize", _canvasId);
             }
             catch (Exception ex)
             {
@@ -116,16 +117,23 @@ protected override async Task OnAfterRenderAsync(bool firstRender)
     
     public async ValueTask DisposeAsync()
     {
+        Console.WriteLine($"[CanvasRenderer] DisposeAsync called for canvas: {_canvasId}");
+        
         if (_isInitialized)
         {
             try
             {
-                await JS.InvokeVoidAsync("canvasRenderer.dispose");
+                await JS.InvokeVoidAsync("canvasRenderer.dispose", _canvasId);
+                Console.WriteLine($"[CanvasRenderer] Successfully disposed canvas: {_canvasId}");
             }
-            catch
+            catch (Exception ex)
             {
-                // クリーンアップエラーは無視
+                Console.WriteLine($"[CanvasRenderer] ERROR disposing canvas {_canvasId}: {ex.Message}");
             }
+        }
+        else
+        {
+            Console.WriteLine($"[CanvasRenderer] Canvas {_canvasId} was not initialized, skipping dispose");
         }
     }
 }
