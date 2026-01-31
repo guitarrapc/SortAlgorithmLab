@@ -158,7 +158,7 @@
                     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
                         <span class="stat-value" style="font-size: 0.9rem;">@Playback.OperationsPerFrame ops/frame</span>
                     </div>
-                    <input type="range" min="1" max="1000" @bind="Playback.OperationsPerFrame" @bind:after="StateHasChanged" style="width: 100%;" />
+                    <input type="range" min="1" max="1000" @bind="Playback.OperationsPerFrame" @bind:after="OnSpeedSettingsChanged" style="width: 100%;" />
                 </div>
 
             <div class="stat-item stat-item-vertical">
@@ -167,7 +167,7 @@
                     <span class="stat-value" style="font-size: 0.9rem;">@Playback.SpeedMultiplier.ToString("F1")x</span>
                     <span style="font-size: 0.85rem; color: #999;">(@EffectiveFPS FPS)</span>
                 </div>
-                <input type="range" min="0.5" max="100" step="0.5" @bind="Playback.SpeedMultiplier" @bind:after="StateHasChanged" style="width: 100%;" />
+                <input type="range" min="0.5" max="100" step="0.5" @bind="Playback.SpeedMultiplier" @bind:after="OnSpeedSettingsChanged" style="width: 100%;" />
             </div>
             </div>
 
@@ -232,19 +232,6 @@
                     @(_isComparisonPlaying ? "⏸ Pause" : "▶ Play")
                 </button>
                 
-                @* 速度制御 *@
-                <label style="display: flex; align-items: center; gap: 0.5rem; margin-left: 1rem;">
-                    <span style="color: #999; font-size: 0.9em;">Speed:</span>
-                    <input type="range" 
-                           min="0.1" 
-                           max="100" 
-                           step="0.1" 
-                           value="@_comparisonSpeedMultiplier"
-                           @oninput="OnComparisonSpeedChanged"
-                           style="width: 150px;" />
-                    <span style="color: #999; font-size: 0.9em; min-width: 50px;">@($"{_comparisonSpeedMultiplier:F1}x")</span>
-                </label>
-                
                 <span style="flex: 1;"></span>
                 
                 @* 完了状態の表示 *@
@@ -298,8 +285,6 @@ private string _runningAlgorithmName = string.Empty;
     // 比較モード関連
     private bool _isComparisonMode = false;
     private bool _isComparisonPlaying = false;
-    private double _comparisonSpeedMultiplier = 10.0;
-    private int _comparisonOperationsPerFrame = 1;
     private bool _statsTableOpen = false;
 
     private int[] AvailableSizes = [8, 16, 32, 64, 128, 256, 512, 1024, 2048, 4096];
@@ -471,6 +456,10 @@ private string _runningAlgorithmName = string.Empty;
             Console.WriteLine($"[OnComparisonModeChanged] Generated array length: {array.Length}");
             
             ComparisonMode.Enable(array);
+            
+            // サイドバーの速度設定を比較モードに適用
+            ComparisonMode.SetSpeedForAll(Playback.OperationsPerFrame, Playback.SpeedMultiplier);
+            
             Console.WriteLine($"[OnComparisonModeChanged] Comparison mode enabled with array");
         }
         else
@@ -621,20 +610,16 @@ private string _runningAlgorithmName = string.Empty;
         }
         StateHasChanged();
     }
-    
-    private void OnComparisonSpeedChanged(ChangeEventArgs e)
-    {
-        if (double.TryParse(e.Value?.ToString(), out var speed))
-        {
-            _comparisonSpeedMultiplier = speed;
-            
-            // すべてのPlaybackServiceに速度を適用
-            ComparisonMode.SetSpeedForAll(_comparisonOperationsPerFrame, _comparisonSpeedMultiplier);
-            
-            StateHasChanged();
-        }
-    }
 
+    private void OnSpeedSettingsChanged()
+    {
+        // 比較モードが有効な場合、すべてのアルゴリズムに速度設定を適用
+        if (_isComparisonMode)
+        {
+            ComparisonMode.SetSpeedForAll(Playback.OperationsPerFrame, Playback.SpeedMultiplier);
+        }
+        StateHasChanged();
+    }
 
     public void Dispose()
     {
