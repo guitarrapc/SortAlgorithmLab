@@ -25,7 +25,8 @@
         else if (VisualizationMode == VisualizationMode.Circular)
         {
             <CircularRenderer 
-                State="@Instance.State" />
+                State="@Instance.State"
+                GridColumnCount="@GridColumnCount" />
         }
     </div>
     
@@ -48,11 +49,42 @@
     [Parameter]
     public EventCallback OnRemove { get; set; }
     
+    private PlaybackService? _previousPlayback;
+    
     protected override void OnInitialized()
     {
         // 🔧 重要：PlaybackService.StateChanged を直接購読
         // これにより、ComparisonGrid全体が再レンダリングされるのを防ぐ
-        Playback.StateChanged += OnPlaybackStateChanged;
+        SubscribeToPlayback();
+    }
+    
+    protected override void OnParametersSet()
+    {
+        // PlaybackServiceが変更された場合は、イベント購読を更新
+        if (_previousPlayback != Playback)
+        {
+            Console.WriteLine($"[ComparisonGridItem] Playback changed for {Instance.AlgorithmName}");
+            
+            // 古いPlaybackServiceからイベント購読解除
+            if (_previousPlayback != null)
+            {
+                _previousPlayback.StateChanged -= OnPlaybackStateChanged;
+                Console.WriteLine($"[ComparisonGridItem] Unsubscribed from old PlaybackService");
+            }
+            
+            // 新しいPlaybackServiceにイベント購読
+            SubscribeToPlayback();
+        }
+    }
+    
+    private void SubscribeToPlayback()
+    {
+        if (Playback != null)
+        {
+            Playback.StateChanged += OnPlaybackStateChanged;
+            _previousPlayback = Playback;
+            Console.WriteLine($"[ComparisonGridItem] Subscribed to PlaybackService for {Instance.AlgorithmName}");
+        }
     }
     
     private void OnPlaybackStateChanged()
@@ -76,8 +108,11 @@
         try
         {
             // イベント購読解除
-            Playback.StateChanged -= OnPlaybackStateChanged;
-            Console.WriteLine($"[ComparisonGridItem] Event unsubscribed successfully for {Instance.AlgorithmName}");
+            if (_previousPlayback != null)
+            {
+                _previousPlayback.StateChanged -= OnPlaybackStateChanged;
+                Console.WriteLine($"[ComparisonGridItem] Event unsubscribed successfully for {Instance.AlgorithmName}");
+            }
         }
         catch (Exception ex)
         {
