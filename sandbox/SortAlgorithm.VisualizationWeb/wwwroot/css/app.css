@@ -316,12 +316,10 @@ button {
 
 button:hover {
     background-color: #4A4A4A;
-    transform: translateY(-1px);
 }
 
 button:active {
     background-color: #2A2A2A;
-    transform: translateY(0);
 }
 
 button.primary {
@@ -697,26 +695,187 @@ code {
     transform: scale(1.05);
 }
 
-/* 統計比較表 */
-.comparison-stats-table-container {
-    margin: 1rem;
-    padding: 1.5rem;
-    background: #1e1e1e;
-    border-radius: 8px;
-    border: 1px solid #333;
+/* 統計パネル（右側ドッキング） */
+.stats-panel-toggle {
+    position: fixed;
+    top: 50%;
+    right: 0;
+    transform: translateY(-50%);
+    padding: 1rem 0.5rem;
+    background: #3B82F6;
+    color: white;
+    border: none;
+    border-radius: 8px 0 0 8px;
+    cursor: pointer;
+    font-size: 1em;
+    transition: background 0.3s, right 0.3s;
+    z-index: 1000;
+    box-shadow: -2px 0 8px rgba(0, 0, 0, 0.3);
+    writing-mode: vertical-rl;
 }
 
-.stats-table-header {
+.stats-panel-toggle:hover {
+    background: #2563EB;
+}
+
+.stats-panel-toggle.open {
+    right: 500px;
+}
+
+.comparison-stats-panel {
+    position: fixed;
+    top: 60px; /* ヘッダーの高さ分 */
+    right: -500px; /* 初期状態は画面外 */
+    width: 500px;
+    height: calc(100vh - 60px);
+    background: #1e1e1e;
+    border-left: 1px solid #333;
+    box-shadow: -4px 0 12px rgba(0, 0, 0, 0.5);
+    transition: right 0.3s ease-in-out;
+    z-index: 999;
+    display: flex;
+    flex-direction: column;
+}
+
+.comparison-stats-panel.open {
+    right: 0;
+}
+
+.stats-panel-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 1rem;
+    padding: 1rem;
+    background: #252525;
+    border-bottom: 2px solid #333;
+    flex-shrink: 0;
 }
 
-.stats-table-header h3 {
+.stats-panel-header h3 {
     margin: 0;
     color: #e0e0e0;
-    font-size: 1.2em;
+    font-size: 1.1em;
+}
+
+.stats-panel-actions {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.comparison-stats-panel .copy-button {
+    padding: 0.3rem 0.6rem;
+    background: #3B82F6;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 0.9em;
+    transition: all 0.2s;
+}
+
+.comparison-stats-panel .copy-button:hover {
+    background: #2563EB;
+    transform: scale(1.05);
+}
+
+.comparison-stats-panel .table-wrapper {
+    overflow-x: auto;
+    overflow-y: auto;
+    flex: 1;
+    padding: 0;
+}
+
+.comparison-stats-panel .comparison-stats-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.85em;
+}
+
+.comparison-stats-panel .comparison-stats-table th {
+    background: #252525;
+    color: #888;
+    padding: 0.6rem 0.5rem;
+    text-align: left;
+    border-bottom: 2px solid #333;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    cursor: pointer;
+    user-select: none;
+    font-size: 0.9em;
+}
+
+.comparison-stats-panel .comparison-stats-table th.sortable:hover {
+    background: #2a2a2a;
+    color: #aaa;
+}
+
+.comparison-stats-panel .comparison-stats-table td {
+    padding: 0.6rem 0.5rem;
+    border-bottom: 1px solid #2a2a2a;
+    color: #e0e0e0;
+}
+
+.comparison-stats-panel .comparison-stats-table tr:hover {
+    background: rgba(59, 130, 246, 0.1);
+}
+
+.comparison-stats-panel .comparison-stats-table tr.completed {
+    background: rgba(16, 185, 129, 0.1);
+}
+
+.comparison-stats-panel .comparison-stats-table tr.completed:hover {
+    background: rgba(16, 185, 129, 0.15);
+}
+
+.comparison-stats-panel .comparison-stats-table .algorithm-name {
+    font-weight: 500;
+    color: #3B82F6;
+    font-size: 0.95em;
+}
+
+.comparison-stats-panel .comparison-stats-table .complexity {
+    font-family: 'Courier New', monospace;
+    color: #A855F7;
+    font-size: 0.85em;
+}
+
+.comparison-stats-panel .comparison-stats-table .stat-value {
+    text-align: right;
+    font-family: 'Courier New', monospace;
+    color: #FBBF24;
+    font-size: 0.9em;
+}
+
+.comparison-stats-panel .comparison-stats-table .status {
+    text-align: center;
+}
+
+.comparison-stats-panel .status-badge {
+    padding: 0.25rem 0.5rem;
+    border-radius: 4px;
+    font-size: 0.8em;
+    font-weight: 500;
+    display: inline-block;
+}
+
+.comparison-stats-panel .status-badge.completed {
+    background: #10B981;
+    color: white;
+}
+
+.comparison-stats-panel .status-badge.running {
+    background: #F59E0B;
+    color: white;
+}
+
+/* 旧スタイルの削除（互換性のため残す） */
+.comparison-stats-table-container {
+    display: none;
+}
+
+.stats-table-header {
+    display: none;
 }
 
 .copy-button {

@@ -2,12 +2,22 @@
 @using SortAlgorithm.VisualizationWeb.Services
 @inject IJSRuntime JS
 
-<div class="comparison-stats-table-container">
-    <div class="stats-table-header">
+<!-- トグルボタン（右端に固定） -->
+<button class="stats-panel-toggle @(IsOpen ? "open" : "")" 
+        @onclick="TogglePanel"
+        title="@(IsOpen ? "Hide Statistics" : "Show Statistics")">
+    @(IsOpen ? "📊 ▶" : "◀ 📊")
+</button>
+
+<!-- 統計パネル（右側にドック） -->
+<div class="comparison-stats-panel @(IsOpen ? "open" : "")">
+    <div class="stats-panel-header">
         <h3>📊 Statistics Comparison</h3>
-        <button class="copy-button" @onclick="CopyTableToClipboard" title="Copy to Clipboard">
-            📋 Copy
-        </button>
+        <div class="stats-panel-actions">
+            <button class="copy-button" @onclick="CopyTableToClipboard" title="Copy to Clipboard">
+                📋 Copy
+            </button>
+        </div>
     </div>
     
     <div class="table-wrapper">
@@ -50,7 +60,7 @@
                         <td class="status">
                             @if (item.State.IsSortCompleted)
                             {
-                                <span class="status-badge completed">✅ Complete</span>
+                                <span class="status-badge completed">100%</span>
                             }
                             else
                             {
@@ -71,8 +81,20 @@
     [Parameter, EditorRequired]
     public List<ComparisonInstance> Instances { get; set; } = null!;
     
+    [Parameter]
+    public bool IsOpen { get; set; } = false;
+    
+    [Parameter]
+    public EventCallback<bool> IsOpenChanged { get; set; }
+    
     private string _sortColumn = "Compares";
     private bool _sortAscending = true;
+    
+    private async Task TogglePanel()
+    {
+        IsOpen = !IsOpen;
+        await IsOpenChanged.InvokeAsync(IsOpen);
+    }
     
     private void SortBy(string column)
     {
@@ -140,7 +162,7 @@
                    $"{item.State.SwapCount}\t" +
                    $"{item.State.IndexReadCount}\t" +
                    $"{item.State.IndexWriteCount}\t" +
-                   $"{(item.State.IsSortCompleted ? "Completed" : $"{progress}%")}";
+                   $"{(item.State.IsSortCompleted ? "100%" : $"{progress}%")}";
         });
         
         var tsv = header + "\n" + string.Join("\n", rows);
