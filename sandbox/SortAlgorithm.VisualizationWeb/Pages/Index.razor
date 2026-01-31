@@ -103,9 +103,6 @@
                     </select>
                 </div>
 
-                <div class="stat-item">
-                    <button class="primary" @onclick="GenerateAndSort" style="width: 100%;">🎲 Generate & Sort</button>
-                </div>
 
                 <div class="stat-item">
                     <span class="stat-label">
@@ -120,52 +117,25 @@
                     </label>
                 </div>
 
-                @if (_isComparisonMode)
-                {
-                    <div class="comparison-controls">
-                        <div class="stat-item">
-                            <span class="stat-label">Add Algorithm</span>
-                            <div style="display: flex; gap: 0.5rem;">
-                                <select @bind="_selectedAlgorithmToAdd" style="flex: 1;">
-                                    @foreach (var algo in GetAvailableAlgorithmsForComparison())
-                                    {
-                                        <option value="@algo.Name">@algo.Name</option>
-                                    }
-                                </select>
-                                <button class="btn-icon" 
-                                        @onclick="AddAlgorithmToComparison"
-                                        disabled="@(ComparisonMode.State.Instances.Count >= ComparisonState.MaxComparisons)"
-                                        title="Add Algorithm">
-                                    ➕
-                                </button>
-                            </div>
-                        </div>
-                        
-                        @if (ComparisonMode.State.Instances.Any())
-                        {
-                            <div class="stat-item">
-                                <span class="stat-label">Algorithms in Comparison</span>
-                                <div class="comparison-algorithm-list">
-                                    @for (int i = 0; i < ComparisonMode.State.Instances.Count; i++)
-                                    {
-                                        var index = i;
-                                        var instance = ComparisonMode.State.Instances[i];
-                                        <div class="comparison-algorithm-item">
-                                            <span class="algorithm-name" title="@instance.Metadata.Category">
-                                                @instance.AlgorithmName
-                                            </span>
-                                            <button class="btn-remove" 
-                                                    @onclick="() => RemoveAlgorithmFromComparison(index)"
-                                                    title="Remove">
-                                                ✖
-                                            </button>
-                                        </div>
-                                    }
-                                </div>
-                            </div>
-                        }
-                    </div>
-                }
+                <div class="stat-item">
+                    @if (_isComparisonMode)
+                    {
+                        var isDisabled = ComparisonMode.State.Instances.Count >= ComparisonState.MaxComparisons || !ComparisonMode.State.IsEnabled;
+                        <button class="primary" 
+                                @onclick="AddAlgorithmToComparison" 
+                                style="width: 100%;"
+                                disabled="@isDisabled">
+                            ➕ Add to Comparison
+                        </button>
+                        <small style="color: #888; font-size: 0.75em;">
+                            Debug: IsEnabled=@ComparisonMode.State.IsEnabled, Count=@ComparisonMode.State.Instances.Count, ArrayLen=@ComparisonMode.State.InitialArray.Length
+                        </small>
+                    }
+                    else
+                    {
+                        <button class="primary" @onclick="GenerateAndSort" style="width: 100%;">🎲 Generate & Sort</button>
+                    }
+                </div>
 
             <div class="stat-item">
                 <label class="toggle-switch">
@@ -217,7 +187,8 @@
                 @* 比較モード: グリッド表示 *@
                 <ComparisonGrid 
                     Instances="ComparisonMode.State.Instances"
-                    VisualizationMode="SelectedVisualizationMode" />
+                    VisualizationMode="SelectedVisualizationMode"
+                    OnRemove="RemoveAlgorithmFromComparison" />
             }
             else if (Playback.State.MainArray.Length > 0)
             {
@@ -285,7 +256,6 @@ private string _runningAlgorithmName = string.Empty;
 
     // 比較モード関連
     private bool _isComparisonMode = false;
-    private string _selectedAlgorithmToAdd = "Bubble sort";
     private bool _isComparisonPlaying = false;
 
     private int[] AvailableSizes = [8, 16, 32, 64, 128, 256, 512, 1024, 2048, 4096];
@@ -428,15 +398,6 @@ private string _runningAlgorithmName = string.Empty;
         // 選択されたパターンで配列生成
         var array = PatternGenerator.Generate(size, SelectedPattern);
 
-        // 比較モードの場合は初期配列を設定
-        if (_isComparisonMode)
-        {
-            ComparisonMode.Enable(array);
-            // 現在のアルゴリズムを最初に追加
-            AddCurrentAlgorithmToComparison();
-            return;
-        }
-
         // ソート実行と操作記録（ReadOnlySpanを使用）
         try
         {
@@ -453,10 +414,18 @@ private string _runningAlgorithmName = string.Empty;
     // 比較モード関連メソッド
     private void OnComparisonModeChanged()
     {
+        Console.WriteLine($"[OnComparisonModeChanged] Called. _isComparisonMode: {_isComparisonMode}");
+        
         if (_isComparisonMode)
         {
-            // 比較モードON: 特に何もしない（Generate & Sort で初期化）
-            Console.WriteLine("Comparison mode enabled");
+            // 比較モードON: 初期配列を生成して設定
+            var size = Math.Min(ArraySize, 4096);
+            Console.WriteLine($"[OnComparisonModeChanged] Generating array of size: {size}");
+            var array = PatternGenerator.Generate(size, SelectedPattern);
+            Console.WriteLine($"[OnComparisonModeChanged] Generated array length: {array.Length}");
+            
+            ComparisonMode.Enable(array);
+            Console.WriteLine($"[OnComparisonModeChanged] Comparison mode enabled with array");
         }
         else
         {
@@ -468,54 +437,43 @@ private string _runningAlgorithmName = string.Empty;
         StateHasChanged();
     }
 
-    private void AddCurrentAlgorithmToComparison()
-    {
-        var metadata = Registry.GetAllAlgorithms().FirstOrDefault(a => a.Name == SelectedAlgorithm);
-        if (metadata == null) return;
 
-        ComparisonMode.AddAlgorithm(SelectedAlgorithm, metadata);
-        StateHasChanged();
-    }
 
     private void AddAlgorithmToComparison()
     {
-        if (string.IsNullOrEmpty(_selectedAlgorithmToAdd))
-            return;
+        Console.WriteLine($"[Index] AddAlgorithmToComparison called");
+        Console.WriteLine($"[Index] _isComparisonMode: {_isComparisonMode}");
+        Console.WriteLine($"[Index] ComparisonMode.State.IsEnabled: {ComparisonMode.State.IsEnabled}");
+        Console.WriteLine($"[Index] ComparisonMode.State.InitialArray.Length: {ComparisonMode.State.InitialArray.Length}");
 
-        var metadata = Registry.GetAllAlgorithms().FirstOrDefault(a => a.Name == _selectedAlgorithmToAdd);
+        // 現在選択中のアルゴリズムを追加
+        var metadata = Registry.GetAllAlgorithms().FirstOrDefault(a => a.Name == SelectedAlgorithm);
         if (metadata == null)
         {
-            Console.WriteLine($"Algorithm not found: {_selectedAlgorithmToAdd}");
+            Console.WriteLine($"[Index] Algorithm not found: {SelectedAlgorithm}");
             return;
         }
 
-        ComparisonMode.AddAlgorithm(_selectedAlgorithmToAdd, metadata);
-        
-        // 次の候補を選択
-        var availableAlgorithms = GetAvailableAlgorithmsForComparison().ToList();
-        if (availableAlgorithms.Any())
+        // すでに追加済みかチェック
+        if (ComparisonMode.State.Instances.Any(x => x.AlgorithmName == SelectedAlgorithm))
         {
-            _selectedAlgorithmToAdd = availableAlgorithms.First().Name;
+            Console.WriteLine($"[Index] {SelectedAlgorithm} is already in comparison");
+            return;
         }
+
+        ComparisonMode.AddAlgorithm(SelectedAlgorithm, metadata);
+        Console.WriteLine($"[Index] Called AddAlgorithm for {SelectedAlgorithm}");
         
         StateHasChanged();
     }
+
+
+
 
     private void RemoveAlgorithmFromComparison(int index)
     {
         ComparisonMode.RemoveAlgorithm(index);
         StateHasChanged();
-    }
-
-    private IEnumerable<AlgorithmMetadata> GetAvailableAlgorithmsForComparison()
-    {
-        // すでに追加されているアルゴリズムを除外
-        var existingAlgorithms = ComparisonMode.State.Instances
-            .Select(x => x.AlgorithmName)
-            .ToHashSet();
-
-        return Registry.GetAllAlgorithms()
-            .Where(x => !existingAlgorithms.Contains(x.Name));
     }
 
     private void OnVisualizationClick()

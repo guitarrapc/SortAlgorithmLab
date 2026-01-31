@@ -11,7 +11,14 @@
         <div class="comparison-grid-item @(instance.State.IsSortCompleted ? "completed" : "")">
             <div class="comparison-header">
                 <h4 class="algorithm-title">@instance.AlgorithmName</h4>
-                <span class="complexity-badge">@instance.Metadata.TimeComplexity</span>
+                <div style="display: flex; align-items: center; gap: 0.5rem;">
+                    <span class="complexity-badge">@instance.Metadata.TimeComplexity</span>
+                    <button class="btn-remove-grid" 
+                            @onclick="() => OnRemoveInstance(index)"
+                            title="Remove this algorithm">
+                        ✖
+                    </button>
+                </div>
             </div>
             
             <div class="comparison-visualization">
@@ -39,6 +46,9 @@
     [Parameter]
     public VisualizationMode VisualizationMode { get; set; } = VisualizationMode.BarChart;
     
+    [Parameter]
+    public EventCallback<int> OnRemove { get; set; }
+    
     private int GetGridColumns()
     {
         return Instances.Count switch
@@ -55,4 +65,13 @@
             _ => 1
         };
     }
+    
+    private async Task OnRemoveInstance(int index)
+    {
+        if (OnRemove.HasDelegate)
+        {
+            await OnRemove.InvokeAsync(index);
+        }
+    }
 }
+

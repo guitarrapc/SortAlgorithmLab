@@ -701,6 +701,29 @@ code {
     transform: scale(0.95);
 }
 
+.btn-remove-grid {
+    padding: 0.25rem 0.5rem;
+    background: #EF4444;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 0.85em;
+    transition: all 0.2s;
+    min-width: 28px;
+    opacity: 0.7;
+}
+
+.btn-remove-grid:hover {
+    background: #DC2626;
+    opacity: 1;
+    transform: scale(1.1);
+}
+
+.btn-remove-grid:active {
+    transform: scale(0.95);
+}
+
 /* 比較グリッド */
 .comparison-grid {
     display: grid;

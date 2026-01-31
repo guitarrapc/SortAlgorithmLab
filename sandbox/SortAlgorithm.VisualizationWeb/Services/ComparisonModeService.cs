@@ -55,14 +55,27 @@ public class ComparisonModeService : IDisposable
     /// </summary>
     public void AddAlgorithm(string algorithmName, AlgorithmMetadata metadata)
     {
+        Console.WriteLine($"[ComparisonModeService] AddAlgorithm called: {algorithmName}");
+        Console.WriteLine($"[ComparisonModeService] Current instance count: {_state.Instances.Count}/{ComparisonState.MaxComparisons}");
+        Console.WriteLine($"[ComparisonModeService] Initial array length: {_state.InitialArray.Length}");
+        Console.WriteLine($"[ComparisonModeService] IsEnabled: {_state.IsEnabled}");
+        
         if (_state.Instances.Count >= ComparisonState.MaxComparisons)
+        {
+            Console.WriteLine($"[ComparisonModeService] Cannot add: max comparisons reached");
             return;
+        }
             
         if (_state.InitialArray.Length == 0)
+        {
+            Console.WriteLine($"[ComparisonModeService] Cannot add: initial array is empty");
             return;
+        }
         
         // ソート実行と操作記録
+        Console.WriteLine($"[ComparisonModeService] Executing sort and recording operations...");
         var operations = _executor.ExecuteAndRecord(_state.InitialArray, metadata);
+        Console.WriteLine($"[ComparisonModeService] Recorded {operations.Count} operations");
         
         // PlaybackService作成とロード
         var playback = new PlaybackService();
@@ -80,6 +93,7 @@ public class ComparisonModeService : IDisposable
         };
         
         _state.Instances.Add(instance);
+        Console.WriteLine($"[ComparisonModeService] Successfully added {algorithmName}. Total instances: {_state.Instances.Count}");
         
         NotifyStateChanged();
     }
