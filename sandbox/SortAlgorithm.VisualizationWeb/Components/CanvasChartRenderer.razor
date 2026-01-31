@@ -35,6 +35,10 @@ private string _canvasId = $"sortCanvas_{Guid.NewGuid():N}";
 private bool _isInitialized = false;
 private int _previousGridColumnCount = 0;
     
+// デバッグ用：レンダリング頻度計測
+private int _renderCount = 0;
+private DateTime _lastFpsLog = DateTime.UtcNow;
+    
 protected override async Task OnAfterRenderAsync(bool firstRender)
 {
     if (firstRender)
@@ -68,6 +72,17 @@ protected override async Task OnAfterRenderAsync(bool firstRender)
             
         // 描画
         await RenderCanvas();
+            
+        // 🔍 デバッグ：レンダリング頻度をログ出力
+        _renderCount++;
+        var now = DateTime.UtcNow;
+        var elapsed = (now - _lastFpsLog).TotalSeconds;
+        if (elapsed >= 1.0)
+        {
+            Console.WriteLine($"[CanvasRenderer] {_canvasId.Substring(0, 12)}... Render FPS: {_renderCount / elapsed:F1}");
+            _renderCount = 0;
+            _lastFpsLog = now;
+        }
     }
 }
     

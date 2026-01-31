@@ -1,17 +1,21 @@
 // Canvas 2D レンダラー - 高速バーチャート描画（複数Canvas対応）
 
 window.canvasRenderer = {
-    instances: new Map(), // Canvas ID -> インスタンスのマップ
+instances: new Map(), // Canvas ID -> インスタンスのマップ
     
-    // 色定義
-    colors: {
-        normal: '#3B82F6',      // 青
-        compare: '#A855F7',     // 紫
-        swap: '#EF4444',        // 赤
-        write: '#F97316',       // 橙
-        read: '#FBBF24',        // 黄
-        sorted: '#10B981'       // 緑 - ソート完了
-    },
+// デバッグ用：FPS計測
+renderCounts: new Map(),
+lastFpsLogs: new Map(),
+    
+// 色定義
+colors: {
+    normal: '#3B82F6',      // 青
+    compare: '#A855F7',     // 紫
+    swap: '#EF4444',        // 赤
+    write: '#F97316',       // 橙
+    read: '#FBBF24',        // 黄
+    sorted: '#10B981'       // 緑 - ソート完了
+},
     
     /**
      * Canvasを初期化
@@ -85,6 +89,24 @@ window.canvasRenderer = {
         if (!canvas || !ctx) {
             console.error('Canvas not initialized:', canvasId);
             return;
+        }
+        
+        // 🔍 デバッグ：render() 呼び出し回数をカウント
+        if (!this.renderCounts.has(canvasId)) {
+            this.renderCounts.set(canvasId, 0);
+            this.lastFpsLogs.set(canvasId, Date.now());
+        }
+        this.renderCounts.set(canvasId, this.renderCounts.get(canvasId) + 1);
+        
+        const now = Date.now();
+        const lastLog = this.lastFpsLogs.get(canvasId);
+        const elapsed = (now - lastLog) / 1000;
+        
+        if (elapsed >= 1.0) {
+            const fps = this.renderCounts.get(canvasId) / elapsed;
+            console.log(`[JS Canvas] ${canvasId.substring(0, 12)}... JS render() FPS: ${fps.toFixed(1)}`);
+            this.renderCounts.set(canvasId, 0);
+            this.lastFpsLogs.set(canvasId, now);
         }
         
         // デフォルト値を設定

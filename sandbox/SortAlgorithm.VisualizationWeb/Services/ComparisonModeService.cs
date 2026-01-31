@@ -82,7 +82,8 @@ public class ComparisonModeService : IDisposable
         
         var playback = new PlaybackService();
         playback.LoadOperations(_state.InitialArray, operations);
-        // StateChangedイベントは購読しない（統一タイマーで管理）
+        
+        // StateChanged イベントは購読しない（ComparisonGridItemが直接購読する）
         
         _playbackServices.Add(playback);
         
@@ -90,12 +91,14 @@ public class ComparisonModeService : IDisposable
         {
             AlgorithmName = algorithmName,
             State = playback.State,
-            Metadata = metadata
+            Metadata = metadata,
+            Playback = playback // 🔧 PlaybackServiceを公開
         };
         
         _state.Instances.Add(instance);
         Console.WriteLine($"[ComparisonModeService] Successfully added {algorithmName}. Total: {_state.Instances.Count}");
         
+        // アイテム追加時のみ通知（再生中の StateChanged は通知しない）
         NotifyStateChanged();
     }
     
@@ -113,19 +116,33 @@ public class ComparisonModeService : IDisposable
         _playbackServices.RemoveAt(index);
         _state.Instances.RemoveAt(index);
         
+        // アイテム削除時のみ通知
         NotifyStateChanged();
     }
     
     /// <summary>
-    /// すべて再生（統一タイマーで同期）
+    /// すべて再生（1つの場合は最適化、複数の場合は統一タイマー）
     /// </summary>
     public void Play()
     {
+        Console.WriteLine($"[ComparisonMode] Play() called. _isPlaying: {_isPlaying}, Count: {_playbackServices.Count}");
+        
         if (_isPlaying) return;
         if (!_playbackServices.Any()) return;
         
         _isPlaying = true;
         
+        // ✅ 1つだけの場合は、通常のPlaybackService.Play()を使う（パフォーマンス最適化）
+        if (_playbackServices.Count == 1)
+        {
+            Console.WriteLine($"[ComparisonMode] ✅ Single playback, using native PlaybackService.Play()");
+            _playbackServices[0].Play();
+            NotifyStateChanged();
+            return;
+        }
+        
+        // 複数の場合は統一タイマーを使用
+        Console.WriteLine($"[ComparisonMode] Multiple playbacks ({_playbackServices.Count}), using unified timer");
         foreach (var playback in _playbackServices)
         {
             playback.State.PlaybackState = PlaybackState.Playing;
@@ -233,7 +250,15 @@ public class ComparisonModeService : IDisposable
         
         foreach (var playback in _playbackServices)
         {
-            playback.State.PlaybackState = PlaybackState.Paused;
+            // 1つだけの場合は、通常のPause()を呼ぶ
+            if (_playbackServices.Count == 1)
+            {
+                playback.Pause();
+            }
+            else
+            {
+                playback.State.PlaybackState = PlaybackState.Paused;
+            }
         }
         NotifyStateChanged();
     }
@@ -285,6 +310,11 @@ public class ComparisonModeService : IDisposable
     
     public bool IsPlaying()
     {
+        // 1つの場合は、PlaybackServiceの状態を直接参照
+        if (_playbackServices.Count == 1)
+        {
+            return _playbackServices[0].State.PlaybackState == PlaybackState.Playing;
+        }
         return _isPlaying;
     }
     

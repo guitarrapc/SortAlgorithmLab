@@ -8,35 +8,13 @@
         var instance = Instances[i];
         var index = i;
         
-        <div class="comparison-grid-item @(instance.State.IsSortCompleted ? "completed" : "")">
-            <div class="comparison-header">
-                <h4 class="algorithm-title">@instance.AlgorithmName</h4>
-                <div style="display: flex; align-items: center; gap: 0.5rem;">
-                    <span class="complexity-badge">@instance.Metadata.TimeComplexity</span>
-                    <button class="btn-remove-grid" 
-                            @onclick="() => OnRemoveInstance(index)"
-                            title="Remove this algorithm">
-                        ✖
-                    </button>
-                </div>
-            </div>
-            
-            <div class="comparison-visualization">
-                @if (VisualizationMode == VisualizationMode.BarChart)
-                {
-                    <CanvasChartRenderer 
-                        State="@instance.State"
-                        GridColumnCount="@GetGridColumns()" />
-                }
-                else if (VisualizationMode == VisualizationMode.Circular)
-                {
-                    <CircularRenderer 
-                        State="@instance.State" />
-                }
-            </div>
-            
-            <ComparisonStatsSummary State="@instance.State" />
-        </div>
+        <ComparisonGridItem 
+            Instance="@instance"
+            Playback="@instance.Playback"
+            VisualizationMode="@VisualizationMode"
+            GridColumnCount="@GetGridColumns()"
+            OnRemove="@(() => OnRemoveInstance(index))"
+            @key="instance.AlgorithmName" />
     }
 </div>
 
