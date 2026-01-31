@@ -3,13 +3,20 @@
 namespace SortAlgorithm.VisualizationWeb.Services;
 
 /// <summary>
-/// 複数アルゴリズムの同期再生を管理するサービス
+/// 複数アルゴリズムの同期再生を管理するサービス（統一タイマー版）
 /// </summary>
 public class ComparisonModeService : IDisposable
 {
     private readonly SortExecutor _executor;
     private readonly ComparisonState _state = new();
     private readonly List<PlaybackService> _playbackServices = new();
+    
+    // 統一的な再生制御用
+    private CancellationTokenSource? _cancellationTokenSource;
+    private Task? _playbackTask;
+    private bool _isPlaying = false;
+    private DateTime _lastRenderTime = DateTime.MinValue;
+    private const double RENDER_INTERVAL_MS = 16.67; // 60 FPS
     
     public ComparisonState State => _state;
     public event Action? OnStateChanged;
@@ -24,8 +31,10 @@ public class ComparisonModeService : IDisposable
     /// </summary>
     public void Enable(int[] initialArray)
     {
+        Console.WriteLine($"[ComparisonModeService] Enable called with array length: {initialArray.Length}");
         _state.IsEnabled = true;
-        _state.InitialArray = initialArray.ToArray(); // コピーして保持
+        _state.InitialArray = initialArray.ToArray();
+        Console.WriteLine($"[ComparisonModeService] Enabled. InitialArray length: {_state.InitialArray.Length}");
         NotifyStateChanged();
     }
     
@@ -36,7 +45,6 @@ public class ComparisonModeService : IDisposable
     {
         Stop();
         
-        // すべての PlaybackService を破棄
         foreach (var playback in _playbackServices)
         {
             playback.Dispose();
@@ -56,9 +64,6 @@ public class ComparisonModeService : IDisposable
     public void AddAlgorithm(string algorithmName, AlgorithmMetadata metadata)
     {
         Console.WriteLine($"[ComparisonModeService] AddAlgorithm called: {algorithmName}");
-        Console.WriteLine($"[ComparisonModeService] Current instance count: {_state.Instances.Count}/{ComparisonState.MaxComparisons}");
-        Console.WriteLine($"[ComparisonModeService] Initial array length: {_state.InitialArray.Length}");
-        Console.WriteLine($"[ComparisonModeService] IsEnabled: {_state.IsEnabled}");
         
         if (_state.Instances.Count >= ComparisonState.MaxComparisons)
         {
@@ -72,28 +77,24 @@ public class ComparisonModeService : IDisposable
             return;
         }
         
-        // ソート実行と操作記録
-        Console.WriteLine($"[ComparisonModeService] Executing sort and recording operations...");
         var operations = _executor.ExecuteAndRecord(_state.InitialArray, metadata);
         Console.WriteLine($"[ComparisonModeService] Recorded {operations.Count} operations");
         
-        // PlaybackService作成とロード
         var playback = new PlaybackService();
         playback.LoadOperations(_state.InitialArray, operations);
-        playback.StateChanged += NotifyStateChanged;
+        // StateChangedイベントは購読しない（統一タイマーで管理）
         
         _playbackServices.Add(playback);
         
-        // ComparisonInstance作成
         var instance = new ComparisonInstance
         {
             AlgorithmName = algorithmName,
-            State = playback.State, // PlaybackServiceの状態を参照
+            State = playback.State,
             Metadata = metadata
         };
         
         _state.Instances.Add(instance);
-        Console.WriteLine($"[ComparisonModeService] Successfully added {algorithmName}. Total instances: {_state.Instances.Count}");
+        Console.WriteLine($"[ComparisonModeService] Successfully added {algorithmName}. Total: {_state.Instances.Count}");
         
         NotifyStateChanged();
     }
@@ -116,34 +117,114 @@ public class ComparisonModeService : IDisposable
     }
     
     /// <summary>
-    /// すべて再生（同期）
+    /// すべて再生（統一タイマーで同期）
     /// </summary>
     public void Play()
     {
+        if (_isPlaying) return;
+        if (!_playbackServices.Any()) return;
+        
+        _isPlaying = true;
+        
         foreach (var playback in _playbackServices)
         {
-            playback.Play();
+            playback.State.PlaybackState = PlaybackState.Playing;
         }
+        
+        _cancellationTokenSource = new CancellationTokenSource();
+        _playbackTask = Task.Run(() => UnifiedPlaybackLoopAsync(_cancellationTokenSource.Token));
+        
         NotifyStateChanged();
     }
     
     /// <summary>
-    /// すべて一時停止（同期）
+    /// 統一的な再生ループ（すべてのPlaybackServiceを同期）
     /// </summary>
+    private async Task UnifiedPlaybackLoopAsync(CancellationToken cancellationToken)
+    {
+        var sw = System.Diagnostics.Stopwatch.StartNew();
+        var nextFrameTime = 0.0;
+        _lastRenderTime = DateTime.UtcNow;
+        
+        var opsPerFrame = _playbackServices.FirstOrDefault()?.OperationsPerFrame ?? 1;
+        var speedMultiplier = _playbackServices.FirstOrDefault()?.SpeedMultiplier ?? 10.0;
+        var frameInterval = 1000.0 / (60 * speedMultiplier);
+        
+        try
+        {
+            while (!cancellationToken.IsCancellationRequested && 
+                   _playbackServices.Any(p => p.State.CurrentOperationIndex < p.State.TotalOperations))
+            {
+                var currentTime = sw.Elapsed.TotalMilliseconds;
+                if (currentTime < nextFrameTime)
+                {
+                    var spinWait = new SpinWait();
+                    while (sw.Elapsed.TotalMilliseconds < nextFrameTime && !cancellationToken.IsCancellationRequested)
+                    {
+                        spinWait.SpinOnce();
+                    }
+                }
+                
+                nextFrameTime = sw.Elapsed.TotalMilliseconds + frameInterval;
+                
+                // すべてのPlaybackServiceを同期的に進行
+                foreach (var playback in _playbackServices)
+                {
+                    if (playback.State.CurrentOperationIndex < playback.State.TotalOperations)
+                    {
+                        playback.AdvanceFrame(opsPerFrame);
+                    }
+                }
+                
+                // UI更新（60 FPS制限）
+                var now = DateTime.UtcNow;
+                var renderElapsed = (now - _lastRenderTime).TotalMilliseconds;
+                
+                if (renderElapsed >= RENDER_INTERVAL_MS)
+                {
+                    _lastRenderTime = now;
+                    NotifyStateChanged();
+                    await Task.Yield();
+                }
+            }
+            
+            // 完了処理
+            _isPlaying = false;
+            foreach (var playback in _playbackServices)
+            {
+                if (playback.State.CurrentOperationIndex >= playback.State.TotalOperations)
+                {
+                    playback.State.IsSortCompleted = true;
+                    playback.State.ShowCompletionHighlight = true;
+                }
+                playback.State.PlaybackState = PlaybackState.Paused;
+            }
+            
+            NotifyStateChanged();
+        }
+        catch (OperationCanceledException)
+        {
+            // キャンセル時は何もしない
+        }
+    }
+    
     public void Pause()
     {
+        _isPlaying = false;
+        _cancellationTokenSource?.Cancel();
+        
         foreach (var playback in _playbackServices)
         {
-            playback.Pause();
+            playback.State.PlaybackState = PlaybackState.Paused;
         }
         NotifyStateChanged();
     }
     
-    /// <summary>
-    /// すべて停止（同期）
-    /// </summary>
     public void Stop()
     {
+        _isPlaying = false;
+        _cancellationTokenSource?.Cancel();
+        
         foreach (var playback in _playbackServices)
         {
             playback.Stop();
@@ -151,21 +232,11 @@ public class ComparisonModeService : IDisposable
         NotifyStateChanged();
     }
     
-    /// <summary>
-    /// すべてリセット（同期）
-    /// </summary>
     public void Reset()
     {
-        foreach (var playback in _playbackServices)
-        {
-            playback.Stop(); // Stop がリセット機能を兼ねている
-        }
-        NotifyStateChanged();
+        Stop();
     }
     
-    /// <summary>
-    /// すべてシーク（同期）
-    /// </summary>
     public void SeekAll(int targetIndex)
     {
         foreach (var playback in _playbackServices)
@@ -175,9 +246,6 @@ public class ComparisonModeService : IDisposable
         NotifyStateChanged();
     }
     
-    /// <summary>
-    /// 再生速度を設定（すべて同期）
-    /// </summary>
     public void SetSpeedForAll(int opsPerFrame, double speedMultiplier)
     {
         foreach (var playback in _playbackServices)
@@ -188,9 +256,6 @@ public class ComparisonModeService : IDisposable
         NotifyStateChanged();
     }
     
-    /// <summary>
-    /// AutoResetを設定（すべて同期）
-    /// </summary>
     public void SetAutoResetForAll(bool autoReset)
     {
         foreach (var playback in _playbackServices)
@@ -200,18 +265,18 @@ public class ComparisonModeService : IDisposable
         NotifyStateChanged();
     }
     
-    /// <summary>
-    /// 現在の再生状態を取得
-    /// </summary>
     public bool IsPlaying()
     {
-        return _state.Instances.Any(x => x.State.PlaybackState == PlaybackState.Playing);
+        return _isPlaying;
     }
     
     private void NotifyStateChanged() => OnStateChanged?.Invoke();
     
     public void Dispose()
     {
+        _cancellationTokenSource?.Cancel();
+        _cancellationTokenSource?.Dispose();
+        
         foreach (var playback in _playbackServices)
         {
             playback.Dispose();
@@ -220,4 +285,3 @@ public class ComparisonModeService : IDisposable
         _state.Instances.Clear();
     }
 }
-

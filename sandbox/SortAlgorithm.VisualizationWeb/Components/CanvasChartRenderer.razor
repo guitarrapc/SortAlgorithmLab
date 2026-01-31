@@ -45,8 +45,17 @@
         }
         else if (_isInitialized)
         {
+            // グリッドサイズが変わった可能性があるので、Canvasをリサイズ
+            try
+            {
+                await JS.InvokeVoidAsync("canvasRenderer.resize");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Canvas resize error: {ex.Message}");
+            }
+            
             // 毎回再描画（Stateオブジェクトの参照は変わらないため）
-            // リサイズは render() 内で自動的に行われる
             await RenderCanvas();
         }
     }
