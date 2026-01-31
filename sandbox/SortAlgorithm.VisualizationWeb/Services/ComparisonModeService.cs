@@ -54,23 +54,32 @@ public class ComparisonModeService : IDisposable
         if (_state.Instances.Count >= ComparisonState.MaxComparisons || _state.InitialArray.Length == 0)
             return;
 
-        var operations = _executor.ExecuteAndRecord(_state.InitialArray, metadata);
-        var playback = new PlaybackService();
-        playback.LoadOperations(_state.InitialArray, operations);
-        
-        // PlaybackServiceのStateChangedイベントを購読
-        playback.StateChanged += OnPlaybackStateChanged;
-        
-        _playbackServices.Add(playback);
-        _state.Instances.Add(new ComparisonInstance
+        try
         {
-            AlgorithmName = algorithmName,
-            State = playback.State,
-            Metadata = metadata,
-            Playback = playback
-        });
+            var operations = _executor.ExecuteAndRecord(_state.InitialArray, metadata);
+            var playback = new PlaybackService();
+            playback.LoadOperations(_state.InitialArray, operations);
+            
+            // PlaybackServiceのStateChangedイベントを購読
+            playback.StateChanged += OnPlaybackStateChanged;
+            
+            _playbackServices.Add(playback);
+            _state.Instances.Add(new ComparisonInstance
+            {
+                AlgorithmName = algorithmName,
+                State = playback.State,
+                Metadata = metadata,
+                Playback = playback
+            });
 
-        NotifyStateChanged();
+            Console.WriteLine($"[ComparisonMode] Added {algorithmName}: {operations.Count} operations");
+            NotifyStateChanged();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"[ComparisonMode] ERROR adding {algorithmName}: {ex.Message}");
+            // エラーが発生しても他のアルゴリズムに影響しないように続行
+        }
     }
     public void RemoveAlgorithm(int index)
     {
@@ -170,8 +179,32 @@ public class ComparisonModeService : IDisposable
     /// </summary>
     private void OnPlaybackStateChanged()
     {
+        // 完了状態をチェック
+        CheckCompletionStatus();
+        
         // 個々のPlaybackServiceの状態変更をComparisonModeの状態変更として通知
         NotifyStateChanged();
+    }
+    
+    /// <summary>
+    /// すべてのアルゴリズムの完了状態をチェック
+    /// </summary>
+    private void CheckCompletionStatus()
+    {
+        var completedCount = _state.Instances.Count(x => x.State.IsSortCompleted);
+        var totalCount = _state.Instances.Count;
+        
+        if (completedCount > 0 && completedCount == totalCount)
+        {
+            // すべて完了した
+            Console.WriteLine($"[ComparisonMode] 🎉 All {totalCount} algorithms completed!");
+            
+            // 各アルゴリズムの統計を出力
+            foreach (var instance in _state.Instances.OrderBy(x => x.State.CompareCount))
+            {
+                Console.WriteLine($"  - {instance.AlgorithmName}: Compares={instance.State.CompareCount:N0}, Swaps={instance.State.SwapCount:N0}");
+            }
+        }
     }
     
     private void NotifyStateChanged() => OnStateChanged?.Invoke();

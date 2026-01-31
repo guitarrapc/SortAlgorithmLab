@@ -246,7 +246,26 @@
                 </label>
                 
                 <span style="flex: 1;"></span>
-                <span style="color: #999;">Comparing @ComparisonMode.State.Instances.Count algorithms</span>
+                
+                @* 完了状態の表示 *@
+                @if (ComparisonMode.State.AllCompleted)
+                {
+                    <span style="color: #10B981; font-weight: bold;">✅ All Completed!</span>
+                }
+                else
+                {
+                    var completedCount = ComparisonMode.State.Instances.Count(x => x.State.IsSortCompleted);
+                    <span style="color: #999;">
+                        @if (completedCount > 0)
+                        {
+                            <span style="color: #F59E0B;">@completedCount/@ComparisonMode.State.Instances.Count completed</span>
+                        }
+                        else
+                        {
+                            <span>Comparing @ComparisonMode.State.Instances.Count algorithms</span>
+                        }
+                    </span>
+                }
             </div>
         }
         else
