@@ -87,12 +87,23 @@ window.canvasRenderer = {
             return;
         }
         
+        // 自動リサイズ: 実際のCanvasサイズとDOM要素のサイズが異なる場合のみ
+        const rect = canvas.getBoundingClientRect();
+        const dpr = window.devicePixelRatio || 1;
+        const expectedWidth = rect.width * dpr;
+        const expectedHeight = rect.height * dpr;
+        
+        if (canvas.width !== expectedWidth || canvas.height !== expectedHeight) {
+            canvas.width = expectedWidth;
+            canvas.height = expectedHeight;
+            ctx.scale(dpr, dpr);
+        }
+        
         // デフォルト値を設定
         isSortCompleted = isSortCompleted || false;
         bufferArrays = bufferArrays || {};
         showCompletionHighlight = showCompletionHighlight !== undefined ? showCompletionHighlight : false;
         
-        const rect = canvas.getBoundingClientRect();
         const width = rect.width;
         const height = rect.height;
         const arrayLength = array.length;
