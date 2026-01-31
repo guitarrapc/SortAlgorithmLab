@@ -18,8 +18,11 @@ public class ComparisonModeService : IDisposable
     public void Enable(int[] initialArray)
     {
         Stop();
+        
+        // すべてのPlaybackServiceのイベント購読解除
         foreach (var playback in _playbackServices)
         {
+            playback.StateChanged -= OnPlaybackStateChanged;
             playback.Dispose();
         }
 
@@ -32,8 +35,11 @@ public class ComparisonModeService : IDisposable
     public void Disable()
     {
         Stop();
+        
+        // すべてのPlaybackServiceのイベント購読解除
         foreach (var playback in _playbackServices)
         {
+            playback.StateChanged -= OnPlaybackStateChanged;
             playback.Dispose();
         }
 
@@ -51,6 +57,10 @@ public class ComparisonModeService : IDisposable
         var operations = _executor.ExecuteAndRecord(_state.InitialArray, metadata);
         var playback = new PlaybackService();
         playback.LoadOperations(_state.InitialArray, operations);
+        
+        // PlaybackServiceのStateChangedイベントを購読
+        playback.StateChanged += OnPlaybackStateChanged;
+        
         _playbackServices.Add(playback);
         _state.Instances.Add(new ComparisonInstance
         {
@@ -74,6 +84,9 @@ public class ComparisonModeService : IDisposable
             
             try
             {
+                // イベント購読解除
+                _playbackServices[index].StateChanged -= OnPlaybackStateChanged;
+                
                 _playbackServices[index].Dispose();
                 Console.WriteLine($"[ComparisonModeService] PlaybackService disposed successfully");
             }
@@ -149,12 +162,26 @@ public class ComparisonModeService : IDisposable
 
         NotifyStateChanged();
     }
+    
     public bool IsPlaying() => _playbackServices.Any(p => p.State.PlaybackState == PlaybackState.Playing);
+    
+    /// <summary>
+    /// PlaybackServiceの状態変更を受け取り、通知を伝播
+    /// </summary>
+    private void OnPlaybackStateChanged()
+    {
+        // 個々のPlaybackServiceの状態変更をComparisonModeの状態変更として通知
+        NotifyStateChanged();
+    }
+    
     private void NotifyStateChanged() => OnStateChanged?.Invoke();
+    
     public void Dispose()
     {
+        // すべてのPlaybackServiceのイベント購読解除
         foreach (var p in _playbackServices)
         {
+            p.StateChanged -= OnPlaybackStateChanged;
             p.Dispose();
         }
 
