@@ -1,0 +1,181 @@
+@using SortAlgorithm.VisualizationWeb.Models
+@using SortAlgorithm.VisualizationWeb.Services
+@inject IJSRuntime JS
+@inject DebugSettings DebugSettings
+
+<!-- トグルボタン（右端に固定） -->
+<button class="stats-panel-toggle @(IsOpen ? "open" : "")" 
+        @onclick="TogglePanel"
+        title="@(IsOpen ? "Hide Statistics" : "Show Statistics")">
+    @(IsOpen ? "📊 ▶" : "◀ 📊")
+</button>
+
+<!-- 統計パネル（右側にドック） -->
+<div class="comparison-stats-panel @(IsOpen ? "open" : "")">
+    <div class="stats-panel-header">
+        <h3>📊 Statistics Comparison</h3>
+        <div class="stats-panel-actions">
+            <button class="copy-button" @onclick="CopyTableToClipboard" title="Copy to Clipboard">
+                📋 Copy
+            </button>
+        </div>
+    </div>
+    
+    <div class="table-wrapper">
+        <table class="comparison-stats-table">
+            <thead>
+                <tr>
+                    <th @onclick='() => SortBy("Algorithm")' class="sortable">
+                        Algorithm @GetSortIcon("Algorithm")
+                    </th>
+                    <th @onclick='() => SortBy("Complexity")' class="sortable">
+                        Complexity @GetSortIcon("Complexity")
+                    </th>
+                    <th @onclick='() => SortBy("Compares")' class="sortable">
+                        Compares @GetSortIcon("Compares")
+                    </th>
+                    <th @onclick='() => SortBy("Swaps")' class="sortable">
+                        Swaps @GetSortIcon("Swaps")
+                    </th>
+                    <th @onclick='() => SortBy("Reads")' class="sortable">
+                        Reads @GetSortIcon("Reads")
+                    </th>
+                    <th @onclick='() => SortBy("Writes")' class="sortable">
+                        Writes @GetSortIcon("Writes")
+                    </th>
+                    <th @onclick='() => SortBy("Progress")' class="sortable">
+                        Progress @GetSortIcon("Progress")
+                    </th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var item in GetSortedInstances())
+                {
+                    <tr class="@(item.State.IsSortCompleted ? "completed" : "")">
+                        <td class="algorithm-name">@item.AlgorithmName</td>
+                        <td class="complexity">@item.Metadata.TimeComplexity</td>
+                        <td class="stat-value">@item.State.CompareCount.ToString("N0")</td>
+                        <td class="stat-value">@item.State.SwapCount.ToString("N0")</td>
+                        <td class="stat-value">@item.State.IndexReadCount.ToString("N0")</td>
+                        <td class="stat-value">@item.State.IndexWriteCount.ToString("N0")</td>
+                        <td class="status">
+                            @if (item.State.IsSortCompleted)
+                            {
+                                <span class="status-badge completed">100%</span>
+                            }
+                            else
+                            {
+                                var progress = item.State.TotalOperations > 0 
+                                    ? (int)((item.State.CurrentOperationIndex / (double)item.State.TotalOperations) * 100)
+                                    : 0;
+                                <span class="status-badge running">@progress%</span>
+                            }
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
+
+@code {
+    [Parameter, EditorRequired]
+    public List<ComparisonInstance> Instances { get; set; } = null!;
+    
+    [Parameter]
+    public bool IsOpen { get; set; } = false;
+    
+    [Parameter]
+    public EventCallback<bool> IsOpenChanged { get; set; }
+    
+    private string _sortColumn = "Compares";
+    private bool _sortAscending = true;
+    
+    private async Task TogglePanel()
+    {
+        IsOpen = !IsOpen;
+        await IsOpenChanged.InvokeAsync(IsOpen);
+    }
+    
+    private void SortBy(string column)
+    {
+        if (_sortColumn == column)
+        {
+            _sortAscending = !_sortAscending;
+        }
+        else
+        {
+            _sortColumn = column;
+            _sortAscending = true;
+        }
+    }
+    
+    private string GetSortIcon(string column)
+    {
+        if (_sortColumn != column) return "";
+        return _sortAscending ? "▲" : "▼";
+    }
+    
+    private IEnumerable<ComparisonInstance> GetSortedInstances()
+    {
+        IEnumerable<ComparisonInstance> sorted = _sortColumn switch
+        {
+            "Algorithm" => _sortAscending 
+                ? Instances.OrderBy(x => x.AlgorithmName)
+                : Instances.OrderByDescending(x => x.AlgorithmName),
+            "Complexity" => _sortAscending
+                ? Instances.OrderBy(x => x.Metadata.TimeComplexity)
+                : Instances.OrderByDescending(x => x.Metadata.TimeComplexity),
+            "Compares" => _sortAscending
+                ? Instances.OrderBy(x => x.State.CompareCount)
+                : Instances.OrderByDescending(x => x.State.CompareCount),
+            "Swaps" => _sortAscending
+                ? Instances.OrderBy(x => x.State.SwapCount)
+                : Instances.OrderByDescending(x => x.State.SwapCount),
+            "Reads" => _sortAscending
+                ? Instances.OrderBy(x => x.State.IndexReadCount)
+                : Instances.OrderByDescending(x => x.State.IndexReadCount),
+            "Writes" => _sortAscending
+                ? Instances.OrderBy(x => x.State.IndexWriteCount)
+                : Instances.OrderByDescending(x => x.State.IndexWriteCount),
+            "Progress" => _sortAscending
+                ? Instances.OrderBy(x => x.State.TotalOperations > 0 ? (x.State.CurrentOperationIndex / (double)x.State.TotalOperations) : 0)
+                : Instances.OrderByDescending(x => x.State.TotalOperations > 0 ? (x.State.CurrentOperationIndex / (double)x.State.TotalOperations) : 0),
+            _ => Instances
+        };
+        
+        return sorted;
+    }
+    
+    private async Task CopyTableToClipboard()
+    {
+        // TSV形式でクリップボードにコピー
+        var header = "Algorithm\tComplexity\tCompares\tSwaps\tReads\tWrites\tProgress";
+        var rows = Instances.Select(item =>
+        {
+            var progress = item.State.TotalOperations > 0
+                ? (int)((item.State.CurrentOperationIndex / (double)item.State.TotalOperations) * 100)
+                : 0;
+            
+            return $"{item.AlgorithmName}\t" +
+                   $"{item.Metadata.TimeComplexity}\t" +
+                   $"{item.State.CompareCount}\t" +
+                   $"{item.State.SwapCount}\t" +
+                   $"{item.State.IndexReadCount}\t" +
+                   $"{item.State.IndexWriteCount}\t" +
+                   $"{(item.State.IsSortCompleted ? "100%" : $"{progress}%")}";
+        });
+        
+        var tsv = header + "\n" + string.Join("\n", rows);
+        
+        try
+        {
+            await JS.InvokeVoidAsync("navigator.clipboard.writeText", tsv);
+            DebugSettings.Log("[ComparisonStatsTable] Table copied to clipboard");
+        }
+        catch (Exception ex)
+        {
+            DebugSettings.Log($"[ComparisonStatsTable] Failed to copy: {ex.Message}");
+        }
+    }
+}

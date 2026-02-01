@@ -2,6 +2,7 @@
 @using SortAlgorithm.VisualizationWeb.Services
 @using Microsoft.JSInterop
 @inject IJSRuntime JS
+@inject DebugSettings DebugSettings
 @implements IAsyncDisposable
 
 <div class="bar-chart-container @(State?.PlaybackState == PlaybackState.Playing ? "playing" : "")" 
@@ -22,33 +23,60 @@
 </div>
 
 @code {
-    [Parameter]
-    public VisualizationState? State { get; set; }
+[Parameter]
+public VisualizationState? State { get; set; }
     
-    [Parameter]
-    public EventCallback OnClick { get; set; }
+[Parameter]
+public EventCallback OnClick { get; set; }
     
-    private string _canvasId = $"sortCanvas_{Guid.NewGuid():N}";
-    private bool _isInitialized = false;
+[Parameter]
+public int GridColumnCount { get; set; } = 1;
     
-    protected override async Task OnAfterRenderAsync(bool firstRender)
+private string _canvasId = $"sortCanvas_{Guid.NewGuid():N}";
+private bool _isInitialized = false;
+private int _previousGridColumnCount = 0;
+    
+// デバッグ用：レンダリング頻度計測
+private int _renderCount = 0;
+private DateTime _lastFpsLog = DateTime.UtcNow;
+    
+protected override async Task OnAfterRenderAsync(bool firstRender)
+{
+    if (firstRender)
     {
-        if (firstRender)
+        // Canvas初期化
+        var success = await JS.InvokeAsync<bool>("canvasRenderer.initialize", _canvasId);
+        if (success)
         {
-            // Canvas初期化
-            var success = await JS.InvokeAsync<bool>("canvasRenderer.initialize", _canvasId);
-            if (success)
-            {
-                _isInitialized = true;
-                await RenderCanvas();
-            }
-        }
-        else if (_isInitialized)
-        {
-            // 毎回再描画（Stateオブジェクトの参照は変わらないため）
+            _isInitialized = true;
+            _previousGridColumnCount = GridColumnCount;
             await RenderCanvas();
         }
     }
+    else if (_isInitialized)
+    {
+        // グリッド列数が変わった場合の記録（ResizeObserverが自動リサイズ＆再描画）
+        if (_previousGridColumnCount != GridColumnCount)
+        {
+            DebugSettings.Log($"[CanvasRenderer] Grid column count changed: {_previousGridColumnCount} -> {GridColumnCount} for canvas {_canvasId}");
+            _previousGridColumnCount = GridColumnCount;
+        }
+            
+        // 描画
+        await RenderCanvas();
+            
+        // 🔍 デバッグ：レンダリング頻度をログ出力
+        _renderCount++;
+        var now = DateTime.UtcNow;
+        var elapsed = (now - _lastFpsLog).TotalSeconds;
+        if (elapsed >= 1.0)
+        {
+            DebugSettings.Log($"[CanvasRenderer] {_canvasId.Substring(0, 12)}... Render FPS: {_renderCount / elapsed:F1}");
+            _renderCount = 0;
+            _lastFpsLog = now;
+        }
+    }
+}
     
     private async Task RenderCanvas()
     {
@@ -57,6 +85,7 @@
         try
         {
             await JS.InvokeVoidAsync("canvasRenderer.render",
+                _canvasId,  // Canvas IDを最初の引数として渡す
                 State.MainArray,
                 State.CompareIndices.ToArray(),
                 State.SwapIndices.ToArray(),
@@ -68,7 +97,7 @@
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"Canvas render error: {ex.Message}");
+            DebugSettings.Log($"Canvas render error: {ex.Message}");
         }
     }
     
@@ -79,16 +108,23 @@
     
     public async ValueTask DisposeAsync()
     {
+        DebugSettings.Log($"[CanvasRenderer] DisposeAsync called for canvas: {_canvasId}");
+        
         if (_isInitialized)
         {
             try
             {
-                await JS.InvokeVoidAsync("canvasRenderer.dispose");
+                await JS.InvokeVoidAsync("canvasRenderer.dispose", _canvasId);
+                DebugSettings.Log($"[CanvasRenderer] Successfully disposed canvas: {_canvasId}");
             }
-            catch
+            catch (Exception ex)
             {
-                // クリーンアップエラーは無視
+                DebugSettings.Log($"[CanvasRenderer] ERROR disposing canvas {_canvasId}: {ex.Message}");
             }
+        }
+        else
+        {
+            DebugSettings.Log($"[CanvasRenderer] Canvas {_canvasId} was not initialized, skipping dispose");
         }
     }
 }

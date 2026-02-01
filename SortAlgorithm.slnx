@@ -8,6 +8,8 @@
     <File Path="Docs/SortArchitecture.md" />
     <File Path="Docs/TODO.md" />
     <File Path="Docs/VisualizationWeb.md" />
+    <File Path="Docs/VisualizationWeb_ComparisonMode_Implementation_Status.md" />
+    <File Path="Docs/VisualizationWeb_ComparisonMode_Performance.md" />
     <File Path="Docs/VisualizationWeb_Implementation_Status.md" />
     <File Path="Docs/VisualizationWeb_Performance_Analysis.md" />
   </Folder>

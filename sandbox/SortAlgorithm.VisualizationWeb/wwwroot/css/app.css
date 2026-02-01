@@ -316,12 +316,10 @@ button {
 
 button:hover {
     background-color: #4A4A4A;
-    transform: translateY(-1px);
 }
 
 button:active {
     background-color: #2A2A2A;
-    transform: translateY(0);
 }
 
 button.primary {
@@ -607,3 +605,500 @@ code {
 .form-floating > .form-control-plaintext:focus::placeholder, .form-floating > .form-control:focus::placeholder {
     text-align: start;
 }
+
+/* 比較モード用スタイル */
+.comparison-controls {
+    margin-top: 1rem;
+    padding-top: 1rem;
+    border-top: 1px solid #333;
+}
+
+.comparison-algorithm-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    max-height: 300px;
+    overflow-y: auto;
+    margin-top: 0.5rem;
+}
+
+.comparison-algorithm-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.5rem;
+    background: #1e1e1e;
+    border-radius: 4px;
+    gap: 0.5rem;
+    border: 1px solid #333;
+    transition: all 0.2s;
+}
+
+.comparison-algorithm-item:hover {
+    background: #252525;
+    border-color: #3B82F6;
+}
+
+.comparison-algorithm-item .algorithm-name {
+    flex: 1;
+    font-size: 0.9em;
+    color: #e0e0e0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.btn-icon {
+    padding: 0.4rem 0.6rem;
+    background: #3B82F6;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 1.1em;
+    transition: all 0.2s;
+    min-width: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.btn-icon:hover:not(:disabled) {
+    background: #2563EB;
+    transform: scale(1.05);
+}
+
+.btn-icon:active:not(:disabled) {
+    transform: scale(0.95);
+}
+
+.btn-icon:disabled {
+    background: #555;
+    cursor: not-allowed;
+    opacity: 0.5;
+}
+
+.btn-remove {
+    padding: 0.25rem 0.5rem;
+    background: #EF4444;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 0.9em;
+    transition: all 0.2s;
+    min-width: 28px;
+}
+
+.btn-remove:hover {
+    background: #DC2626;
+    transform: scale(1.05);
+}
+
+/* 統計パネル（右側ドッキング） */
+.stats-panel-toggle {
+    position: fixed;
+    top: 50%;
+    right: 0;
+    transform: translateY(-50%);
+    padding: 1rem 0.5rem;
+    background: #3B82F6;
+    color: white;
+    border: none;
+    border-radius: 8px 0 0 8px;
+    cursor: pointer;
+    font-size: 1em;
+    transition: background 0.3s, right 0.3s;
+    z-index: 1000;
+    box-shadow: -2px 0 8px rgba(0, 0, 0, 0.3);
+    writing-mode: vertical-rl;
+}
+
+.stats-panel-toggle:hover {
+    background: #2563EB;
+}
+
+.stats-panel-toggle.open {
+    right: 500px;
+}
+
+.comparison-stats-panel {
+    position: fixed;
+    top: 60px; /* ヘッダーの高さ分 */
+    right: -500px; /* 初期状態は画面外 */
+    width: 500px;
+    height: calc(100vh - 60px);
+    background: #1e1e1e;
+    border-left: 1px solid #333;
+    box-shadow: -4px 0 12px rgba(0, 0, 0, 0.5);
+    transition: right 0.3s ease-in-out;
+    z-index: 999;
+    display: flex;
+    flex-direction: column;
+}
+
+.comparison-stats-panel.open {
+    right: 0;
+}
+
+.stats-panel-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem;
+    background: #252525;
+    border-bottom: 2px solid #333;
+    flex-shrink: 0;
+}
+
+.stats-panel-header h3 {
+    margin: 0;
+    color: #e0e0e0;
+    font-size: 1.1em;
+}
+
+.stats-panel-actions {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.comparison-stats-panel .copy-button {
+    padding: 0.3rem 0.6rem;
+    background: #3B82F6;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 0.9em;
+    transition: all 0.2s;
+}
+
+.comparison-stats-panel .copy-button:hover {
+    background: #2563EB;
+    transform: scale(1.05);
+}
+
+.comparison-stats-panel .table-wrapper {
+    overflow-x: auto;
+    overflow-y: auto;
+    flex: 1;
+    padding: 0;
+}
+
+.comparison-stats-panel .comparison-stats-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.85em;
+}
+
+.comparison-stats-panel .comparison-stats-table th {
+    background: #252525;
+    color: #888;
+    padding: 0.6rem 0.5rem;
+    text-align: left;
+    border-bottom: 2px solid #333;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    cursor: pointer;
+    user-select: none;
+    font-size: 0.9em;
+}
+
+.comparison-stats-panel .comparison-stats-table th.sortable:hover {
+    background: #2a2a2a;
+    color: #aaa;
+}
+
+.comparison-stats-panel .comparison-stats-table td {
+    padding: 0.6rem 0.5rem;
+    border-bottom: 1px solid #2a2a2a;
+    color: #e0e0e0;
+}
+
+.comparison-stats-panel .comparison-stats-table tr:hover {
+    background: rgba(59, 130, 246, 0.1);
+}
+
+.comparison-stats-panel .comparison-stats-table tr.completed {
+    background: rgba(16, 185, 129, 0.1);
+}
+
+.comparison-stats-panel .comparison-stats-table tr.completed:hover {
+    background: rgba(16, 185, 129, 0.15);
+}
+
+.comparison-stats-panel .comparison-stats-table .algorithm-name {
+    font-weight: 500;
+    color: #3B82F6;
+    font-size: 0.95em;
+}
+
+.comparison-stats-panel .comparison-stats-table .complexity {
+    font-family: 'Courier New', monospace;
+    color: #A855F7;
+    font-size: 0.85em;
+}
+
+.comparison-stats-panel .comparison-stats-table .stat-value {
+    text-align: right;
+    font-family: 'Courier New', monospace;
+    color: #FBBF24;
+    font-size: 0.9em;
+}
+
+.comparison-stats-panel .comparison-stats-table .status {
+    text-align: center;
+}
+
+.comparison-stats-panel .status-badge {
+    padding: 0.25rem 0.5rem;
+    border-radius: 4px;
+    font-size: 0.8em;
+    font-weight: 500;
+    display: inline-block;
+}
+
+.comparison-stats-panel .status-badge.completed {
+    background: #10B981;
+    color: white;
+}
+
+.comparison-stats-panel .status-badge.running {
+    background: #F59E0B;
+    color: white;
+}
+
+/* 旧スタイルの削除（互換性のため残す） */
+.comparison-stats-table-container {
+    display: none;
+}
+
+.stats-table-header {
+    display: none;
+}
+
+.copy-button {
+    padding: 0.5rem 1rem;
+    background: #3B82F6;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 0.9em;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.copy-button:hover {
+    background: #2563EB;
+    transform: scale(1.05);
+}
+
+.copy-button:active {
+    transform: scale(0.95);
+}
+
+.table-wrapper {
+    overflow-x: auto;
+    overflow-y: auto;
+    max-height: 400px;
+}
+
+.comparison-stats-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.9em;
+}
+
+.comparison-stats-table th {
+    background: #252525;
+    color: #888;
+    padding: 0.75rem;
+    text-align: left;
+    border-bottom: 2px solid #333;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    cursor: pointer;
+    user-select: none;
+}
+
+.comparison-stats-table th.sortable:hover {
+    background: #2a2a2a;
+    color: #aaa;
+}
+
+.comparison-stats-table td {
+    padding: 0.75rem;
+    border-bottom: 1px solid #2a2a2a;
+    color: #e0e0e0;
+}
+
+.comparison-stats-table tr:hover {
+    background: rgba(59, 130, 246, 0.1);
+}
+
+.comparison-stats-table tr.completed {
+    background: rgba(16, 185, 129, 0.1);
+}
+
+.comparison-stats-table tr.completed:hover {
+    background: rgba(16, 185, 129, 0.15);
+}
+
+.comparison-stats-table .algorithm-name {
+    font-weight: 500;
+    color: #3B82F6;
+}
+
+.comparison-stats-table .complexity {
+    font-family: 'Courier New', monospace;
+    color: #A855F7;
+    font-size: 0.9em;
+}
+
+.comparison-stats-table .stat-value {
+    text-align: right;
+    font-family: 'Courier New', monospace;
+    color: #FBBF24;
+}
+
+.comparison-stats-table .status {
+    text-align: center;
+}
+
+.status-badge {
+    padding: 0.3rem 0.6rem;
+    border-radius: 4px;
+    font-size: 0.85em;
+    font-weight: 500;
+    display: inline-block;
+}
+
+.status-badge.completed {
+    background: #10B981;
+    color: white;
+}
+
+.status-badge.running {
+    background: #F59E0B;
+    color: white;
+}
+
+.btn-remove:active {
+    transform: scale(0.95);
+}
+
+.btn-remove-grid {
+    padding: 0.25rem 0.5rem;
+    background: #EF4444;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 0.85em;
+    transition: all 0.2s;
+    min-width: 28px;
+    opacity: 0.7;
+}
+
+.btn-remove-grid:hover {
+    background: #DC2626;
+    opacity: 1;
+    transform: scale(1.1);
+}
+
+.btn-remove-grid:active {
+    transform: scale(0.95);
+}
+
+/* 比較グリッド */
+.comparison-grid {
+    display: grid;
+    gap: 20px;
+    width: 100%;
+    height: 100%;
+    padding: 1rem;
+    grid-auto-rows: 1fr; /* すべての行を同じ高さに */
+}
+
+.comparison-grid-item {
+    display: flex;
+    flex-direction: column;
+    background: #1a1a1a;
+    border-radius: 8px;
+    border: 2px solid #333;
+    overflow: hidden;
+    transition: border-color 0.3s;
+    min-height: 0; /* Flexboxでの縮小を許可 */
+}
+
+.comparison-grid-item.completed {
+    border-color: #10B981;
+    box-shadow: 0 0 10px rgba(16, 185, 129, 0.3);
+}
+
+.comparison-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.75rem 1rem;
+    background: #252525;
+    border-bottom: 1px solid #333;
+}
+
+.algorithm-title {
+    margin: 0;
+    font-size: 1em;
+    color: #e0e0e0;
+    font-weight: 600;
+}
+
+.complexity-badge {
+    font-size: 0.8em;
+    color: #888;
+    font-family: 'Courier New', monospace;
+    background: #1e1e1e;
+    padding: 0.25rem 0.5rem;
+    border-radius: 4px;
+}
+
+.comparison-visualization {
+    flex: 1;
+    min-height: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.comparison-stats-summary {
+    display: flex;
+    justify-content: space-around;
+    padding: 0.75rem;
+    background: #1e1e1e;
+    border-top: 1px solid #333;
+    font-size: 0.85em;
+}
+
+.stat-mini {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.25rem;
+}
+
+.stat-mini .label {
+    color: #888;
+    font-size: 0.9em;
+}
+
+.stat-mini .value {
+    color: #e0e0e0;
+    font-weight: bold;
+    font-family: 'Courier New', monospace;
+}
+
+

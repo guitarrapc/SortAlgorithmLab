@@ -2,6 +2,7 @@
 @using SortAlgorithm.VisualizationWeb.Services
 @using Microsoft.JSInterop
 @inject IJSRuntime JS
+@inject DebugSettings DebugSettings
 @implements IAsyncDisposable
 
 <div class="circular-chart-container @(State?.PlaybackState == PlaybackState.Playing ? "playing" : "")" 
@@ -28,8 +29,12 @@
     [Parameter]
     public EventCallback OnClick { get; set; }
     
+    [Parameter]
+    public int GridColumnCount { get; set; } = 1;
+    
     private string _canvasId = $"sortCircularCanvas_{Guid.NewGuid():N}";
     private bool _isInitialized = false;
+    private int _previousGridColumnCount = 0;
     
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
@@ -40,11 +45,19 @@
             if (success)
             {
                 _isInitialized = true;
+                _previousGridColumnCount = GridColumnCount;
                 await RenderCanvas();
             }
         }
         else if (_isInitialized)
         {
+            // グリッド列数が変わった場合の記録（ResizeObserverが自動リサイズ＆再描画）
+            if (_previousGridColumnCount != GridColumnCount)
+            {
+                DebugSettings.Log($"[CircularRenderer] Grid column count changed: {_previousGridColumnCount} -> {GridColumnCount} for canvas {_canvasId}");
+                _previousGridColumnCount = GridColumnCount;
+            }
+            
             // 毎回再描画（Stateオブジェクトの参照は変わらないため）
             await RenderCanvas();
         }
@@ -57,6 +70,7 @@
         try
         {
             await JS.InvokeVoidAsync("circularCanvasRenderer.render",
+                _canvasId,  // Canvas IDを最初の引数として渡す
                 State.MainArray,
                 State.CompareIndices.ToArray(),
                 State.SwapIndices.ToArray(),
@@ -68,7 +82,7 @@
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"Circular Canvas render error: {ex.Message}");
+            DebugSettings.Log($"Circular Canvas render error: {ex.Message}");
         }
     }
     
@@ -79,16 +93,23 @@
     
     public async ValueTask DisposeAsync()
     {
+        DebugSettings.Log($"[CircularRenderer] DisposeAsync called for canvas: {_canvasId}");
+        
         if (_isInitialized)
         {
             try
             {
-                await JS.InvokeVoidAsync("circularCanvasRenderer.dispose");
+                await JS.InvokeVoidAsync("circularCanvasRenderer.dispose", _canvasId);
+                DebugSettings.Log($"[CircularRenderer] Successfully disposed canvas: {_canvasId}");
             }
-            catch
+            catch (Exception ex)
             {
-                // クリーンアップエラーは無視
+                DebugSettings.Log($"[CircularRenderer] ERROR disposing canvas {_canvasId}: {ex.Message}");
             }
+        }
+        else
+        {
+            DebugSettings.Log($"[CircularRenderer] Canvas {_canvasId} was not initialized, skipping dispose");
         }
     }
 }

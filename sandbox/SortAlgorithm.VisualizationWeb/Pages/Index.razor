@@ -2,10 +2,14 @@
 @using SortAlgorithm.VisualizationWeb.Models
 @using SortAlgorithm.VisualizationWeb.Services
 @using SortAlgorithm.VisualizationWeb.Components
+@using Microsoft.JSInterop
 @inject PlaybackService Playback
 @inject SortExecutor Executor
 @inject AlgorithmRegistry Registry
 @inject ArrayPatternGenerator PatternGenerator
+@inject ComparisonModeService ComparisonMode
+@inject DebugSettings DebugSettings
+@inject IJSRuntime JS
 @implements IDisposable
 
 <PageTitle>Sort Algorithm Visualization</PageTitle>
@@ -23,7 +27,12 @@
                 <span style="font-size: 0.6em; color: #888; margin-left: 1em;">- @_runningAlgorithmName</span>
             }
         </h1>
-        <div>
+        <div style="display: flex; align-items: center; gap: 1rem;">
+            <label class="toggle-switch" style="display: flex; align-items: center; gap: 0.5rem;">
+                <span style="font-size: 0.9em; color: #999;">🐛 Debug Log</span>
+                <input type="checkbox" @bind="DebugSettings.IsEnabled" @bind:after="OnDebugToggleChanged" />
+                <span class="toggle-slider"></span>
+            </label>
             <select @bind="SelectedCategory">
                 <option value="">All Categories</option>
                 @foreach (var category in Registry.GetCategories())
@@ -102,58 +111,100 @@
                     </select>
                 </div>
 
+
                 <div class="stat-item">
-                    <button class="primary" @onclick="GenerateAndSort" style="width: 100%;">🎲 Generate & Sort</button>
+                    <span class="stat-label">
+                        Comparison Mode
+                        <span style="font-size: 0.8em; color: #888;">
+                            (@(ComparisonMode.State.Instances.Count)/@(ComparisonState.MaxComparisons))
+                        </span>
+                    </span>
+                    <label class="toggle-switch">
+                        <input type="checkbox" @bind="_isComparisonMode" @bind:after="OnComparisonModeChanged" />
+                        <span class="toggle-slider"></span>
+                    </label>
                 </div>
 
+                <div class="stat-item">
+                    @if (_isComparisonMode)
+                    {
+                        var isDisabled = ComparisonMode.State.Instances.Count >= ComparisonState.MaxComparisons || !ComparisonMode.State.IsEnabled;
+                        <button class="primary" 
+                                @onclick="AddAlgorithmToComparison" 
+                                style="width: 100%;"
+                                disabled="@isDisabled">
+                            ➕ Add to Comparison
+                        </button>
+                    }
+                    else
+                    {
+                        <button class="primary" @onclick="GenerateAndSort" style="width: 100%;">🎲 Generate & Sort</button>
+                    }
+                </div>
 
-            <div class="stat-item">
-                <label class="toggle-switch">
-                    <input type="checkbox" @bind="Playback.AutoReset" />
-                    <span class="toggle-slider"></span>
-                    <span class="toggle-label">Auto Reset on Complete</span>
-                </label>
-            </div>
-            
-            <div class="stat-item">
-                <label class="toggle-switch">
-                    <input type="checkbox" @bind="Playback.InstantMode" />
-                    <span class="toggle-slider"></span>
-                    <span class="toggle-label">Instant Mode (No Animation)</span>
-                </label>
-            </div>
-            
-            <div class="stat-item stat-item-vertical">
-                    <span class="stat-label">Operations Per Frame</span>
-                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
-                        <span class="stat-value" style="font-size: 0.9rem;">@Playback.OperationsPerFrame ops/frame</span>
+                                <div class="stat-item stat-item-vertical">
+                        <span class="stat-label">Operations Per Frame</span>
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                            <span class="stat-value" style="font-size: 0.9rem;">@Playback.OperationsPerFrame ops/frame</span>
+                        </div>
+                        <input type="range" min="1" max="1000" @bind="Playback.OperationsPerFrame" @bind:after="OnSpeedSettingsChanged" style="width: 100%;" />
                     </div>
-                    <input type="range" min="1" max="1000" @bind="Playback.OperationsPerFrame" @bind:after="StateHasChanged" style="width: 100%;" />
+
+                <div class="stat-item stat-item-vertical">
+                    <span class="stat-label">Speed Multiplier</span>
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                        <span class="stat-value" style="font-size: 0.9rem;">@Playback.SpeedMultiplier.ToString("F1")x</span>
+                        <span style="font-size: 0.85rem; color: #999;">(@EffectiveFPS FPS)</span>
+                    </div>
+                    <input type="range" min="0.5" max="100" step="0.5" @bind="Playback.SpeedMultiplier" @bind:after="OnSpeedSettingsChanged" style="width: 100%;" />
                 </div>
 
-            <div class="stat-item stat-item-vertical">
-                <span class="stat-label">Speed Multiplier</span>
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
-                    <span class="stat-value" style="font-size: 0.9rem;">@Playback.SpeedMultiplier.ToString("F1")x</span>
-                    <span style="font-size: 0.85rem; color: #999;">(@EffectiveFPS FPS)</span>
+            @if (!_isComparisonMode)
+            {
+                <div class="stat-item">
+                    <label class="toggle-switch">
+                        <input type="checkbox" @bind="Playback.AutoReset" />
+                        <span class="toggle-slider"></span>
+                        <span class="toggle-label">Auto Reset on Complete</span>
+                    </label>
                 </div>
-                <input type="range" min="0.5" max="100" step="0.5" @bind="Playback.SpeedMultiplier" @bind:after="StateHasChanged" style="width: 100%;" />
-            </div>
+                
+                <div class="stat-item">
+                    <label class="toggle-switch">
+                        <input type="checkbox" @bind="Playback.InstantMode" />
+                        <span class="toggle-slider"></span>
+                        <span class="toggle-label">Instant Mode (No Animation)</span>
+                    </label>
+                </div>                
+            }
             </div>
 
-            <StatisticsPanel State="Playback.State" />
+            @if (!_isComparisonMode)
+            {
+                <StatisticsPanel State="Playback.State" />
 
-            <div class="stat-item" style="margin-top: 20px;">
-                <span class="stat-label">Complexity</span>
-                <span class="stat-value" style="font-size: 0.9rem;">@GetSelectedAlgorithmComplexity()</span>
-            </div>
+                <div class="stat-item" style="margin-top: 20px;">
+                    <span class="stat-label">Complexity</span>
+                    <span class="stat-value" style="font-size: 0.9rem;">@GetSelectedAlgorithmComplexity()</span>
+                </div>
+            }
         </div>
     </div>
 
     <div class="visualization-area">
         <div class="visualization-content">
-            @if (Playback.State.MainArray.Length > 0)
+            @if (_isComparisonMode && ComparisonMode.State.Instances.Any())
             {
+                @* 比較モード: グリッド表示 *@
+                <ComparisonGrid 
+                    Instances="ComparisonMode.State.Instances"
+                    VisualizationMode="SelectedVisualizationMode"
+                    OnRemove="RemoveAlgorithmFromComparison"
+                    OnVisualizationClick="OnComparisonVisualizationClick" />
+            }
+            else if (Playback.State.MainArray.Length > 0)
+            {
+                @* 通常モード: 単一アルゴリズム表示 *@
                 @if (Playback.State.Mode == VisualizationMode.BarChart)
                 {
                     <CanvasChartRenderer State="Playback.State"
@@ -174,20 +225,64 @@
             }
         </div>
     </div>
+    
+    @* 統計比較表（右側ドッキングパネル） *@
+    @if (_isComparisonMode && ComparisonMode.State.Instances.Any())
+    {
+        <ComparisonStatsTable 
+            Instances="ComparisonMode.State.Instances"
+            @bind-IsOpen="_statsTableOpen" />
+    }
 
     <div class="controls">
-        <SeekBar CurrentIndex="Playback.State.CurrentOperationIndex"
-                 TotalOperations="Playback.State.TotalOperations"
-                 OnSeek="OnSeek" />
+        @if (_isComparisonMode && ComparisonMode.State.Instances.Any())
+        {
+            @* 比較モード用のコントロール *@
+            <div style="display: flex; gap: 10px; margin-top: 10px; align-items: center;">
+                <button @onclick="ComparisonMode.Reset">⏹ Reset</button>
+                <button @onclick="ToggleComparisonPlayPause">
+                    @(_isComparisonPlaying ? "⏸ Pause" : "▶ Play")
+                </button>
+                
+                <span style="flex: 1;"></span>
+                
+                @* 完了状態の表示 *@
+                @if (ComparisonMode.State.AllCompleted)
+                {
+                    <span style="color: #10B981; font-weight: bold;">✅ All Completed!</span>
+                }
+                else
+                {
+                    var completedCount = ComparisonMode.State.Instances.Count(x => x.State.IsSortCompleted);
+                    <span style="color: #999;">
+                        @if (completedCount > 0)
+                        {
+                            <span style="color: #F59E0B;">@completedCount/@ComparisonMode.State.Instances.Count completed</span>
+                        }
+                        else
+                        {
+                            <span>Comparing @ComparisonMode.State.Instances.Count algorithms</span>
+                        }
+                    </span>
+                }
+            </div>
+        }
+        else
+        {
+            @* 通常モード用のコントロール *@
+            <SeekBar CurrentIndex="Playback.State.CurrentOperationIndex"
+                     TotalOperations="Playback.State.TotalOperations"
+                     OnSeek="OnSeek" />
 
-        <div style="display: flex; gap: 10px; margin-top: 10px; align-items: center;">
-            <button @onclick="Playback.Stop">⏹ Reset</button>
-            <button @onclick="Playback.TogglePlayPause">
-                @(Playback.State.PlaybackState == PlaybackState.Playing ? "⏸ Pause" : "▶ Play")
-            </button>
-            <span style="flex: 1;"></span>
-            <span style="color: #999;">Mode: @Playback.State.Mode</span>
-        </div>
+            <div style="display: flex; gap: 10px; margin-top: 10px; align-items: center;">
+                <button @onclick="Playback.Stop">⏹ Reset</button>
+                <button @onclick="Playback.TogglePlayPause">
+                    @(Playback.State.PlaybackState == PlaybackState.Playing ? "⏸ Pause" : "▶ Play")
+                </button>
+                <span style="flex: 1;"></span>
+                <span style="color: #999;">Mode: @Playback.State.Mode</span>
+            </div>
+        }
     </div>
 </div>
 
@@ -198,6 +293,11 @@ private int ArraySize { get; set; } = 64;
 private ArrayPattern SelectedPattern { get; set; } = ArrayPattern.Random;
 private VisualizationMode SelectedVisualizationMode { get; set; } = VisualizationMode.BarChart;
 private string _runningAlgorithmName = string.Empty;
+
+    // 比較モード関連
+    private bool _isComparisonMode = false;
+    private bool _isComparisonPlaying = false;
+    private bool _statsTableOpen = false;
 
     private int[] AvailableSizes = [8, 16, 32, 64, 128, 256, 512, 1024, 2048, 4096];
 
@@ -213,6 +313,9 @@ private string _runningAlgorithmName = string.Empty;
     protected override void OnInitialized()
     {
         Playback.StateChanged += OnStateChanged;
+        ComparisonMode.OnStateChanged += OnStateChanged; // 比較モードの状態変更を購読
+        DebugSettings.OnChanged += OnStateChanged; // デバッグ設定の変更を購読
+        
         // 初期アルゴリズムの推奨サイズを設定
         SetRecommendedSize();
         // 初期モードを同期
@@ -229,7 +332,8 @@ private string _runningAlgorithmName = string.Empty;
     {
         if (firstRender)
         {
-            // グローバルなマウスイベントリスナーを登録（JS Interop不要、Blazor側で処理）
+            // JavaScriptにデバッグ状態の初期値を同期
+            await JS.InvokeVoidAsync("debugHelper.setDebugMode", DebugSettings.IsEnabled);
         }
     }
 
@@ -256,6 +360,13 @@ private string _runningAlgorithmName = string.Empty;
     private void OnMouseUp()
     {
         _isResizing = false;
+    }
+
+    private async Task OnDebugToggleChanged()
+    {
+        // JavaScriptにデバッグ状態を同期
+        await JS.InvokeVoidAsync("debugHelper.setDebugMode", DebugSettings.IsEnabled);
+        StateHasChanged();
     }
 
     private void OnAlgorithmChanged()
@@ -326,7 +437,7 @@ private string _runningAlgorithmName = string.Empty;
         var metadata = Registry.GetAllAlgorithms().FirstOrDefault(a => a.Name == SelectedAlgorithm);
         if (metadata == null)
         {
-            Console.WriteLine($"Algorithm not found: {SelectedAlgorithm}");
+            DebugSettings.Log($"Algorithm not found: {SelectedAlgorithm}");
             return;
         }
 
@@ -344,17 +455,178 @@ private string _runningAlgorithmName = string.Empty;
         {
             var operations = Executor.ExecuteAndRecord(array.AsSpan(), metadata);
             Playback.LoadOperations(array.AsSpan(), operations);
-            Console.WriteLine($"Loaded {operations.Count} operations for {SelectedAlgorithm} with {PatternGenerator.GetDisplayName(SelectedPattern)} pattern");
+            DebugSettings.Log($"Loaded {operations.Count} operations for {SelectedAlgorithm} with {PatternGenerator.GetDisplayName(SelectedPattern)} pattern");
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"Error executing sort: {ex.Message}");
+            DebugSettings.Log($"Error executing sort: {ex.Message}");
         }
+    }
+
+    // 比較モード関連メソッド
+    private void OnComparisonModeChanged()
+    {
+        DebugSettings.Log($"[OnComparisonModeChanged] Called. _isComparisonMode: {_isComparisonMode}");
+        
+        if (_isComparisonMode)
+        {
+            // 比較モードON: 初期配列を生成して設定
+            var size = Math.Min(ArraySize, 4096);
+            DebugSettings.Log($"[OnComparisonModeChanged] Generating array of size: {size} with pattern: {SelectedPattern}");
+            var array = PatternGenerator.Generate(size, SelectedPattern);
+            DebugSettings.Log($"[OnComparisonModeChanged] Generated array length: {array.Length}");
+            
+            ComparisonMode.Enable(array, size, SelectedPattern);
+            
+            // サイドバーの速度設定を比較モードに適用
+            ComparisonMode.SetSpeedForAll(Playback.OperationsPerFrame, Playback.SpeedMultiplier);
+            
+            DebugSettings.Log($"[OnComparisonModeChanged] Comparison mode enabled with {SelectedPattern} pattern");
+        }
+        else
+        {
+            // 比較モードOFF: クリーンアップ
+            ComparisonMode.Disable();
+            _runningAlgorithmName = string.Empty;
+            DebugSettings.Log("Comparison mode disabled");
+        }
+        StateHasChanged();
+    }
+
+
+
+    private void AddAlgorithmToComparison()
+    {
+        DebugSettings.Log($"[Index] AddAlgorithmToComparison called");
+        DebugSettings.Log($"[Index] _isComparisonMode: {_isComparisonMode}");
+        DebugSettings.Log($"[Index] ComparisonMode.State.IsEnabled: {ComparisonMode.State.IsEnabled}");
+        DebugSettings.Log($"[Index] ComparisonMode.State.CurrentArraySize: {ComparisonMode.State.CurrentArraySize}");
+        DebugSettings.Log($"[Index] ComparisonMode.State.CurrentPattern: {ComparisonMode.State.CurrentPattern}");
+        DebugSettings.Log($"[Index] Current ArraySize: {ArraySize}");
+        DebugSettings.Log($"[Index] Current Pattern: {SelectedPattern}");
+        DebugSettings.Log($"[Index] Existing instances count: {ComparisonMode.State.Instances.Count}");
+        foreach (var inst in ComparisonMode.State.Instances)
+        {
+            DebugSettings.Log($"[Index]   - {inst.AlgorithmName}: {inst.State.MainArray.Length} elements");
+        }
+
+        // 🔧 Array SizeまたはPatternが変更されている場合、既存のアルゴリズムを新しい設定で再実行
+        var currentSize = Math.Min(ArraySize, 4096);
+        var needRegeneration = ComparisonMode.State.CurrentArraySize != currentSize 
+                            || ComparisonMode.State.CurrentPattern != SelectedPattern;
+        
+        DebugSettings.Log($"[Index] NeedRegeneration: {needRegeneration} (size: {ComparisonMode.State.CurrentArraySize} vs {currentSize}, pattern: {ComparisonMode.State.CurrentPattern} vs {SelectedPattern})");
+        
+        if (needRegeneration && ComparisonMode.State.Instances.Any())
+        {
+            DebugSettings.Log($"[Index] ✅ Settings changed - regenerating all existing algorithms");
+            DebugSettings.Log($"[Index]    Old: size={ComparisonMode.State.CurrentArraySize}, pattern={ComparisonMode.State.CurrentPattern}");
+            DebugSettings.Log($"[Index]    New: size={currentSize}, pattern={SelectedPattern}");
+            
+            // 既存のアルゴリズム情報を保存
+            var existingAlgorithms = ComparisonMode.State.Instances
+                .Select(i => new { i.AlgorithmName, i.Metadata })
+                .ToList();
+            
+            DebugSettings.Log($"[Index] Saved {existingAlgorithms.Count} existing algorithms");
+            
+            // 新しい配列を生成
+            var newArray = PatternGenerator.Generate(currentSize, SelectedPattern);
+            DebugSettings.Log($"[Index] Generated new array: {newArray.Length} elements with pattern {SelectedPattern}");
+            
+            ComparisonMode.Enable(newArray, currentSize, SelectedPattern);
+            DebugSettings.Log($"[Index] Called Enable() - instances should be cleared now");
+            
+            // すべてのアルゴリズムを新しい設定で再追加
+            foreach (var algo in existingAlgorithms)
+            {
+                ComparisonMode.AddAlgorithm(algo.AlgorithmName, algo.Metadata);
+                DebugSettings.Log($"[Index] Re-added {algo.AlgorithmName} with new settings");
+                
+                // 追加直後に速度設定を適用
+                ComparisonMode.SetSpeedForAll(Playback.OperationsPerFrame, Playback.SpeedMultiplier);
+            }
+            
+            DebugSettings.Log($"[Index] After re-adding, instances count: {ComparisonMode.State.Instances.Count}");
+        }
+        else if (needRegeneration)
+        {
+            DebugSettings.Log($"[Index] ⚠️ No existing instances, just updating settings");
+            
+            // アルゴリズムがまだない場合は、単純に設定を更新
+            var newArray = PatternGenerator.Generate(currentSize, SelectedPattern);
+            ComparisonMode.Enable(newArray, currentSize, SelectedPattern);
+            
+            // 速度設定を再適用（パターン変更後にリセットされるのを防ぐ）
+            ComparisonMode.SetSpeedForAll(Playback.OperationsPerFrame, Playback.SpeedMultiplier);
+        }
+        else
+        {
+            DebugSettings.Log($"[Index] ℹ️ Settings unchanged, using existing configuration");
+        }
+
+        // 現在選択中のアルゴリズムを追加
+        var metadata = Registry.GetAllAlgorithms().FirstOrDefault(a => a.Name == SelectedAlgorithm);
+        if (metadata == null)
+        {
+            DebugSettings.Log($"[Index] Algorithm not found: {SelectedAlgorithm}");
+            return;
+        }
+
+        // すでに追加済みかチェック
+        if (ComparisonMode.State.Instances.Any(x => x.AlgorithmName == SelectedAlgorithm))
+        {
+            DebugSettings.Log($"[Index] {SelectedAlgorithm} is already in comparison");
+            return;
+        }
+
+        DebugSettings.Log($"[Index] Adding new algorithm: {SelectedAlgorithm}");
+        ComparisonMode.AddAlgorithm(SelectedAlgorithm, metadata);
+        DebugSettings.Log($"[Index] After adding, instances count: {ComparisonMode.State.Instances.Count}");
+        
+        // 新しく追加したアルゴリズムにも速度設定を適用
+        ComparisonMode.SetSpeedForAll(Playback.OperationsPerFrame, Playback.SpeedMultiplier);
+        DebugSettings.Log($"[Index] Applied speed settings to new algorithm: OperationsPerFrame={Playback.OperationsPerFrame}, SpeedMultiplier={Playback.SpeedMultiplier}");
+        
+        StateHasChanged();
+    }
+
+    private void RemoveAlgorithmFromComparison(int index)
+    {
+        DebugSettings.Log($"[Index] RemoveAlgorithmFromComparison called for index: {index}");
+        DebugSettings.Log($"[Index] Before removal, instances count: {ComparisonMode.State.Instances.Count}");
+        
+        if (index >= 0 && index < ComparisonMode.State.Instances.Count)
+        {
+            var algorithmName = ComparisonMode.State.Instances[index].AlgorithmName;
+            DebugSettings.Log($"[Index] Removing algorithm: {algorithmName}");
+        }
+        
+        ComparisonMode.RemoveAlgorithm(index);
+        
+        DebugSettings.Log($"[Index] After removal, instances count: {ComparisonMode.State.Instances.Count}");
+        StateHasChanged();
     }
 
     private void OnVisualizationClick()
     {
         Playback.TogglePlayPause();
+    }
+
+    private void OnComparisonVisualizationClick()
+    {
+        // 比較モード時：クリックですべてのアルゴリズムをトグル（再生⇔停止）
+        if (_isComparisonPlaying)
+        {
+            ComparisonMode.Pause();
+            _isComparisonPlaying = false;
+        }
+        else
+        {
+            ComparisonMode.Play();
+            _isComparisonPlaying = true;
+        }
+        StateHasChanged();
     }
 
     private void OnSeek(int index)
@@ -374,9 +646,45 @@ private string _runningAlgorithmName = string.Empty;
         InvokeAsync(StateHasChanged);
     }
 
+    private void ToggleComparisonPlayPause()
+    {
+        if (_isComparisonPlaying)
+        {
+            ComparisonMode.Pause();
+            _isComparisonPlaying = false;
+        }
+        else
+        {
+            ComparisonMode.Play();
+            _isComparisonPlaying = true;
+        }
+        StateHasChanged();
+    }
+
+    private void OnSpeedSettingsChanged()
+    {
+        DebugSettings.Log($"[Index] OnSpeedSettingsChanged called. _isComparisonMode: {_isComparisonMode}");
+        DebugSettings.Log($"[Index] Current settings: OperationsPerFrame={Playback.OperationsPerFrame}, SpeedMultiplier={Playback.SpeedMultiplier}");
+        
+        // 比較モードが有効な場合、すべてのアルゴリズムに速度設定を適用
+        if (_isComparisonMode)
+        {
+            ComparisonMode.SetSpeedForAll(Playback.OperationsPerFrame, Playback.SpeedMultiplier);
+            DebugSettings.Log($"[Index] SetSpeedForAll called with ops={Playback.OperationsPerFrame}, speed={Playback.SpeedMultiplier}");
+            
+            // 適用後の確認
+            foreach (var instance in ComparisonMode.State.Instances)
+            {
+                DebugSettings.Log($"[Index]   {instance.AlgorithmName}: ops={instance.Playback.OperationsPerFrame}, speed={instance.Playback.SpeedMultiplier}");
+            }
+        }
+        StateHasChanged();
+    }
+
     public void Dispose()
     {
         Playback.StateChanged -= OnStateChanged;
+        ComparisonMode.OnStateChanged -= OnStateChanged; // 比較モードのイベント購読解除
     }
 }
 

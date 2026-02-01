@@ -254,6 +254,7 @@ public class PlaybackService : IDisposable
             if (State.CurrentOperationIndex >= _operations.Count)
             {
                 ClearHighlights(); // ソート完了時にハイライトをクリア
+                State.BufferArrays.Clear(); // 🔧 バッファー配列をクリア（表示を消す）
                 State.IsSortCompleted = true; // ソート完了フラグを設定
                 State.ShowCompletionHighlight = true; // ハイライト表示を開始
                 State.PlaybackState = PlaybackState.Paused;
@@ -459,11 +460,41 @@ public class PlaybackService : IDisposable
     {
         if (bufferId == 0) return State.MainArray;
         
+        // バッファー配列が存在しない場合のみ作成
         if (!State.BufferArrays.ContainsKey(bufferId))
         {
             State.BufferArrays[bufferId] = new int[State.MainArray.Length];
         }
         return State.BufferArrays[bufferId];
+    }
+    
+    
+    /// <summary>
+    /// フレームを進める（ComparisonModeService用の公開メソッド）
+    /// </summary>
+    public void AdvanceFrame(int opsToProcess)
+    {
+        if (State.CurrentOperationIndex >= _operations.Count)
+            return;
+        
+        ClearHighlights();
+        
+        int actualOps = Math.Min(opsToProcess, _operations.Count - State.CurrentOperationIndex);
+        for (int i = 0; i < actualOps && State.CurrentOperationIndex < _operations.Count; i++)
+        {
+            var operation = _operations[State.CurrentOperationIndex];
+            ApplyOperation(operation, applyToArray: true, updateStats: true);
+            State.CurrentOperationIndex++;
+        }
+        
+        // ハイライト更新（最後の操作）
+        if (State.CurrentOperationIndex > 0 && State.CurrentOperationIndex < _operations.Count)
+        {
+            var lastOperation = _operations[State.CurrentOperationIndex - 1];
+            ApplyOperation(lastOperation, applyToArray: false, updateStats: false);
+        }
+        
+        // StateChangedは呼ばない（ComparisonModeServiceが統一的に呼ぶ）
     }
     
     private void ClearHighlights()

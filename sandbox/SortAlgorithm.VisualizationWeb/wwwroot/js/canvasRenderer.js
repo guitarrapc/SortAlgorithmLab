@@ -1,62 +1,139 @@
-// Canvas 2D レンダラー - 高速バーチャート描画
+// Canvas 2D レンダラー - 高速バーチャート描画（複数Canvas対応）
 
 window.canvasRenderer = {
-    canvas: null,
-    ctx: null,
-    animationFrameId: null,
+instances: new Map(), // Canvas ID -> インスタンスのマップ
+resizeObserver: null, // ResizeObserver インスタンス
+lastRenderParams: new Map(), // Canvas ID -> 最後の描画パラメータ
     
-    // 色定義
-    colors: {
-        normal: '#3B82F6',      // 青
-        compare: '#A855F7',     // 紫
-        swap: '#EF4444',        // 赤
-        write: '#F97316',       // 橙
-        read: '#FBBF24',        // 黄
-        sorted: '#10B981'       // 緑 - ソート完了
-    },
+// デバッグ用：FPS計測
+renderCounts: new Map(),
+lastFpsLogs: new Map(),
+    
+// 色定義
+colors: {
+    normal: '#3B82F6',      // 青
+    compare: '#A855F7',     // 紫
+    swap: '#EF4444',        // 赤
+    write: '#F97316',       // 橙
+    read: '#FBBF24',        // 黄
+    sorted: '#10B981'       // 緑 - ソート完了
+},
     
     /**
      * Canvasを初期化
      * @param {string} canvasId - Canvas要素のID
      */
     initialize: function(canvasId) {
-        this.canvas = document.getElementById(canvasId);
-        if (!this.canvas) {
-            console.error('Canvas element not found:', canvasId);
+        const canvas = document.getElementById(canvasId);
+        if (!canvas) {
+            window.debugHelper.error('Canvas element not found:', canvasId);
             return false;
         }
         
-        this.ctx = this.canvas.getContext('2d', {
+        const ctx = canvas.getContext('2d', {
             alpha: false,           // 透明度不要（高速化）
             desynchronized: true    // 非同期描画（高速化）
         });
         
         // 高DPI対応
         const dpr = window.devicePixelRatio || 1;
-        const rect = this.canvas.getBoundingClientRect();
-        this.canvas.width = rect.width * dpr;
-        this.canvas.height = rect.height * dpr;
-        this.ctx.scale(dpr, dpr);
+        const rect = canvas.getBoundingClientRect();
+        canvas.width = rect.width * dpr;
+        canvas.height = rect.height * dpr;
+        ctx.scale(dpr, dpr);
         
-        console.log('Canvas initialized:', rect.width, 'x', rect.height, 'DPR:', dpr);
+        // インスタンスを保存
+        this.instances.set(canvasId, { canvas, ctx });
+        
+        // ResizeObserverを初期化（まだ存在しない場合）
+        if (!this.resizeObserver) {
+            this.resizeObserver = new ResizeObserver(entries => {
+                for (const entry of entries) {
+                    const canvas = entry.target;
+                    const canvasId = canvas.id;
+                    const instance = this.instances.get(canvasId);
+                    
+                    if (instance) {
+                        const { ctx } = instance;
+                        const dpr = window.devicePixelRatio || 1;
+                        const rect = canvas.getBoundingClientRect();
+                        
+                        // サイズが実際に変わった場合のみリサイズ
+                        const newWidth = rect.width * dpr;
+                        const newHeight = rect.height * dpr;
+                        
+                        if (canvas.width !== newWidth || canvas.height !== newHeight) {
+                            canvas.width = newWidth;
+                            canvas.height = newHeight;
+                            ctx.scale(dpr, dpr);
+                            
+                            window.debugHelper.log('Canvas auto-resized:', canvasId, rect.width, 'x', rect.height);
+                            
+                            // リサイズ後、最後の描画パラメータで即座に再描画（黒画面を防ぐ）
+                            const lastParams = this.lastRenderParams.get(canvasId);
+                            if (lastParams) {
+                                requestAnimationFrame(() => {
+                                    this.renderInternal(canvasId, lastParams);
+                                });
+                            }
+                        }
+                    }
+                }
+            });
+        }
+        
+        // このCanvasを監視対象に追加
+        this.resizeObserver.observe(canvas);
+        
+        window.debugHelper.log('Canvas initialized:', canvasId, rect.width, 'x', rect.height, 'DPR:', dpr);
         return true;
     },
     
     /**
      * リサイズ処理
+     * @param {string} canvasId - リサイズするCanvas要素のID（省略時は全Canvas）
      */
-    resize: function() {
-        if (!this.canvas) return;
-        
-        const dpr = window.devicePixelRatio || 1;
-        const rect = this.canvas.getBoundingClientRect();
-        this.canvas.width = rect.width * dpr;
-        this.canvas.height = rect.height * dpr;
-        this.ctx.scale(dpr, dpr);
+    resize: function(canvasId) {
+        // レイアウトの更新を待つためにrequestAnimationFrameを使用
+        requestAnimationFrame(() => {
+            if (canvasId) {
+                // 特定のCanvasをリサイズ
+                const instance = this.instances.get(canvasId);
+                if (instance) {
+                    const { canvas, ctx } = instance;
+                    if (canvas) {
+                        const dpr = window.devicePixelRatio || 1;
+                        const rect = canvas.getBoundingClientRect();
+                        canvas.width = rect.width * dpr;
+                        canvas.height = rect.height * dpr;
+                        ctx.scale(dpr, dpr);
+                        
+                        console.log('Canvas resized:', canvasId, rect.width, 'x', rect.height);
+                    }
+                } else {
+                    console.warn('Canvas instance not found for resize:', canvasId);
+                }
+            } else {
+                // すべてのCanvasをリサイズ
+                this.instances.forEach((instance, id) => {
+                    const { canvas, ctx } = instance;
+                    if (!canvas) return;
+                    
+                    const dpr = window.devicePixelRatio || 1;
+                    const rect = canvas.getBoundingClientRect();
+                    canvas.width = rect.width * dpr;
+                    canvas.height = rect.height * dpr;
+                    ctx.scale(dpr, dpr);
+                    
+                    console.log('Canvas resized:', id, rect.width, 'x', rect.height);
+                });
+            }
+        });
     },
     
     /**
      * バーチャートを描画
+     * @param {string} canvasId - Canvas要素のID
      * @param {number[]} array - 描画する配列
      * @param {number[]} compareIndices - 比較中のインデックス
      * @param {number[]} swapIndices - スワップ中のインデックス
@@ -66,18 +143,64 @@ window.canvasRenderer = {
      * @param {Object} bufferArrays - バッファー配列（BufferId -> 配列）
      * @param {boolean} showCompletionHighlight - 完了ハイライトを表示するか
      */
-    render: function(array, compareIndices, swapIndices, readIndices, writeIndices, isSortCompleted, bufferArrays, showCompletionHighlight) {
-        if (!this.canvas || !this.ctx) {
-            console.error('Canvas not initialized');
+    render: function(canvasId, array, compareIndices, swapIndices, readIndices, writeIndices, isSortCompleted, bufferArrays, showCompletionHighlight) {
+        // 描画パラメータを保存（ResizeObserver用）
+        const params = {
+            array,
+            compareIndices,
+            swapIndices,
+            readIndices,
+            writeIndices,
+            isSortCompleted: isSortCompleted || false,
+            bufferArrays: bufferArrays || {},
+            showCompletionHighlight: showCompletionHighlight !== undefined ? showCompletionHighlight : false
+        };
+        this.lastRenderParams.set(canvasId, params);
+        
+        // 実際の描画処理
+        this.renderInternal(canvasId, params);
+    },
+    
+    /**
+     * 内部描画処理（実際のCanvas描画）
+     * @param {string} canvasId - Canvas要素のID
+     * @param {Object} params - 描画パラメータ
+     */
+    renderInternal: function(canvasId, params) {
+        const instance = this.instances.get(canvasId);
+        if (!instance) {
+            window.debugHelper.error('Canvas instance not found:', canvasId);
             return;
         }
         
-        // デフォルト値を設定
-        isSortCompleted = isSortCompleted || false;
-        bufferArrays = bufferArrays || {};
-        showCompletionHighlight = showCompletionHighlight !== undefined ? showCompletionHighlight : false;
+        const { canvas, ctx } = instance;
+        if (!canvas || !ctx) {
+            window.debugHelper.error('Canvas not initialized:', canvasId);
+            return;
+        }
         
-        const rect = this.canvas.getBoundingClientRect();
+        // パラメータ展開
+        const { array, compareIndices, swapIndices, readIndices, writeIndices, isSortCompleted, bufferArrays, showCompletionHighlight } = params;
+        
+        // 🔍 デバッグ：render() 呼び出し回数をカウント
+        if (!this.renderCounts.has(canvasId)) {
+            this.renderCounts.set(canvasId, 0);
+            this.lastFpsLogs.set(canvasId, Date.now());
+        }
+        this.renderCounts.set(canvasId, this.renderCounts.get(canvasId) + 1);
+        
+        const now = Date.now();
+        const lastLog = this.lastFpsLogs.get(canvasId);
+        const elapsed = (now - lastLog) / 1000;
+        
+        if (elapsed >= 1.0) {
+            const fps = this.renderCounts.get(canvasId) / elapsed;
+            window.debugHelper.log(`[JS Canvas] ${canvasId.substring(0, 12)}... JS render() FPS: ${fps.toFixed(1)}`);
+            this.renderCounts.set(canvasId, 0);
+            this.lastFpsLogs.set(canvasId, now);
+        }
+        
+        const rect = canvas.getBoundingClientRect();
         const width = rect.width;
         const height = rect.height;
         const arrayLength = array.length;
@@ -86,8 +209,8 @@ window.canvasRenderer = {
         const bufferCount = Object.keys(bufferArrays).length;
         
         // 背景をクリア（黒）
-        this.ctx.fillStyle = '#1A1A1A';
-        this.ctx.fillRect(0, 0, width, height);
+        ctx.fillStyle = '#1A1A1A';
+        ctx.fillRect(0, 0, width, height);
         
         // 配列が空の場合は何もしない
         if (arrayLength === 0) return;
@@ -125,10 +248,10 @@ window.canvasRenderer = {
         
         // スケール調整（横スクロール対応）
         const scale = Math.min(1.0, width / requiredWidth);
-        this.ctx.save();
+        ctx.save();
         if (scale < 1.0) {
             // 横スクロールが必要な場合は左寄せ
-            this.ctx.scale(scale, 1.0);
+            ctx.scale(scale, 1.0);
         }
         
         // メイン配列のバーを描画（一括描画で高速化）
@@ -155,11 +278,11 @@ window.canvasRenderer = {
                 color = this.colors.normal;
             }
             
-            this.ctx.fillStyle = color;
-            this.ctx.fillRect(x, y, barWidth, barHeight);
+            ctx.fillStyle = color;
+            ctx.fillRect(x, y, barWidth, barHeight);
         }
         
-        this.ctx.restore();
+        ctx.restore();
         
         // バッファー配列を描画（ソート完了時は非表示）
         if (showBuffers) {
@@ -184,9 +307,9 @@ window.canvasRenderer = {
                 
                 // バッファー配列のスケール
                 const bufferScale = Math.min(1.0, width / bufferRequiredWidth);
-                this.ctx.save();
+                ctx.save();
                 if (bufferScale < 1.0) {
-                    this.ctx.scale(bufferScale, 1.0);
+                    ctx.scale(bufferScale, 1.0);
                 }
                 
                 // バッファー配列のバーを描画
@@ -197,41 +320,66 @@ window.canvasRenderer = {
                     const y = bufferY + (sectionHeight - barHeight);
                     
                     // バッファー配列は薄いシアン色で表示
-                    this.ctx.fillStyle = '#06B6D4';
-                    this.ctx.fillRect(x, y, bufferBarWidth, barHeight);
+                    ctx.fillStyle = '#06B6D4';
+                    ctx.fillRect(x, y, bufferBarWidth, barHeight);
                 }
                 
-                this.ctx.restore();
+                ctx.restore();
                 
                 // バッファーIDラベルを表示
-                this.ctx.fillStyle = '#888';
-                this.ctx.font = '12px monospace';
-                this.ctx.fillText(`Buffer #${bufferId}`, 10, bufferY + 20);
+                ctx.fillStyle = '#888';
+                ctx.font = '12px monospace';
+                ctx.fillText(`Buffer #${bufferId}`, 10, bufferY + 20);
             }
         }
         
         // メイン配列ラベルを表示（バッファーが表示されている場合のみ）
         if (showBuffers) {
-            this.ctx.fillStyle = '#888';
-            this.ctx.font = '12px monospace';
-            this.ctx.fillText('Main Array', 10, mainArrayY + 20);
+            ctx.fillStyle = '#888';
+            ctx.font = '12px monospace';
+            ctx.fillText('Main Array', 10, mainArrayY + 20);
         }
-        
-        // 描画完了
-        this.isRendering = false;
-        this.pendingRenderData = null;
     },
     
     /**
      * クリーンアップ
+     * @param {string} canvasId - 削除するCanvas要素のID（省略時は全削除）
      */
-    dispose: function() {
-        if (this.animationFrameId) {
-            cancelAnimationFrame(this.animationFrameId);
-            this.animationFrameId = null;
+    dispose: function(canvasId) {
+        if (canvasId) {
+            // Canvas要素を取得
+            const canvas = document.getElementById(canvasId);
+            
+            // ResizeObserverの監視を解除
+            if (canvas && this.resizeObserver) {
+                this.resizeObserver.unobserve(canvas);
+            }
+            
+            // 特定のCanvasインスタンスを削除
+            const deleted = this.instances.delete(canvasId);
+            if (deleted) {
+                console.log('Canvas instance disposed:', canvasId);
+            } else {
+                console.warn('Canvas instance not found for disposal:', canvasId);
+            }
+            
+            // FPS計測用のデータと描画パラメータも削除
+            this.renderCounts.delete(canvasId);
+            this.lastFpsLogs.delete(canvasId);
+            this.lastRenderParams.delete(canvasId);
+        } else {
+            // ResizeObserverをリセット
+            if (this.resizeObserver) {
+                this.resizeObserver.disconnect();
+                this.resizeObserver = null;
+            }
+            
+            // すべてのインスタンスをクリア
+            this.instances.clear();
+            this.renderCounts.clear();
+            this.lastFpsLogs.clear();
+            this.lastRenderParams.clear();
         }
-        this.canvas = null;
-        this.ctx = null;
     }
 };
 

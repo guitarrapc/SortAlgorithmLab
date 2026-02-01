@@ -13,5 +13,7 @@ builder.Services.AddSingleton<PlaybackService>();
 builder.Services.AddSingleton<SortExecutor>();
 builder.Services.AddSingleton<AlgorithmRegistry>();
 builder.Services.AddSingleton<ArrayPatternGenerator>();
+builder.Services.AddSingleton<ComparisonModeService>();
+builder.Services.AddSingleton<DebugSettings>();
 
 await builder.Build().RunAsync();
