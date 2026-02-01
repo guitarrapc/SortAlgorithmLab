@@ -22,7 +22,7 @@ window.circularCanvasRenderer = {
     initialize: function(canvasId) {
         const canvas = document.getElementById(canvasId);
         if (!canvas) {
-            console.error('Circular Canvas element not found:', canvasId);
+            window.debugHelper.error('Circular Canvas element not found:', canvasId);
             return false;
         }
         
@@ -63,7 +63,7 @@ window.circularCanvasRenderer = {
                             canvas.height = newHeight;
                             ctx.scale(dpr, dpr);
                             
-                            console.log('Circular Canvas auto-resized:', canvasId, rect.width, 'x', rect.height);
+                            window.debugHelper.log('Circular Canvas auto-resized:', canvasId, rect.width, 'x', rect.height);
                             
                             // リサイズ後、最後の描画パラメータで即座に再描画（黒画面を防ぐ）
                             const lastParams = this.lastRenderParams.get(canvasId);
@@ -81,7 +81,7 @@ window.circularCanvasRenderer = {
         // このCanvasを監視対象に追加
         this.resizeObserver.observe(canvas);
         
-        console.log('Circular Canvas initialized:', canvasId, rect.width, 'x', rect.height, 'DPR:', dpr);
+        window.debugHelper.log('Circular Canvas initialized:', canvasId, rect.width, 'x', rect.height, 'DPR:', dpr);
         return true;
     },
     
@@ -134,13 +134,13 @@ window.circularCanvasRenderer = {
     renderInternal: function(canvasId, params) {
         const instance = this.instances.get(canvasId);
         if (!instance) {
-            console.error('Circular Canvas instance not found:', canvasId);
+            window.debugHelper.error('Circular Canvas instance not found:', canvasId);
             return;
         }
         
         const { canvas, ctx } = instance;
         if (!canvas || !ctx) {
-            console.error('Circular Canvas not initialized:', canvasId);
+            window.debugHelper.error('Circular Canvas not initialized:', canvasId);
             return;
         }
         

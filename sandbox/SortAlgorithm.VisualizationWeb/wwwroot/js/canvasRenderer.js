@@ -26,7 +26,7 @@ colors: {
     initialize: function(canvasId) {
         const canvas = document.getElementById(canvasId);
         if (!canvas) {
-            console.error('Canvas element not found:', canvasId);
+            window.debugHelper.error('Canvas element not found:', canvasId);
             return false;
         }
         
@@ -67,7 +67,7 @@ colors: {
                             canvas.height = newHeight;
                             ctx.scale(dpr, dpr);
                             
-                            console.log('Canvas auto-resized:', canvasId, rect.width, 'x', rect.height);
+                            window.debugHelper.log('Canvas auto-resized:', canvasId, rect.width, 'x', rect.height);
                             
                             // リサイズ後、最後の描画パラメータで即座に再描画（黒画面を防ぐ）
                             const lastParams = this.lastRenderParams.get(canvasId);
@@ -85,7 +85,7 @@ colors: {
         // このCanvasを監視対象に追加
         this.resizeObserver.observe(canvas);
         
-        console.log('Canvas initialized:', canvasId, rect.width, 'x', rect.height, 'DPR:', dpr);
+        window.debugHelper.log('Canvas initialized:', canvasId, rect.width, 'x', rect.height, 'DPR:', dpr);
         return true;
     },
     
@@ -169,13 +169,13 @@ colors: {
     renderInternal: function(canvasId, params) {
         const instance = this.instances.get(canvasId);
         if (!instance) {
-            console.error('Canvas instance not found:', canvasId);
+            window.debugHelper.error('Canvas instance not found:', canvasId);
             return;
         }
         
         const { canvas, ctx } = instance;
         if (!canvas || !ctx) {
-            console.error('Canvas not initialized:', canvasId);
+            window.debugHelper.error('Canvas not initialized:', canvasId);
             return;
         }
         
@@ -195,7 +195,7 @@ colors: {
         
         if (elapsed >= 1.0) {
             const fps = this.renderCounts.get(canvasId) / elapsed;
-            console.log(`[JS Canvas] ${canvasId.substring(0, 12)}... JS render() FPS: ${fps.toFixed(1)}`);
+            window.debugHelper.log(`[JS Canvas] ${canvasId.substring(0, 12)}... JS render() FPS: ${fps.toFixed(1)}`);
             this.renderCounts.set(canvasId, 0);
             this.lastFpsLogs.set(canvasId, now);
         }

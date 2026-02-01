@@ -2,12 +2,14 @@
 @using SortAlgorithm.VisualizationWeb.Models
 @using SortAlgorithm.VisualizationWeb.Services
 @using SortAlgorithm.VisualizationWeb.Components
+@using Microsoft.JSInterop
 @inject PlaybackService Playback
 @inject SortExecutor Executor
 @inject AlgorithmRegistry Registry
 @inject ArrayPatternGenerator PatternGenerator
 @inject ComparisonModeService ComparisonMode
 @inject DebugSettings DebugSettings
+@inject IJSRuntime JS
 @implements IDisposable
 
 <PageTitle>Sort Algorithm Visualization</PageTitle>
@@ -330,7 +332,8 @@ private string _runningAlgorithmName = string.Empty;
     {
         if (firstRender)
         {
-            // グローバルなマウスイベントリスナーを登録（JS Interop不要、Blazor側で処理）
+            // JavaScriptにデバッグ状態の初期値を同期
+            await JS.InvokeVoidAsync("debugHelper.setDebugMode", DebugSettings.IsEnabled);
         }
     }
 
@@ -359,8 +362,10 @@ private string _runningAlgorithmName = string.Empty;
         _isResizing = false;
     }
 
-    private void OnDebugToggleChanged()
+    private async Task OnDebugToggleChanged()
     {
+        // JavaScriptにデバッグ状態を同期
+        await JS.InvokeVoidAsync("debugHelper.setDebugMode", DebugSettings.IsEnabled);
         StateHasChanged();
     }
 
