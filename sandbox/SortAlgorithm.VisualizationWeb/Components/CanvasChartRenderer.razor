@@ -2,6 +2,7 @@
 @using SortAlgorithm.VisualizationWeb.Services
 @using Microsoft.JSInterop
 @inject IJSRuntime JS
+@inject DebugSettings DebugSettings
 @implements IAsyncDisposable
 
 <div class="bar-chart-container @(State?.PlaybackState == PlaybackState.Playing ? "playing" : "")" 
@@ -57,7 +58,7 @@ protected override async Task OnAfterRenderAsync(bool firstRender)
         // グリッド列数が変わった場合の記録（ResizeObserverが自動リサイズ＆再描画）
         if (_previousGridColumnCount != GridColumnCount)
         {
-            Console.WriteLine($"[CanvasRenderer] Grid column count changed: {_previousGridColumnCount} -> {GridColumnCount} for canvas {_canvasId}");
+            DebugSettings.Log($"[CanvasRenderer] Grid column count changed: {_previousGridColumnCount} -> {GridColumnCount} for canvas {_canvasId}");
             _previousGridColumnCount = GridColumnCount;
         }
             
@@ -70,7 +71,7 @@ protected override async Task OnAfterRenderAsync(bool firstRender)
         var elapsed = (now - _lastFpsLog).TotalSeconds;
         if (elapsed >= 1.0)
         {
-            Console.WriteLine($"[CanvasRenderer] {_canvasId.Substring(0, 12)}... Render FPS: {_renderCount / elapsed:F1}");
+            DebugSettings.Log($"[CanvasRenderer] {_canvasId.Substring(0, 12)}... Render FPS: {_renderCount / elapsed:F1}");
             _renderCount = 0;
             _lastFpsLog = now;
         }
@@ -96,7 +97,7 @@ protected override async Task OnAfterRenderAsync(bool firstRender)
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"Canvas render error: {ex.Message}");
+            DebugSettings.Log($"Canvas render error: {ex.Message}");
         }
     }
     
@@ -107,23 +108,23 @@ protected override async Task OnAfterRenderAsync(bool firstRender)
     
     public async ValueTask DisposeAsync()
     {
-        Console.WriteLine($"[CanvasRenderer] DisposeAsync called for canvas: {_canvasId}");
+        DebugSettings.Log($"[CanvasRenderer] DisposeAsync called for canvas: {_canvasId}");
         
         if (_isInitialized)
         {
             try
             {
                 await JS.InvokeVoidAsync("canvasRenderer.dispose", _canvasId);
-                Console.WriteLine($"[CanvasRenderer] Successfully disposed canvas: {_canvasId}");
+                DebugSettings.Log($"[CanvasRenderer] Successfully disposed canvas: {_canvasId}");
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"[CanvasRenderer] ERROR disposing canvas {_canvasId}: {ex.Message}");
+                DebugSettings.Log($"[CanvasRenderer] ERROR disposing canvas {_canvasId}: {ex.Message}");
             }
         }
         else
         {
-            Console.WriteLine($"[CanvasRenderer] Canvas {_canvasId} was not initialized, skipping dispose");
+            DebugSettings.Log($"[CanvasRenderer] Canvas {_canvasId} was not initialized, skipping dispose");
         }
     }
 }

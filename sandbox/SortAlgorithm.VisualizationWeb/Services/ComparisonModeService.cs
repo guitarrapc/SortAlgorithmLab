@@ -1,18 +1,20 @@
-using SortAlgorithm.VisualizationWeb.Models;
+﻿using SortAlgorithm.VisualizationWeb.Models;
 namespace SortAlgorithm.VisualizationWeb.Services;
 
 public class ComparisonModeService : IDisposable
 {
     private readonly SortExecutor _executor;
+    private readonly DebugSettings _debug;
     private readonly ComparisonState _state = new();
     private readonly List<PlaybackService> _playbackServices = new();
 
     public ComparisonState State => _state;
     public event Action? OnStateChanged;
 
-    public ComparisonModeService(SortExecutor executor)
+    public ComparisonModeService(SortExecutor executor, DebugSettings debug)
     {
         _executor = executor;
+        _debug = debug;
     }
 
     public void Enable(int[] initialArray, int arraySize, ArrayPattern pattern)
@@ -33,7 +35,7 @@ public class ComparisonModeService : IDisposable
         _state.CurrentArraySize = arraySize;
         _state.CurrentPattern = pattern;
         
-        Console.WriteLine($"[ComparisonModeService] Enabled with size={arraySize}, pattern={pattern}");
+        _debug.Log($"[ComparisonModeService] Enabled with size={arraySize}, pattern={pattern}");
         NotifyStateChanged();
     }
     public void Disable()
@@ -78,24 +80,24 @@ public class ComparisonModeService : IDisposable
                 Playback = playback
             });
 
-            Console.WriteLine($"[ComparisonMode] Added {algorithmName}: {operations.Count} operations");
+            _debug.Log($"[ComparisonMode] Added {algorithmName}: {operations.Count} operations");
             NotifyStateChanged();
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"[ComparisonMode] ERROR adding {algorithmName}: {ex.Message}");
+            _debug.Log($"[ComparisonMode] ERROR adding {algorithmName}: {ex.Message}");
             // エラーが発生しても他のアルゴリズムに影響しないように続行
         }
     }
     public void RemoveAlgorithm(int index)
     {
-        Console.WriteLine($"[ComparisonModeService] RemoveAlgorithm called for index: {index}");
-        Console.WriteLine($"[ComparisonModeService] Before removal, _playbackServices.Count: {_playbackServices.Count}, _state.Instances.Count: {_state.Instances.Count}");
+        _debug.Log($"[ComparisonModeService] RemoveAlgorithm called for index: {index}");
+        _debug.Log($"[ComparisonModeService] Before removal, _playbackServices.Count: {_playbackServices.Count}, _state.Instances.Count: {_state.Instances.Count}");
         
         if (index >= 0 && index < _state.Instances.Count)
         {
             var algorithmName = _state.Instances[index].AlgorithmName;
-            Console.WriteLine($"[ComparisonModeService] Removing algorithm: {algorithmName}");
+            _debug.Log($"[ComparisonModeService] Removing algorithm: {algorithmName}");
             
             try
             {
@@ -103,23 +105,23 @@ public class ComparisonModeService : IDisposable
                 _playbackServices[index].StateChanged -= OnPlaybackStateChanged;
                 
                 _playbackServices[index].Dispose();
-                Console.WriteLine($"[ComparisonModeService] PlaybackService disposed successfully");
+                _debug.Log($"[ComparisonModeService] PlaybackService disposed successfully");
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"[ComparisonModeService] ERROR disposing PlaybackService: {ex.Message}");
+                _debug.Log($"[ComparisonModeService] ERROR disposing PlaybackService: {ex.Message}");
             }
             
             _playbackServices.RemoveAt(index);
             _state.Instances.RemoveAt(index);
             
-            Console.WriteLine($"[ComparisonModeService] After removal, _playbackServices.Count: {_playbackServices.Count}, _state.Instances.Count: {_state.Instances.Count}");
+            _debug.Log($"[ComparisonModeService] After removal, _playbackServices.Count: {_playbackServices.Count}, _state.Instances.Count: {_state.Instances.Count}");
             
             NotifyStateChanged();
         }
         else
         {
-            Console.WriteLine($"[ComparisonModeService] ERROR: Invalid index {index} (valid range: 0-{_state.Instances.Count - 1})");
+            _debug.Log($"[ComparisonModeService] ERROR: Invalid index {index} (valid range: 0-{_state.Instances.Count - 1})");
         }
     }
     public void Play()
@@ -161,8 +163,8 @@ public class ComparisonModeService : IDisposable
     }
     public void SetSpeedForAll(int ops, double speed)
     {
-        Console.WriteLine($"[ComparisonModeService] SetSpeedForAll called with ops={ops}, speed={speed}");
-        Console.WriteLine($"[ComparisonModeService] Applying to {_playbackServices.Count} playback services");
+        _debug.Log($"[ComparisonModeService] SetSpeedForAll called with ops={ops}, speed={speed}");
+        _debug.Log($"[ComparisonModeService] Applying to {_playbackServices.Count} playback services");
         
         foreach (var p in _playbackServices)
         {
@@ -207,12 +209,12 @@ public class ComparisonModeService : IDisposable
         if (completedCount > 0 && completedCount == totalCount)
         {
             // すべて完了した
-            Console.WriteLine($"[ComparisonMode] 🎉 All {totalCount} algorithms completed!");
+            _debug.Log($"[ComparisonMode] 🎉 All {totalCount} algorithms completed!");
             
             // 各アルゴリズムの統計を出力
             foreach (var instance in _state.Instances.OrderBy(x => x.State.CompareCount))
             {
-                Console.WriteLine($"  - {instance.AlgorithmName}: Compares={instance.State.CompareCount:N0}, Swaps={instance.State.SwapCount:N0}");
+                _debug.Log($"  - {instance.AlgorithmName}: Compares={instance.State.CompareCount:N0}, Swaps={instance.State.SwapCount:N0}");
             }
         }
     }

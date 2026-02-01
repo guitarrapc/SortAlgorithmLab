@@ -7,6 +7,7 @@
 @inject AlgorithmRegistry Registry
 @inject ArrayPatternGenerator PatternGenerator
 @inject ComparisonModeService ComparisonMode
+@inject DebugSettings DebugSettings
 @implements IDisposable
 
 <PageTitle>Sort Algorithm Visualization</PageTitle>
@@ -24,7 +25,12 @@
                 <span style="font-size: 0.6em; color: #888; margin-left: 1em;">- @_runningAlgorithmName</span>
             }
         </h1>
-        <div>
+        <div style="display: flex; align-items: center; gap: 1rem;">
+            <label class="toggle-switch" style="display: flex; align-items: center; gap: 0.5rem;">
+                <span style="font-size: 0.9em; color: #999;">🐛 Debug Log</span>
+                <input type="checkbox" @bind="DebugSettings.IsEnabled" @bind:after="OnDebugToggleChanged" />
+                <span class="toggle-slider"></span>
+            </label>
             <select @bind="SelectedCategory">
                 <option value="">All Categories</option>
                 @foreach (var category in Registry.GetCategories())
@@ -306,6 +312,7 @@ private string _runningAlgorithmName = string.Empty;
     {
         Playback.StateChanged += OnStateChanged;
         ComparisonMode.OnStateChanged += OnStateChanged; // 比較モードの状態変更を購読
+        DebugSettings.OnChanged += OnStateChanged; // デバッグ設定の変更を購読
         
         // 初期アルゴリズムの推奨サイズを設定
         SetRecommendedSize();
@@ -350,6 +357,11 @@ private string _runningAlgorithmName = string.Empty;
     private void OnMouseUp()
     {
         _isResizing = false;
+    }
+
+    private void OnDebugToggleChanged()
+    {
+        StateHasChanged();
     }
 
     private void OnAlgorithmChanged()
@@ -420,7 +432,7 @@ private string _runningAlgorithmName = string.Empty;
         var metadata = Registry.GetAllAlgorithms().FirstOrDefault(a => a.Name == SelectedAlgorithm);
         if (metadata == null)
         {
-            Console.WriteLine($"Algorithm not found: {SelectedAlgorithm}");
+            DebugSettings.Log($"Algorithm not found: {SelectedAlgorithm}");
             return;
         }
 
@@ -438,40 +450,40 @@ private string _runningAlgorithmName = string.Empty;
         {
             var operations = Executor.ExecuteAndRecord(array.AsSpan(), metadata);
             Playback.LoadOperations(array.AsSpan(), operations);
-            Console.WriteLine($"Loaded {operations.Count} operations for {SelectedAlgorithm} with {PatternGenerator.GetDisplayName(SelectedPattern)} pattern");
+            DebugSettings.Log($"Loaded {operations.Count} operations for {SelectedAlgorithm} with {PatternGenerator.GetDisplayName(SelectedPattern)} pattern");
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"Error executing sort: {ex.Message}");
+            DebugSettings.Log($"Error executing sort: {ex.Message}");
         }
     }
 
     // 比較モード関連メソッド
     private void OnComparisonModeChanged()
     {
-        Console.WriteLine($"[OnComparisonModeChanged] Called. _isComparisonMode: {_isComparisonMode}");
+        DebugSettings.Log($"[OnComparisonModeChanged] Called. _isComparisonMode: {_isComparisonMode}");
         
         if (_isComparisonMode)
         {
             // 比較モードON: 初期配列を生成して設定
             var size = Math.Min(ArraySize, 4096);
-            Console.WriteLine($"[OnComparisonModeChanged] Generating array of size: {size} with pattern: {SelectedPattern}");
+            DebugSettings.Log($"[OnComparisonModeChanged] Generating array of size: {size} with pattern: {SelectedPattern}");
             var array = PatternGenerator.Generate(size, SelectedPattern);
-            Console.WriteLine($"[OnComparisonModeChanged] Generated array length: {array.Length}");
+            DebugSettings.Log($"[OnComparisonModeChanged] Generated array length: {array.Length}");
             
             ComparisonMode.Enable(array, size, SelectedPattern);
             
             // サイドバーの速度設定を比較モードに適用
             ComparisonMode.SetSpeedForAll(Playback.OperationsPerFrame, Playback.SpeedMultiplier);
             
-            Console.WriteLine($"[OnComparisonModeChanged] Comparison mode enabled with {SelectedPattern} pattern");
+            DebugSettings.Log($"[OnComparisonModeChanged] Comparison mode enabled with {SelectedPattern} pattern");
         }
         else
         {
             // 比較モードOFF: クリーンアップ
             ComparisonMode.Disable();
             _runningAlgorithmName = string.Empty;
-            Console.WriteLine("Comparison mode disabled");
+            DebugSettings.Log("Comparison mode disabled");
         }
         StateHasChanged();
     }
@@ -480,17 +492,17 @@ private string _runningAlgorithmName = string.Empty;
 
     private void AddAlgorithmToComparison()
     {
-        Console.WriteLine($"[Index] AddAlgorithmToComparison called");
-        Console.WriteLine($"[Index] _isComparisonMode: {_isComparisonMode}");
-        Console.WriteLine($"[Index] ComparisonMode.State.IsEnabled: {ComparisonMode.State.IsEnabled}");
-        Console.WriteLine($"[Index] ComparisonMode.State.CurrentArraySize: {ComparisonMode.State.CurrentArraySize}");
-        Console.WriteLine($"[Index] ComparisonMode.State.CurrentPattern: {ComparisonMode.State.CurrentPattern}");
-        Console.WriteLine($"[Index] Current ArraySize: {ArraySize}");
-        Console.WriteLine($"[Index] Current Pattern: {SelectedPattern}");
-        Console.WriteLine($"[Index] Existing instances count: {ComparisonMode.State.Instances.Count}");
+        DebugSettings.Log($"[Index] AddAlgorithmToComparison called");
+        DebugSettings.Log($"[Index] _isComparisonMode: {_isComparisonMode}");
+        DebugSettings.Log($"[Index] ComparisonMode.State.IsEnabled: {ComparisonMode.State.IsEnabled}");
+        DebugSettings.Log($"[Index] ComparisonMode.State.CurrentArraySize: {ComparisonMode.State.CurrentArraySize}");
+        DebugSettings.Log($"[Index] ComparisonMode.State.CurrentPattern: {ComparisonMode.State.CurrentPattern}");
+        DebugSettings.Log($"[Index] Current ArraySize: {ArraySize}");
+        DebugSettings.Log($"[Index] Current Pattern: {SelectedPattern}");
+        DebugSettings.Log($"[Index] Existing instances count: {ComparisonMode.State.Instances.Count}");
         foreach (var inst in ComparisonMode.State.Instances)
         {
-            Console.WriteLine($"[Index]   - {inst.AlgorithmName}: {inst.State.MainArray.Length} elements");
+            DebugSettings.Log($"[Index]   - {inst.AlgorithmName}: {inst.State.MainArray.Length} elements");
         }
 
         // 🔧 Array SizeまたはPatternが変更されている場合、既存のアルゴリズムを新しい設定で再実行
@@ -498,43 +510,43 @@ private string _runningAlgorithmName = string.Empty;
         var needRegeneration = ComparisonMode.State.CurrentArraySize != currentSize 
                             || ComparisonMode.State.CurrentPattern != SelectedPattern;
         
-        Console.WriteLine($"[Index] NeedRegeneration: {needRegeneration} (size: {ComparisonMode.State.CurrentArraySize} vs {currentSize}, pattern: {ComparisonMode.State.CurrentPattern} vs {SelectedPattern})");
+        DebugSettings.Log($"[Index] NeedRegeneration: {needRegeneration} (size: {ComparisonMode.State.CurrentArraySize} vs {currentSize}, pattern: {ComparisonMode.State.CurrentPattern} vs {SelectedPattern})");
         
         if (needRegeneration && ComparisonMode.State.Instances.Any())
         {
-            Console.WriteLine($"[Index] ✅ Settings changed - regenerating all existing algorithms");
-            Console.WriteLine($"[Index]    Old: size={ComparisonMode.State.CurrentArraySize}, pattern={ComparisonMode.State.CurrentPattern}");
-            Console.WriteLine($"[Index]    New: size={currentSize}, pattern={SelectedPattern}");
+            DebugSettings.Log($"[Index] ✅ Settings changed - regenerating all existing algorithms");
+            DebugSettings.Log($"[Index]    Old: size={ComparisonMode.State.CurrentArraySize}, pattern={ComparisonMode.State.CurrentPattern}");
+            DebugSettings.Log($"[Index]    New: size={currentSize}, pattern={SelectedPattern}");
             
             // 既存のアルゴリズム情報を保存
             var existingAlgorithms = ComparisonMode.State.Instances
                 .Select(i => new { i.AlgorithmName, i.Metadata })
                 .ToList();
             
-            Console.WriteLine($"[Index] Saved {existingAlgorithms.Count} existing algorithms");
+            DebugSettings.Log($"[Index] Saved {existingAlgorithms.Count} existing algorithms");
             
             // 新しい配列を生成
             var newArray = PatternGenerator.Generate(currentSize, SelectedPattern);
-            Console.WriteLine($"[Index] Generated new array: {newArray.Length} elements with pattern {SelectedPattern}");
+            DebugSettings.Log($"[Index] Generated new array: {newArray.Length} elements with pattern {SelectedPattern}");
             
             ComparisonMode.Enable(newArray, currentSize, SelectedPattern);
-            Console.WriteLine($"[Index] Called Enable() - instances should be cleared now");
+            DebugSettings.Log($"[Index] Called Enable() - instances should be cleared now");
             
             // すべてのアルゴリズムを新しい設定で再追加
             foreach (var algo in existingAlgorithms)
             {
                 ComparisonMode.AddAlgorithm(algo.AlgorithmName, algo.Metadata);
-                Console.WriteLine($"[Index] Re-added {algo.AlgorithmName} with new settings");
+                DebugSettings.Log($"[Index] Re-added {algo.AlgorithmName} with new settings");
                 
                 // 追加直後に速度設定を適用
                 ComparisonMode.SetSpeedForAll(Playback.OperationsPerFrame, Playback.SpeedMultiplier);
             }
             
-            Console.WriteLine($"[Index] After re-adding, instances count: {ComparisonMode.State.Instances.Count}");
+            DebugSettings.Log($"[Index] After re-adding, instances count: {ComparisonMode.State.Instances.Count}");
         }
         else if (needRegeneration)
         {
-            Console.WriteLine($"[Index] ⚠️ No existing instances, just updating settings");
+            DebugSettings.Log($"[Index] ⚠️ No existing instances, just updating settings");
             
             // アルゴリズムがまだない場合は、単純に設定を更新
             var newArray = PatternGenerator.Generate(currentSize, SelectedPattern);
@@ -545,49 +557,49 @@ private string _runningAlgorithmName = string.Empty;
         }
         else
         {
-            Console.WriteLine($"[Index] ℹ️ Settings unchanged, using existing configuration");
+            DebugSettings.Log($"[Index] ℹ️ Settings unchanged, using existing configuration");
         }
 
         // 現在選択中のアルゴリズムを追加
         var metadata = Registry.GetAllAlgorithms().FirstOrDefault(a => a.Name == SelectedAlgorithm);
         if (metadata == null)
         {
-            Console.WriteLine($"[Index] Algorithm not found: {SelectedAlgorithm}");
+            DebugSettings.Log($"[Index] Algorithm not found: {SelectedAlgorithm}");
             return;
         }
 
         // すでに追加済みかチェック
         if (ComparisonMode.State.Instances.Any(x => x.AlgorithmName == SelectedAlgorithm))
         {
-            Console.WriteLine($"[Index] {SelectedAlgorithm} is already in comparison");
+            DebugSettings.Log($"[Index] {SelectedAlgorithm} is already in comparison");
             return;
         }
 
-        Console.WriteLine($"[Index] Adding new algorithm: {SelectedAlgorithm}");
+        DebugSettings.Log($"[Index] Adding new algorithm: {SelectedAlgorithm}");
         ComparisonMode.AddAlgorithm(SelectedAlgorithm, metadata);
-        Console.WriteLine($"[Index] After adding, instances count: {ComparisonMode.State.Instances.Count}");
+        DebugSettings.Log($"[Index] After adding, instances count: {ComparisonMode.State.Instances.Count}");
         
         // 新しく追加したアルゴリズムにも速度設定を適用
         ComparisonMode.SetSpeedForAll(Playback.OperationsPerFrame, Playback.SpeedMultiplier);
-        Console.WriteLine($"[Index] Applied speed settings to new algorithm: OperationsPerFrame={Playback.OperationsPerFrame}, SpeedMultiplier={Playback.SpeedMultiplier}");
+        DebugSettings.Log($"[Index] Applied speed settings to new algorithm: OperationsPerFrame={Playback.OperationsPerFrame}, SpeedMultiplier={Playback.SpeedMultiplier}");
         
         StateHasChanged();
     }
 
     private void RemoveAlgorithmFromComparison(int index)
     {
-        Console.WriteLine($"[Index] RemoveAlgorithmFromComparison called for index: {index}");
-        Console.WriteLine($"[Index] Before removal, instances count: {ComparisonMode.State.Instances.Count}");
+        DebugSettings.Log($"[Index] RemoveAlgorithmFromComparison called for index: {index}");
+        DebugSettings.Log($"[Index] Before removal, instances count: {ComparisonMode.State.Instances.Count}");
         
         if (index >= 0 && index < ComparisonMode.State.Instances.Count)
         {
             var algorithmName = ComparisonMode.State.Instances[index].AlgorithmName;
-            Console.WriteLine($"[Index] Removing algorithm: {algorithmName}");
+            DebugSettings.Log($"[Index] Removing algorithm: {algorithmName}");
         }
         
         ComparisonMode.RemoveAlgorithm(index);
         
-        Console.WriteLine($"[Index] After removal, instances count: {ComparisonMode.State.Instances.Count}");
+        DebugSettings.Log($"[Index] After removal, instances count: {ComparisonMode.State.Instances.Count}");
         StateHasChanged();
     }
 
@@ -646,19 +658,19 @@ private string _runningAlgorithmName = string.Empty;
 
     private void OnSpeedSettingsChanged()
     {
-        Console.WriteLine($"[Index] OnSpeedSettingsChanged called. _isComparisonMode: {_isComparisonMode}");
-        Console.WriteLine($"[Index] Current settings: OperationsPerFrame={Playback.OperationsPerFrame}, SpeedMultiplier={Playback.SpeedMultiplier}");
+        DebugSettings.Log($"[Index] OnSpeedSettingsChanged called. _isComparisonMode: {_isComparisonMode}");
+        DebugSettings.Log($"[Index] Current settings: OperationsPerFrame={Playback.OperationsPerFrame}, SpeedMultiplier={Playback.SpeedMultiplier}");
         
         // 比較モードが有効な場合、すべてのアルゴリズムに速度設定を適用
         if (_isComparisonMode)
         {
             ComparisonMode.SetSpeedForAll(Playback.OperationsPerFrame, Playback.SpeedMultiplier);
-            Console.WriteLine($"[Index] SetSpeedForAll called with ops={Playback.OperationsPerFrame}, speed={Playback.SpeedMultiplier}");
+            DebugSettings.Log($"[Index] SetSpeedForAll called with ops={Playback.OperationsPerFrame}, speed={Playback.SpeedMultiplier}");
             
             // 適用後の確認
             foreach (var instance in ComparisonMode.State.Instances)
             {
-                Console.WriteLine($"[Index]   {instance.AlgorithmName}: ops={instance.Playback.OperationsPerFrame}, speed={instance.Playback.SpeedMultiplier}");
+                DebugSettings.Log($"[Index]   {instance.AlgorithmName}: ops={instance.Playback.OperationsPerFrame}, speed={instance.Playback.SpeedMultiplier}");
             }
         }
         StateHasChanged();

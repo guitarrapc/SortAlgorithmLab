@@ -2,6 +2,7 @@
 @using SortAlgorithm.VisualizationWeb.Services
 @using Microsoft.JSInterop
 @inject IJSRuntime JS
+@inject DebugSettings DebugSettings
 @implements IAsyncDisposable
 
 <div class="circular-chart-container @(State?.PlaybackState == PlaybackState.Playing ? "playing" : "")" 
@@ -53,7 +54,7 @@
             // グリッド列数が変わった場合の記録（ResizeObserverが自動リサイズ＆再描画）
             if (_previousGridColumnCount != GridColumnCount)
             {
-                Console.WriteLine($"[CircularRenderer] Grid column count changed: {_previousGridColumnCount} -> {GridColumnCount} for canvas {_canvasId}");
+                DebugSettings.Log($"[CircularRenderer] Grid column count changed: {_previousGridColumnCount} -> {GridColumnCount} for canvas {_canvasId}");
                 _previousGridColumnCount = GridColumnCount;
             }
             
@@ -81,7 +82,7 @@
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"Circular Canvas render error: {ex.Message}");
+            DebugSettings.Log($"Circular Canvas render error: {ex.Message}");
         }
     }
     
@@ -92,23 +93,23 @@
     
     public async ValueTask DisposeAsync()
     {
-        Console.WriteLine($"[CircularRenderer] DisposeAsync called for canvas: {_canvasId}");
+        DebugSettings.Log($"[CircularRenderer] DisposeAsync called for canvas: {_canvasId}");
         
         if (_isInitialized)
         {
             try
             {
                 await JS.InvokeVoidAsync("circularCanvasRenderer.dispose", _canvasId);
-                Console.WriteLine($"[CircularRenderer] Successfully disposed canvas: {_canvasId}");
+                DebugSettings.Log($"[CircularRenderer] Successfully disposed canvas: {_canvasId}");
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"[CircularRenderer] ERROR disposing canvas {_canvasId}: {ex.Message}");
+                DebugSettings.Log($"[CircularRenderer] ERROR disposing canvas {_canvasId}: {ex.Message}");
             }
         }
         else
         {
-            Console.WriteLine($"[CircularRenderer] Canvas {_canvasId} was not initialized, skipping dispose");
+            DebugSettings.Log($"[CircularRenderer] Canvas {_canvasId} was not initialized, skipping dispose");
         }
     }
 }

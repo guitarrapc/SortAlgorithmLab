@@ -1,5 +1,6 @@
 @using SortAlgorithm.VisualizationWeb.Models
 @using SortAlgorithm.VisualizationWeb.Services
+@inject DebugSettings DebugSettings
 @implements IDisposable
 
 <div class="comparison-grid-item @(Instance.State.IsSortCompleted ? "completed" : "")">
@@ -68,13 +69,13 @@
         // PlaybackServiceが変更された場合は、イベント購読を更新
         if (_previousPlayback != Playback)
         {
-            Console.WriteLine($"[ComparisonGridItem] Playback changed for {Instance.AlgorithmName}");
+            DebugSettings.Log($"[ComparisonGridItem] Playback changed for {Instance.AlgorithmName}");
             
             // 古いPlaybackServiceからイベント購読解除
             if (_previousPlayback != null)
             {
                 _previousPlayback.StateChanged -= OnPlaybackStateChanged;
-                Console.WriteLine($"[ComparisonGridItem] Unsubscribed from old PlaybackService");
+                DebugSettings.Log($"[ComparisonGridItem] Unsubscribed from old PlaybackService");
             }
             
             // 新しいPlaybackServiceにイベント購読
@@ -88,7 +89,7 @@
         {
             Playback.StateChanged += OnPlaybackStateChanged;
             _previousPlayback = Playback;
-            Console.WriteLine($"[ComparisonGridItem] Subscribed to PlaybackService for {Instance.AlgorithmName}");
+            DebugSettings.Log($"[ComparisonGridItem] Subscribed to PlaybackService for {Instance.AlgorithmName}");
         }
     }
     
@@ -108,7 +109,7 @@
     
     public void Dispose()
     {
-        Console.WriteLine($"[ComparisonGridItem] Disposing item: {Instance.AlgorithmName}");
+        DebugSettings.Log($"[ComparisonGridItem] Disposing item: {Instance.AlgorithmName}");
         
         try
         {
@@ -116,12 +117,12 @@
             if (_previousPlayback != null)
             {
                 _previousPlayback.StateChanged -= OnPlaybackStateChanged;
-                Console.WriteLine($"[ComparisonGridItem] Event unsubscribed successfully for {Instance.AlgorithmName}");
+                DebugSettings.Log($"[ComparisonGridItem] Event unsubscribed successfully for {Instance.AlgorithmName}");
             }
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"[ComparisonGridItem] ERROR during dispose: {ex.Message}");
+            DebugSettings.Log($"[ComparisonGridItem] ERROR during dispose: {ex.Message}");
         }
     }
 }

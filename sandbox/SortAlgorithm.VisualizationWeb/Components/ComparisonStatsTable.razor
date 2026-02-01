@@ -1,6 +1,7 @@
 @using SortAlgorithm.VisualizationWeb.Models
 @using SortAlgorithm.VisualizationWeb.Services
 @inject IJSRuntime JS
+@inject DebugSettings DebugSettings
 
 <!-- トグルボタン（右端に固定） -->
 <button class="stats-panel-toggle @(IsOpen ? "open" : "")" 
@@ -170,11 +171,11 @@
         try
         {
             await JS.InvokeVoidAsync("navigator.clipboard.writeText", tsv);
-            Console.WriteLine("[ComparisonStatsTable] Table copied to clipboard");
+            DebugSettings.Log("[ComparisonStatsTable] Table copied to clipboard");
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"[ComparisonStatsTable] Failed to copy: {ex.Message}");
+            DebugSettings.Log($"[ComparisonStatsTable] Failed to copy: {ex.Message}");
         }
     }
 }
