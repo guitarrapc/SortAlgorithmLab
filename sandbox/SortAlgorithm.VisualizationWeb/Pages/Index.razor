@@ -458,16 +458,16 @@ private string _runningAlgorithmName = string.Empty;
         {
             // 比較モードON: 初期配列を生成して設定
             var size = Math.Min(ArraySize, 4096);
-            Console.WriteLine($"[OnComparisonModeChanged] Generating array of size: {size}");
+            Console.WriteLine($"[OnComparisonModeChanged] Generating array of size: {size} with pattern: {SelectedPattern}");
             var array = PatternGenerator.Generate(size, SelectedPattern);
             Console.WriteLine($"[OnComparisonModeChanged] Generated array length: {array.Length}");
             
-            ComparisonMode.Enable(array);
+            ComparisonMode.Enable(array, size, SelectedPattern);
             
             // サイドバーの速度設定を比較モードに適用
             ComparisonMode.SetSpeedForAll(Playback.OperationsPerFrame, Playback.SpeedMultiplier);
             
-            Console.WriteLine($"[OnComparisonModeChanged] Comparison mode enabled with array");
+            Console.WriteLine($"[OnComparisonModeChanged] Comparison mode enabled with {SelectedPattern} pattern");
         }
         else
         {
@@ -486,23 +486,28 @@ private string _runningAlgorithmName = string.Empty;
         Console.WriteLine($"[Index] AddAlgorithmToComparison called");
         Console.WriteLine($"[Index] _isComparisonMode: {_isComparisonMode}");
         Console.WriteLine($"[Index] ComparisonMode.State.IsEnabled: {ComparisonMode.State.IsEnabled}");
-        Console.WriteLine($"[Index] ComparisonMode.State.InitialArray.Length: {ComparisonMode.State.InitialArray.Length}");
+        Console.WriteLine($"[Index] ComparisonMode.State.CurrentArraySize: {ComparisonMode.State.CurrentArraySize}");
+        Console.WriteLine($"[Index] ComparisonMode.State.CurrentPattern: {ComparisonMode.State.CurrentPattern}");
         Console.WriteLine($"[Index] Current ArraySize: {ArraySize}");
+        Console.WriteLine($"[Index] Current Pattern: {SelectedPattern}");
         Console.WriteLine($"[Index] Existing instances count: {ComparisonMode.State.Instances.Count}");
         foreach (var inst in ComparisonMode.State.Instances)
         {
             Console.WriteLine($"[Index]   - {inst.AlgorithmName}: {inst.State.MainArray.Length} elements");
         }
 
-        // 🔧 Array Sizeが変更されている場合、既存のアルゴリズムを新しいサイズで再実行
+        // 🔧 Array SizeまたはPatternが変更されている場合、既存のアルゴリズムを新しい設定で再実行
         var currentSize = Math.Min(ArraySize, 4096);
-        Console.WriteLine($"[Index] Comparing: InitialArray.Length ({ComparisonMode.State.InitialArray.Length}) != currentSize ({currentSize}) ? {ComparisonMode.State.InitialArray.Length != currentSize}");
-        Console.WriteLine($"[Index] Instances.Any() ? {ComparisonMode.State.Instances.Any()}");
+        var needRegeneration = ComparisonMode.State.CurrentArraySize != currentSize 
+                            || ComparisonMode.State.CurrentPattern != SelectedPattern;
         
-        if (ComparisonMode.State.InitialArray.Length != currentSize && ComparisonMode.State.Instances.Any())
+        Console.WriteLine($"[Index] NeedRegeneration: {needRegeneration} (size: {ComparisonMode.State.CurrentArraySize} vs {currentSize}, pattern: {ComparisonMode.State.CurrentPattern} vs {SelectedPattern})");
+        
+        if (needRegeneration && ComparisonMode.State.Instances.Any())
         {
-            Console.WriteLine($"[Index] ✅ Array size changed: {ComparisonMode.State.InitialArray.Length} -> {currentSize}");
-            Console.WriteLine($"[Index] Regenerating all existing algorithms with new size");
+            Console.WriteLine($"[Index] ✅ Settings changed - regenerating all existing algorithms");
+            Console.WriteLine($"[Index]    Old: size={ComparisonMode.State.CurrentArraySize}, pattern={ComparisonMode.State.CurrentPattern}");
+            Console.WriteLine($"[Index]    New: size={currentSize}, pattern={SelectedPattern}");
             
             // 既存のアルゴリズム情報を保存
             var existingAlgorithms = ComparisonMode.State.Instances
@@ -513,30 +518,30 @@ private string _runningAlgorithmName = string.Empty;
             
             // 新しい配列を生成
             var newArray = PatternGenerator.Generate(currentSize, SelectedPattern);
-            Console.WriteLine($"[Index] Generated new array: {newArray.Length} elements");
+            Console.WriteLine($"[Index] Generated new array: {newArray.Length} elements with pattern {SelectedPattern}");
             
-            ComparisonMode.Enable(newArray);
+            ComparisonMode.Enable(newArray, currentSize, SelectedPattern);
             Console.WriteLine($"[Index] Called Enable() - instances should be cleared now");
             
-            // すべてのアルゴリズムを新しいサイズで再追加
+            // すべてのアルゴリズムを新しい設定で再追加
             foreach (var algo in existingAlgorithms)
             {
                 ComparisonMode.AddAlgorithm(algo.AlgorithmName, algo.Metadata);
-                Console.WriteLine($"[Index] Re-added {algo.AlgorithmName} with new array size");
+                Console.WriteLine($"[Index] Re-added {algo.AlgorithmName} with new settings");
             }
             
             Console.WriteLine($"[Index] After re-adding, instances count: {ComparisonMode.State.Instances.Count}");
         }
-        else if (ComparisonMode.State.InitialArray.Length != currentSize)
+        else if (needRegeneration)
         {
-            Console.WriteLine($"[Index] ⚠️ No existing instances, just updating initial array");
-            // アルゴリズムがまだない場合は、単純に配列を再生成
+            Console.WriteLine($"[Index] ⚠️ No existing instances, just updating settings");
+            // アルゴリズムがまだない場合は、単純に設定を更新
             var newArray = PatternGenerator.Generate(currentSize, SelectedPattern);
-            ComparisonMode.Enable(newArray);
+            ComparisonMode.Enable(newArray, currentSize, SelectedPattern);
         }
         else
         {
-            Console.WriteLine($"[Index] ❌ Array size unchanged, skipping regeneration");
+            Console.WriteLine($"[Index] ℹ️ Settings unchanged, using existing configuration");
         }
 
         // 現在選択中のアルゴリズムを追加

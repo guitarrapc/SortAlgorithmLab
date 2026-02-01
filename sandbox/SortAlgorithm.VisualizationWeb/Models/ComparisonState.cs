@@ -16,6 +16,16 @@ public class ComparisonState
     public int[] InitialArray { get; set; } = Array.Empty<int>();
     
     /// <summary>
+    /// 現在の配列サイズ
+    /// </summary>
+    public int CurrentArraySize { get; set; }
+    
+    /// <summary>
+    /// 現在の配列パターン
+    /// </summary>
+    public ArrayPattern CurrentPattern { get; set; }
+    
+    /// <summary>
     /// 比較モードが有効か
     /// </summary>
     public bool IsEnabled { get; set; }
