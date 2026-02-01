@@ -4,4 +4,3 @@ QuicksortのPivot、ShellSortの現在gapなど、アルゴリズムの進行状
 バケット境界を色分け表示
 再帰深度をレベル表示
 現在処理中のバケット範囲をハイライト
-Index Read/WriteもCompare Modeで載せたい
