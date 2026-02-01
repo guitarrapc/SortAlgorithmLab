@@ -1,4 +1,4 @@
-﻿using SortAlgorithm.VisualizationWeb.Models;
+using SortAlgorithm.VisualizationWeb.Models;
 namespace SortAlgorithm.VisualizationWeb.Services;
 
 public class ComparisonModeService : IDisposable
@@ -161,9 +161,13 @@ public class ComparisonModeService : IDisposable
     }
     public void SetSpeedForAll(int ops, double speed)
     {
+        Console.WriteLine($"[ComparisonModeService] SetSpeedForAll called with ops={ops}, speed={speed}");
+        Console.WriteLine($"[ComparisonModeService] Applying to {_playbackServices.Count} playback services");
+        
         foreach (var p in _playbackServices)
         {
-            p.OperationsPerFrame = ops; p.SpeedMultiplier = speed;
+            p.OperationsPerFrame = ops;
+            p.SpeedMultiplier = speed;
         }
 
         NotifyStateChanged();

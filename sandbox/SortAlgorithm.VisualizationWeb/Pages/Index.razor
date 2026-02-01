@@ -528,6 +528,9 @@ private string _runningAlgorithmName = string.Empty;
             {
                 ComparisonMode.AddAlgorithm(algo.AlgorithmName, algo.Metadata);
                 Console.WriteLine($"[Index] Re-added {algo.AlgorithmName} with new settings");
+                
+                // 追加直後に速度設定を適用
+                ComparisonMode.SetSpeedForAll(Playback.OperationsPerFrame, Playback.SpeedMultiplier);
             }
             
             Console.WriteLine($"[Index] After re-adding, instances count: {ComparisonMode.State.Instances.Count}");
@@ -535,9 +538,13 @@ private string _runningAlgorithmName = string.Empty;
         else if (needRegeneration)
         {
             Console.WriteLine($"[Index] ⚠️ No existing instances, just updating settings");
+            
             // アルゴリズムがまだない場合は、単純に設定を更新
             var newArray = PatternGenerator.Generate(currentSize, SelectedPattern);
             ComparisonMode.Enable(newArray, currentSize, SelectedPattern);
+            
+            // 速度設定を再適用（パターン変更後にリセットされるのを防ぐ）
+            ComparisonMode.SetSpeedForAll(Playback.OperationsPerFrame, Playback.SpeedMultiplier);
         }
         else
         {
@@ -563,11 +570,12 @@ private string _runningAlgorithmName = string.Empty;
         ComparisonMode.AddAlgorithm(SelectedAlgorithm, metadata);
         Console.WriteLine($"[Index] After adding, instances count: {ComparisonMode.State.Instances.Count}");
         
+        // 新しく追加したアルゴリズムにも速度設定を適用
+        ComparisonMode.SetSpeedForAll(Playback.OperationsPerFrame, Playback.SpeedMultiplier);
+        Console.WriteLine($"[Index] Applied speed settings to new algorithm: OperationsPerFrame={Playback.OperationsPerFrame}, SpeedMultiplier={Playback.SpeedMultiplier}");
+        
         StateHasChanged();
     }
-
-
-
 
     private void RemoveAlgorithmFromComparison(int index)
     {
@@ -641,10 +649,20 @@ private string _runningAlgorithmName = string.Empty;
 
     private void OnSpeedSettingsChanged()
     {
+        Console.WriteLine($"[Index] OnSpeedSettingsChanged called. _isComparisonMode: {_isComparisonMode}");
+        Console.WriteLine($"[Index] Current settings: OperationsPerFrame={Playback.OperationsPerFrame}, SpeedMultiplier={Playback.SpeedMultiplier}");
+        
         // 比較モードが有効な場合、すべてのアルゴリズムに速度設定を適用
         if (_isComparisonMode)
         {
             ComparisonMode.SetSpeedForAll(Playback.OperationsPerFrame, Playback.SpeedMultiplier);
+            Console.WriteLine($"[Index] SetSpeedForAll called with ops={Playback.OperationsPerFrame}, speed={Playback.SpeedMultiplier}");
+            
+            // 適用後の確認
+            foreach (var instance in ComparisonMode.State.Instances)
+            {
+                Console.WriteLine($"[Index]   {instance.AlgorithmName}: ops={instance.Playback.OperationsPerFrame}, speed={instance.Playback.SpeedMultiplier}");
+            }
         }
         StateHasChanged();
     }
