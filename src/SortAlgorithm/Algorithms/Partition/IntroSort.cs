@@ -58,6 +58,17 @@ namespace SortAlgorithm.Algorithms;
 /// <item><description>Threshold of 30 matches C++ std::introsort for trivially copyable types</description></item>
 /// </list>
 /// This hybrid approach achieves better constant factors than pure QuickSort while maintaining O(n log n) worst-case.</description></item>
+/// <item><description><strong>Nearly-Sorted Detection with Early Abort (SortIncomplete):</strong> When partitioning produces zero swaps,
+/// the partition is likely nearly sorted. The algorithm uses InsertionSort.SortIncomplete to attempt sorting:
+/// <list type="bullet">
+/// <item><description>For very small partitions (2-5 elements): Uses sorting networks for optimal performance</description></item>
+/// <item><description>For larger partitions: Tracks insertion count; aborts if more than 8 insertions are needed</description></item>
+/// <item><description>If both partitions complete: Entire range is sorted, return early</description></item>
+/// <item><description>If one partition completes: Continue with only the incomplete partition (tail recursion optimization)</description></item>
+/// <item><description>If both partitions incomplete: Fall through to regular QuickSort/HeapSort (partition not nearly sorted)</description></item>
+/// </list>
+/// This optimization is based on LLVM libcxx's __insertion_sort_incomplete and significantly improves performance for nearly-sorted data,
+/// common in real-world scenarios (append operations, partially sorted streams, time-series data).</description></item>
 /// <item><description><strong>HeapSort Fallback Correctness:</strong> When depthLimit reaches 0, the current partition is sorted using HeapSort.
 /// HeapSort guarantees O(n log n) time complexity regardless of input distribution, providing a safety net against adversarial inputs.
 /// The depth limit ensures that HeapSort is invoked only when QuickSort exhibits pathological behavior,
@@ -82,7 +93,7 @@ namespace SortAlgorithm.Algorithms;
 /// <item><description>Stack-safe: Tail recursion optimization + depth limit ensures O(log n) stack depth</description></item>
 /// <item><description>Practical performance: Used in production libraries (C++ std::sort, .NET Array.Sort, Java Arrays.sort for primitives)</description></item>
 /// <item><description>Robust pivot selection: Ninther (median-of-5) for large arrays and quartile-based median-of-3 for smaller arrays handle various data patterns</description></item>
-/// <item><description>Nearly-sorted optimization: Detects already-sorted partitions (zero swaps) and completes them efficiently with InsertionSort</description></item>
+/// <item><description>Nearly-sorted optimization: Detects potential nearly-sorted partitions (zero swaps) and uses SortIncomplete with early abort (LLVM libcxx optimization)</description></item>
 /// </list>
 /// <para><strong>Implementation Details:</strong></para>
 /// <list type="bullet">
@@ -94,7 +105,8 @@ namespace SortAlgorithm.Algorithms;
 /// <item><description>Arrays &lt; 1000: Median-of-3 using quartile positions (n/4, n/2, 3n/4)</description></item>
 /// </list></description></item>
 /// <item><description>Partition scheme: Hoare partition (bidirectional scan) for fewer swaps and better duplicate handling</description></item>
-/// <item><description>Nearly-sorted detection: Tracks swap count during partitioning; if zero, uses InsertionSort to complete (similar to C++ std::introsort)</description></item>
+/// <item><description>Nearly-sorted detection: Tracks swap count during partitioning; if zero, uses SortIncomplete with early abort (LLVM __insertion_sort_incomplete)</description></item>
+/// <item><description>Small array sorting networks: Partitions of 2-5 elements use optimal sorting networks (2-10 comparisons)</description></item>
 /// <item><description>Tail recursion: Always recurse on smaller partition, loop on larger to guarantee O(log n) stack depth (matches LLVM std::sort)</description></item>
 /// </list>
 /// <para><strong>Historical Context:</strong></para>
@@ -294,32 +306,43 @@ public static class IntroSort
                 }
             }
 
-            // Nearly-sorted detection: if no swaps occurred, try InsertionSort
+            // Nearly-sorted detection: if no swaps occurred, try InsertionSort with early abort
             // This is similar to C++ std::introsort's __insertion_sort_incomplete optimization
             if (swapCount == 0)
             {
                 // For nearly-sorted arrays, InsertionSort is very efficient
-                // Try left partition first (left-to-right order for consistent visualization)
-                if (left < r)
+                // Try both partitions with SortIncomplete (can give up if not nearly sorted)
+                var leftSorted = left >= r || InsertionSort.SortIncomplete(s, left, r + 1, leftmost);
+                var rightSorted = l >= right || InsertionSort.SortIncomplete(s, l, right + 1, false);
+
+                if (leftSorted)
                 {
-                    if (leftmost)
+                    if (rightSorted)
                     {
-                        InsertionSort.SortCore(s, left, r + 1);
+                        // Both partitions completed successfully - done
+                        return;
                     }
                     else
                     {
-                        InsertionSort.UnguardedSortCore(s, left, r + 1);
+                        // Left done, right needs more work - continue with right partition
+                        leftmost = false;
+                        left = l;
+                        continue;
                     }
                 }
-
-                // Then process right partition (always non-leftmost after partitioning)
-                if (l < right)
+                else
                 {
-                    InsertionSort.UnguardedSortCore(s, l, right + 1);
+                    if (rightSorted)
+                    {
+                        // Right done, left needs more work - continue with left partition
+                        right = r;
+                        continue;
+                    }
+                    else
+                    {
+                        // Both partitions incomplete - fall through to regular tail recursion
+                    }
                 }
-
-                // Both partitions handled
-                return;
             }
 
             // Tail recursion optimization: always recurse on smaller partition, loop on larger

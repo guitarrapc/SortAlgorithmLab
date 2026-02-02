@@ -203,6 +203,176 @@ public static class InsertionSort
             }
         }
     }
+
+    /// <summary>
+    /// Attempts to sort the subrange [first..last) using insertion sort, but gives up early if the array appears unsorted.
+    /// This is an optimization for nearly-sorted arrays: if too many insertions are required, returns false
+    /// to indicate the array is not nearly sorted and a different algorithm should be used.
+    /// This is similar to C++ std::introsort's __insertion_sort_incomplete optimization.
+    /// </summary>
+    /// <typeparam name="T">The type of elements in the span. Must implement <see cref="IComparable{T}"/>.</typeparam>
+    /// <param name="s">The SortSpan wrapping the span to sort.</param>
+    /// <param name="first">The inclusive start index of the range to sort.</param>
+    /// <param name="last">The exclusive end index of the range to sort.</param>
+    /// <param name="leftmost">True if this is the leftmost partition (requires boundary checks),
+    /// false otherwise (can use unguarded version with sentinel).</param>
+    /// <returns>True if the range was successfully sorted or is very small (&lt;= 5 elements),
+    /// false if sorting appears to require significant work (more than 8 insertions detected).</returns>
+    /// <remarks>
+    /// This method implements the "give up early" optimization from LLVM libcxx's __insertion_sort_incomplete:
+    /// - For very small arrays (0-5 elements): Always completes sorting and returns true
+    /// - For larger arrays: Tracks insertion count; if more than 8 insertions are needed, gives up and returns false
+    /// 
+    /// The threshold of 8 insertions is based on empirical observation that:
+    /// - Nearly sorted arrays typically need very few insertions (0-8)
+    /// - Truly unsorted arrays need many insertions, making insertion sort inefficient
+    /// - Giving up early prevents wasting time on insertion sort when QuickSort/HeapSort would be faster
+    /// 
+    /// This is particularly effective for IntroSort when swap count is zero (potential nearly-sorted partition):
+    /// - If both partitions return true: entire range is sorted, done
+    /// - If one returns false: that partition needs further QuickSort/HeapSort
+    /// - If one returns true: one partition done, only recurse on the other
+    /// </remarks>
+    internal static bool SortIncomplete<T>(SortSpan<T> s, int first, int last, bool leftmost) where T : IComparable<T>
+    {
+        var length = last - first;
+
+        // Handle small cases directly (0-5 elements)
+        switch (length)
+        {
+            case 0:
+            case 1:
+                return true;
+            case 2:
+                if (s.Compare(first + 1, first) < 0)
+                {
+                    s.Swap(first, first + 1);
+                }
+                return true;
+            case 3:
+                // Sort 3 elements using sorting network
+                Sort3(s, first, first + 1, first + 2);
+                return true;
+            case 4:
+                // Sort 4 elements using sorting network
+                Sort4(s, first, first + 1, first + 2, first + 3);
+                return true;
+            case 5:
+                // Sort 5 elements using sorting network
+                Sort5(s, first, first + 1, first + 2, first + 3, first + 4);
+                return true;
+        }
+
+        // For larger arrays, perform insertion sort but give up if too many insertions are needed
+        const int insertionLimit = 8;
+        var insertionCount = 0;
+
+        if (leftmost)
+        {
+            // Guarded version for leftmost partition
+            for (var i = first + 1; i < last; i++)
+            {
+                var tmp = s.Read(i);
+                var j = i - 1;
+
+                if (s.Compare(j, tmp) > 0)
+                {
+                    // Element needs to be inserted (not already in correct position)
+                    if (++insertionCount >= insertionLimit)
+                    {
+                        return false; // Too many insertions, give up
+                    }
+
+                    while (j >= first && s.Compare(j, tmp) > 0)
+                    {
+                        s.Write(j + 1, s.Read(j));
+                        j--;
+                    }
+
+                    s.Write(j + 1, tmp);
+                }
+            }
+        }
+        else
+        {
+            // Unguarded version for non-leftmost partition (has sentinel)
+            for (var i = first + 1; i < last; i++)
+            {
+                var tmp = s.Read(i);
+                var j = i - 1;
+
+                if (s.Compare(j, tmp) > 0)
+                {
+                    // Element needs to be inserted
+                    if (++insertionCount >= insertionLimit)
+                    {
+                        return false; // Too many insertions, give up
+                    }
+
+                    while (s.Compare(j, tmp) > 0)
+                    {
+                        s.Write(j + 1, s.Read(j));
+                        j--;
+                    }
+
+                    s.Write(j + 1, tmp);
+                }
+            }
+        }
+
+        return true; // Successfully sorted without exceeding insertion limit
+    }
+
+    /// <summary>
+    /// Sorts exactly 3 elements using a sorting network (2-3 comparisons, 0-2 swaps).
+    /// </summary>
+    private static void Sort3<T>(SortSpan<T> s, int i0, int i1, int i2) where T : IComparable<T>
+    {
+        if (s.Compare(i1, i0) < 0) s.Swap(i0, i1);
+        if (s.Compare(i2, i1) < 0)
+        {
+            s.Swap(i1, i2);
+            if (s.Compare(i1, i0) < 0) s.Swap(i0, i1);
+        }
+    }
+
+    /// <summary>
+    /// Sorts exactly 4 elements using a sorting network (3-6 comparisons, 0-5 swaps).
+    /// </summary>
+    private static void Sort4<T>(SortSpan<T> s, int i0, int i1, int i2, int i3) where T : IComparable<T>
+    {
+        Sort3(s, i0, i1, i2);
+        if (s.Compare(i3, i2) < 0)
+        {
+            s.Swap(i2, i3);
+            if (s.Compare(i2, i1) < 0)
+            {
+                s.Swap(i1, i2);
+                if (s.Compare(i1, i0) < 0) s.Swap(i0, i1);
+            }
+        }
+    }
+
+    /// <summary>
+    /// Sorts exactly 5 elements using a sorting network (4-10 comparisons, 0-9 swaps).
+    /// </summary>
+    private static void Sort5<T>(SortSpan<T> s, int i0, int i1, int i2, int i3, int i4) where T : IComparable<T>
+    {
+        Sort4(s, i0, i1, i2, i3);
+        if (s.Compare(i4, i3) < 0)
+        {
+            s.Swap(i3, i4);
+            if (s.Compare(i3, i2) < 0)
+            {
+                s.Swap(i2, i3);
+                if (s.Compare(i2, i1) < 0)
+                {
+                    s.Swap(i1, i2);
+                    if (s.Compare(i1, i0) < 0) s.Swap(i0, i1);
+                }
+            }
+        }
+    }
 }
 
 /// <summary>
