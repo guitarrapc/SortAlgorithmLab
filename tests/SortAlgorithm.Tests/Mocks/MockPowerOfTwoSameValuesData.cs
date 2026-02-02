@@ -1,22 +1,39 @@
-﻿using System.Collections;
+﻿namespace SortAlgorithm.Tests;
 
-namespace SortAlgorithm.Tests;
-
-public class MockPowerOfTwoSameValuesData : IEnumerable<object[]>
+public static class MockPowerOfTwoSameValuesData
 {
-    private List<object[]> testData = new List<object[]>();
 
-    public MockPowerOfTwoSameValuesData()
+    public static IEnumerable<Func<InputSample<int>>> Generate()
     {
-        testData.Add([new InputSample<int>() { InputType = InputType.Random, Samples = Enumerable.Repeat(42, 16).ToArray() }]);
-        testData.Add([new InputSample<int>() { InputType = InputType.Random, Samples = Enumerable.Repeat(42, 64).ToArray() }]);
-        testData.Add([new InputSample<int>() { InputType = InputType.Random, Samples = Enumerable.Repeat(42, 256).ToArray() }]);
-        testData.Add([new InputSample<int>() { InputType = InputType.Random, Samples = Enumerable.Repeat(42, 512).ToArray() }]);
-        testData.Add([new InputSample<int>() { InputType = InputType.Random, Samples = Enumerable.Repeat(42, 1024).ToArray() }]);
-        testData.Add([new InputSample<int>() { InputType = InputType.Random, Samples = Enumerable.Repeat(42, 2048).ToArray() }]);
+        yield return () => new InputSample<int>()
+        {
+            InputType = InputType.Random,
+            Samples = Enumerable.Repeat(42, 16).ToArray()
+        };
+        yield return () => new InputSample<int>()
+        {
+            InputType = InputType.Random,
+            Samples = Enumerable.Repeat(42, 64).ToArray()
+        };
+        yield return () => new InputSample<int>()
+        {
+            InputType = InputType.Random,
+            Samples = Enumerable.Repeat(42, 256).ToArray()
+        };
+        yield return () => new InputSample<int>()
+        {
+            InputType = InputType.Random,
+            Samples = Enumerable.Repeat(42, 512).ToArray()
+        };
+        yield return () => new InputSample<int>()
+        {
+            InputType = InputType.Random,
+            Samples = Enumerable.Repeat(42, 1024).ToArray()
+        };
+        yield return () => new InputSample<int>()
+        {
+            InputType = InputType.Random,
+            Samples = Enumerable.Repeat(42, 2048).ToArray()
+        };
     }
-
-    public IEnumerator<object[]> GetEnumerator() => testData.GetEnumerator();
-
-    IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
 }

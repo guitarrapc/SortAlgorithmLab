@@ -1,50 +1,47 @@
 ﻿using SortAlgorithm.Algorithms;
 using SortAlgorithm.Contexts;
+using TUnit.Assertions.Enums;
 
 namespace SortAlgorithm.Tests;
 
 public class CombSortTests
 {
-    [Theory]
-    [ClassData(typeof(MockRandomData))]
-    [ClassData(typeof(MockNegativePositiveRandomData))]
-    [ClassData(typeof(MockNegativeRandomData))]
-    [ClassData(typeof(MockReversedData))]
-    [ClassData(typeof(MockMountainData))]
-    [ClassData(typeof(MockNearlySortedData))]
-    [ClassData(typeof(MockSameValuesData))]
-    [ClassData(typeof(MockAntiQuickSortData))]
-    [ClassData(typeof(MockQuickSortWorstCaseData))]
-    [ClassData(typeof(MockAllIdenticalData))]
-    [ClassData(typeof(MockTwoDistinctValuesData))]
-    [ClassData(typeof(MockHalfZeroHalfOneData))]
-    [ClassData(typeof(MockManyDuplicatesSqrtRangeData))]
-    [ClassData(typeof(MockHighlySkewedData))]
-    public void SortResultOrderTest(IInputSample<int> inputSample)
+    [Test]
+    [MethodDataSource(typeof(MockRandomData), nameof(MockRandomData.Generate))]
+    [MethodDataSource(typeof(MockNegativePositiveRandomData), nameof(MockNegativePositiveRandomData.Generate))]
+    [MethodDataSource(typeof(MockNegativeRandomData), nameof(MockNegativeRandomData.Generate))]
+    [MethodDataSource(typeof(MockReversedData), nameof(MockReversedData.Generate))]
+    [MethodDataSource(typeof(MockMountainData), nameof(MockMountainData.Generate))]
+    [MethodDataSource(typeof(MockNearlySortedData), nameof(MockNearlySortedData.Generate))]
+    [MethodDataSource(typeof(MockSameValuesData), nameof(MockSameValuesData.Generate))]
+    [MethodDataSource(typeof(MockAntiQuickSortData), nameof(MockAntiQuickSortData.Generate))]
+    [MethodDataSource(typeof(MockQuickSortWorstCaseData), nameof(MockQuickSortWorstCaseData.Generate))]
+    [MethodDataSource(typeof(MockAllIdenticalData), nameof(MockAllIdenticalData.Generate))]
+    [MethodDataSource(typeof(MockTwoDistinctValuesData), nameof(MockTwoDistinctValuesData.Generate))]
+    [MethodDataSource(typeof(MockHalfZeroHalfOneData), nameof(MockHalfZeroHalfOneData.Generate))]
+    [MethodDataSource(typeof(MockManyDuplicatesSqrtRangeData), nameof(MockManyDuplicatesSqrtRangeData.Generate))]
+    [MethodDataSource(typeof(MockHighlySkewedData), nameof(MockHighlySkewedData.Generate))]
+    public async Task SortResultOrderTest(IInputSample<int> inputSample)
     {
         if (inputSample.Samples.Length > 1024)
             return;
 
         var stats = new StatisticsContext();
         var array = inputSample.Samples.ToArray();
-        var originalCounts = array.GroupBy(x => x).ToDictionary(g => g.Key, g => g.Count());
+
 
         CombSort.Sort(array.AsSpan(), stats);
 
         // Check is sorted
-        for (int i = 0; i < array.Length - 1; i++)
-            Assert.True(array[i] <= array[i + 1]);
-
-        // Check element counts match
-        var sortedCounts = array.GroupBy(x => x).ToDictionary(g => g.Key, g => g.Count());
-        Assert.Equal(originalCounts, sortedCounts);
+        Array.Sort(inputSample.Samples);
+        await Assert.That(array).IsEquivalentTo(inputSample.Samples, CollectionOrdering.Matching);
     }
 
-    [Theory]
-    [InlineData(13)]
-    [InlineData(26)]
-    [InlineData(39)]
-    public void GapSequenceTest(int n)
+    [Test]
+    [Arguments(13)]
+    [Arguments(26)]
+    [Arguments(39)]
+    public async Task GapSequenceTest(int n)
     {
         var stats = new StatisticsContext();
         var data = Enumerable.Range(0, n).Reverse().ToArray();
@@ -52,35 +49,35 @@ public class CombSortTests
 
         // Verify that Comb11 optimization is working:
         // When gap calculation results in 9 or 10, it should be set to 11
-        // This should result in better performance than standard 1.3 shrink factor
+        // This should result in better performance than standard 1.3 shrink [Test]or
 
         // All elements should be sorted correctly
-        Assert.Equal(Enumerable.Range(0, n), data);
+        await Assert.That(data).IsEquivalentTo(Enumerable.Range(0, n).ToArray(), CollectionOrdering.Matching);
     }
 
 #if DEBUG
 
-    [Theory]
-    [ClassData(typeof(MockSortedData))]
-    public void StatisticsSortedTest(IInputSample<int> inputSample)
+    [Test]
+    [MethodDataSource(typeof(MockSortedData), nameof(MockSortedData.Generate))]
+    public async Task StatisticsSortedTest(IInputSample<int> inputSample)
     {
         var stats = new StatisticsContext();
         var array = inputSample.Samples.ToArray();
         CombSort.Sort(array.AsSpan(), stats);
 
-        Assert.Equal((ulong)inputSample.Samples.Length, (ulong)array.Length);
-        Assert.NotEqual(0UL, stats.IndexReadCount);
-        Assert.Equal(0UL, stats.IndexWriteCount);
-        Assert.NotEqual(0UL, stats.CompareCount);
-        Assert.Equal(0UL, stats.SwapCount);
+        await Assert.That((ulong)array.Length).IsEqualTo((ulong)inputSample.Samples.Length);
+        await Assert.That(stats.IndexReadCount).IsNotEqualTo(0UL);
+        await Assert.That(stats.IndexWriteCount).IsEqualTo(0UL);
+        await Assert.That(stats.CompareCount).IsNotEqualTo(0UL);
+        await Assert.That(stats.SwapCount).IsEqualTo(0UL);
     }
 
-    [Theory]
-    [InlineData(10)]
-    [InlineData(20)]
-    [InlineData(50)]
-    [InlineData(100)]
-    public void TheoreticalValuesSortedTest(int n)
+    [Test]
+    [Arguments(10)]
+    [Arguments(20)]
+    [Arguments(50)]
+    [Arguments(100)]
+    public async Task TheoreticalValuesSortedTest(int n)
     {
         var stats = new StatisticsContext();
         var sorted = Enumerable.Range(0, n).ToArray();
@@ -95,54 +92,52 @@ public class CombSortTests
         var expectedWrites = 0UL;
 
         // Comparisons should happen for all gaps
-        Assert.NotEqual(0UL, stats.CompareCount);
-        Assert.Equal(expectedSwaps, stats.SwapCount);
-        Assert.Equal(expectedWrites, stats.IndexWriteCount);
+        await Assert.That(stats.CompareCount).IsNotEqualTo(0UL);
+        await Assert.That(stats.SwapCount).IsEqualTo(expectedSwaps);
+        await Assert.That(stats.IndexWriteCount).IsEqualTo(expectedWrites);
 
         // Each comparison reads 2 elements
         var minIndexReads = stats.CompareCount * 2;
-        Assert.True(stats.IndexReadCount >= minIndexReads,
-            $"IndexReadCount ({stats.IndexReadCount}) should be >= {minIndexReads}");
+        await Assert.That(stats.IndexReadCount >= minIndexReads).IsTrue().Because($"IndexReadCount ({stats.IndexReadCount}) should be >= {minIndexReads}");
     }
 
-    [Theory]
-    [InlineData(10)]
-    [InlineData(20)]
-    [InlineData(50)]
-    [InlineData(100)]
-    public void TheoreticalValuesReversedTest(int n)
+    [Test]
+    [Arguments(10)]
+    [Arguments(20)]
+    [Arguments(50)]
+    [Arguments(100)]
+    public async Task TheoreticalValuesReversedTest(int n)
     {
         var stats = new StatisticsContext();
         var reversed = Enumerable.Range(0, n).Reverse().ToArray();
         CombSort.Sort(reversed.AsSpan(), stats);
 
         // Comb Sort with reversed data performs multiple passes
-        // Gap sequence reduces by factor of 1.3 each iteration
+        // Gap sequence reduces by [Test]or of 1.3 each iteration
         // Each gap h performs (n-h) comparisons
         // Reversed data will require many swaps, especially in early passes
 
         // Comparisons: Sum of (n-h) for all gaps in sequence
-        Assert.NotEqual(0UL, stats.CompareCount);
+        await Assert.That(stats.CompareCount).IsNotEqualTo(0UL);
 
         // Swaps: Should be significant for reversed data
-        Assert.NotEqual(0UL, stats.SwapCount);
+        await Assert.That(stats.SwapCount).IsNotEqualTo(0UL);
 
         // Each swap writes 2 elements
         var expectedWrites = stats.SwapCount * 2;
-        Assert.Equal(expectedWrites, stats.IndexWriteCount);
+        await Assert.That(stats.IndexWriteCount).IsEqualTo(expectedWrites);
 
         // Each comparison reads 2 elements
         var minIndexReads = stats.CompareCount * 2;
-        Assert.True(stats.IndexReadCount >= minIndexReads,
-            $"IndexReadCount ({stats.IndexReadCount}) should be >= {minIndexReads}");
+        await Assert.That(stats.IndexReadCount >= minIndexReads).IsTrue().Because($"IndexReadCount ({stats.IndexReadCount}) should be >= {minIndexReads}");
     }
 
-    [Theory]
-    [InlineData(10)]
-    [InlineData(20)]
-    [InlineData(50)]
-    [InlineData(100)]
-    public void TheoreticalValuesRandomTest(int n)
+    [Test]
+    [Arguments(10)]
+    [Arguments(20)]
+    [Arguments(50)]
+    [Arguments(100)]
+    public async Task TheoreticalValuesRandomTest(int n)
     {
         var stats = new StatisticsContext();
         var random = Enumerable.Range(0, n).OrderBy(_ => Guid.NewGuid()).ToArray();
@@ -157,17 +152,16 @@ public class CombSortTests
         var minCompares = (ulong)n; // At minimum, final pass with gap=1
         var maxCompares = (ulong)(n * n); // Upper bound for worst case
 
-        Assert.InRange(stats.CompareCount, minCompares, maxCompares);
-        Assert.NotEqual(0UL, stats.SwapCount);
+        await Assert.That(stats.CompareCount).IsBetween(minCompares, maxCompares);
+        await Assert.That(stats.SwapCount).IsNotEqualTo(0UL);
 
         // Each swap writes 2 elements
         var expectedWrites = stats.SwapCount * 2;
-        Assert.Equal(expectedWrites, stats.IndexWriteCount);
+        await Assert.That(stats.IndexWriteCount).IsEqualTo(expectedWrites);
 
         // Each comparison reads 2 elements
         var minIndexReads = stats.CompareCount * 2;
-        Assert.True(stats.IndexReadCount >= minIndexReads,
-            $"IndexReadCount ({stats.IndexReadCount}) should be >= {minIndexReads}");
+        await Assert.That(stats.IndexReadCount >= minIndexReads).IsTrue().Because($"IndexReadCount ({stats.IndexReadCount}) should be >= {minIndexReads}");
     }
 
 #endif

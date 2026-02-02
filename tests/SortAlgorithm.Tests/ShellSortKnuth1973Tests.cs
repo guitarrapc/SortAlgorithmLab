@@ -1,45 +1,42 @@
 ﻿using SortAlgorithm.Algorithms;
 using SortAlgorithm.Contexts;
+using TUnit.Assertions.Enums;
 
 namespace SortAlgorithm.Tests;
 
 // Tests using Knuth1973 - the classic and most well-known gap sequence
 public class ShellSortKnuth1973Tests
 {
-    [Theory]
-    [ClassData(typeof(MockRandomData))]
-    [ClassData(typeof(MockNegativePositiveRandomData))]
-    [ClassData(typeof(MockNegativeRandomData))]
-    [ClassData(typeof(MockReversedData))]
-    [ClassData(typeof(MockMountainData))]
-    [ClassData(typeof(MockNearlySortedData))]
-    [ClassData(typeof(MockSameValuesData))]
-    [ClassData(typeof(MockAntiQuickSortData))]
-    [ClassData(typeof(MockQuickSortWorstCaseData))]
-    [ClassData(typeof(MockAllIdenticalData))]
-    [ClassData(typeof(MockTwoDistinctValuesData))]
-    [ClassData(typeof(MockHalfZeroHalfOneData))]
-    [ClassData(typeof(MockManyDuplicatesSqrtRangeData))]
-    [ClassData(typeof(MockHighlySkewedData))]
-    public void SortResultOrderTest(IInputSample<int> inputSample)
+    [Test]
+    [MethodDataSource(typeof(MockRandomData), nameof(MockRandomData.Generate))]
+    [MethodDataSource(typeof(MockNegativePositiveRandomData), nameof(MockNegativePositiveRandomData.Generate))]
+    [MethodDataSource(typeof(MockNegativeRandomData), nameof(MockNegativeRandomData.Generate))]
+    [MethodDataSource(typeof(MockReversedData), nameof(MockReversedData.Generate))]
+    [MethodDataSource(typeof(MockMountainData), nameof(MockMountainData.Generate))]
+    [MethodDataSource(typeof(MockNearlySortedData), nameof(MockNearlySortedData.Generate))]
+    [MethodDataSource(typeof(MockSameValuesData), nameof(MockSameValuesData.Generate))]
+    [MethodDataSource(typeof(MockAntiQuickSortData), nameof(MockAntiQuickSortData.Generate))]
+    [MethodDataSource(typeof(MockQuickSortWorstCaseData), nameof(MockQuickSortWorstCaseData.Generate))]
+    [MethodDataSource(typeof(MockAllIdenticalData), nameof(MockAllIdenticalData.Generate))]
+    [MethodDataSource(typeof(MockTwoDistinctValuesData), nameof(MockTwoDistinctValuesData.Generate))]
+    [MethodDataSource(typeof(MockHalfZeroHalfOneData), nameof(MockHalfZeroHalfOneData.Generate))]
+    [MethodDataSource(typeof(MockManyDuplicatesSqrtRangeData), nameof(MockManyDuplicatesSqrtRangeData.Generate))]
+    [MethodDataSource(typeof(MockHighlySkewedData), nameof(MockHighlySkewedData.Generate))]
+    public async Task SortResultOrderTest(IInputSample<int> inputSample)
     {
         var stats = new StatisticsContext();
         var array = inputSample.Samples.ToArray();
-        var originalCounts = array.GroupBy(x => x).ToDictionary(g => g.Key, g => g.Count());
+
 
         ShellSortKnuth1973.Sort(array.AsSpan(), stats);
 
         // Check is sorted
-        for (int i = 0; i < array.Length - 1; i++)
-            Assert.True(array[i] <= array[i + 1]);
-
-        // Check element counts match
-        var sortedCounts = array.GroupBy(x => x).ToDictionary(g => g.Key, g => g.Count());
-        Assert.Equal(originalCounts, sortedCounts);
+        Array.Sort(inputSample.Samples);
+        await Assert.That(array).IsEquivalentTo(inputSample.Samples, CollectionOrdering.Matching);
     }
 
-    [Fact]
-    public void RangeSortTest()
+    [Test]
+    public async Task RangeSortTest()
     {
         var stats = new StatisticsContext();
         var array = new[] { 5, 3, 8, 1, 9, 2, 7, 4, 6 };
@@ -48,11 +45,11 @@ public class ShellSortKnuth1973Tests
         ShellSortKnuth1973.Sort(array.AsSpan(), 2, 6, stats);
 
         // Expected: first 2 elements unchanged, middle 4 sorted, last 3 unchanged
-        Assert.Equal(new[] { 5, 3, 1, 2, 8, 9, 7, 4, 6 }, array);
+        await Assert.That(array).IsEquivalentTo([5, 3, 1, 2, 8, 9, 7, 4, 6 ], CollectionOrdering.Matching);
     }
 
-    [Fact]
-    public void RangeSortFullArrayTest()
+    [Test]
+    public async Task RangeSortFullArrayTest()
     {
         var stats = new StatisticsContext();
         var array = new[] { 5, 3, 8, 1, 9, 2, 7, 4, 6 };
@@ -60,11 +57,11 @@ public class ShellSortKnuth1973Tests
         // Sort the entire array using range API
         ShellSortKnuth1973.Sort(array.AsSpan(), 0, array.Length, stats);
 
-        Assert.Equal(new[] { 1, 2, 3, 4, 5, 6, 7, 8, 9 }, array);
+        await Assert.That(array).IsEquivalentTo([1, 2, 3, 4, 5, 6, 7, 8, 9], CollectionOrdering.Matching);
     }
 
-    [Fact]
-    public void RangeSortSingleElementTest()
+    [Test]
+    public async Task RangeSortSingleElementTest()
     {
         var stats = new StatisticsContext();
         var array = new[] { 5, 3, 8, 1, 9 };
@@ -73,11 +70,11 @@ public class ShellSortKnuth1973Tests
         ShellSortKnuth1973.Sort(array.AsSpan(), 2, 3, stats);
 
         // Array should be unchanged (single element is already sorted)
-        Assert.Equal(new[] { 5, 3, 8, 1, 9 }, array);
+        await Assert.That(array).IsEquivalentTo([5, 3, 8, 1, 9], CollectionOrdering.Matching);
     }
 
-    [Fact]
-    public void RangeSortBeginningTest()
+    [Test]
+    public async Task RangeSortBeginningTest()
     {
         var stats = new StatisticsContext();
         var array = new[] { 9, 7, 5, 3, 1, 2, 4, 6, 8 };
@@ -86,11 +83,11 @@ public class ShellSortKnuth1973Tests
         ShellSortKnuth1973.Sort(array.AsSpan(), 0, 5, stats);
 
         // Expected: first 5 sorted, last 4 unchanged
-        Assert.Equal(new[] { 1, 3, 5, 7, 9, 2, 4, 6, 8 }, array);
+        await Assert.That(array).IsEquivalentTo([1, 3, 5, 7, 9, 2, 4, 6, 8], CollectionOrdering.Matching);
     }
 
-    [Fact]
-    public void RangeSortEndTest()
+    [Test]
+    public async Task RangeSortEndTest()
     {
         var stats = new StatisticsContext();
         var array = new[] { 1, 3, 5, 7, 9, 8, 6, 4, 2 };
@@ -99,32 +96,32 @@ public class ShellSortKnuth1973Tests
         ShellSortKnuth1973.Sort(array.AsSpan(), 5, 9, stats);
 
         // Expected: first 5 unchanged, last 4 sorted
-        Assert.Equal(new[] { 1, 3, 5, 7, 9, 2, 4, 6, 8 }, array);
+        await Assert.That(array).IsEquivalentTo([1, 3, 5, 7, 9, 2, 4, 6, 8], CollectionOrdering.Matching);
     }
 
 #if DEBUG
 
-    [Theory]
-    [ClassData(typeof(MockSortedData))]
-    public void StatisticsSortedTest(IInputSample<int> inputSample)
+    [Test]
+    [MethodDataSource(typeof(MockSortedData), nameof(MockSortedData.Generate))]
+    public async Task StatisticsSortedTest(IInputSample<int> inputSample)
     {
         var stats = new StatisticsContext();
         var array = inputSample.Samples.ToArray();
         ShellSortKnuth1973.Sort(array.AsSpan(), stats);
 
-        Assert.Equal((ulong)inputSample.Samples.Length, (ulong)array.Length);
-        Assert.NotEqual(0UL, stats.IndexReadCount);
-        Assert.Equal(0UL, stats.IndexWriteCount);
-        Assert.NotEqual(0UL, stats.CompareCount);
-        Assert.Equal(0UL, stats.SwapCount);
+        await Assert.That((ulong)array.Length).IsEqualTo((ulong)inputSample.Samples.Length);
+        await Assert.That(stats.IndexReadCount).IsNotEqualTo(0UL);
+        await Assert.That(stats.IndexWriteCount).IsEqualTo(0UL);
+        await Assert.That(stats.CompareCount).IsNotEqualTo(0UL);
+        await Assert.That(stats.SwapCount).IsEqualTo(0UL);
     }
 
-    [Theory]
-    [InlineData(10)]
-    [InlineData(20)]
-    [InlineData(50)]
-    [InlineData(100)]
-    public void TheoreticalValuesSortedTest(int n)
+    [Test]
+    [Arguments(10)]
+    [Arguments(20)]
+    [Arguments(50)]
+    [Arguments(100)]
+    public async Task TheoreticalValuesSortedTest(int n)
     {
         var stats = new StatisticsContext();
         var sorted = Enumerable.Range(0, n).ToArray();
@@ -138,22 +135,21 @@ public class ShellSortKnuth1973Tests
         var expectedWrites = 0UL; // No swaps = no writes
         var minCompares = (ulong)(n - 1); // Final h=1 pass minimum
 
-        Assert.Equal(expectedSwaps, stats.SwapCount);
-        Assert.Equal(expectedWrites, stats.IndexWriteCount);
-        Assert.True(stats.CompareCount >= minCompares,
-            $"CompareCount ({stats.CompareCount}) should be >= {minCompares}");
+        await Assert.That(stats.SwapCount).IsEqualTo(expectedSwaps);
+        await Assert.That(stats.IndexWriteCount).IsEqualTo(expectedWrites);
+        await Assert.That(stats.CompareCount >= minCompares).IsTrue().Because($"CompareCount ({stats.CompareCount}) should be >= {minCompares}");
 
         // Each comparison reads 2 elements, each swap also reads 2 elements
         var expectedReads = stats.CompareCount * 2 + stats.SwapCount * 2;
-        Assert.Equal(expectedReads, stats.IndexReadCount);
+        await Assert.That(stats.IndexReadCount).IsEqualTo(expectedReads);
     }
 
-    [Theory]
-    [InlineData(10)]
-    [InlineData(20)]
-    [InlineData(50)]
-    [InlineData(100)]
-    public void TheoreticalValuesReversedTest(int n)
+    [Test]
+    [Arguments(10)]
+    [Arguments(20)]
+    [Arguments(50)]
+    [Arguments(100)]
+    public async Task TheoreticalValuesReversedTest(int n)
     {
         var stats = new StatisticsContext();
         var reversed = Enumerable.Range(0, n).Reverse().ToArray();
@@ -170,25 +166,24 @@ public class ShellSortKnuth1973Tests
         var maxSwaps = (ulong)(n * n); // Upper bound (pessimistic)
         var minCompares = (ulong)n; // At least n comparisons
 
-        Assert.InRange(stats.SwapCount, minSwaps, maxSwaps);
-        Assert.True(stats.CompareCount >= minCompares,
-            $"CompareCount ({stats.CompareCount}) should be >= {minCompares}");
+        await Assert.That(stats.SwapCount).IsBetween(minSwaps, maxSwaps);
+        await Assert.That(stats.CompareCount >= minCompares).IsTrue().Because($"CompareCount ({stats.CompareCount}) should be >= {minCompares}");
 
         // Each swap writes 2 elements
         var expectedWrites = stats.SwapCount * 2;
-        Assert.Equal(expectedWrites, stats.IndexWriteCount);
+        await Assert.That(stats.IndexWriteCount).IsEqualTo(expectedWrites);
 
         // Each comparison reads 2 elements, each swap also reads 2 elements
         var expectedReads = stats.CompareCount * 2 + stats.SwapCount * 2;
-        Assert.Equal(expectedReads, stats.IndexReadCount);
+        await Assert.That(stats.IndexReadCount).IsEqualTo(expectedReads);
     }
 
-    [Theory]
-    [InlineData(10)]
-    [InlineData(20)]
-    [InlineData(50)]
-    [InlineData(100)]
-    public void TheoreticalValuesRandomTest(int n)
+    [Test]
+    [Arguments(10)]
+    [Arguments(20)]
+    [Arguments(50)]
+    [Arguments(100)]
+    public async Task TheoreticalValuesRandomTest(int n)
     {
         var stats = new StatisticsContext();
         var random = Enumerable.Range(0, n).OrderBy(_ => Guid.NewGuid()).ToArray();
@@ -204,17 +199,16 @@ public class ShellSortKnuth1973Tests
         var maxSwaps = (ulong)(n * n); // Upper bound
         var minCompares = (ulong)(n - 1); // At least n-1 comparisons in final pass
 
-        Assert.InRange(stats.SwapCount, minSwaps, maxSwaps);
-        Assert.True(stats.CompareCount >= minCompares,
-            $"CompareCount ({stats.CompareCount}) should be >= {minCompares}");
+        await Assert.That(stats.SwapCount).IsBetween(minSwaps, maxSwaps);
+        await Assert.That(stats.CompareCount >= minCompares).IsTrue().Because($"CompareCount ({stats.CompareCount}) should be >= {minCompares}");
 
         // Each swap writes 2 elements
         var expectedWrites = stats.SwapCount * 2;
-        Assert.Equal(expectedWrites, stats.IndexWriteCount);
+        await Assert.That(stats.IndexWriteCount).IsEqualTo(expectedWrites);
 
         // Each comparison reads 2 elements, each swap also reads 2 elements
         var expectedReads = stats.CompareCount * 2 + stats.SwapCount * 2;
-        Assert.Equal(expectedReads, stats.IndexReadCount);
+        await Assert.That(stats.IndexReadCount).IsEqualTo(expectedReads);
     }
 
 #endif

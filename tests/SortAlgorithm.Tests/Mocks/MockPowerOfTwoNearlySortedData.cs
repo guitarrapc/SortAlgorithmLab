@@ -1,36 +1,52 @@
-﻿using System.Collections;
+﻿namespace SortAlgorithm.Tests;
 
-namespace SortAlgorithm.Tests;
-
-public class MockPowerOfTwoNearlySortedData : IEnumerable<object[]>
+public static class MockPowerOfTwoNearlySortedData
 {
-    private List<object[]> testData = new List<object[]>();
-
-    public MockPowerOfTwoNearlySortedData()
+    public static IEnumerable<Func<InputSample<int>>> Generate()
     {
-        testData.Add([new InputSample<int>() { InputType = InputType.Random, Samples = CreateNearlySorted(16) }]);
-        testData.Add([new InputSample<int>() { InputType = InputType.Random, Samples = CreateNearlySorted(64) }]);
-        testData.Add([new InputSample<int>() { InputType = InputType.Random, Samples = CreateNearlySorted(256) }]);
-        testData.Add([new InputSample<int>() { InputType = InputType.Random, Samples = CreateNearlySorted(512) }]);
-        testData.Add([new InputSample<int>() { InputType = InputType.Random, Samples = CreateNearlySorted(1024) }]);
-        testData.Add([new InputSample<int>() { InputType = InputType.Random, Samples = CreateNearlySorted(2048) }]);
-    }
-
-    private static int[] CreateNearlySorted(int size)
-    {
-        var array = Enumerable.Range(0, size).ToArray();
-        var random = new Random(42);
-        // Swap a few elements to make it "nearly sorted"
-        for (int i = 0; i < size / 10; i++)
+        yield return () => new InputSample<int>()
         {
-            int idx1 = random.Next(size);
-            int idx2 = random.Next(size);
-            (array[idx1], array[idx2]) = (array[idx2], array[idx1]);
+            InputType = InputType.Random,
+            Samples = CreateNearlySorted(16)
+        };
+        yield return () => new InputSample<int>()
+        {
+            InputType = InputType.Random,
+            Samples = CreateNearlySorted(64)
+        };
+        yield return () => new InputSample<int>()
+        {
+            InputType = InputType.Random,
+            Samples = CreateNearlySorted(256)
+        };
+        yield return () => new InputSample<int>()
+        {
+            InputType = InputType.Random,
+            Samples = CreateNearlySorted(512)
+        };
+        yield return () => new InputSample<int>()
+        {
+            InputType = InputType.Random,
+            Samples = CreateNearlySorted(1024)
+        };
+        yield return () => new InputSample<int>()
+        {
+            InputType = InputType.Random,
+            Samples = CreateNearlySorted(2048)
+        };
+
+        static int[] CreateNearlySorted(int size)
+        {
+            var array = Enumerable.Range(0, size).ToArray();
+            var random = new Random(42);
+            // Swap a few elements to make it "nearly sorted"
+            for (int i = 0; i < size / 10; i++)
+            {
+                int idx1 = random.Next(size);
+                int idx2 = random.Next(size);
+                (array[idx1], array[idx2]) = (array[idx2], array[idx1]);
+            }
+            return array;
         }
-        return array;
     }
-
-    public IEnumerator<object[]> GetEnumerator() => testData.GetEnumerator();
-
-    IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
 }

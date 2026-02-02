@@ -1,45 +1,42 @@
 ﻿using SortAlgorithm.Algorithms;
 using SortAlgorithm.Contexts;
+using TUnit.Assertions.Enums;
 
 namespace SortAlgorithm.Tests;
 
 public class CountingSortTests
 {
-    [Theory]
-    [ClassData(typeof(MockRandomData))]
-    [ClassData(typeof(MockNegativePositiveRandomData))]
-    [ClassData(typeof(MockNegativeRandomData))]
-    [ClassData(typeof(MockReversedData))]
-    [ClassData(typeof(MockMountainData))]
-    [ClassData(typeof(MockNearlySortedData))]
-    [ClassData(typeof(MockSameValuesData))]
-    [ClassData(typeof(MockAntiQuickSortData))]
-    [ClassData(typeof(MockQuickSortWorstCaseData))]
-    [ClassData(typeof(MockAllIdenticalData))]
-    [ClassData(typeof(MockTwoDistinctValuesData))]
-    [ClassData(typeof(MockHalfZeroHalfOneData))]
-    [ClassData(typeof(MockManyDuplicatesSqrtRangeData))]
-    [ClassData(typeof(MockHighlySkewedData))]
-    public void SortResultOrderTest(IInputSample<int> inputSample)
+    [Test]
+    [MethodDataSource(typeof(MockRandomData), nameof(MockRandomData.Generate))]
+    [MethodDataSource(typeof(MockNegativePositiveRandomData), nameof(MockNegativePositiveRandomData.Generate))]
+    [MethodDataSource(typeof(MockNegativeRandomData), nameof(MockNegativeRandomData.Generate))]
+    [MethodDataSource(typeof(MockReversedData), nameof(MockReversedData.Generate))]
+    [MethodDataSource(typeof(MockMountainData), nameof(MockMountainData.Generate))]
+    [MethodDataSource(typeof(MockNearlySortedData), nameof(MockNearlySortedData.Generate))]
+    [MethodDataSource(typeof(MockSameValuesData), nameof(MockSameValuesData.Generate))]
+    [MethodDataSource(typeof(MockAntiQuickSortData), nameof(MockAntiQuickSortData.Generate))]
+    [MethodDataSource(typeof(MockQuickSortWorstCaseData), nameof(MockQuickSortWorstCaseData.Generate))]
+    [MethodDataSource(typeof(MockAllIdenticalData), nameof(MockAllIdenticalData.Generate))]
+    [MethodDataSource(typeof(MockTwoDistinctValuesData), nameof(MockTwoDistinctValuesData.Generate))]
+    [MethodDataSource(typeof(MockHalfZeroHalfOneData), nameof(MockHalfZeroHalfOneData.Generate))]
+    [MethodDataSource(typeof(MockManyDuplicatesSqrtRangeData), nameof(MockManyDuplicatesSqrtRangeData.Generate))]
+    [MethodDataSource(typeof(MockHighlySkewedData), nameof(MockHighlySkewedData.Generate))]
+    public async Task SortResultOrderTest(IInputSample<int> inputSample)
     {
         var stats = new StatisticsContext();
         var array = inputSample.Samples.ToArray();
-        var originalCounts = array.GroupBy(x => x).ToDictionary(g => g.Key, g => g.Count());
+
 
         CountingSort.Sort(array.AsSpan(), x => x, stats);
 
         // Check is sorted
-        for (int i = 0; i < array.Length - 1; i++)
-            Assert.True(array[i] <= array[i + 1]);
-
-        // Check element counts match
-        var sortedCounts = array.GroupBy(x => x).ToDictionary(g => g.Key, g => g.Count());
-        Assert.Equal(originalCounts, sortedCounts);
+        Array.Sort(inputSample.Samples);
+        await Assert.That(array).IsEquivalentTo(inputSample.Samples, CollectionOrdering.Matching);
     }
 
-    [Theory]
-    [ClassData(typeof(MockStabilityData))]
-    public void StabilityTest(StabilityTestItem[] items)
+    [Test]
+    [MethodDataSource(typeof(MockStabilityData), nameof(MockStabilityData.Generate))]
+    public async Task StabilityTest(StabilityTestItem[] items)
     {
         // Test stability: equal elements should maintain relative order
         var stats = new StatisticsContext();
@@ -47,7 +44,7 @@ public class CountingSortTests
         CountingSort.Sort(items.AsSpan(), x => x.Value, stats);
 
         // Verify sorting correctness - values should be in ascending order
-        Assert.Equal(MockStabilityData.Sorted, items.Select(x => x.Value).ToArray());
+        await Assert.That(items.Select(x => x.Value).ToArray()).IsEquivalentTo(MockStabilityData.Sorted, CollectionOrdering.Matching);
 
         // Verify stability: for each group of equal values, original order is preserved
         var value1Indices = items.Where(x => x.Value == 1).Select(x => x.OriginalIndex).ToArray();
@@ -55,18 +52,18 @@ public class CountingSortTests
         var value3Indices = items.Where(x => x.Value == 3).Select(x => x.OriginalIndex).ToArray();
 
         // Value 1 appeared at original indices 0, 2, 4 - should remain in this order
-        Assert.Equal(MockStabilityData.Sorted1, value1Indices);
+        await Assert.That(value1Indices).IsEquivalentTo(MockStabilityData.Sorted1, CollectionOrdering.Matching);
 
         // Value 2 appeared at original indices 1, 5 - should remain in this order
-        Assert.Equal(MockStabilityData.Sorted2, value2Indices);
+        await Assert.That(value2Indices).IsEquivalentTo(MockStabilityData.Sorted2, CollectionOrdering.Matching);
 
         // Value 3 appeared at original index 3
-        Assert.Equal(MockStabilityData.Sorted3, value3Indices);
+        await Assert.That(value3Indices).IsEquivalentTo(MockStabilityData.Sorted3, CollectionOrdering.Matching);
     }
 
-    [Theory]
-    [ClassData(typeof(MockStabilityWithIdData))]
-    public void StabilityTestWithComplex(StabilityTestItemWithId[] items)
+    [Test]
+    [MethodDataSource(typeof(MockStabilityWithIdData), nameof(MockStabilityWithIdData.Generate))]
+    public async Task StabilityTestWithComplex(StabilityTestItemWithId[] items)
     {
         // Test stability with more complex scenario - multiple equal values
         var stats = new StatisticsContext();
@@ -78,14 +75,14 @@ public class CountingSortTests
 
         for (var i = 0; i < items.Length; i++)
         {
-            Assert.Equal(MockStabilityWithIdData.Sorted[i].Key, items[i].Key);
-            Assert.Equal(MockStabilityWithIdData.Sorted[i].Id, items[i].Id);
+            await Assert.That(items[i].Key).IsEqualTo(MockStabilityWithIdData.Sorted[i].Key);
+            await Assert.That(items[i].Id).IsEqualTo(MockStabilityWithIdData.Sorted[i].Id);
         }
     }
 
-    [Theory]
-    [ClassData(typeof(MockStabilityAllEqualsData))]
-    public void StabilityTestWithAllEqual(StabilityTestItem[] items)
+    [Test]
+    [MethodDataSource(typeof(MockStabilityAllEqualsData), nameof(MockStabilityAllEqualsData.Generate))]
+    public async Task StabilityTestWithAllEqual(StabilityTestItem[] items)
     {
         // Edge case: all elements have the same value
         // They should remain in original order
@@ -94,65 +91,65 @@ public class CountingSortTests
         CountingSort.Sort(items.AsSpan(), x => x.Value, stats);
 
         // All values are 1
-        Assert.All(items, item => Assert.Equal(1, item.Value));
+        foreach (var item in items) await Assert.That(item.Value).IsEqualTo(1);
 
         // Original order should be preserved: 0, 1, 2, 3, 4
-        Assert.Equal(MockStabilityAllEqualsData.Sorted, items.Select(x => x.OriginalIndex).ToArray());
+        await Assert.That(items.Select(x => x.OriginalIndex).ToArray()).IsEquivalentTo(MockStabilityAllEqualsData.Sorted, CollectionOrdering.Matching);
     }
 
-    [Theory]
-    [InlineData(10_000_001)]
-    public void RangeLimitTest(int range)
+    [Test]
+    [Arguments(10_000_001)]
+    public async Task RangeLimitTest(int range)
     {
         // Test that excessive range throws ArgumentException
         var array = new[] { 0, range };
         Assert.Throws<ArgumentException>(() => CountingSort.Sort(array.AsSpan(), x => x));
     }
 
-    [Fact]
-    public void NegativeValuesTest()
+    [Test]
+    public async Task NegativeValuesTest()
     {
         var stats = new StatisticsContext();
         var array = new[] { -5, -1, -10, 3, 0, -3 };
         var n = array.Length;
         CountingSort.Sort(array.AsSpan(), x => x, stats);
 
-        Assert.Equal(new[] { -10, -5, -3, -1, 0, 3 }, array);
+        await Assert.That(array).IsEquivalentTo([-10, -5, -3, -1, 0, 3], CollectionOrdering.Matching);
     }
 
-    [Fact]
-    public void EmptyArrayTest()
+    [Test]
+    public async Task EmptyArrayTest()
     {
         var stats = new StatisticsContext();
         var array = Array.Empty<int>();
         CountingSort.Sort(array.AsSpan(), x => x, stats);
 
-        Assert.Empty(array);
+        await Assert.That(array).IsEmpty();
     }
 
 #if DEBUG
 
-    [Theory]
-    [ClassData(typeof(MockSortedData))]
-    public void StatisticsSortedTest(IInputSample<int> inputSample)
+    [Test]
+    [MethodDataSource(typeof(MockSortedData), nameof(MockSortedData.Generate))]
+    public async Task StatisticsSortedTest(IInputSample<int> inputSample)
     {
         var stats = new StatisticsContext();
         var array = inputSample.Samples.ToArray();
         CountingSort.Sort(array.AsSpan(), x => x, stats);
 
-        Assert.Equal((ulong)inputSample.Samples.Length, (ulong)array.Length);
-        Assert.NotEqual(0UL, stats.IndexReadCount);
-        Assert.NotEqual(0UL, stats.IndexWriteCount);
-        Assert.Equal(0UL, stats.CompareCount);
-        Assert.Equal(0UL, stats.SwapCount);
+        await Assert.That((ulong)array.Length).IsEqualTo((ulong)inputSample.Samples.Length);
+        await Assert.That(stats.IndexReadCount).IsNotEqualTo(0UL);
+        await Assert.That(stats.IndexWriteCount).IsNotEqualTo(0UL);
+        await Assert.That(stats.CompareCount).IsEqualTo(0UL);
+        await Assert.That(stats.SwapCount).IsEqualTo(0UL);
     }
 
-    [Theory]
-    [InlineData(10)]
-    [InlineData(20)]
-    [InlineData(50)]
-    [InlineData(100)]
-    public void TheoreticalValuesSortedTest(int n)
+    [Test]
+    [Arguments(10)]
+    [Arguments(20)]
+    [Arguments(50)]
+    [Arguments(100)]
+    public async Task TheoreticalValuesSortedTest(int n)
     {
         var stats = new StatisticsContext();
         var sorted = Enumerable.Range(0, n).ToArray();
@@ -169,18 +166,18 @@ public class CountingSortTests
         var expectedReads = (ulong)(3 * n);
         var expectedWrites = (ulong)(2 * n);
 
-        Assert.Equal(0UL, stats.CompareCount);
-        Assert.Equal(0UL, stats.SwapCount);
-        Assert.Equal(expectedReads, stats.IndexReadCount);
-        Assert.Equal(expectedWrites, stats.IndexWriteCount);
+        await Assert.That(stats.CompareCount).IsEqualTo(0UL);
+        await Assert.That(stats.SwapCount).IsEqualTo(0UL);
+        await Assert.That(stats.IndexReadCount).IsEqualTo(expectedReads);
+        await Assert.That(stats.IndexWriteCount).IsEqualTo(expectedWrites);
     }
 
-    [Theory]
-    [InlineData(10)]
-    [InlineData(20)]
-    [InlineData(50)]
-    [InlineData(100)]
-    public void TheoreticalValuesReversedTest(int n)
+    [Test]
+    [Arguments(10)]
+    [Arguments(20)]
+    [Arguments(50)]
+    [Arguments(100)]
+    public async Task TheoreticalValuesReversedTest(int n)
     {
         var stats = new StatisticsContext();
         var reversed = Enumerable.Range(0, n).Reverse().ToArray();
@@ -191,18 +188,18 @@ public class CountingSortTests
         var expectedReads = (ulong)(3 * n);
         var expectedWrites = (ulong)(2 * n);
 
-        Assert.Equal(0UL, stats.CompareCount);
-        Assert.Equal(0UL, stats.SwapCount);
-        Assert.Equal(expectedReads, stats.IndexReadCount);
-        Assert.Equal(expectedWrites, stats.IndexWriteCount);
+        await Assert.That(stats.CompareCount).IsEqualTo(0UL);
+        await Assert.That(stats.SwapCount).IsEqualTo(0UL);
+        await Assert.That(stats.IndexReadCount).IsEqualTo(expectedReads);
+        await Assert.That(stats.IndexWriteCount).IsEqualTo(expectedWrites);
     }
 
-    [Theory]
-    [InlineData(10)]
-    [InlineData(20)]
-    [InlineData(50)]
-    [InlineData(100)]
-    public void TheoreticalValuesRandomTest(int n)
+    [Test]
+    [Arguments(10)]
+    [Arguments(20)]
+    [Arguments(50)]
+    [Arguments(100)]
+    public async Task TheoreticalValuesRandomTest(int n)
     {
         var stats = new StatisticsContext();
         var random = Enumerable.Range(0, n).OrderBy(_ => Guid.NewGuid()).ToArray();
@@ -213,14 +210,14 @@ public class CountingSortTests
         var expectedReads = (ulong)(3 * n);
         var expectedWrites = (ulong)(2 * n);
 
-        Assert.Equal(0UL, stats.CompareCount);
-        Assert.Equal(0UL, stats.SwapCount);
-        Assert.Equal(expectedReads, stats.IndexReadCount);
-        Assert.Equal(expectedWrites, stats.IndexWriteCount);
+        await Assert.That(stats.CompareCount).IsEqualTo(0UL);
+        await Assert.That(stats.SwapCount).IsEqualTo(0UL);
+        await Assert.That(stats.IndexReadCount).IsEqualTo(expectedReads);
+        await Assert.That(stats.IndexWriteCount).IsEqualTo(expectedWrites);
     }
 
-    [Fact]
-    public void TheoreticalValuesAllSameTest()
+    [Test]
+    public async Task TheoreticalValuesAllSameTest()
     {
         var stats = new StatisticsContext();
         var n = 100;
@@ -232,10 +229,10 @@ public class CountingSortTests
         var expectedReads = (ulong)n;
         var expectedWrites = 0UL;
 
-        Assert.Equal(0UL, stats.CompareCount);
-        Assert.Equal(0UL, stats.SwapCount);
-        Assert.Equal(expectedReads, stats.IndexReadCount);
-        Assert.Equal(expectedWrites, stats.IndexWriteCount);
+        await Assert.That(stats.CompareCount).IsEqualTo(0UL);
+        await Assert.That(stats.SwapCount).IsEqualTo(0UL);
+        await Assert.That(stats.IndexReadCount).IsEqualTo(expectedReads);
+        await Assert.That(stats.IndexWriteCount).IsEqualTo(expectedWrites);
     }
 
 #endif

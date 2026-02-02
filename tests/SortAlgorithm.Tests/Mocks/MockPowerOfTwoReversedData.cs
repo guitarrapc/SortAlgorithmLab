@@ -1,22 +1,39 @@
-﻿using System.Collections;
+﻿namespace SortAlgorithm.Tests;
 
-namespace SortAlgorithm.Tests;
-
-public class MockPowerOfTwoReversedData : IEnumerable<object[]>
+public static class MockPowerOfTwoReversedData
 {
-    private List<object[]> testData = new List<object[]>();
 
-    public MockPowerOfTwoReversedData()
+    public static IEnumerable<Func<InputSample<int>>> Generate()
     {
-        testData.Add([new InputSample<int>() { InputType = InputType.Reversed, Samples = Enumerable.Range(0, 16).Reverse().ToArray() }]);
-        testData.Add([new InputSample<int>() { InputType = InputType.Reversed, Samples = Enumerable.Range(0, 64).Reverse().ToArray() }]);
-        testData.Add([new InputSample<int>() { InputType = InputType.Reversed, Samples = Enumerable.Range(0, 256).Reverse().ToArray() }]);
-        testData.Add([new InputSample<int>() { InputType = InputType.Reversed, Samples = Enumerable.Range(0, 512).Reverse().ToArray() }]);
-        testData.Add([new InputSample<int>() { InputType = InputType.Reversed, Samples = Enumerable.Range(0, 1024).Reverse().ToArray() }]);
-        testData.Add([new InputSample<int>() { InputType = InputType.Reversed, Samples = Enumerable.Range(0, 2048).Reverse().ToArray() }]);
+        yield return () => new InputSample<int>()
+        {
+            InputType = InputType.Reversed,
+            Samples = Enumerable.Range(0, 16).Reverse().ToArray()
+        };
+        yield return () => new InputSample<int>()
+        {
+            InputType = InputType.Reversed,
+            Samples = Enumerable.Range(0, 64).Reverse().ToArray()
+        };
+        yield return () => new InputSample<int>()
+        {
+            InputType = InputType.Reversed,
+            Samples = Enumerable.Range(0, 256).Reverse().ToArray()
+        };
+        yield return () => new InputSample<int>()
+        {
+            InputType = InputType.Reversed,
+            Samples = Enumerable.Range(0, 512).Reverse().ToArray()
+        };
+        yield return () => new InputSample<int>()
+        {
+            InputType = InputType.Reversed,
+            Samples = Enumerable.Range(0, 1024).Reverse().ToArray()
+        };
+        yield return () => new InputSample<int>()
+        {
+            InputType = InputType.Reversed,
+            Samples = Enumerable.Range(0, 2048).Reverse().ToArray()
+        };
     }
-
-    public IEnumerator<object[]> GetEnumerator() => testData.GetEnumerator();
-
-    IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
 }

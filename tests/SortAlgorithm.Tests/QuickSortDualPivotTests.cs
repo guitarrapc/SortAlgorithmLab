@@ -1,92 +1,89 @@
 ﻿using SortAlgorithm.Algorithms;
 using SortAlgorithm.Contexts;
+using TUnit.Assertions.Enums;
 
 namespace SortAlgorithm.Tests;
 
 public class QuickSortDualPivotTests
 {
-    [Theory]
-    [ClassData(typeof(MockRandomData))]
-    [ClassData(typeof(MockNegativePositiveRandomData))]
-    [ClassData(typeof(MockNegativeRandomData))]
-    [ClassData(typeof(MockReversedData))]
-    [ClassData(typeof(MockMountainData))]
-    [ClassData(typeof(MockNearlySortedData))]
-    [ClassData(typeof(MockSameValuesData))]
-    [ClassData(typeof(MockAntiQuickSortData))]
-    [ClassData(typeof(MockQuickSortWorstCaseData))]
-    [ClassData(typeof(MockAllIdenticalData))]
-    [ClassData(typeof(MockTwoDistinctValuesData))]
-    [ClassData(typeof(MockHalfZeroHalfOneData))]
-    [ClassData(typeof(MockManyDuplicatesSqrtRangeData))]
-    [ClassData(typeof(MockHighlySkewedData))]
-    public void SortResultOrderTest(IInputSample<int> inputSample)
+    [Test]
+    [MethodDataSource(typeof(MockRandomData), nameof(MockRandomData.Generate))]
+    [MethodDataSource(typeof(MockNegativePositiveRandomData), nameof(MockNegativePositiveRandomData.Generate))]
+    [MethodDataSource(typeof(MockNegativeRandomData), nameof(MockNegativeRandomData.Generate))]
+    [MethodDataSource(typeof(MockReversedData), nameof(MockReversedData.Generate))]
+    [MethodDataSource(typeof(MockMountainData), nameof(MockMountainData.Generate))]
+    [MethodDataSource(typeof(MockNearlySortedData), nameof(MockNearlySortedData.Generate))]
+    [MethodDataSource(typeof(MockSameValuesData), nameof(MockSameValuesData.Generate))]
+    [MethodDataSource(typeof(MockAntiQuickSortData), nameof(MockAntiQuickSortData.Generate))]
+    [MethodDataSource(typeof(MockQuickSortWorstCaseData), nameof(MockQuickSortWorstCaseData.Generate))]
+    [MethodDataSource(typeof(MockAllIdenticalData), nameof(MockAllIdenticalData.Generate))]
+    [MethodDataSource(typeof(MockTwoDistinctValuesData), nameof(MockTwoDistinctValuesData.Generate))]
+    [MethodDataSource(typeof(MockHalfZeroHalfOneData), nameof(MockHalfZeroHalfOneData.Generate))]
+    [MethodDataSource(typeof(MockManyDuplicatesSqrtRangeData), nameof(MockManyDuplicatesSqrtRangeData.Generate))]
+    [MethodDataSource(typeof(MockHighlySkewedData), nameof(MockHighlySkewedData.Generate))]
+    public async Task SortResultOrderTest(IInputSample<int> inputSample)
     {
         var stats = new StatisticsContext();
         var array = inputSample.Samples.ToArray();
-        var originalCounts = array.GroupBy(x => x).ToDictionary(g => g.Key, g => g.Count());
+
 
         QuickSortDualPivot.Sort(array.AsSpan(), stats);
 
         // Check is sorted
-        for (int i = 0; i < array.Length - 1; i++)
-            Assert.True(array[i] <= array[i + 1]);
-
-        // Check element counts match
-        var sortedCounts = array.GroupBy(x => x).ToDictionary(g => g.Key, g => g.Count());
-        Assert.Equal(originalCounts, sortedCounts);
+        Array.Sort(inputSample.Samples);
+        await Assert.That(array).IsEquivalentTo(inputSample.Samples, CollectionOrdering.Matching);
     }
 
-    [Fact]
-    public void EdgeCaseEmptyArrayTest()
+    [Test]
+    public async Task EdgeCaseEmptyArrayTest()
     {
         var stats = new StatisticsContext();
         var empty = Array.Empty<int>();
         QuickSortDualPivot.Sort(empty.AsSpan(), stats);
     }
 
-    [Fact]
-    public void EdgeCaseSingleElementTest()
+    [Test]
+    public async Task EdgeCaseSingleElementTest()
     {
         var stats = new StatisticsContext();
         var single = new[] { 42 };
         QuickSortDualPivot.Sort(single.AsSpan(), stats);
 
-        Assert.Equal(42, single[0]);
+        await Assert.That(single[0]).IsEqualTo(42);
     }
 
-    [Fact]
-    public void EdgeCaseTwoElementsSortedTest()
+    [Test]
+    public async Task EdgeCaseTwoElementsSortedTest()
     {
         var stats = new StatisticsContext();
         var twoSorted = new[] { 1, 2 };
         QuickSortDualPivot.Sort(twoSorted.AsSpan(), stats);
 
-        Assert.Equal([1, 2], twoSorted);
+        await Assert.That(twoSorted).IsEquivalentTo([1, 2], CollectionOrdering.Matching);
     }
 
-    [Fact]
-    public void EdgeCaseTwoElementsReversedTest()
+    [Test]
+    public async Task EdgeCaseTwoElementsReversedTest()
     {
         var stats = new StatisticsContext();
         var twoReversed = new[] { 2, 1 };
         QuickSortDualPivot.Sort(twoReversed.AsSpan(), stats);
 
-        Assert.Equal([1, 2], twoReversed);
+        await Assert.That(twoReversed).IsEquivalentTo([1, 2], CollectionOrdering.Matching);
     }
 
-    [Fact]
-    public void EdgeCaseThreeElementsTest()
+    [Test]
+    public async Task EdgeCaseThreeElementsTest()
     {
         var stats = new StatisticsContext();
         var three = new[] { 3, 1, 2 };
         QuickSortDualPivot.Sort(three.AsSpan(), stats);
 
-        Assert.Equal([1, 2, 3], three);
+        await Assert.That(three).IsEquivalentTo([1, 2, 3], CollectionOrdering.Matching);
     }
 
-    [Fact]
-    public void RangeSortTest()
+    [Test]
+    public async Task RangeSortTest()
     {
         var stats = new StatisticsContext();
         var array = new[] { 5, 3, 8, 1, 9, 2, 7, 4, 6 };
@@ -95,11 +92,11 @@ public class QuickSortDualPivotTests
         QuickSortDualPivot.Sort(array.AsSpan(), 2, 6, stats);
 
         // Expected: first 2 elements unchanged, middle 4 sorted, last 3 unchanged
-        Assert.Equal(new[] { 5, 3, 1, 2, 8, 9, 7, 4, 6 }, array);
+        await Assert.That(array).IsEquivalentTo([5, 3, 1, 2, 8, 9, 7, 4, 6 ], CollectionOrdering.Matching);
     }
 
-    [Fact]
-    public void RangeSortFullArrayTest()
+    [Test]
+    public async Task RangeSortFullArrayTest()
     {
         var stats = new StatisticsContext();
         var array = new[] { 5, 3, 8, 1, 9, 2, 7, 4, 6 };
@@ -107,51 +104,51 @@ public class QuickSortDualPivotTests
         // Sort the entire array using range API
         QuickSortDualPivot.Sort(array.AsSpan(), 0, array.Length, stats);
 
-        Assert.Equal(new[] { 1, 2, 3, 4, 5, 6, 7, 8, 9 }, array);
+        await Assert.That(array).IsEquivalentTo([1, 2, 3, 4, 5, 6, 7, 8, 9], CollectionOrdering.Matching);
     }
 
-    [Fact]
-    public void SortedArrayTest()
+    [Test]
+    public async Task SortedArrayTest()
     {
         var stats = new StatisticsContext();
         var sorted = Enumerable.Range(1, 100).ToArray();
         QuickSortDualPivot.Sort(sorted.AsSpan(), stats);
 
-        Assert.Equal(Enumerable.Range(1, 100).ToArray(), sorted);
+        await Assert.That(sorted).IsEquivalentTo(Enumerable.Range(1, 100).ToArray(), CollectionOrdering.Matching);
     }
 
-    [Fact]
-    public void ReverseSortedArrayTest()
+    [Test]
+    public async Task ReverseSortedArrayTest()
     {
         var stats = new StatisticsContext();
         var reversed = Enumerable.Range(1, 100).Reverse().ToArray();
         QuickSortDualPivot.Sort(reversed.AsSpan(), stats);
 
-        Assert.Equal(Enumerable.Range(1, 100).ToArray(), reversed);
+        await Assert.That(reversed).IsEquivalentTo(Enumerable.Range(1, 100).ToArray(), CollectionOrdering.Matching);
     }
 
-    [Fact]
-    public void AllEqualElementsTest()
+    [Test]
+    public async Task AllEqualElementsTest()
     {
         var stats = new StatisticsContext();
         var allEqual = Enumerable.Repeat(42, 100).ToArray();
         QuickSortDualPivot.Sort(allEqual.AsSpan(), stats);
 
-        Assert.Equal(Enumerable.Repeat(42, 100).ToArray(), allEqual);
+        await Assert.That(allEqual).IsEquivalentTo(Enumerable.Repeat(42, 100).ToArray(), CollectionOrdering.Matching);
     }
 
-    [Fact]
-    public void ManyDuplicatesTest()
+    [Test]
+    public async Task ManyDuplicatesTest()
     {
         var stats = new StatisticsContext();
         var duplicates = new[] { 1, 2, 1, 3, 2, 1, 4, 3, 2, 1, 5, 4, 3, 2, 1 };
         QuickSortDualPivot.Sort(duplicates.AsSpan(), stats);
 
-        Assert.Equal(new[] { 1, 1, 1, 1, 1, 2, 2, 2, 2, 3, 3, 3, 4, 4, 5 }, duplicates);
+        await Assert.That(duplicates).IsEquivalentTo([1, 1, 1, 1, 1, 2, 2, 2, 2, 3, 3, 3, 4, 4, 5 ], CollectionOrdering.Matching);
     }
 
-    [Fact]
-    public void LargeArrayTest()
+    [Test]
+    public async Task LargeArrayTest()
     {
         var stats = new StatisticsContext();
         var random = new Random(42);
@@ -160,11 +157,11 @@ public class QuickSortDualPivotTests
 
         QuickSortDualPivot.Sort(large.AsSpan(), stats);
 
-        Assert.Equal(expected, large);
+        await Assert.That(large).IsEquivalentTo(expected, CollectionOrdering.Matching);
     }
 
-    [Fact]
-    public void NearlySortedArrayTest()
+    [Test]
+    public async Task NearlySortedArrayTest()
     {
         var stats = new StatisticsContext();
         var nearlySorted = Enumerable.Range(1, 100).ToArray();
@@ -174,52 +171,52 @@ public class QuickSortDualPivotTests
 
         QuickSortDualPivot.Sort(nearlySorted.AsSpan(), stats);
 
-        Assert.Equal(Enumerable.Range(1, 100).ToArray(), nearlySorted);
+        await Assert.That(nearlySorted).IsEquivalentTo(Enumerable.Range(1, 100).ToArray(), CollectionOrdering.Matching);
     }
 
-    [Fact]
-    public void SmallArrayInsertionSortThresholdTest()
+    [Test]
+    public async Task SmallArrayInsertionSortThresholdTest()
     {
         var stats = new StatisticsContext();
         var small = new[] { 5, 2, 8, 1, 9, 3, 7, 4, 6, 10, 15, 12, 18, 11, 19, 13, 17, 14, 16, 20 };
         QuickSortDualPivot.Sort(small.AsSpan(), stats);
 
-        Assert.Equal(Enumerable.Range(1, 20).ToArray(), small);
+        await Assert.That(small).IsEquivalentTo(Enumerable.Range(1, 20).ToArray(), CollectionOrdering.Matching);
     }
 
-    [Fact]
-    public void StringSortTest()
+    [Test]
+    public async Task StringSortTest()
     {
         var stats = new StatisticsContext();
         var strings = new[] { "zebra", "apple", "mango", "banana", "cherry" };
         QuickSortDualPivot.Sort(strings.AsSpan(), stats);
 
-        Assert.Equal(new[] { "apple", "banana", "cherry", "mango", "zebra" }, strings);
+        await Assert.That(strings).IsEquivalentTo(["apple", "banana", "cherry", "mango", "zebra"], CollectionOrdering.Matching);
     }
 
 #if DEBUG
 
-    [Theory]
-    [ClassData(typeof(MockSortedData))]
-    public void StatisticsSortedTest(IInputSample<int> inputSample)
+    [Test]
+    [MethodDataSource(typeof(MockSortedData), nameof(MockSortedData.Generate))]
+    public async Task StatisticsSortedTest(IInputSample<int> inputSample)
     {
         var stats = new StatisticsContext();
         var array = inputSample.Samples.ToArray();
         QuickSortDualPivot.Sort(array.AsSpan(), stats);
 
-        Assert.Equal((ulong)inputSample.Samples.Length, (ulong)array.Length);
-        Assert.NotEqual(0UL, stats.IndexReadCount);
-        Assert.NotEqual(0UL, stats.IndexWriteCount);
-        Assert.NotEqual(0UL, stats.CompareCount);
-        Assert.NotEqual(0UL, stats.SwapCount);
+        await Assert.That((ulong)array.Length).IsEqualTo((ulong)inputSample.Samples.Length);
+        await Assert.That(stats.IndexReadCount).IsNotEqualTo(0UL);
+        await Assert.That(stats.IndexWriteCount).IsNotEqualTo(0UL);
+        await Assert.That(stats.CompareCount).IsNotEqualTo(0UL);
+        await Assert.That(stats.SwapCount).IsNotEqualTo(0UL);
     }
 
-    [Theory]
-    [InlineData(30)]
-    [InlineData(50)]
-    [InlineData(100)]
-    [InlineData(200)]
-    public void TheoreticalValuesSortedTest(int n)
+    [Test]
+    [Arguments(30)]
+    [Arguments(50)]
+    [Arguments(100)]
+    [Arguments(200)]
+    public async Task TheoreticalValuesSortedTest(int n)
     {
         var stats = new StatisticsContext();
         var sorted = Enumerable.Range(0, n).ToArray();
@@ -249,23 +246,20 @@ public class QuickSortDualPivotTests
         var recursionDepth = (int)Math.Ceiling(Math.Log(n, 3));
         var expectedSwaps = (ulong)(recursionDepth * 2);
 
-        Assert.True(stats.CompareCount >= minCompares,
-            $"CompareCount ({stats.CompareCount}) should be >= {minCompares}");
-        Assert.True(stats.SwapCount >= expectedSwaps,
-            $"SwapCount ({stats.SwapCount}) should be >= {expectedSwaps}");
+        await Assert.That(stats.CompareCount >= minCompares).IsTrue().Because($"CompareCount ({stats.CompareCount}) should be >= {minCompares}");
+        await Assert.That(stats.SwapCount >= expectedSwaps).IsTrue().Because($"SwapCount ({stats.SwapCount}) should be >= {expectedSwaps}");
 
         // IndexReads: At least as many as comparisons (each compare reads 2 elements)
         var minIndexReads = stats.CompareCount * 2;
-        Assert.True(stats.IndexReadCount >= minIndexReads,
-            $"IndexReadCount ({stats.IndexReadCount}) should be >= {minIndexReads}");
+        await Assert.That(stats.IndexReadCount >= minIndexReads).IsTrue().Because($"IndexReadCount ({stats.IndexReadCount}) should be >= {minIndexReads}");
     }
 
-    [Theory]
-    [InlineData(30)]
-    [InlineData(50)]
-    [InlineData(100)]
-    [InlineData(200)]
-    public void TheoreticalValuesReversedTest(int n)
+    [Test]
+    [Arguments(30)]
+    [Arguments(50)]
+    [Arguments(100)]
+    [Arguments(200)]
+    public async Task TheoreticalValuesReversedTest(int n)
     {
         var stats = new StatisticsContext();
         var reversed = Enumerable.Range(0, n).Reverse().ToArray();
@@ -291,21 +285,20 @@ public class QuickSortDualPivotTests
         var minSwaps = (ulong)(n / 2); // At least half the elements need swapping
         var maxSwaps = (ulong)(n * n); // Worst case
 
-        Assert.InRange(stats.CompareCount, minCompares, maxCompares);
-        Assert.InRange(stats.SwapCount, minSwaps, maxSwaps);
+        await Assert.That(stats.CompareCount).IsBetween(minCompares, maxCompares);
+        await Assert.That(stats.SwapCount).IsBetween(minSwaps, maxSwaps);
 
         // IndexReads: Significantly higher due to partitioning and swapping
         var minIndexReads = stats.CompareCount * 2;
-        Assert.True(stats.IndexReadCount >= minIndexReads,
-            $"IndexReadCount ({stats.IndexReadCount}) should be >= {minIndexReads}");
+        await Assert.That(stats.IndexReadCount >= minIndexReads).IsTrue().Because($"IndexReadCount ({stats.IndexReadCount}) should be >= {minIndexReads}");
     }
 
-    [Theory]
-    [InlineData(30)]
-    [InlineData(50)]
-    [InlineData(100)]
-    [InlineData(200)]
-    public void TheoreticalValuesRandomTest(int n)
+    [Test]
+    [Arguments(30)]
+    [Arguments(50)]
+    [Arguments(100)]
+    [Arguments(200)]
+    public async Task TheoreticalValuesRandomTest(int n)
     {
         var stats = new StatisticsContext();
         var random = Enumerable.Range(0, n).OrderBy(_ => Guid.NewGuid()).ToArray();
@@ -328,21 +321,19 @@ public class QuickSortDualPivotTests
         var minSwaps = (ulong)Math.Log(n, 3) * 2; // Best case: only pivot placements
         var maxSwaps = (ulong)(n * Math.Log(n, 3) * 2); // Average case estimate
 
-        Assert.InRange(stats.CompareCount, minCompares, maxCompares);
-        Assert.True(stats.SwapCount >= minSwaps,
-            $"SwapCount ({stats.SwapCount}) should be >= {minSwaps}");
+        await Assert.That(stats.CompareCount).IsBetween(minCompares, maxCompares);
+        await Assert.That(stats.SwapCount >= minSwaps).IsTrue().Because($"SwapCount ({stats.SwapCount}) should be >= {minSwaps}");
 
         // IndexReads: Should be proportional to comparisons and swaps
         var minIndexReads = stats.CompareCount * 2;
-        Assert.True(stats.IndexReadCount >= minIndexReads,
-            $"IndexReadCount ({stats.IndexReadCount}) should be >= {minIndexReads}");
+        await Assert.That(stats.IndexReadCount >= minIndexReads).IsTrue().Because($"IndexReadCount ({stats.IndexReadCount}) should be >= {minIndexReads}");
     }
 
-    [Theory]
-    [InlineData(5)]
-    [InlineData(10)]
-    [InlineData(20)]
-    public void TheoreticalValuesSameElementsTest(int n)
+    [Test]
+    [Arguments(5)]
+    [Arguments(10)]
+    [Arguments(20)]
+    public async Task TheoreticalValuesSameElementsTest(int n)
     {
         var stats = new StatisticsContext();
         var sameValues = Enumerable.Repeat(42, n).ToArray();
@@ -368,13 +359,11 @@ public class QuickSortDualPivotTests
         var recursionDepth = (int)Math.Ceiling(Math.Log(Math.Max(n, 2), 3));
         var maxSwaps = (ulong)(recursionDepth * 4); // Allow some extra for partitioning
 
-        Assert.True(stats.CompareCount >= minCompares,
-            $"CompareCount ({stats.CompareCount}) should be >= {minCompares}");
-        Assert.True(stats.SwapCount <= maxSwaps,
-            $"SwapCount ({stats.SwapCount}) should be <= {maxSwaps} for all equal elements");
+        await Assert.That(stats.CompareCount >= minCompares).IsTrue().Because($"CompareCount ({stats.CompareCount}) should be >= {minCompares}");
+        await Assert.That(stats.SwapCount <= maxSwaps).IsTrue().Because($"SwapCount ({stats.SwapCount}) should be <= {maxSwaps} for all equal elements");
 
         // Verify the array is still correct (all values unchanged)
-        Assert.All(sameValues, val => Assert.Equal(42, val));
+        foreach(var item in sameValues) await Assert.That(item).IsEqualTo(42);
     }
 
 #endif

@@ -1,20 +1,23 @@
-﻿using SortAlgorithm;
-using System.Collections;
+﻿namespace SortAlgorithm.Tests;
 
-namespace SortAlgorithm.Tests;
-
-public class MockNegativePositiveRandomData : IEnumerable<object[]>
+public static class MockNegativePositiveRandomData
 {
-    private List<object[]> testData = new List<object[]>();
-
-    public MockNegativePositiveRandomData()
+    public static IEnumerable<Func<InputSample<int>>> Generate()
     {
-        testData.Add([new InputSample<int>() { InputType = InputType.MixRandom, Samples = Enumerable.Range(-50, 100).Sample(100).ToArray() }]);
-        testData.Add([new InputSample<int>() { InputType = InputType.MixRandom, Samples = Enumerable.Range(-500, 1000).Sample(1000).ToArray() }]);
-        testData.Add([new InputSample<int>() { InputType = InputType.MixRandom, Samples = Enumerable.Range(-5000, 10000).Sample(10000).ToArray() }]);
+        yield return () => new InputSample<int>()
+        {
+            InputType = InputType.MixRandom,
+            Samples = Enumerable.Range(-50, 100).Sample(100).ToArray()
+        };
+        yield return () => new InputSample<int>()
+        {
+            InputType = InputType.MixRandom,
+            Samples = Enumerable.Range(-500, 1000).Sample(1000).ToArray()
+        };
+        yield return () => new InputSample<int>()
+        {
+            InputType = InputType.MixRandom,
+            Samples = Enumerable.Range(-5000, 10000).Sample(10000).ToArray()
+        };
     }
-
-    public IEnumerator<object[]> GetEnumerator() => testData.GetEnumerator();
-
-    IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
 }

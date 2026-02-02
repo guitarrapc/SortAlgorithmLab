@@ -26,6 +26,6 @@ jobs:
         run: dotnet build -c Release
       # Should run with Debug. Statistics will be omit on Release build
       - name: dotnet test
-        run: dotnet test -c Release --logger "console;verbosity=normal"
+        run: dotnet test -c Release
       - name: dotnet publish
         run: dotnet publish -c Release
