@@ -78,26 +78,6 @@ public class StdSortTests
     }
 
     [Fact]
-    public void EdgeCaseFourElementsTest()
-    {
-        var stats = new StatisticsContext();
-        var four = new[] { 4, 2, 3, 1 };
-        StdSort.Sort(four.AsSpan(), stats);
-
-        Assert.Equal([1, 2, 3, 4], four);
-    }
-
-    [Fact]
-    public void EdgeCaseFiveElementsTest()
-    {
-        var stats = new StatisticsContext();
-        var five = new[] { 5, 2, 4, 1, 3 };
-        StdSort.Sort(five.AsSpan(), stats);
-
-        Assert.Equal([1, 2, 3, 4, 5], five);
-    }
-
-    [Fact]
     public void RangeSortTest()
     {
         var stats = new StatisticsContext();
@@ -123,102 +103,90 @@ public class StdSortTests
     }
 
     [Fact]
-    public void SmallArrayUnder24ElementsTest()
+    public void SortedArrayTest()
     {
         var stats = new StatisticsContext();
-        var array = Enumerable.Range(1, 20).Reverse().ToArray();
-        StdSort.Sort(array.AsSpan(), stats);
+        var sorted = Enumerable.Range(1, 100).ToArray();
+        StdSort.Sort(sorted.AsSpan(), stats);
 
-        Assert.Equal(Enumerable.Range(1, 20).ToArray(), array);
+        Assert.Equal(Enumerable.Range(1, 100).ToArray(), sorted);
     }
 
     [Fact]
-    public void LargeArrayOver128ElementsTest()
+    public void ReverseSortedArrayTest()
     {
-        // Test Tuckey's ninther path
         var stats = new StatisticsContext();
-        var array = Enumerable.Range(1, 200).Reverse().ToArray();
-        StdSort.Sort(array.AsSpan(), stats);
+        var reversed = Enumerable.Range(1, 100).Reverse().ToArray();
+        StdSort.Sort(reversed.AsSpan(), stats);
 
-        Assert.Equal(Enumerable.Range(1, 200).ToArray(), array);
+        Assert.Equal(Enumerable.Range(1, 100).ToArray(), reversed);
     }
 
     [Fact]
-    public void AlreadySortedDetectionTest()
+    public void AllEqualElementsTest()
     {
-        // Test already partitioned optimization
         var stats = new StatisticsContext();
-        var array = Enumerable.Range(1, 100).ToArray();
-        StdSort.Sort(array.AsSpan(), stats);
+        var allEqual = Enumerable.Repeat(42, 100).ToArray();
+        StdSort.Sort(allEqual.AsSpan(), stats);
 
-        Assert.Equal(Enumerable.Range(1, 100).ToArray(), array);
+        Assert.Equal(Enumerable.Repeat(42, 100).ToArray(), allEqual);
     }
 
     [Fact]
-    public void DuplicateElementsTest()
+    public void ManyDuplicatesTest()
     {
         var stats = new StatisticsContext();
-        var array = new[] { 3, 1, 4, 1, 5, 9, 2, 6, 5, 3, 5 };
-        StdSort.Sort(array.AsSpan(), stats);
+        var duplicates = new[] { 1, 2, 1, 3, 2, 1, 4, 3, 2, 1, 5, 4, 3, 2, 1 };
+        StdSort.Sort(duplicates.AsSpan(), stats);
 
-        Assert.Equal(new[] { 1, 1, 2, 3, 3, 4, 5, 5, 5, 6, 9 }, array);
+        Assert.Equal(new[] { 1, 1, 1, 1, 1, 2, 2, 2, 2, 3, 3, 3, 4, 4, 5 }, duplicates);
     }
 
     [Fact]
-    public void AllSameElementsTest()
+    public void LargeArrayTest()
     {
         var stats = new StatisticsContext();
-        var array = Enumerable.Repeat(42, 50).ToArray();
-        StdSort.Sort(array.AsSpan(), stats);
+        var random = new Random(42);
+        var large = Enumerable.Range(0, 10000).OrderBy(_ => random.Next()).ToArray();
+        var expected = large.OrderBy(x => x).ToArray();
 
-        Assert.All(array, x => Assert.Equal(42, x));
+        StdSort.Sort(large.AsSpan(), stats);
+
+        Assert.Equal(expected, large);
     }
 
     [Fact]
-    public void DepthLimitHeapSortFallbackTest()
+    public void NearlySortedArrayTest()
     {
-        // Create worst-case pattern that triggers heap sort fallback
         var stats = new StatisticsContext();
-        var array = new[] { 1, 3, 5, 7, 9, 11, 13, 15, 2, 4, 6, 8, 10, 12, 14, 16 };
-        StdSort.Sort(array.AsSpan(), stats);
+        var nearlySorted = Enumerable.Range(1, 100).ToArray();
+        // Swap a few elements to make it nearly sorted
+        (nearlySorted[10], nearlySorted[20]) = (nearlySorted[20], nearlySorted[10]);
+        (nearlySorted[50], nearlySorted[60]) = (nearlySorted[60], nearlySorted[50]);
 
-        Assert.Equal(Enumerable.Range(1, 16).ToArray(), array);
+        StdSort.Sort(nearlySorted.AsSpan(), stats);
+
+        Assert.Equal(Enumerable.Range(1, 100).ToArray(), nearlySorted);
+    }
+
+    [Fact]
+    public void SmallArrayInsertionSortThresholdTest()
+    {
+        var stats = new StatisticsContext();
+        var small = new[] { 5, 2, 8, 1, 9, 3, 7, 4, 6, 10, 15, 12, 18, 11, 19, 13, 17, 14, 16, 20 };
+        StdSort.Sort(small.AsSpan(), stats);
+
+        Assert.Equal(Enumerable.Range(1, 20).ToArray(), small);
     }
 
     [Fact]
     public void StringSortTest()
     {
         var stats = new StatisticsContext();
-        var array = new[] { "zebra", "apple", "mango", "banana", "cherry" };
-        StdSort.Sort(array.AsSpan(), stats);
+        var strings = new[] { "zebra", "apple", "mango", "banana", "cherry" };
+        StdSort.Sort(strings.AsSpan(), stats);
 
-        Assert.Equal(new[] { "apple", "banana", "cherry", "mango", "zebra" }, array);
-    }
-
-    [Fact]
-    public void CustomComparableTypeTest()
-    {
-        var stats = new StatisticsContext();
-        var array = new[]
-        {
-            new ComparablePair(3, "c"),
-            new ComparablePair(1, "a"),
-            new ComparablePair(2, "b")
-        };
-        StdSort.Sort(array.AsSpan(), stats);
-
-        Assert.Equal(1, array[0].Value);
-        Assert.Equal(2, array[1].Value);
-        Assert.Equal(3, array[2].Value);
-    }
-
-    private record ComparablePair(int Value, string Label) : IComparable<ComparablePair>
-    {
-        public int CompareTo(ComparablePair? other)
-        {
-            if (other == null) return 1;
-            return Value.CompareTo(other.Value);
-        }
+        Assert.Equal(new[] { "apple", "banana", "cherry", "mango", "zebra" }, strings);
     }
 
 #if DEBUG

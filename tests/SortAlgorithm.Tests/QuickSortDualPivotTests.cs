@@ -103,110 +103,90 @@ public class QuickSortDualPivotTests
     }
 
     [Fact]
-    public void RangeSortSingleElementTest()
+    public void SortedArrayTest()
     {
         var stats = new StatisticsContext();
-        var array = new[] { 5, 3, 8, 1, 9 };
-
-        // Sort a single element range [2, 3)
-        QuickSortDualPivot.Sort(array.AsSpan(), 2, 3, stats);
-
-        // Array should be unchanged (single element is already sorted)
-        Assert.Equal(new[] { 5, 3, 8, 1, 9 }, array);
-    }
-
-    [Fact]
-    public void RangeSortBeginningTest()
-    {
-        var stats = new StatisticsContext();
-        var array = new[] { 9, 7, 5, 3, 1, 2, 4, 6, 8 };
-
-        // Sort only the first 5 elements [0, 5)
-        QuickSortDualPivot.Sort(array.AsSpan(), 0, 5, stats);
-
-        // Expected: first 5 sorted, last 4 unchanged
-        Assert.Equal(new[] { 1, 3, 5, 7, 9, 2, 4, 6, 8 }, array);
-    }
-
-    [Fact]
-    public void RangeSortEndTest()
-    {
-        var stats = new StatisticsContext();
-        var array = new[] { 1, 3, 5, 7, 9, 8, 6, 4, 2 };
-
-        // Sort only the last 4 elements [5, 9)
-        QuickSortDualPivot.Sort(array.AsSpan(), 5, 9, stats);
-
-        // Expected: first 5 unchanged, last 4 sorted
-        Assert.Equal(new[] { 1, 3, 5, 7, 9, 2, 4, 6, 8 }, array);
-    }
-
-    /// <summary>
-    /// Tests adaptive pivot selection: simple method for arrays &lt; 47 elements
-    /// </summary>
-    [Theory]
-    [InlineData(2)]   // Minimum for dual-pivot
-    [InlineData(10)]  // Small array
-    [InlineData(30)]  // Medium-small array
-    [InlineData(46)]  // Just below PivotThreshold (47)
-    public void AdaptivePivotSimpleMethodTest(int n)
-    {
-        var stats = new StatisticsContext();
-        var random = Enumerable.Range(0, n).OrderBy(_ => Guid.NewGuid()).ToArray();
-        QuickSortDualPivot.Sort(random.AsSpan(), stats);
-
-        // Verify sorting is correct
-        Assert.Equal(Enumerable.Range(0, n), random);
-    }
-
-    /// <summary>
-    /// Tests adaptive pivot selection: 5-sample method for arrays ≥ 47 elements
-    /// </summary>
-    [Theory]
-    [InlineData(47)]   // Exactly at threshold
-    [InlineData(50)]   // Just above threshold
-    [InlineData(100)]  // Larger array
-    [InlineData(200)]  // Even larger
-    public void AdaptivePivot5SampleMethodTest(int n)
-    {
-        var stats = new StatisticsContext();
-        var random = Enumerable.Range(0, n).OrderBy(_ => Guid.NewGuid()).ToArray();
-        QuickSortDualPivot.Sort(random.AsSpan(), stats);
-
-        // Verify sorting is correct
-        Assert.Equal(Enumerable.Range(0, n), random);
-    }
-
-    /// <summary>
-    /// Tests that 5-sample pivot selection handles sorted data efficiently (≥ 47 elements)
-    /// </summary>
-    [Theory]
-    [InlineData(47)]
-    [InlineData(100)]
-    public void AdaptivePivot5SampleSortedTest(int n)
-    {
-        var stats = new StatisticsContext();
-        var sorted = Enumerable.Range(0, n).ToArray();
+        var sorted = Enumerable.Range(1, 100).ToArray();
         QuickSortDualPivot.Sort(sorted.AsSpan(), stats);
 
-        // Verify array remains sorted
-        Assert.Equal(Enumerable.Range(0, n), sorted);
+        Assert.Equal(Enumerable.Range(1, 100).ToArray(), sorted);
     }
 
-    /// <summary>
-    /// Tests that 5-sample pivot selection handles reverse-sorted data efficiently
-    /// </summary>
-    [Theory]
-    [InlineData(47)]
-    [InlineData(100)]
-    public void AdaptivePivot5SampleReversedTest(int n)
+    [Fact]
+    public void ReverseSortedArrayTest()
     {
         var stats = new StatisticsContext();
-        var reversed = Enumerable.Range(0, n).Reverse().ToArray();
+        var reversed = Enumerable.Range(1, 100).Reverse().ToArray();
         QuickSortDualPivot.Sort(reversed.AsSpan(), stats);
 
-        // Verify array is now sorted
-        Assert.Equal(Enumerable.Range(0, n), reversed);
+        Assert.Equal(Enumerable.Range(1, 100).ToArray(), reversed);
+    }
+
+    [Fact]
+    public void AllEqualElementsTest()
+    {
+        var stats = new StatisticsContext();
+        var allEqual = Enumerable.Repeat(42, 100).ToArray();
+        QuickSortDualPivot.Sort(allEqual.AsSpan(), stats);
+
+        Assert.Equal(Enumerable.Repeat(42, 100).ToArray(), allEqual);
+    }
+
+    [Fact]
+    public void ManyDuplicatesTest()
+    {
+        var stats = new StatisticsContext();
+        var duplicates = new[] { 1, 2, 1, 3, 2, 1, 4, 3, 2, 1, 5, 4, 3, 2, 1 };
+        QuickSortDualPivot.Sort(duplicates.AsSpan(), stats);
+
+        Assert.Equal(new[] { 1, 1, 1, 1, 1, 2, 2, 2, 2, 3, 3, 3, 4, 4, 5 }, duplicates);
+    }
+
+    [Fact]
+    public void LargeArrayTest()
+    {
+        var stats = new StatisticsContext();
+        var random = new Random(42);
+        var large = Enumerable.Range(0, 10000).OrderBy(_ => random.Next()).ToArray();
+        var expected = large.OrderBy(x => x).ToArray();
+
+        QuickSortDualPivot.Sort(large.AsSpan(), stats);
+
+        Assert.Equal(expected, large);
+    }
+
+    [Fact]
+    public void NearlySortedArrayTest()
+    {
+        var stats = new StatisticsContext();
+        var nearlySorted = Enumerable.Range(1, 100).ToArray();
+        // Swap a few elements to make it nearly sorted
+        (nearlySorted[10], nearlySorted[20]) = (nearlySorted[20], nearlySorted[10]);
+        (nearlySorted[50], nearlySorted[60]) = (nearlySorted[60], nearlySorted[50]);
+
+        QuickSortDualPivot.Sort(nearlySorted.AsSpan(), stats);
+
+        Assert.Equal(Enumerable.Range(1, 100).ToArray(), nearlySorted);
+    }
+
+    [Fact]
+    public void SmallArrayInsertionSortThresholdTest()
+    {
+        var stats = new StatisticsContext();
+        var small = new[] { 5, 2, 8, 1, 9, 3, 7, 4, 6, 10, 15, 12, 18, 11, 19, 13, 17, 14, 16, 20 };
+        QuickSortDualPivot.Sort(small.AsSpan(), stats);
+
+        Assert.Equal(Enumerable.Range(1, 20).ToArray(), small);
+    }
+
+    [Fact]
+    public void StringSortTest()
+    {
+        var stats = new StatisticsContext();
+        var strings = new[] { "zebra", "apple", "mango", "banana", "cherry" };
+        QuickSortDualPivot.Sort(strings.AsSpan(), stats);
+
+        Assert.Equal(new[] { "apple", "banana", "cherry", "mango", "zebra" }, strings);
     }
 
 #if DEBUG

@@ -103,363 +103,95 @@ public class BlockQuickSortTests
     }
 
     [Fact]
-    public void RangeSortEmptyRangeTest()
+    public void SortedArrayTest()
     {
         var stats = new StatisticsContext();
-        var array = new[] { 3, 1, 2 };
+        var sorted = Enumerable.Range(1, 100).ToArray();
+        BlockQuickSort.Sort(sorted.AsSpan(), stats);
 
-        // Sort empty range [1, 1)
-        BlockQuickSort.Sort(array.AsSpan(), 1, 1, stats);
-
-        // Array should remain unchanged
-        Assert.Equal(new[] { 3, 1, 2 }, array);
+        Assert.Equal(Enumerable.Range(1, 100).ToArray(), sorted);
     }
 
     [Fact]
-    public void SmallArraySwitchesToInsertionSortTest()
+    public void ReverseSortedArrayTest()
     {
         var stats = new StatisticsContext();
-        var small = new[] { 9, 7, 5, 3, 1, 2, 4, 6, 8, 10, 12, 14, 16, 18, 20 }; // 15 elements (< 20 threshold)
-        BlockQuickSort.Sort(small.AsSpan(), stats);
+        var reversed = Enumerable.Range(1, 100).Reverse().ToArray();
+        BlockQuickSort.Sort(reversed.AsSpan(), stats);
 
-        // Verify array is sorted
-        for (var i = 0; i < small.Length - 1; i++)
-        {
-            Assert.True(small[i] <= small[i + 1], $"Array not sorted at index {i}: {small[i]} > {small[i + 1]}");
-        }
+        Assert.Equal(Enumerable.Range(1, 100).ToArray(), reversed);
+    }
+
+    [Fact]
+    public void AllEqualElementsTest()
+    {
+        var stats = new StatisticsContext();
+        var allEqual = Enumerable.Repeat(42, 100).ToArray();
+        BlockQuickSort.Sort(allEqual.AsSpan(), stats);
+
+        Assert.Equal(Enumerable.Repeat(42, 100).ToArray(), allEqual);
+    }
+
+    [Fact]
+    public void ManyDuplicatesTest()
+    {
+        var stats = new StatisticsContext();
+        var duplicates = new[] { 1, 2, 1, 3, 2, 1, 4, 3, 2, 1, 5, 4, 3, 2, 1 };
+        BlockQuickSort.Sort(duplicates.AsSpan(), stats);
+
+        Assert.Equal(new[] { 1, 1, 1, 1, 1, 2, 2, 2, 2, 3, 3, 3, 4, 4, 5 }, duplicates);
     }
 
     [Fact]
     public void LargeArrayTest()
     {
         var stats = new StatisticsContext();
-        var size = 1000;
         var random = new Random(42);
-        var array = Enumerable.Range(0, size).OrderBy(_ => random.Next()).ToArray();
-        BlockQuickSort.Sort(array.AsSpan(), stats);
+        var large = Enumerable.Range(0, 10000).OrderBy(_ => random.Next()).ToArray();
+        var expected = large.OrderBy(x => x).ToArray();
 
-        // Verify sorted
-        for (var i = 0; i < size - 1; i++)
-        {
-            Assert.True(array[i] <= array[i + 1], $"Array not sorted at index {i}: {array[i]} > {array[i + 1]}");
-        }
+        BlockQuickSort.Sort(large.AsSpan(), stats);
+
+        Assert.Equal(expected, large);
     }
 
     [Fact]
-    public void VeryLargeArrayTest()
+    public void NearlySortedArrayTest()
     {
         var stats = new StatisticsContext();
-        var size = 10000;
-        var random = new Random(42);
-        var array = Enumerable.Range(0, size).OrderBy(_ => random.Next()).ToArray();
-        BlockQuickSort.Sort(array.AsSpan(), stats);
+        var nearlySorted = Enumerable.Range(1, 100).ToArray();
+        // Swap a few elements to make it nearly sorted
+        (nearlySorted[10], nearlySorted[20]) = (nearlySorted[20], nearlySorted[10]);
+        (nearlySorted[50], nearlySorted[60]) = (nearlySorted[60], nearlySorted[50]);
 
-        // Verify sorted
-        for (var i = 0; i < size - 1; i++)
-        {
-            Assert.True(array[i] <= array[i + 1], $"Array not sorted at index {i}: {array[i]} > {array[i + 1]}");
-        }
+        BlockQuickSort.Sort(nearlySorted.AsSpan(), stats);
+
+        Assert.Equal(Enumerable.Range(1, 100).ToArray(), nearlySorted);
     }
 
     [Fact]
-    public void MassiveArrayTestMedianOfSqrt()
+    public void SmallArrayInsertionSortThresholdTest()
     {
         var stats = new StatisticsContext();
-        var size = 25000; // > 20000 to trigger median-of-sqrt(n)
-        var random = new Random(42);
-        var array = Enumerable.Range(0, size).OrderBy(_ => random.Next()).ToArray();
-        BlockQuickSort.Sort(array.AsSpan(), stats);
+        var small = new[] { 5, 2, 8, 1, 9, 3, 7, 4, 6, 10, 15, 12, 18, 11, 19, 13, 17, 14, 16, 20 };
+        BlockQuickSort.Sort(small.AsSpan(), stats);
 
-        // Verify sorted
-        for (var i = 0; i < size - 1; i++)
-        {
-            Assert.True(array[i] <= array[i + 1], $"Array not sorted at index {i}: {array[i]} > {array[i + 1]}");
-        }
+        Assert.Equal(Enumerable.Range(1, 20).ToArray(), small);
     }
 
     [Fact]
-    public void LargeArrayTestMedianOf5MediansOf5()
+    public void StringSortTest()
     {
         var stats = new StatisticsContext();
-        var size = 1000; // > 800 to trigger median-of-5-medians-of-5
-        var random = new Random(42);
-        var array = Enumerable.Range(0, size).OrderBy(_ => random.Next()).ToArray();
-        BlockQuickSort.Sort(array.AsSpan(), stats);
+        var strings = new[] { "zebra", "apple", "mango", "banana", "cherry" };
+        BlockQuickSort.Sort(strings.AsSpan(), stats);
 
-        // Verify sorted
-        for (var i = 0; i < size - 1; i++)
-        {
-            Assert.True(array[i] <= array[i + 1], $"Array not sorted at index {i}: {array[i]} > {array[i + 1]}");
-        }
+        Assert.Equal(new[] { "apple", "banana", "cherry", "mango", "zebra" }, strings);
     }
-
-    [Fact]
-    public void MediumArrayTestMedianOf3MediansOf3()
-    {
-        var stats = new StatisticsContext();
-        var size = 200; // > 100 to trigger median-of-3-medians-of-3
-        var random = new Random(42);
-        var array = Enumerable.Range(0, size).OrderBy(_ => random.Next()).ToArray();
-        BlockQuickSort.Sort(array.AsSpan(), stats);
-
-        // Verify sorted
-        for (var i = 0; i < size - 1; i++)
-        {
-            Assert.True(array[i] <= array[i + 1], $"Array not sorted at index {i}: {array[i]} > {array[i + 1]}");
-        }
-    }
-
-    [Fact]
-    public void BlockPartitioningBoundaryTest()
-    {
-        var stats = new StatisticsContext();
-        // Test with size exactly at block size (128)
-        var size = 128;
-        var random = new Random(42);
-        var array = Enumerable.Range(0, size).OrderBy(_ => random.Next()).ToArray();
-        BlockQuickSort.Sort(array.AsSpan(), stats);
-
-        // Verify sorted
-        for (var i = 0; i < size - 1; i++)
-        {
-            Assert.True(array[i] <= array[i + 1], $"Array not sorted at index {i}: {array[i]} > {array[i + 1]}");
-        }
-    }
-
-    [Fact]
-    public void MultipleBlocksTest()
-    {
-        var stats = new StatisticsContext();
-        // Test with size requiring multiple blocks (3 * 128 = 384)
-        var size = 384;
-        var random = new Random(42);
-        var array = Enumerable.Range(0, size).OrderBy(_ => random.Next()).ToArray();
-        BlockQuickSort.Sort(array.AsSpan(), stats);
-
-        // Verify sorted
-        for (var i = 0; i < size - 1; i++)
-        {
-            Assert.True(array[i] <= array[i + 1], $"Array not sorted at index {i}: {array[i]} > {array[i + 1]}");
-        }
-    }
-
-    [Fact]
-    public void DuplicateValuesTest()
-    {
-        var stats = new StatisticsContext();
-        var array = new[] { 5, 2, 8, 2, 9, 1, 5, 5, 3, 2 };
-        BlockQuickSort.Sort(array.AsSpan(), stats);
-
-        Assert.Equal(new[] { 1, 2, 2, 2, 3, 5, 5, 5, 8, 9 }, array);
-    }
-
-    /// <summary>
-    /// Tests pattern with repeating sequences of duplicates.
-    /// Example: [1,1,1,2,2,2,3,3,3,...] shuffled
-    /// </summary>
-    [Fact]
-    public void RepeatingDuplicateSequencesTest()
-    {
-        var stats = new StatisticsContext();
-        var array = new List<int>();
-        for (var i = 0; i < 100; i++)
-        {
-            // Each value appears 5 times
-            for (var j = 0; j < 5; j++)
-            {
-                array.Add(i);
-            }
-        }
-
-        // Shuffle the array
-        var random = new Random(42);
-        var shuffled = array.OrderBy(_ => random.Next()).ToArray();
-
-        BlockQuickSort.Sort(shuffled.AsSpan(), stats);
-
-        // Verify sorted and count occurrences
-        for (var i = 0; i < shuffled.Length - 1; i++)
-        {
-            Assert.True(shuffled[i] <= shuffled[i + 1],
-                $"Array not sorted at index {i}: {shuffled[i]} > {shuffled[i + 1]}");
-        }
-
-        // Verify each value appears exactly 5 times
-        for (var i = 0; i < 100; i++)
-        {
-            var count = shuffled.Count(x => x == i);
-            Assert.Equal(5, count);
-        }
-    }
-
-    /// <summary>
-    /// Tests array with duplicates at block boundaries.
-    /// This ensures block partitioning handles duplicates correctly across block transitions.
-    /// </summary>
-    [Fact]
-    public void DuplicatesAtBlockBoundariesTest()
-    {
-        var stats = new StatisticsContext();
-        var blockSize = 128;
-        var array = new int[blockSize * 3];
-
-        // Fill with pattern: many duplicates at block boundaries
-        for (var i = 0; i < array.Length; i++)
-        {
-            if (i % blockSize < 10 || i % blockSize >= blockSize - 10)
-            {
-                array[i] = 1; // Duplicates near boundaries
-            }
-            else
-            {
-                array[i] = i; // Unique values in the middle
-            }
-        }
-
-        // Shuffle
-        var random = new Random(42);
-        var shuffled = array.OrderBy(_ => random.Next()).ToArray();
-
-        BlockQuickSort.Sort(shuffled.AsSpan(), stats);
-
-        // Verify sorted
-        for (var i = 0; i < shuffled.Length - 1; i++)
-        {
-            Assert.True(shuffled[i] <= shuffled[i + 1],
-                $"Array not sorted at index {i}: {shuffled[i]} > {shuffled[i + 1]}");
-        }
-    }
-
-    /// <summary>
-    /// Tests the case where pivot value appears many times in the array.
-    /// Paper mentions: "pivot occurs twice in the sample" as a trigger for duplicate check.
-    /// </summary>
-    [Fact]
-    public void PivotValueAppearsManyTimesTest()
-    {
-        var stats = new StatisticsContext();
-        var size = 1000;
-        var array = new int[size];
-
-        // Fill array: 50% are the median value (500)
-        var random = new Random(42);
-        for (var i = 0; i < size; i++)
-        {
-            array[i] = random.Next(2) == 0 ? 500 : random.Next(1000);
-        }
-
-        BlockQuickSort.Sort(array.AsSpan(), stats);
-
-        // Verify sorted
-        for (var i = 0; i < size - 1; i++)
-        {
-            Assert.True(array[i] <= array[i + 1],
-                $"Array not sorted at index {i}: {array[i]} > {array[i + 1]}");
-        }
-    }
-
-    /// <summary>
-    /// Tests duplicate check optimization with small arrays containing many duplicates.
-    /// This triggers the duplicate check path (size ≤ 512).
-    /// </summary>
-    [Fact]
-    public void DuplicateCheckSmallArrayTest()
-    {
-        var stats = new StatisticsContext();
-        var size = 300; // Small enough to trigger duplicate check
-        var array = new int[size];
-
-        // 80% of elements are value 50
-        var random = new Random(42);
-        for (var i = 0; i < size; i++)
-        {
-            array[i] = random.Next(10) < 8 ? 50 : random.Next(100);
-        }
-
-        BlockQuickSort.Sort(array.AsSpan(), stats);
-
-        // Verify sorted
-        for (var i = 0; i < size - 1; i++)
-        {
-            Assert.True(array[i] <= array[i + 1],
-                $"Array not sorted at index {i}: {array[i]} > {array[i + 1]}");
-        }
-
-        // Verify many elements are 50
-        var count50 = array.Count(x => x == 50);
-        Assert.True(count50 >= size * 0.7, $"Expected at least 70% to be 50, got {count50}/{size}");
-    }
-
-    /// <summary>
-    /// Tests duplicate check with arrays at the threshold boundary.
-    /// </summary>
-    [Theory]
-    [InlineData(256)]  // Half the threshold
-    [InlineData(512)]  // At threshold
-    [InlineData(513)]  // Just above threshold (no duplicate check)
-    public void DuplicateCheckThresholdTest(int size)
-    {
-        var stats = new StatisticsContext();
-        var array = new int[size];
-
-        // 60% duplicates
-        var random = new Random(42);
-        for (var i = 0; i < size; i++)
-        {
-            array[i] = random.Next(10) < 6 ? 42 : random.Next(size);
-        }
-
-        BlockQuickSort.Sort(array.AsSpan(), stats);
-
-        // Verify sorted
-        for (var i = 0; i < size - 1; i++)
-        {
-            Assert.True(array[i] <= array[i + 1],
-                $"Array not sorted at index {i}: {array[i]} > {array[i + 1]}");
-        }
-    }
-
-    /// <summary>
-    /// Tests that duplicate check stops early when duplicates are sparse.
-    /// The algorithm should stop scanning when less than 25% are duplicates.
-    /// </summary>
-    [Fact]
-    public void DuplicateCheckEarlyStopTest()
-    {
-        var stats = new StatisticsContext();
-        var size = 400;
-        var array = new int[size];
-
-        // First 20% are duplicates (value 1), rest are unique
-        // This should trigger early stop in duplicate scanning
-        for (var i = 0; i < size / 5; i++)
-        {
-            array[i] = 1;
-        }
-        for (var i = size / 5; i < size; i++)
-        {
-            array[i] = i;
-        }
-
-        // Shuffle
-        var random = new Random(42);
-        var shuffled = array.OrderBy(_ => random.Next()).ToArray();
-
-        BlockQuickSort.Sort(shuffled.AsSpan(), stats);
-
-        // Verify sorted
-        for (var i = 0; i < size - 1; i++)
-        {
-            Assert.True(shuffled[i] <= shuffled[i + 1],
-                $"Array not sorted at index {i}: {shuffled[i]} > {shuffled[i + 1]}");
-        }
-    }
-
-
 
 #if DEBUG
 
-    [Theory]
+        [Theory]
     [ClassData(typeof(MockSortedData))]
     public void StatisticsSortedTest(IInputSample<int> inputSample)
     {

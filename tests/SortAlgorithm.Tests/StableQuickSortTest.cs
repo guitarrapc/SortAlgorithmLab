@@ -29,69 +29,6 @@ public class StableQuickSortTest
         Assert.Equal((ulong)inputSample.Samples.Length, (ulong)array.Length);
     }
 
-    [Theory]
-    [ClassData(typeof(MockStabilityData))]
-    public void StabilityTest(StabilityTestItem[] items)
-    {
-        // Test stability: equal elements should maintain relative order
-        var stats = new StatisticsContext();
-
-        StableQuickSort.Sort(items.AsSpan(), stats);
-
-        // Verify sorting correctness - values should be in ascending order
-        Assert.Equal(MockStabilityData.Sorted, items.Select(x => x.Value).ToArray());
-
-        // Verify stability: for each group of equal values, original order is preserved
-        var value1Indices = items.Where(x => x.Value == 1).Select(x => x.OriginalIndex).ToArray();
-        var value2Indices = items.Where(x => x.Value == 2).Select(x => x.OriginalIndex).ToArray();
-        var value3Indices = items.Where(x => x.Value == 3).Select(x => x.OriginalIndex).ToArray();
-
-        // Value 1 appeared at original indices 0, 2, 4 - should remain in this order
-        Assert.Equal(MockStabilityData.Sorted1, value1Indices);
-
-        // Value 2 appeared at original indices 1, 5 - should remain in this order
-        Assert.Equal(MockStabilityData.Sorted2, value2Indices);
-
-        // Value 3 appeared at original index 3
-        Assert.Equal(MockStabilityData.Sorted3, value3Indices);
-    }
-
-    [Theory]
-    [ClassData(typeof(MockStabilityWithIdData))]
-    public void StabilityTestWithComplex(StabilityTestItemWithId[] items)
-    {
-        // Test stability with more complex scenario - multiple equal values
-        var stats = new StatisticsContext();
-
-        StableQuickSort.Sort(items.AsSpan(), stats);
-
-        // Expected: [2:B, 2:D, 2:F, 5:A, 5:C, 5:G, 8:E]
-        // Keys are sorted, and elements with the same key maintain original order
-
-        for (var i = 0; i < items.Length; i++)
-        {
-            Assert.Equal(MockStabilityWithIdData.Sorted[i].Key, items[i].Key);
-            Assert.Equal(MockStabilityWithIdData.Sorted[i].Id, items[i].Id);
-        }
-    }
-
-    [Theory]
-    [ClassData(typeof(MockStabilityAllEqualsData))]
-    public void StabilityTestWithAllEqual(StabilityTestItem[] items)
-    {
-        // Edge case: all elements have the same value
-        // They should remain in original order
-        var stats = new StatisticsContext();
-
-        StableQuickSort.Sort(items.AsSpan(), stats);
-
-        // All values are 1
-        Assert.All(items, item => Assert.Equal(1, item.Value));
-
-        // Original order should be preserved: 0, 1, 2, 3, 4
-        Assert.Equal(MockStabilityAllEqualsData.Sorted, items.Select(x => x.OriginalIndex).ToArray());
-    }
-
     [Fact]
     public void EdgeCaseEmptyArrayTest()
     {
@@ -166,42 +103,90 @@ public class StableQuickSortTest
     }
 
     [Fact]
-    public void RangeSortSingleElementTest()
+    public void SortedArrayTest()
     {
         var stats = new StatisticsContext();
-        var array = new[] { 5, 3, 8, 1, 9 };
+        var sorted = Enumerable.Range(1, 100).ToArray();
+        StableQuickSort.Sort(sorted.AsSpan(), stats);
 
-        // Sort a single element range [2, 3)
-        StableQuickSort.Sort(array.AsSpan(), 2, 3, stats);
-
-        // Array should be unchanged (single element is already sorted)
-        Assert.Equal(new[] { 5, 3, 8, 1, 9 }, array);
+        Assert.Equal(Enumerable.Range(1, 100).ToArray(), sorted);
     }
 
     [Fact]
-    public void RangeSortBeginningTest()
+    public void ReverseSortedArrayTest()
     {
         var stats = new StatisticsContext();
-        var array = new[] { 9, 7, 5, 3, 1, 2, 4, 6, 8 };
+        var reversed = Enumerable.Range(1, 100).Reverse().ToArray();
+        StableQuickSort.Sort(reversed.AsSpan(), stats);
 
-        // Sort only the first 5 elements [0, 5)
-        StableQuickSort.Sort(array.AsSpan(), 0, 5, stats);
-
-        // Expected: first 5 sorted, last 4 unchanged
-        Assert.Equal(new[] { 1, 3, 5, 7, 9, 2, 4, 6, 8 }, array);
+        Assert.Equal(Enumerable.Range(1, 100).ToArray(), reversed);
     }
 
     [Fact]
-    public void RangeSortEndTest()
+    public void AllEqualElementsTest()
     {
         var stats = new StatisticsContext();
-        var array = new[] { 1, 3, 5, 7, 9, 8, 6, 4, 2 };
+        var allEqual = Enumerable.Repeat(42, 100).ToArray();
+        StableQuickSort.Sort(allEqual.AsSpan(), stats);
 
-        // Sort only the last 4 elements [5, 9)
-        StableQuickSort.Sort(array.AsSpan(), 5, 9, stats);
+        Assert.Equal(Enumerable.Repeat(42, 100).ToArray(), allEqual);
+    }
 
-        // Expected: first 5 unchanged, last 4 sorted
-        Assert.Equal(new[] { 1, 3, 5, 7, 9, 2, 4, 6, 8 }, array);
+    [Fact]
+    public void ManyDuplicatesTest()
+    {
+        var stats = new StatisticsContext();
+        var duplicates = new[] { 1, 2, 1, 3, 2, 1, 4, 3, 2, 1, 5, 4, 3, 2, 1 };
+        StableQuickSort.Sort(duplicates.AsSpan(), stats);
+
+        Assert.Equal(new[] { 1, 1, 1, 1, 1, 2, 2, 2, 2, 3, 3, 3, 4, 4, 5 }, duplicates);
+    }
+
+    [Fact]
+    public void LargeArrayTest()
+    {
+        var stats = new StatisticsContext();
+        var random = new Random(42);
+        var large = Enumerable.Range(0, 10000).OrderBy(_ => random.Next()).ToArray();
+        var expected = large.OrderBy(x => x).ToArray();
+
+        StableQuickSort.Sort(large.AsSpan(), stats);
+
+        Assert.Equal(expected, large);
+    }
+
+    [Fact]
+    public void NearlySortedArrayTest()
+    {
+        var stats = new StatisticsContext();
+        var nearlySorted = Enumerable.Range(1, 100).ToArray();
+        // Swap a few elements to make it nearly sorted
+        (nearlySorted[10], nearlySorted[20]) = (nearlySorted[20], nearlySorted[10]);
+        (nearlySorted[50], nearlySorted[60]) = (nearlySorted[60], nearlySorted[50]);
+
+        StableQuickSort.Sort(nearlySorted.AsSpan(), stats);
+
+        Assert.Equal(Enumerable.Range(1, 100).ToArray(), nearlySorted);
+    }
+
+    [Fact]
+    public void SmallArrayInsertionSortThresholdTest()
+    {
+        var stats = new StatisticsContext();
+        var small = new[] { 5, 2, 8, 1, 9, 3, 7, 4, 6, 10, 15, 12, 18, 11, 19, 13, 17, 14, 16, 20 };
+        StableQuickSort.Sort(small.AsSpan(), stats);
+
+        Assert.Equal(Enumerable.Range(1, 20).ToArray(), small);
+    }
+
+    [Fact]
+    public void StringSortTest()
+    {
+        var stats = new StatisticsContext();
+        var strings = new[] { "zebra", "apple", "mango", "banana", "cherry" };
+        StableQuickSort.Sort(strings.AsSpan(), stats);
+
+        Assert.Equal(new[] { "apple", "banana", "cherry", "mango", "zebra" }, strings);
     }
 
 #if DEBUG

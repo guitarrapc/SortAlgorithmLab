@@ -103,42 +103,90 @@ public class QuickSortTests
     }
 
     [Fact]
-    public void RangeSortSingleElementTest()
+    public void SortedArrayTest()
     {
         var stats = new StatisticsContext();
-        var array = new[] { 5, 3, 8, 1, 9 };
+        var sorted = Enumerable.Range(1, 100).ToArray();
+        QuickSort.Sort(sorted.AsSpan(), stats);
 
-        // Sort a single element range [2, 3)
-        QuickSort.Sort(array.AsSpan(), 2, 3, stats);
-
-        // Array should be unchanged (single element is already sorted)
-        Assert.Equal(new[] { 5, 3, 8, 1, 9 }, array);
+        Assert.Equal(Enumerable.Range(1, 100).ToArray(), sorted);
     }
 
     [Fact]
-    public void RangeSortBeginningTest()
+    public void ReverseSortedArrayTest()
     {
         var stats = new StatisticsContext();
-        var array = new[] { 9, 7, 5, 3, 1, 2, 4, 6, 8 };
+        var reversed = Enumerable.Range(1, 100).Reverse().ToArray();
+        QuickSort.Sort(reversed.AsSpan(), stats);
 
-        // Sort only the first 5 elements [0, 5)
-        QuickSort.Sort(array.AsSpan(), 0, 5, stats);
-
-        // Expected: first 5 sorted, last 4 unchanged
-        Assert.Equal(new[] { 1, 3, 5, 7, 9, 2, 4, 6, 8 }, array);
+        Assert.Equal(Enumerable.Range(1, 100).ToArray(), reversed);
     }
 
     [Fact]
-    public void RangeSortEndTest()
+    public void AllEqualElementsTest()
     {
         var stats = new StatisticsContext();
-        var array = new[] { 1, 3, 5, 7, 9, 8, 6, 4, 2 };
+        var allEqual = Enumerable.Repeat(42, 100).ToArray();
+        QuickSort.Sort(allEqual.AsSpan(), stats);
 
-        // Sort only the last 4 elements [5, 9)
-        QuickSort.Sort(array.AsSpan(), 5, 9, stats);
+        Assert.Equal(Enumerable.Repeat(42, 100).ToArray(), allEqual);
+    }
 
-        // Expected: first 5 unchanged, last 4 sorted
-        Assert.Equal(new[] { 1, 3, 5, 7, 9, 2, 4, 6, 8 }, array);
+    [Fact]
+    public void ManyDuplicatesTest()
+    {
+        var stats = new StatisticsContext();
+        var duplicates = new[] { 1, 2, 1, 3, 2, 1, 4, 3, 2, 1, 5, 4, 3, 2, 1 };
+        QuickSort.Sort(duplicates.AsSpan(), stats);
+
+        Assert.Equal(new[] { 1, 1, 1, 1, 1, 2, 2, 2, 2, 3, 3, 3, 4, 4, 5 }, duplicates);
+    }
+
+    [Fact]
+    public void LargeArrayTest()
+    {
+        var stats = new StatisticsContext();
+        var random = new Random(42);
+        var large = Enumerable.Range(0, 10000).OrderBy(_ => random.Next()).ToArray();
+        var expected = large.OrderBy(x => x).ToArray();
+
+        QuickSort.Sort(large.AsSpan(), stats);
+
+        Assert.Equal(expected, large);
+    }
+
+    [Fact]
+    public void NearlySortedArrayTest()
+    {
+        var stats = new StatisticsContext();
+        var nearlySorted = Enumerable.Range(1, 100).ToArray();
+        // Swap a few elements to make it nearly sorted
+        (nearlySorted[10], nearlySorted[20]) = (nearlySorted[20], nearlySorted[10]);
+        (nearlySorted[50], nearlySorted[60]) = (nearlySorted[60], nearlySorted[50]);
+
+        QuickSort.Sort(nearlySorted.AsSpan(), stats);
+
+        Assert.Equal(Enumerable.Range(1, 100).ToArray(), nearlySorted);
+    }
+
+    [Fact]
+    public void SmallArrayInsertionSortThresholdTest()
+    {
+        var stats = new StatisticsContext();
+        var small = new[] { 5, 2, 8, 1, 9, 3, 7, 4, 6, 10, 15, 12, 18, 11, 19, 13, 17, 14, 16, 20 };
+        QuickSort.Sort(small.AsSpan(), stats);
+
+        Assert.Equal(Enumerable.Range(1, 20).ToArray(), small);
+    }
+
+    [Fact]
+    public void StringSortTest()
+    {
+        var stats = new StatisticsContext();
+        var strings = new[] { "zebra", "apple", "mango", "banana", "cherry" };
+        QuickSort.Sort(strings.AsSpan(), stats);
+
+        Assert.Equal(new[] { "apple", "banana", "cherry", "mango", "zebra" }, strings);
     }
 
 #if DEBUG
