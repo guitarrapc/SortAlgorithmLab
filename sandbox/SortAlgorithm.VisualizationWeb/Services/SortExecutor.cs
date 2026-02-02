@@ -12,7 +12,7 @@ public class SortExecutor
     /// <summary>
     /// ソートを実行し、すべての操作を記録する
     /// </summary>
-    public List<SortOperation> ExecuteAndRecord(ReadOnlySpan<int> sourceArray, AlgorithmMetadata algorithm)
+    public (List<SortOperation> Operations, StatisticsContext Statistics) ExecuteAndRecord(ReadOnlySpan<int> sourceArray, AlgorithmMetadata algorithm)
     {
         var operations = new List<SortOperation>();
         
@@ -24,8 +24,11 @@ public class SortExecutor
             // ソース配列をワーク配列にコピー
             sourceArray.CopyTo(workArray.AsSpan(0, sourceArray.Length));
             
+            // StatisticsContextを作成（正確な統計情報を記録）
+            var statisticsContext = new StatisticsContext();
+            
             // VisualizationContextを使って操作を記録
-            var context = new VisualizationContext(
+            var visualizationContext = new VisualizationContext(
                 onCompare: (i, j, result, bufferIdI, bufferIdJ) =>
                 {
                     operations.Add(new SortOperation
@@ -81,15 +84,18 @@ public class SortExecutor
                 }
             );
             
+            // CompositeContextを作成して両方のコンテキストを組み合わせる
+            var compositeContext = new CompositeContext(statisticsContext, visualizationContext);
+            
             // デリゲートを直接呼び出し（リフレクション不要、AOT対応）
-            algorithm.SortAction(workArray.AsSpan(0, sourceArray.Length).ToArray(), context);
+            algorithm.SortAction(workArray.AsSpan(0, sourceArray.Length).ToArray(), compositeContext);
+            
+            return (operations, statisticsContext);
         }
         finally
         {
             // ArrayPoolに配列を返却
             ArrayPool<int>.Shared.Return(workArray, clearArray: true);
         }
-        
-        return operations;
     }
 }

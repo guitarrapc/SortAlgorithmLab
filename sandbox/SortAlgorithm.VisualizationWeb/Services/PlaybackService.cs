@@ -1,4 +1,5 @@
 ﻿using System.Buffers;
+using SortAlgorithm.Contexts;
 using SortAlgorithm.VisualizationWeb.Models;
 
 namespace SortAlgorithm.VisualizationWeb.Services;
@@ -15,6 +16,9 @@ public class PlaybackService : IDisposable
     private int _currentArraySize;
     private int[] _initialArray = [];
     private Dictionary<int, int[]> _initialBuffers = new();
+    
+    // 累積統計（各操作インデックスでの統計値）
+    private CumulativeStats[] _cumulativeStats = [];
     
     private const int TARGET_FPS = 60; // ベースフレームレート
     private const int MAX_ARRAY_SIZE = 4096; // 最大配列サイズ
@@ -60,7 +64,7 @@ public class PlaybackService : IDisposable
     /// <summary>
     /// ソート操作をロードする
     /// </summary>
-    public void LoadOperations(ReadOnlySpan<int> initialArray, List<SortOperation> operations)
+    public void LoadOperations(ReadOnlySpan<int> initialArray, List<SortOperation> operations, StatisticsContext statistics)
     {
         Stop();
         _operations = operations;
@@ -70,6 +74,69 @@ public class PlaybackService : IDisposable
         initialArray.CopyTo(_pooledArray.AsSpan(0, _currentArraySize));
         _initialArray = _pooledArray.AsSpan(0, _currentArraySize).ToArray(); // 初期状態のコピーを保持
         _initialBuffers.Clear();
+        
+        // 累積統計を計算（StatisticsContextの計算ロジックを使用）
+        _cumulativeStats = new CumulativeStats[operations.Count + 1]; // +1は初期状態用
+        ulong cumulativeCompares = 0;
+        ulong cumulativeSwaps = 0;
+        ulong cumulativeReads = 0;
+        ulong cumulativeWrites = 0;
+        
+        for (int i = 0; i < operations.Count; i++)
+        {
+            var op = operations[i];
+            
+            // StatisticsContextと同じロジックで累積統計を計算
+            switch (op.Type)
+            {
+                case OperationType.Compare:
+                    cumulativeCompares++;
+                    break;
+                    
+                case OperationType.Swap:
+                    if (op.BufferId1 >= 0) // StatisticsContextと同じ条件
+                    {
+                        cumulativeSwaps++;
+                        cumulativeReads += 2;  // Swap = 2 reads
+                        cumulativeWrites += 2; // Swap = 2 writes
+                    }
+                    break;
+                    
+                case OperationType.IndexRead:
+                    if (op.BufferId1 >= 0)
+                    {
+                        cumulativeReads++;
+                    }
+                    break;
+                    
+                case OperationType.IndexWrite:
+                    if (op.BufferId1 >= 0)
+                    {
+                        cumulativeWrites++;
+                    }
+                    break;
+                    
+                case OperationType.RangeCopy:
+                    if (op.BufferId1 >= 0)
+                    {
+                        cumulativeReads += (ulong)op.Length;
+                    }
+                    if (op.BufferId2 >= 0)
+                    {
+                        cumulativeWrites += (ulong)op.Length;
+                    }
+                    break;
+            }
+            
+            // この操作後の累積統計を保存（インデックスi+1に保存）
+            _cumulativeStats[i + 1] = new CumulativeStats
+            {
+                CompareCount = cumulativeCompares,
+                SwapCount = cumulativeSwaps,
+                IndexReadCount = cumulativeReads,
+                IndexWriteCount = cumulativeWrites
+            };
+        }
         
         // 現在のVisualizationModeを保持
         var currentMode = State.Mode;
@@ -82,7 +149,9 @@ public class PlaybackService : IDisposable
             PlaybackState = PlaybackState.Stopped,
             Mode = currentMode, // モードを引き継ぐ
             IsSortCompleted = false, // 明示的にfalseに設定
-            ShowCompletionHighlight = false // ハイライト表示もfalse
+            ShowCompletionHighlight = false, // ハイライト表示もfalse
+            Statistics = statistics, // StatisticsContextを設定（最終値として保持）
+            CumulativeStats = _cumulativeStats // 累積統計配列を設定
         };
         
         StateChanged?.Invoke();
@@ -384,7 +453,6 @@ public class PlaybackService : IDisposable
             case OperationType.Compare:
                 State.CompareIndices.Add(operation.Index1);
                 State.CompareIndices.Add(operation.Index2);
-                if (updateStats) State.CompareCount++;
                 break;
                 
             case OperationType.Swap:
@@ -395,12 +463,10 @@ public class PlaybackService : IDisposable
                     var arr = GetArray(operation.BufferId1).AsSpan();
                     (arr[operation.Index1], arr[operation.Index2]) = (arr[operation.Index2], arr[operation.Index1]);
                 }
-                if (updateStats) State.SwapCount++;
                 break;
                 
             case OperationType.IndexRead:
                 State.ReadIndices.Add(operation.Index1);
-                if (updateStats) State.IndexReadCount++;
                 break;
                 
             case OperationType.IndexWrite:
@@ -413,7 +479,6 @@ public class PlaybackService : IDisposable
                         arr[operation.Index1] = operation.Value.Value;
                     }
                 }
-                if (updateStats) State.IndexWriteCount++;
                 break;
                 
             case OperationType.RangeCopy:
@@ -446,11 +511,6 @@ public class PlaybackService : IDisposable
                         sourceSpan.Slice(operation.Index1, operation.Length)
                             .CopyTo(destSpan.Slice(operation.Index2, operation.Length));
                     }
-                }
-                if (updateStats)
-                {
-                    State.IndexReadCount += (ulong)operation.Length;
-                    State.IndexWriteCount += (ulong)operation.Length;
                 }
                 break;
         }
@@ -507,10 +567,7 @@ public class PlaybackService : IDisposable
     
     private void ResetStatistics()
     {
-        State.CompareCount = 0;
-        State.SwapCount = 0;
-        State.IndexReadCount = 0;
-        State.IndexWriteCount = 0;
+        // StatisticsContextがある場合は何もしない（イミュータブル）
     }
     
     /// <summary>
@@ -548,6 +605,11 @@ public class PlaybackService : IDisposable
         
         // タスクの完了を待機（最大1秒）
         _playbackTask?.Wait(TimeSpan.FromSeconds(1));
+        
+        // 累積統計配列をクリア（メモリリーク防止）
+        _cumulativeStats = [];
+        _operations.Clear();
+        _initialBuffers.Clear();
         
         // ArrayPoolに配列を返却
         if (_pooledArray != null)
