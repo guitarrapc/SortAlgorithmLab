@@ -125,58 +125,21 @@
                     </label>
                 </div>
 
-                <div class="stat-item">
-                    @if (_isComparisonMode)
-                    {
-                        var isDisabled = ComparisonMode.State.Instances.Count >= ComparisonState.MaxComparisons || !ComparisonMode.State.IsEnabled;
-                        <button class="primary" 
-                                @onclick="AddAlgorithmToComparison" 
-                                style="width: 100%;"
-                                disabled="@isDisabled">
-                            ➕ Add to Comparison
-                        </button>
-                    }
-                    else
-                    {
-                        <button class="primary" @onclick="GenerateAndSort" style="width: 100%;">🎲 Generate & Sort</button>
-                    }
-                </div>
-
-                                <div class="stat-item stat-item-vertical">
-                        <span class="stat-label">Operations Per Frame</span>
-                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
-                            <span class="stat-value" style="font-size: 0.9rem;">@Playback.OperationsPerFrame ops/frame</span>
-                        </div>
-                        <input type="range" min="1" max="1000" @bind="Playback.OperationsPerFrame" @bind:after="OnSpeedSettingsChanged" style="width: 100%;" />
-                    </div>
-
-                <div class="stat-item stat-item-vertical">
-                    <span class="stat-label">Speed Multiplier</span>
-                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
-                        <span class="stat-value" style="font-size: 0.9rem;">@Playback.SpeedMultiplier.ToString("F1")x</span>
-                        <span style="font-size: 0.85rem; color: #999;">(@EffectiveFPS FPS)</span>
-                    </div>
-                    <input type="range" min="0.5" max="100" step="0.5" @bind="Playback.SpeedMultiplier" @bind:after="OnSpeedSettingsChanged" style="width: 100%;" />
-                </div>
-
-            @if (!_isComparisonMode)
-            {
-                <div class="stat-item">
-                    <label class="toggle-switch">
-                        <input type="checkbox" @bind="Playback.AutoReset" />
-                        <span class="toggle-slider"></span>
-                        <span class="toggle-label">Auto Reset on Complete</span>
-                    </label>
-                </div>
-                
-                <div class="stat-item">
-                    <label class="toggle-switch">
-                        <input type="checkbox" @bind="Playback.InstantMode" />
-                        <span class="toggle-slider"></span>
-                        <span class="toggle-label">Instant Mode (No Animation)</span>
-                    </label>
-                </div>                
-            }
+                @if (_isComparisonMode)
+                {
+                    <ComparisonModeControls 
+                        ComparisonMode="ComparisonMode"
+                        Playback="Playback"
+                        OnAddAlgorithm="AddAlgorithmToComparison"
+                        OnSpeedSettingsChanged="OnSpeedSettingsChanged" />
+                }
+                else
+                {
+                    <NormalModeControls 
+                        Playback="Playback"
+                        OnGenerateAndSort="GenerateAndSort"
+                        OnSpeedSettingsChanged="OnSpeedSettingsChanged" />
+                }
             </div>
 
             @if (!_isComparisonMode)
@@ -235,54 +198,14 @@
     }
 
     <div class="controls">
-        @if (_isComparisonMode && ComparisonMode.State.Instances.Any())
-        {
-            @* 比較モード用のコントロール *@
-            <div style="display: flex; gap: 10px; margin-top: 10px; align-items: center;">
-                <button @onclick="ComparisonMode.Reset">⏹ Reset</button>
-                <button @onclick="ToggleComparisonPlayPause">
-                    @(_isComparisonPlaying ? "⏸ Pause" : "▶ Play")
-                </button>
-                
-                <span style="flex: 1;"></span>
-                
-                @* 完了状態の表示 *@
-                @if (ComparisonMode.State.AllCompleted)
-                {
-                    <span style="color: #10B981; font-weight: bold;">✅ All Completed!</span>
-                }
-                else
-                {
-                    var completedCount = ComparisonMode.State.Instances.Count(x => x.State.IsSortCompleted);
-                    <span style="color: #999;">
-                        @if (completedCount > 0)
-                        {
-                            <span style="color: #F59E0B;">@completedCount/@ComparisonMode.State.Instances.Count completed</span>
-                        }
-                        else
-                        {
-                            <span>Comparing @ComparisonMode.State.Instances.Count algorithms</span>
-                        }
-                    </span>
-                }
-            </div>
-        }
-        else
-        {
-            @* 通常モード用のコントロール *@
-            <SeekBar CurrentIndex="Playback.State.CurrentOperationIndex"
-                     TotalOperations="Playback.State.TotalOperations"
-                     OnSeek="OnSeek" />
-
-            <div style="display: flex; gap: 10px; margin-top: 10px; align-items: center;">
-                <button @onclick="Playback.Stop">⏹ Reset</button>
-                <button @onclick="Playback.TogglePlayPause">
-                    @(Playback.State.PlaybackState == PlaybackState.Playing ? "⏸ Pause" : "▶ Play")
-                </button>
-                <span style="flex: 1;"></span>
-                <span style="color: #999;">Mode: @Playback.State.Mode</span>
-            </div>
-        }
+        <ModeControlPanel 
+            IsComparisonMode="_isComparisonMode"
+            IsPlaying="_isComparisonPlaying"
+            Playback="Playback"
+            ComparisonMode="ComparisonMode"
+            OnReset="HandleReset"
+            OnTogglePlayPause="HandleTogglePlayPause"
+            OnSeek="OnSeek" />
     </div>
 </div>
 
@@ -300,8 +223,6 @@ private string _runningAlgorithmName = string.Empty;
     private bool _statsTableOpen = false;
 
     private int[] AvailableSizes = [8, 16, 32, 64, 128, 256, 512, 1024, 2048, 4096];
-
-    private int EffectiveFPS => (int)(60 * Playback.SpeedMultiplier);
 
     // サイドバーリサイズ関連
     private int _sidebarWidth = 280; // デフォルト幅（px）
@@ -652,17 +573,36 @@ private string _runningAlgorithmName = string.Empty;
         InvokeAsync(StateHasChanged);
     }
 
-    private void ToggleComparisonPlayPause()
+    private void HandleReset()
     {
-        if (_isComparisonPlaying)
+        if (_isComparisonMode)
         {
-            ComparisonMode.Pause();
-            _isComparisonPlaying = false;
+            ComparisonMode.Reset();
         }
         else
         {
-            ComparisonMode.Play();
-            _isComparisonPlaying = true;
+            Playback.Stop();
+        }
+    }
+
+    private void HandleTogglePlayPause()
+    {
+        if (_isComparisonMode)
+        {
+            if (_isComparisonPlaying)
+            {
+                ComparisonMode.Pause();
+                _isComparisonPlaying = false;
+            }
+            else
+            {
+                ComparisonMode.Play();
+                _isComparisonPlaying = true;
+            }
+        }
+        else
+        {
+            Playback.TogglePlayPause();
         }
         StateHasChanged();
     }
