@@ -67,6 +67,20 @@ public class ArrayPatternGenerator
             ArrayPattern.BellCurve => GenerateBellCurve(size),
             ArrayPattern.PerlinNoiseCurve => GeneratePerlinNoiseCurve(size, random),
             
+            // Advanced/Fractal
+            ArrayPattern.CirclePass => GenerateCirclePass(size, random),
+            ArrayPattern.PairwisePass => GeneratePairwisePass(size, random),
+            ArrayPattern.RecursiveReversal => GenerateRecursiveReversal(size),
+            ArrayPattern.GrayCodeFractal => GenerateGrayCodeFractal(size),
+            ArrayPattern.SierpinskiTriangle => GenerateSierpinskiTriangle(size),
+            ArrayPattern.Triangular => GenerateTriangular(size),
+            
+            // Adversarial
+            ArrayPattern.QuickSortAdversary => GenerateQuickSortAdversary(size),
+            ArrayPattern.PdqSortAdversary => GeneratePdqSortAdversary(size),
+            ArrayPattern.GrailSortAdversary => GenerateGrailSortAdversary(size, random),
+            ArrayPattern.ShuffleMergeAdversary => GenerateShuffleMergeAdversary(size),
+            
             _ => GenerateRandom(size, random)
         };
     }
@@ -124,6 +138,20 @@ public class ArrayPatternGenerator
             ArrayPattern.CosineWave => "〰️ Cosine Wave",
             ArrayPattern.BellCurve => "🔔 Bell Curve (Normal)",
             ArrayPattern.PerlinNoiseCurve => "🌊 Perlin Noise Curve",
+            
+            // Advanced/Fractal
+            ArrayPattern.CirclePass => "⭕ Circle Sort Pass",
+            ArrayPattern.PairwisePass => "🔗 Pairwise Pass",
+            ArrayPattern.RecursiveReversal => "🔄 Recursive Reversal",
+            ArrayPattern.GrayCodeFractal => "🔲 Gray Code Fractal",
+            ArrayPattern.SierpinskiTriangle => "🔺 Sierpinski Triangle",
+            ArrayPattern.Triangular => "🔻 Triangular",
+            
+            // Adversarial
+            ArrayPattern.QuickSortAdversary => "⚔️ QuickSort Adversary",
+            ArrayPattern.PdqSortAdversary => "⚔️ PDQ Adversary",
+            ArrayPattern.GrailSortAdversary => "⚔️ Grail Adversary",
+            ArrayPattern.ShuffleMergeAdversary => "⚔️ ShuffleMerge Adversary",
             
             _ => pattern.ToString()
         };
@@ -689,5 +717,336 @@ public class ArrayPatternGenerator
             static double Lerp(double t, double a, double b) => a + t * (b - a);
             static double Grad(int hash, double x) => (hash & 1) == 0 ? x : -x;
         }
+    }
+
+    // Advanced/Fractal Patterns
+
+    /// <summary>
+    /// サークルソート初回パス（シャッフル後にサークルソート1パスを適用）
+    /// </summary>
+    private int[] GenerateCirclePass(int size, Random random)
+    {
+        var array = Enumerable.Range(1, size).OrderBy(_ => random.Next()).ToArray();
+        
+        // Calculate power of 2 >= size
+        var n = 1;
+        while (n < size) n *= 2;
+        
+        CircleSortRoutine(array, 0, n - 1, size);
+        
+        return array;
+        
+        static void CircleSortRoutine(int[] arr, int lo, int hi, int end)
+        {
+            if (lo == hi) return;
+            
+            var low = lo;
+            var high = hi;
+            var mid = (hi - lo) / 2;
+            
+            while (lo < hi)
+            {
+                if (hi < end && arr[lo] > arr[hi])
+                    (arr[lo], arr[hi]) = (arr[hi], arr[lo]);
+                lo++;
+                hi--;
+            }
+            
+            CircleSortRoutine(arr, low, low + mid, end);
+            if (low + mid + 1 < end)
+            {
+                CircleSortRoutine(arr, low + mid + 1, high, end);
+            }
+        }
+    }
+
+    /// <summary>
+    /// ペアワイズ最終パス（隣接ペアがソート済み、全体としてはランダム）
+    /// </summary>
+    private int[] GeneratePairwisePass(int size, Random random)
+    {
+        var array = Enumerable.Range(1, size).OrderBy(_ => random.Next()).ToArray();
+        
+        // Sort adjacent pairs
+        for (var i = 1; i < size; i += 2)
+        {
+            if (array[i - 1] > array[i])
+            {
+                (array[i - 1], array[i]) = (array[i], array[i - 1]);
+            }
+        }
+        
+        // Use pigeonhole sort on even/odd indices separately
+        // Values are 1..size, so we need counts array of size+1
+        for (var m = 0; m < 2; m++)
+        {
+            var counts = new int[size + 1];
+
+            // Count occurrences
+            for (var k = m; k < size; k += 2)
+            {
+                counts[array[k]]++;
+            }
+            
+            // Place elements back
+            var j = m;
+            for (var i = 1; i <= size; i++)
+            {
+                while (counts[i] > 0 && j < size)
+                {
+                    array[j] = i;
+                    j += 2;
+                    counts[i]--;
+                }
+            }
+        }
+        
+        return array;
+    }
+
+    /// <summary>
+    /// 再帰的反転（配列全体を反転後、再帰的に半分ずつ反転）
+    /// </summary>
+    private int[] GenerateRecursiveReversal(int size)
+    {
+        var array = Enumerable.Range(1, size).ToArray();
+        ReversalRecursive(array, 0, size);
+        return array;
+        
+        static void ReversalRecursive(int[] arr, int a, int b)
+        {
+            if (b - a < 2) return;
+            
+            Array.Reverse(arr, a, b - a);
+            
+            var m = (a + b) / 2;
+            ReversalRecursive(arr, a, m);
+            ReversalRecursive(arr, m, b);
+        }
+    }
+
+    /// <summary>
+    /// グレイコードフラクタル（グレイコードに基づく再帰的反転パターン）
+    /// </summary>
+    private int[] GenerateGrayCodeFractal(int size)
+    {
+        var array = Enumerable.Range(1, size).ToArray();
+        GrayCodeRecursive(array, 0, size, false);
+        return array;
+        
+        static void GrayCodeRecursive(int[] arr, int a, int b, bool backward)
+        {
+            if (b - a < 3) return;
+            
+            var m = (a + b) / 2;
+
+            if (backward)
+            {
+                Array.Reverse(arr, a, m - a);
+            }
+            else
+            {
+                Array.Reverse(arr, m, b - m);
+            }
+            
+            GrayCodeRecursive(arr, a, m, false);
+            GrayCodeRecursive(arr, m, b, true);
+        }
+    }
+
+    /// <summary>
+    /// シェルピンスキー三角形（フラクタルパターン）
+    /// </summary>
+    private int[] GenerateSierpinskiTriangle(int size)
+    {
+        var triangle = new int[size];
+        TriangleRecursive(triangle, 0, size);
+        
+        var sorted = Enumerable.Range(1, size).ToArray();
+        var result = new int[size];
+
+        for (var i = 0; i < size; i++)
+        {
+            result[i] = sorted[triangle[i]];
+        }
+        
+        return result;
+        
+        static void TriangleRecursive(int[] arr, int a, int b)
+        {
+            if (b - a < 2) return;
+            if (b - a == 2)
+            {
+                arr[a + 1]++;
+                return;
+            }
+            
+            var h = (b - a) / 3;
+            var t1 = (a + a + b) / 3;
+            var t2 = (a + b + b + 2) / 3;
+            
+            for (var i = a; i < t1; i++) arr[i] += h;
+            for (var i = t1; i < t2; i++) arr[i] += 2 * h;
+            
+            TriangleRecursive(arr, a, t1);
+            TriangleRecursive(arr, t1, t2);
+            TriangleRecursive(arr, t2, b);
+        }
+    }
+
+    /// <summary>
+    /// 三角数配列（三角数の階層構造）
+    /// </summary>
+    private int[] GenerateTriangular(int size)
+    {
+        var triangle = new int[size];
+        var j = 0;
+        var k = 2;
+        var max = 0;
+        
+        for (var i = 1; i < size; i++, j++)
+        {
+            if (i == k)
+            {
+                j = 0;
+                k *= 2;
+            }
+            triangle[i] = triangle[j] + 1;
+            if (triangle[i] > max) max = triangle[i];
+        }
+        
+        // Counting sort to get indices
+        var counts = new int[max + 1];
+        for (var i = 0; i < size; i++)
+            counts[triangle[i]]++;
+        
+        for (var i = 1; i < counts.Length; i++)
+            counts[i] += counts[i - 1];
+        
+        for (var i = size - 1; i >= 0; i--)
+            triangle[i] = --counts[triangle[i]];
+        
+        var sorted = Enumerable.Range(1, size).ToArray();
+        var result = new int[size];
+        
+        for (var i = 0; i < size; i++)
+            result[i] = sorted[triangle[i]];
+        
+        return result;
+    }
+
+    // Adversarial Patterns
+
+    /// <summary>
+    /// QuickSort最悪ケース（median-of-3 pivot選択用）
+    /// </summary>
+    private int[] GenerateQuickSortAdversary(int size)
+    {
+        var array = Enumerable.Range(1, size).ToArray();
+        
+        // Swap elements to create worst case for median-of-3 quicksort
+        for (int j = size - size % 2 - 2, i = j - 1; i >= 0; i -= 2, j--)
+            (array[i], array[j]) = (array[j], array[i]);
+        
+        return array;
+    }
+
+    /// <summary>
+    /// PDQソート最悪ケース（Pattern-defeating QuickSort用）
+    /// 注：完全な実装は非常に複雑なため、簡略版
+    /// </summary>
+    private int[] GeneratePdqSortAdversary(int size)
+    {
+        // Simplified PDQ adversary: reverse sorted with strategic swaps
+        var array = Enumerable.Range(1, size).Reverse().ToArray();
+        
+        // Create imbalance patterns that PDQ struggles with
+        var blockSize = Math.Max(1, size / 8);
+        for (var i = 0; i + blockSize < size; i += blockSize * 2)
+        {
+            var end = Math.Min(i + blockSize, size);
+            Array.Sort(array, i, end - i);
+        }
+        
+        return array;
+    }
+
+    /// <summary>
+    /// Grailソート最悪ケース
+    /// </summary>
+    private int[] GenerateGrailSortAdversary(int size, Random random)
+    {
+        if (size <= 16)
+        {
+            return Enumerable.Range(1, size).Reverse().ToArray();
+        }
+        
+        var blockLen = 1;
+        while (blockLen * blockLen < size)
+        {
+            blockLen *= 2;
+        }
+        
+        var numKeys = (size - 1) / blockLen + 1;
+        var keys = blockLen + numKeys;
+        
+        var array = Enumerable.Range(1, size).OrderBy(_ => random.Next()).ToArray();
+        
+        // Sort and reverse the keys section
+        Array.Sort(array, 0, keys);
+        Array.Reverse(array, 0, keys);
+        
+        // Sort the remaining section
+        Array.Sort(array, keys, size - keys);
+        
+        return array;
+    }
+
+    /// <summary>
+    /// ShuffleMerge最悪ケース
+    /// </summary>
+    private int[] GenerateShuffleMergeAdversary(int size)
+    {
+        var array = Enumerable.Range(1, size).ToArray();
+        var temp = new int[size];
+        var d = 2;
+        var end = 1 << (int)(Math.Log(size - 1) / Math.Log(2) + 1);
+        
+        while (d <= end)
+        {
+            var i = 0;
+            var dec = 0;
+            
+            while (i < size)
+            {
+                var j = i;
+                dec += size;
+                while (dec >= d)
+                {
+                    dec -= d;
+                    j++;
+                }
+                
+                var k = j;
+                dec += size;
+                while (dec >= d)
+                {
+                    dec -= d;
+                    k++;
+                }
+                
+                // Reverse merge the sections
+                var mid = j;
+                Array.Copy(array, i, temp, i, mid - i);
+                Array.Copy(array, mid, temp, mid, k - mid);
+                Array.Reverse(temp, i, mid - i);
+                Array.Copy(temp, i, array, i, k - i);
+                
+                i = k;
+            }
+            d *= 2;
+        }
+        
+        return array;
     }
 }

@@ -167,4 +167,58 @@ public enum ArrayPattern
     /// パーリンノイズ曲線
     /// </summary>
     PerlinNoiseCurve,
+
+    // Advanced/Fractal Patterns
+    
+    /// <summary>
+    /// サークルソート初回パス（シャッフル後にサークルソート1パス）
+    /// </summary>
+    CirclePass,
+
+    /// <summary>
+    /// ペアワイズ最終パス（隣接ペアがソート済み）
+    /// </summary>
+    PairwisePass,
+
+    /// <summary>
+    /// 再帰的反転（反転を再帰的に適用）
+    /// </summary>
+    RecursiveReversal,
+
+    /// <summary>
+    /// グレイコードフラクタル
+    /// </summary>
+    GrayCodeFractal,
+
+    /// <summary>
+    /// シェルピンスキー三角形
+    /// </summary>
+    SierpinskiTriangle,
+
+    /// <summary>
+    /// 三角数配列
+    /// </summary>
+    Triangular,
+
+    // Adversarial Patterns (Worst-case for specific algorithms)
+    
+    /// <summary>
+    /// QuickSort最悪ケース（median-of-3 pivot用）
+    /// </summary>
+    QuickSortAdversary,
+
+    /// <summary>
+    /// PDQソート最悪ケース（Pattern-defeating QuickSort用）
+    /// </summary>
+    PdqSortAdversary,
+
+    /// <summary>
+    /// Grailソート最悪ケース
+    /// </summary>
+    GrailSortAdversary,
+
+    /// <summary>
+    /// ShuffleMerge最悪ケース
+    /// </summary>
+    ShuffleMergeAdversary,
 }
