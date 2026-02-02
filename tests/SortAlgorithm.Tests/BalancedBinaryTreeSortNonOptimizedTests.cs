@@ -1,6 +1,7 @@
 ﻿using SortAlgorithm.Algorithms;
 using SortAlgorithm.Contexts;
 using SortAlgorithm.Tests.Mocks;
+using TUnit.Assertions.Enums;
 
 namespace SortAlgorithm.Tests;
 
@@ -27,17 +28,13 @@ public class BalancedBinaryTreeSortNonOptimizedTests
 
         var stats = new StatisticsContext();
         var array = inputSample.Samples.ToArray();
-        var originalCounts = array.GroupBy(x => x).ToDictionary(g => g.Key, g => g.Count());
+
 
         BalancedBinaryTreeSortNonOptimized.Sort(array.AsSpan(), stats);
 
         // Check is sorted
-        for (int i = 0; i < array.Length - 1; i++)
-            await Assert.That(array[i] <= array[i + 1]).IsTrue();
-
-        // Check element counts match
-        var sortedCounts = array.GroupBy(x => x).ToDictionary(g => g.Key, g => g.Count());
-                await Assert.That(sortedCounts).IsEqualTo(originalCounts);
+        Array.Sort(inputSample.Samples);
+        await Assert.That(array).IsEquivalentTo(inputSample.Samples, CollectionOrdering.Matching);
     }
 
 #if DEBUG

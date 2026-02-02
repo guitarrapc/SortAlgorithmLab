@@ -1,5 +1,6 @@
 ﻿using SortAlgorithm.Algorithms;
 using SortAlgorithm.Contexts;
+using TUnit.Assertions.Enums;
 
 namespace SortAlgorithm.Tests;
 
@@ -24,17 +25,13 @@ public class RadixMSD10SortTests
     {
         var stats = new StatisticsContext();
         var array = inputSample.Samples.ToArray();
-        var originalCounts = array.GroupBy(x => x).ToDictionary(g => g.Key, g => g.Count());
+
 
         RadixMSD10Sort.Sort(array.AsSpan(), stats);
 
         // Check is sorted
-        for (int i = 0; i < array.Length - 1; i++)
-            await Assert.That(array[i] <= array[i + 1]).IsTrue();
-
-        // Check element counts match
-        var sortedCounts = array.GroupBy(x => x).ToDictionary(g => g.Key, g => g.Count());
-                await Assert.That(sortedCounts).IsEqualTo(originalCounts);
+        Array.Sort(inputSample.Samples);
+        await Assert.That(array).IsEquivalentTo(inputSample.Samples, CollectionOrdering.Matching);
     }
 
     [Test]
@@ -62,7 +59,7 @@ public class RadixMSD10SortTests
         var secondSort = firstSort.ToArray();
         RadixMSD10Sort.Sort(secondSort.AsSpan());
 
-        await Assert.That(secondSort).IsEqualTo(firstSort);
+        await Assert.That(secondSort).IsEquivalentTo(firstSort, CollectionOrdering.Matching);
     }
 
     [Test]
@@ -73,7 +70,7 @@ public class RadixMSD10SortTests
         var array = new[] { int.MinValue, -1, 0, 1, int.MaxValue };
         RadixMSD10Sort.Sort(array.AsSpan(), stats);
 
-        await Assert.That(array).IsEqualTo(new[] { int.MinValue, -1, 0, 1, int.MaxValue });
+        await Assert.That(array).IsEquivalentTo(new[] { int.MinValue, -1, 0, 1, int.MaxValue }, CollectionOrdering.Matching);
     }
 
     [Test]
@@ -84,7 +81,7 @@ public class RadixMSD10SortTests
         var expected = new[] { -5, -3, -1, 0, 1, 2, 3 };
         RadixMSD10Sort.Sort(array.AsSpan(), stats);
 
-        await Assert.That(array).IsEqualTo(expected);
+        await Assert.That(array).IsEquivalentTo(expected, CollectionOrdering.Matching);
     }
 
     [Test]
@@ -192,7 +189,7 @@ public class RadixMSD10SortTests
     {
         var array = new[] { 2, 1 };
         RadixMSD10Sort.Sort(array.AsSpan());
-        await Assert.That(array).IsEqualTo([1, 2]);
+        await Assert.That(array).IsEquivalentTo([1, 2], CollectionOrdering.Matching);
     }
 
     [Test]
@@ -202,7 +199,7 @@ public class RadixMSD10SortTests
         var array = new[] { 100, 9, 99, 10, 1, 999, 1000 };
         var expected = new[] { 1, 9, 10, 99, 100, 999, 1000 };
         RadixMSD10Sort.Sort(array.AsSpan());
-        await Assert.That(array).IsEqualTo(expected);
+        await Assert.That(array).IsEquivalentTo(expected, CollectionOrdering.Matching);
     }
 
     [Test]
@@ -212,7 +209,7 @@ public class RadixMSD10SortTests
         var array = new[] { 123, 456, 789, 12, 45, 78, 1, 4, 7 };
         var expected = new[] { 1, 4, 7, 12, 45, 78, 123, 456, 789 };
         RadixMSD10Sort.Sort(array.AsSpan());
-        await Assert.That(array).IsEqualTo(expected);
+        await Assert.That(array).IsEquivalentTo(expected, CollectionOrdering.Matching);
     }
 
     [Test]
@@ -222,7 +219,7 @@ public class RadixMSD10SortTests
         var array = new[] { 10, 5, 3, 8, 1, 9, 2, 7, 4, 6 };
         var expected = new[] { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 };
         RadixMSD10Sort.Sort(array.AsSpan());
-        await Assert.That(array).IsEqualTo(expected);
+        await Assert.That(array).IsEquivalentTo(expected, CollectionOrdering.Matching);
     }
 
 #if DEBUG

@@ -1,6 +1,7 @@
 ﻿using SortAlgorithm.Algorithms;
 using SortAlgorithm.Contexts;
 using SortAlgorithm.Tests.Mocks;
+using TUnit.Assertions.Enums;
 
 namespace SortAlgorithm.Tests;
 
@@ -31,17 +32,13 @@ public class StoogeSortTests
 
         var stats = new StatisticsContext();
         var array = inputSample.Samples.ToArray();
-        var originalCounts = array.GroupBy(x => x).ToDictionary(g => g.Key, g => g.Count());
+
 
         StoogeSort.Sort(array.AsSpan(), stats);
 
         // Check is sorted
-        for (int i = 0; i < array.Length - 1; i++)
-            await Assert.That(array[i] <= array[i + 1]).IsTrue();
-
-        // Check element counts match
-        var sortedCounts = array.GroupBy(x => x).ToDictionary(g => g.Key, g => g.Count());
-                await Assert.That(sortedCounts).IsEqualTo(originalCounts);
+        Array.Sort(inputSample.Samples);
+        await Assert.That(array).IsEquivalentTo(inputSample.Samples, CollectionOrdering.Matching);
     }
 
 #if DEBUG
@@ -112,7 +109,7 @@ public class StoogeSortTests
         StoogeSort.Sort(reversed.AsSpan(), stats);
 
         // Verify the array is sorted
-        await Assert.That(reversed).IsEqualTo(Enumerable.Range(0, n));
+        await Assert.That(reversed).IsEquivalentTo(Enumerable.Range(0, n), CollectionOrdering.Matching);
 
         // For reversed data, many swaps will occur
         // Number of comparisons: O(n^2.71) - follows T(n) = 3T(⌈2n/3⌉) + 1
@@ -143,7 +140,7 @@ public class StoogeSortTests
         StoogeSort.Sort(random.AsSpan(), stats);
 
         // Verify the array is sorted
-        await Assert.That(random).IsEqualTo(Enumerable.Range(0, n));
+        await Assert.That(random).IsEquivalentTo(Enumerable.Range(0, n), CollectionOrdering.Matching);
 
         // Verify operations were performed
         await Assert.That(stats.CompareCount).IsNotEqualTo(0UL);
@@ -202,7 +199,7 @@ public class StoogeSortTests
         await Assert.That(stats.SwapCount).IsEqualTo(0UL);
         await Assert.That(stats.IndexWriteCount).IsEqualTo(0UL);
         await Assert.That(stats.IndexReadCount).IsEqualTo(0UL);
-        await Assert.That(array).IsEqualTo([42]);
+        await Assert.That(array).IsEquivalentTo([42], CollectionOrdering.Matching);
     }
 
     [Test]
@@ -235,7 +232,7 @@ public class StoogeSortTests
         await Assert.That(stats.SwapCount).IsEqualTo(0UL);
         await Assert.That(stats.IndexWriteCount).IsEqualTo(0UL);
         await Assert.That(stats.IndexReadCount).IsEqualTo(2UL); // 1 comparison = 2 reads
-        await Assert.That(array).IsEqualTo([1, 2]);
+        await Assert.That(array).IsEquivalentTo([1, 2], CollectionOrdering.Matching);
     }
 
     [Test]
@@ -252,7 +249,7 @@ public class StoogeSortTests
         await Assert.That(stats.SwapCount).IsEqualTo(1UL);
         await Assert.That(stats.IndexWriteCount).IsEqualTo(2UL); // 1 swap = 2 writes
         await Assert.That(stats.IndexReadCount).IsEqualTo(4UL); // 1 comparison (2 reads) + 1 swap (2 reads) = 4 reads
-        await Assert.That(array).IsEqualTo([1, 2]);
+        await Assert.That(array).IsEquivalentTo([1, 2], CollectionOrdering.Matching);
     }
 
 #endif

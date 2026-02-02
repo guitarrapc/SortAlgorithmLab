@@ -1,6 +1,7 @@
 ﻿using SortAlgorithm.Algorithms;
 using SortAlgorithm.Contexts;
 using SortAlgorithm.Tests.Mocks;
+using TUnit.Assertions.Enums;
 
 namespace SortAlgorithm.Tests;
 
@@ -31,17 +32,13 @@ public class BogoSortTests
 
         var stats = new StatisticsContext();
         var array = inputSample.Samples.ToArray();
-        var originalCounts = array.GroupBy(x => x).ToDictionary(g => g.Key, g => g.Count());
+
 
         BogoSort.Sort(array.AsSpan(), stats);
 
         // Check is sorted
-        for (int i = 0; i < array.Length - 1; i++)
-            await Assert.That(array[i] <= array[i + 1]).IsTrue();
-
-        // Check element counts match
-        var sortedCounts = array.GroupBy(x => x).ToDictionary(g => g.Key, g => g.Count());
-        await Assert.That(sortedCounts).IsEqualTo(originalCounts);
+        Array.Sort(inputSample.Samples);
+        await Assert.That(array).IsEquivalentTo(inputSample.Samples, CollectionOrdering.Matching);
     }
 
 #if DEBUG
@@ -115,7 +112,7 @@ public class BogoSortTests
         await Assert.That(stats.SwapCount).IsNotEqualTo(0UL);
         await Assert.That(stats.IndexWriteCount).IsNotEqualTo(0UL);
         await Assert.That(stats.IndexReadCount).IsNotEqualTo(0UL);
-        await Assert.That(array).IsEqualTo([0, 1]);
+        await Assert.That(array).IsEquivalentTo([0, 1], CollectionOrdering.Matching);
     }
 
     [Test]
@@ -137,7 +134,7 @@ public class BogoSortTests
         BogoSort.Sort(random.AsSpan(), stats);
 
         // Verify the array is sorted
-        await Assert.That(random).IsEqualTo(Enumerable.Range(0, n));
+        await Assert.That(random).IsEquivalentTo(Enumerable.Range(0, n), CollectionOrdering.Matching);
 
         // Verify operations were performed
         await Assert.That(stats.CompareCount).IsNotEqualTo(0UL);
@@ -168,7 +165,7 @@ public class BogoSortTests
         BogoSort.Sort(reversed.AsSpan(), stats);
 
         // Verify the array is sorted
-        await Assert.That(reversed).IsEqualTo(Enumerable.Range(0, n));
+        await Assert.That(reversed).IsEquivalentTo(Enumerable.Range(0, n), CollectionOrdering.Matching);
 
         // Verify significant operations were performed
         await Assert.That(stats.CompareCount >= (ulong)(n - 1)).IsTrue().Because($"CompareCount ({stats.CompareCount}) should be >= {n - 1}");

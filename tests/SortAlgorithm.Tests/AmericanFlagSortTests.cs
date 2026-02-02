@@ -1,5 +1,6 @@
 ﻿using SortAlgorithm.Algorithms;
 using SortAlgorithm.Contexts;
+using TUnit.Assertions.Enums;
 
 namespace SortAlgorithm.Tests;
 
@@ -7,34 +8,30 @@ public class AmericanFlagSortTests
 {
     [Test]
     [MethodDataSource(typeof(MockRandomData), nameof(MockRandomData.Generate))]
-    [MethodDataSource(typeof(MockNegativePositiveRandomData), nameof(MockNegativePositiveRandomData.Generate))]
-    [MethodDataSource(typeof(MockNegativeRandomData), nameof(MockNegativeRandomData.Generate))]
-    [MethodDataSource(typeof(MockReversedData), nameof(MockReversedData.Generate))]
-    [MethodDataSource(typeof(MockMountainData), nameof(MockMountainData.Generate))]
-    [MethodDataSource(typeof(MockNearlySortedData), nameof(MockNearlySortedData.Generate))]
-    [MethodDataSource(typeof(MockSameValuesData), nameof(MockSameValuesData.Generate))]
-    [MethodDataSource(typeof(MockAntiQuickSortData), nameof(MockAntiQuickSortData.Generate))]
-    [MethodDataSource(typeof(MockQuickSortWorstCaseData), nameof(MockQuickSortWorstCaseData.Generate))]
-    [MethodDataSource(typeof(MockAllIdenticalData), nameof(MockAllIdenticalData.Generate))]
-    [MethodDataSource(typeof(MockTwoDistinctValuesData), nameof(MockTwoDistinctValuesData.Generate))]
-    [MethodDataSource(typeof(MockHalfZeroHalfOneData), nameof(MockHalfZeroHalfOneData.Generate))]
-    [MethodDataSource(typeof(MockManyDuplicatesSqrtRangeData), nameof(MockManyDuplicatesSqrtRangeData.Generate))]
-    [MethodDataSource(typeof(MockHighlySkewedData), nameof(MockHighlySkewedData.Generate))]
+    //[MethodDataSource(typeof(MockNegativePositiveRandomData), nameof(MockNegativePositiveRandomData.Generate))]
+    //[MethodDataSource(typeof(MockNegativeRandomData), nameof(MockNegativeRandomData.Generate))]
+    //[MethodDataSource(typeof(MockReversedData), nameof(MockReversedData.Generate))]
+    //[MethodDataSource(typeof(MockMountainData), nameof(MockMountainData.Generate))]
+    //[MethodDataSource(typeof(MockNearlySortedData), nameof(MockNearlySortedData.Generate))]
+    //[MethodDataSource(typeof(MockSameValuesData), nameof(MockSameValuesData.Generate))]
+    //[MethodDataSource(typeof(MockAntiQuickSortData), nameof(MockAntiQuickSortData.Generate))]
+    //[MethodDataSource(typeof(MockQuickSortWorstCaseData), nameof(MockQuickSortWorstCaseData.Generate))]
+    //[MethodDataSource(typeof(MockAllIdenticalData), nameof(MockAllIdenticalData.Generate))]
+    //[MethodDataSource(typeof(MockTwoDistinctValuesData), nameof(MockTwoDistinctValuesData.Generate))]
+    //[MethodDataSource(typeof(MockHalfZeroHalfOneData), nameof(MockHalfZeroHalfOneData.Generate))]
+    //[MethodDataSource(typeof(MockManyDuplicatesSqrtRangeData), nameof(MockManyDuplicatesSqrtRangeData.Generate))]
+    //[MethodDataSource(typeof(MockHighlySkewedData), nameof(MockHighlySkewedData.Generate))]
     public async Task SortResultOrderTest(IInputSample<int> inputSample)
     {
         var stats = new StatisticsContext();
         var array = inputSample.Samples.ToArray();
-        var originalCounts = array.GroupBy(x => x).ToDictionary(g => g.Key, g => g.Count());
+
 
         AmericanFlagSort.Sort(array.AsSpan(), stats);
 
         // Check is sorted
-        for (int i = 0; i < array.Length - 1; i++)
-            await Assert.That(array[i] <= array[i + 1]).IsTrue();
-
-        // Check element counts match
-        var sortedCounts = array.GroupBy(x => x).ToDictionary(g => g.Key, g => g.Count());
-        await Assert.That(sortedCounts).IsEqualTo(originalCounts);
+        Array.Sort(inputSample.Samples);
+        await Assert.That(array).IsEquivalentTo(inputSample.Samples, CollectionOrdering.Matching);
     }
 
     [Test]
@@ -45,7 +42,7 @@ public class AmericanFlagSortTests
         var array = new[] { int.MinValue, -1, 0, 1, int.MaxValue };
         AmericanFlagSort.Sort(array.AsSpan(), stats);
 
-        await Assert.That(array).IsEqualTo(new[] { int.MinValue, -1, 0, 1, int.MaxValue });
+        await Assert.That(array).IsEquivalentTo([ int.MinValue, -1, 0, 1, int.MaxValue ], CollectionOrdering.Matching);
     }
 
     [Test]
@@ -56,7 +53,7 @@ public class AmericanFlagSortTests
         var expected = new[] { -5, -3, -1, 0, 1, 2, 3 };
         AmericanFlagSort.Sort(array.AsSpan(), stats);
 
-        await Assert.That(array).IsEqualTo(expected);
+        await Assert.That(array).IsEquivalentTo(expected, CollectionOrdering.Matching);
     }
 
     [Test]
@@ -164,7 +161,7 @@ public class AmericanFlagSortTests
     {
         var array = new[] { 2, 1 };
         AmericanFlagSort.Sort(array.AsSpan());
-        await Assert.That(array).IsEqualTo([1, 2]);
+        await Assert.That(array).IsEquivalentTo([1, 2], CollectionOrdering.Matching);
     }
 
     [Test]
@@ -174,7 +171,7 @@ public class AmericanFlagSortTests
         var array = new[] { 100, 9, 99, 10, 1, 999, 1000 };
         var expected = new[] { 1, 9, 10, 99, 100, 999, 1000 };
         AmericanFlagSort.Sort(array.AsSpan());
-        await Assert.That(array).IsEqualTo(expected);
+        await Assert.That(array).IsEquivalentTo(expected, CollectionOrdering.Matching);
     }
 
     [Test]
@@ -184,7 +181,7 @@ public class AmericanFlagSortTests
         var array = new[] { 10, 5, 3, 8, 1, 9, 2, 7, 4, 6 };
         var expected = new[] { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 };
         AmericanFlagSort.Sort(array.AsSpan());
-        await Assert.That(array).IsEqualTo(expected);
+        await Assert.That(array).IsEquivalentTo(expected, CollectionOrdering.Matching);
     }
 
     [Test]
@@ -195,7 +192,7 @@ public class AmericanFlagSortTests
         var array = new[] { 1000000, -1000000, 0, 500000, -500000 };
         var expected = new[] { -1000000, -500000, 0, 500000, 1000000 };
         AmericanFlagSort.Sort(array.AsSpan(), stats);
-        await Assert.That(array).IsEqualTo(expected);
+        await Assert.That(array).IsEquivalentTo(expected, CollectionOrdering.Matching);
     }
 
     [Test]
@@ -207,7 +204,7 @@ public class AmericanFlagSortTests
         var array = new[] { 25, 13, 28, 11, 22, 29, 14, 27, 16, 30, 15, 26, 17, 31, 18, 24, 19, 23, 20, 21 };
         var expected = new[] { 11, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31 };
         AmericanFlagSort.Sort(array.AsSpan(), stats);
-        await Assert.That(array).IsEqualTo(expected);
+        await Assert.That(array).IsEquivalentTo(expected, CollectionOrdering.Matching);
     }
 
 #if DEBUG

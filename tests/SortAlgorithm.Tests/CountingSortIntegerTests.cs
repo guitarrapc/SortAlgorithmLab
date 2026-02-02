@@ -1,5 +1,6 @@
 ﻿using SortAlgorithm.Algorithms;
 using SortAlgorithm.Contexts;
+using TUnit.Assertions.Enums;
 
 namespace SortAlgorithm.Tests;
 
@@ -24,17 +25,13 @@ public class CountingSortIntegerTests
     {
         var stats = new StatisticsContext();
         var array = inputSample.Samples.ToArray();
-        var originalCounts = array.GroupBy(x => x).ToDictionary(g => g.Key, g => g.Count());
+
 
         CountingSortInteger.Sort(array.AsSpan(), stats);
 
         // Check is sorted
-        for (int i = 0; i < array.Length - 1; i++)
-            await Assert.That(array[i] <= array[i + 1]).IsTrue();
-
-        // Check element counts match
-        var sortedCounts = array.GroupBy(x => x).ToDictionary(g => g.Key, g => g.Count());
-        await Assert.That(sortedCounts).IsEqualTo(originalCounts);
+        Array.Sort(inputSample.Samples);
+        await Assert.That(array).IsEquivalentTo(inputSample.Samples, CollectionOrdering.Matching);
     }
 
     [Test]
@@ -54,7 +51,7 @@ public class CountingSortIntegerTests
         var n = array.Length;
         CountingSortInteger.Sort(array.AsSpan(), stats);
 
-        await Assert.That(array).IsEqualTo([-10, -5, -3, -1, 0, 3]);
+        await Assert.That(array).IsEquivalentTo([-10, -5, -3, -1, 0, 3], CollectionOrdering.Matching);
     }
 
     [Test]
@@ -90,7 +87,7 @@ public class CountingSortIntegerTests
         CountingSortInteger.Sort(array.AsSpan(), stats);
 
         var expected = Enumerable.Repeat(3, duplicateCount).Concat(Enumerable.Repeat(5, duplicateCount)).ToArray();
-        await Assert.That(array).IsEqualTo(expected);
+        await Assert.That(array).IsEquivalentTo(expected, CollectionOrdering.Matching);
     }
 
 
@@ -119,7 +116,7 @@ public class CountingSortIntegerTests
         var secondSort = firstSort.ToArray();
         CountingSortInteger.Sort(secondSort.AsSpan());
 
-        await Assert.That(secondSort).IsEqualTo(firstSort);
+        await Assert.That(secondSort).IsEquivalentTo(firstSort, CollectionOrdering.Matching);
     }
 
     [Test]
@@ -130,7 +127,7 @@ public class CountingSortIntegerTests
         var expected = new[] { -5, -3, -1, 0, 1, 2, 3 };
         CountingSortInteger.Sort(array.AsSpan(), stats);
 
-        await Assert.That(array).IsEqualTo(expected);
+        await Assert.That(array).IsEquivalentTo(expected, CollectionOrdering.Matching);
     }
 
     [Test]

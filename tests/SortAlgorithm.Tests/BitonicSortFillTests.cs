@@ -1,5 +1,6 @@
 ﻿using SortAlgorithm.Algorithms;
 using SortAlgorithm.Contexts;
+using TUnit.Assertions.Enums;
 
 namespace SortAlgorithm.Tests;
 
@@ -24,17 +25,13 @@ public class BitonicSortFillTests
     {
         var stats = new StatisticsContext();
         var array = inputSample.Samples.ToArray();
-        var originalCounts = array.GroupBy(x => x).ToDictionary(g => g.Key, g => g.Count());
+
 
         BitonicSortFill.Sort(array.AsSpan(), stats);
 
         // Check is sorted
-        for (int i = 0; i < array.Length - 1; i++)
-            await Assert.That(array[i] <= array[i + 1]).IsTrue();
-
-        // Check element counts match
-        var sortedCounts = array.GroupBy(x => x).ToDictionary(g => g.Key, g => g.Count());
-        await Assert.That(sortedCounts).IsEqualTo(originalCounts);
+        Array.Sort(inputSample.Samples);
+        await Assert.That(array).IsEquivalentTo(inputSample.Samples, CollectionOrdering.Matching);
     }
 
     [Test]
@@ -53,7 +50,7 @@ public class BitonicSortFillTests
             BitonicSortFill.Sort(array.AsSpan(), stats);
 
             await Assert.That(size).IsEqualTo(array.Length);
-            await Assert.That(array).IsEqualTo(expected);
+            await Assert.That(array).IsEquivalentTo(expected, CollectionOrdering.Matching);
         }
     }
 
@@ -93,7 +90,7 @@ public class BitonicSortFillTests
         var stats = new StatisticsContext();
         var array = new int[] { 3, 1, 4, 2 };
         BitonicSortFill.Sort(array.AsSpan(), stats);
-        await Assert.That(array).IsEqualTo([1, 2, 3, 4]);
+        await Assert.That(array).IsEquivalentTo([1, 2, 3, 4], CollectionOrdering.Matching);
     }
 
     [Test]
@@ -102,7 +99,7 @@ public class BitonicSortFillTests
         var stats = new StatisticsContext();
         var array = new int[] { 5, 2, 8, 1, 9, 3, 7, 4 };
         BitonicSortFill.Sort(array.AsSpan(), stats);
-        await Assert.That(array).IsEqualTo([1, 2, 3, 4, 5, 7, 8, 9]);
+        await Assert.That(array).IsEquivalentTo([1, 2, 3, 4, 5, 7, 8, 9], CollectionOrdering.Matching);
     }
 
     [Test]
@@ -120,7 +117,7 @@ public class BitonicSortFillTests
         var stats = new StatisticsContext();
         var array = Enumerable.Range(0, 100).Reverse().ToArray();
         BitonicSortFill.Sort(array.AsSpan(), stats);
-        await Assert.That(array).IsEqualTo(Enumerable.Range(0, 100).ToArray());
+        await Assert.That(array).IsEquivalentTo(Enumerable.Range(0, 100).ToArray(), CollectionOrdering.Matching);
     }
 
 #if DEBUG

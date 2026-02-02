@@ -1,5 +1,6 @@
 ﻿using SortAlgorithm.Algorithms;
 using SortAlgorithm.Contexts;
+using TUnit.Assertions.Enums;
 
 namespace SortAlgorithm.Tests;
 
@@ -15,17 +16,13 @@ public class BitonicSortTests
     {
         var stats = new StatisticsContext();
         var array = inputSample.Samples.ToArray();
-        var originalCounts = array.GroupBy(x => x).ToDictionary(g => g.Key, g => g.Count());
+
 
         BitonicSort.Sort(array.AsSpan(), stats);
 
         // Check is sorted
-        for (int i = 0; i < array.Length - 1; i++)
-            await Assert.That(array[i] <= array[i + 1]).IsTrue();
-
-        // Check element counts match
-        var sortedCounts = array.GroupBy(x => x).ToDictionary(g => g.Key, g => g.Count());
-                await Assert.That(sortedCounts).IsEqualTo(originalCounts);
+        Array.Sort(inputSample.Samples);
+        await Assert.That(array).IsEquivalentTo(inputSample.Samples, CollectionOrdering.Matching);
     }
 
     [Test]
@@ -73,7 +70,7 @@ public class BitonicSortTests
         var stats = new StatisticsContext();
         var array = new int[] { 3, 1, 4, 2 };
         BitonicSort.Sort(array.AsSpan(), stats);
-        await Assert.That(array).IsEqualTo([1, 2, 3, 4]);
+        await Assert.That(array).IsEquivalentTo([1, 2, 3, 4], CollectionOrdering.Matching);
     }
 
     [Test]
@@ -82,7 +79,7 @@ public class BitonicSortTests
         var stats = new StatisticsContext();
         var array = new int[] { 5, 2, 8, 1, 9, 3, 7, 4 };
         BitonicSort.Sort(array.AsSpan(), stats);
-        await Assert.That(array).IsEqualTo([1, 2, 3, 4, 5, 7, 8, 9]);
+        await Assert.That(array).IsEquivalentTo([1, 2, 3, 4, 5, 7, 8, 9], CollectionOrdering.Matching);
     }
 
     [Test]

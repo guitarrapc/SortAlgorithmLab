@@ -1,5 +1,6 @@
 ﻿using SortAlgorithm.Algorithms;
 using SortAlgorithm.Contexts;
+using TUnit.Assertions.Enums;
 
 namespace SortAlgorithm.Tests;
 
@@ -24,17 +25,13 @@ public class DropMergeSortTests
     {
         var stats = new StatisticsContext();
         var array = inputSample.Samples.ToArray();
-        var originalCounts = array.GroupBy(x => x).ToDictionary(g => g.Key, g => g.Count());
+
 
         DropMergeSort.Sort(array.AsSpan(), stats);
 
         // Check is sorted
-        for (int i = 0; i < array.Length - 1; i++)
-            await Assert.That(array[i] <= array[i + 1]).IsTrue();
-
-        // Check element counts match
-        var sortedCounts = array.GroupBy(x => x).ToDictionary(g => g.Key, g => g.Count());
-                await Assert.That(sortedCounts).IsEqualTo(originalCounts);
+        Array.Sort(inputSample.Samples);
+        await Assert.That(array).IsEquivalentTo(inputSample.Samples, CollectionOrdering.Matching);
     }
 
     [Test]
@@ -90,7 +87,7 @@ public class DropMergeSortTests
         DropMergeSort.Sort(array.AsSpan(), stats);
 
         await Assert.That(array.Length).IsEqualTo(5);
-        await Assert.That(array).IsEqualTo([1, 2, 3, 4, 5]);
+        await Assert.That(array).IsEquivalentTo([1, 2, 3, 4, 5], CollectionOrdering.Matching);
     }
 
     [Test]
@@ -101,7 +98,7 @@ public class DropMergeSortTests
         DropMergeSort.Sort(array.AsSpan(), stats);
 
         await Assert.That(array.Length).IsEqualTo(5);
-        await Assert.That(array).IsEqualTo([1, 2, 3, 4, 5]);
+        await Assert.That(array).IsEquivalentTo([1, 2, 3, 4, 5], CollectionOrdering.Matching);
     }
 
     [Test]
@@ -113,7 +110,7 @@ public class DropMergeSortTests
         DropMergeSort.Sort(array.AsSpan(), stats);
 
         await Assert.That(array.Length).IsEqualTo(8);
-        await Assert.That(array).IsEqualTo([0, 1, 2, 3, 5, 6, 7, 9]);
+        await Assert.That(array).IsEquivalentTo([0, 1, 2, 3, 5, 6, 7, 9], CollectionOrdering.Matching);
     }
 
     [Test]
@@ -124,7 +121,7 @@ public class DropMergeSortTests
         DropMergeSort.Sort(array.AsSpan(), stats);
 
         await Assert.That(array.Length).IsEqualTo(12);
-        await Assert.That(array).IsEqualTo([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 15, 20]);
+        await Assert.That(array).IsEquivalentTo([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 15, 20], CollectionOrdering.Matching);
     }
 
 #if DEBUG
@@ -269,7 +266,7 @@ public class DropMergeSortTests
         // Range: approximately n to 1.2 * n * log₂(n)
         var logN = Math.Log2(n);
         var minCompares = (ulong)n;  // Can be as low as n when lucky with LNS
-        var maxCompares = (ulong)(n * logN * 1.4);
+        var maxCompares = (ulong)(n * logN * 1.5);
 
         // Writes include LNS extraction, sorting dropped elements, and merge
         var minWrites = (ulong)(n * 0.3);

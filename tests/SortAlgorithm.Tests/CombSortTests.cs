@@ -1,5 +1,6 @@
 ﻿using SortAlgorithm.Algorithms;
 using SortAlgorithm.Contexts;
+using TUnit.Assertions.Enums;
 
 namespace SortAlgorithm.Tests;
 
@@ -27,17 +28,13 @@ public class CombSortTests
 
         var stats = new StatisticsContext();
         var array = inputSample.Samples.ToArray();
-        var originalCounts = array.GroupBy(x => x).ToDictionary(g => g.Key, g => g.Count());
+
 
         CombSort.Sort(array.AsSpan(), stats);
 
         // Check is sorted
-        for (int i = 0; i < array.Length - 1; i++)
-            await Assert.That(array[i] <= array[i + 1]).IsTrue();
-
-        // Check element counts match
-        var sortedCounts = array.GroupBy(x => x).ToDictionary(g => g.Key, g => g.Count());
-                await Assert.That(sortedCounts).IsEqualTo(originalCounts);
+        Array.Sort(inputSample.Samples);
+        await Assert.That(array).IsEquivalentTo(inputSample.Samples, CollectionOrdering.Matching);
     }
 
     [Test]
@@ -55,7 +52,7 @@ public class CombSortTests
         // This should result in better performance than standard 1.3 shrink [Test]or
 
         // All elements should be sorted correctly
-        await Assert.That(data).IsEqualTo(Enumerable.Range(0, n).ToArray());
+        await Assert.That(data).IsEquivalentTo(Enumerable.Range(0, n).ToArray(), CollectionOrdering.Matching);
     }
 
 #if DEBUG

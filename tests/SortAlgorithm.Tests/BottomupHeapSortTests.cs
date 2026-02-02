@@ -1,5 +1,6 @@
 ﻿using SortAlgorithm.Algorithms;
 using SortAlgorithm.Contexts;
+using TUnit.Assertions.Enums;
 
 namespace SortAlgorithm.Tests;
 
@@ -24,17 +25,13 @@ public class BottomupHeapSortTests
     {
         var stats = new StatisticsContext();
         var array = inputSample.Samples.ToArray();
-        var originalCounts = array.GroupBy(x => x).ToDictionary(g => g.Key, g => g.Count());
+
 
         BottomupHeapSort.Sort(array.AsSpan(), stats);
 
         // Check is sorted
-        for (int i = 0; i < array.Length - 1; i++)
-            await Assert.That(array[i] <= array[i + 1]).IsTrue();
-
-        // Check element counts match
-        var sortedCounts = array.GroupBy(x => x).ToDictionary(g => g.Key, g => g.Count());
-                await Assert.That(sortedCounts).IsEqualTo(originalCounts);
+        Array.Sort(inputSample.Samples);
+        await Assert.That(array).IsEquivalentTo(inputSample.Samples, CollectionOrdering.Matching);
     }
 
     [Test]
@@ -47,7 +44,7 @@ public class BottomupHeapSortTests
         BottomupHeapSort.Sort(array.AsSpan(), 2, 6, stats);
 
         // Expected: first 2 elements unchanged, middle 4 sorted, last 3 unchanged
-        await Assert.That(array).IsEqualTo([5, 3, 1, 2, 8, 9, 7, 4, 6 ]);
+        await Assert.That(array).IsEquivalentTo([5, 3, 1, 2, 8, 9, 7, 4, 6], CollectionOrdering.Matching);
     }
 
     [Test]
@@ -59,7 +56,7 @@ public class BottomupHeapSortTests
         // Sort the entire array using range API
         BottomupHeapSort.Sort(array.AsSpan(), 0, array.Length, stats);
 
-        await Assert.That(array).IsEqualTo([1, 2, 3, 4, 5, 6, 7, 8, 9]);
+        await Assert.That(array).IsEquivalentTo([1, 2, 3, 4, 5, 6, 7, 8, 9], CollectionOrdering.Matching);
     }
 
     [Test]
@@ -72,7 +69,7 @@ public class BottomupHeapSortTests
         BottomupHeapSort.Sort(array.AsSpan(), 2, 3, stats);
 
         // Array should be unchanged (single element is already sorted)
-        await Assert.That(array).IsEqualTo([5, 3, 8, 1, 9]);
+        await Assert.That(array).IsEquivalentTo([5, 3, 8, 1, 9], CollectionOrdering.Matching);
     }
 
     [Test]
@@ -85,7 +82,7 @@ public class BottomupHeapSortTests
         BottomupHeapSort.Sort(array.AsSpan(), 0, 5, stats);
 
         // Expected: first 5 sorted, last 4 unchanged
-        await Assert.That(array).IsEqualTo([1, 3, 5, 7, 9, 2, 4, 6, 8]);
+        await Assert.That(array).IsEquivalentTo([1, 3, 5, 7, 9, 2, 4, 6, 8], CollectionOrdering.Matching);
     }
 
     [Test]
@@ -98,7 +95,7 @@ public class BottomupHeapSortTests
         BottomupHeapSort.Sort(array.AsSpan(), 5, 9, stats);
 
         // Expected: first 5 unchanged, last 4 sorted
-        await Assert.That(array).IsEqualTo([1, 3, 5, 7, 9, 2, 4, 6, 8]);
+        await Assert.That(array).IsEquivalentTo([1, 3, 5, 7, 9, 2, 4, 6, 8], CollectionOrdering.Matching);
     }
 
 #if DEBUG

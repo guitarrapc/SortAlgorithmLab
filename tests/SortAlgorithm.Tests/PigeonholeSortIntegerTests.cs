@@ -1,5 +1,6 @@
 ﻿using SortAlgorithm.Algorithms;
 using SortAlgorithm.Contexts;
+using TUnit.Assertions.Enums;
 
 namespace SortAlgorithm.Tests;
 
@@ -24,17 +25,13 @@ public class PigeonholeSortIntegerTests
     {
         var stats = new StatisticsContext();
         var array = inputSample.Samples.ToArray();
-        var originalCounts = array.GroupBy(x => x).ToDictionary(g => g.Key, g => g.Count());
+
 
         PigeonholeSortInteger.Sort(array.AsSpan(), stats);
 
         // Check is sorted
-        for (int i = 0; i < array.Length - 1; i++)
-            await Assert.That(array[i] <= array[i + 1]).IsTrue();
-
-        // Check element counts match
-        var sortedCounts = array.GroupBy(x => x).ToDictionary(g => g.Key, g => g.Count());
-                await Assert.That(sortedCounts).IsEqualTo(originalCounts);
+        Array.Sort(inputSample.Samples);
+        await Assert.That(array).IsEquivalentTo(inputSample.Samples, CollectionOrdering.Matching);
     }
 
     [Test]
@@ -53,7 +50,7 @@ public class PigeonholeSortIntegerTests
         var array = new[] { -5, -1, -10, 3, 0, -3 };
         PigeonholeSortInteger.Sort(array.AsSpan(), stats);
 
-        await Assert.That(array).IsEqualTo([-10, -5, -3, -1, 0, 3]);
+        await Assert.That(array).IsEquivalentTo([-10, -5, -3, -1, 0, 3], CollectionOrdering.Matching);
     }
 
     [Test]
@@ -88,7 +85,7 @@ public class PigeonholeSortIntegerTests
         PigeonholeSortInteger.Sort(array.AsSpan(), stats);
 
         var expected = Enumerable.Repeat(3, duplicateCount).Concat(Enumerable.Repeat(5, duplicateCount)).ToArray();
-        await Assert.That(array).IsEqualTo(expected);
+        await Assert.That(array).IsEquivalentTo(expected, CollectionOrdering.Matching);
     }
 
 #if DEBUG

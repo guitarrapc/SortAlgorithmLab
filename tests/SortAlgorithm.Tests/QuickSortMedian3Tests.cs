@@ -1,5 +1,6 @@
 ﻿using SortAlgorithm.Algorithms;
 using SortAlgorithm.Contexts;
+using TUnit.Assertions.Enums;
 
 namespace SortAlgorithm.Tests;
 
@@ -24,17 +25,13 @@ public class QuickSortMedian3Tests
     {
         var stats = new StatisticsContext();
         var array = inputSample.Samples.ToArray();
-        var originalCounts = array.GroupBy(x => x).ToDictionary(g => g.Key, g => g.Count());
+
 
         QuickSortMedian3.Sort(array.AsSpan(), stats);
 
         // Check is sorted
-        for (int i = 0; i < array.Length - 1; i++)
-            await Assert.That(array[i] <= array[i + 1]).IsTrue();
-
-        // Check element counts match
-        var sortedCounts = array.GroupBy(x => x).ToDictionary(g => g.Key, g => g.Count());
-                await Assert.That(sortedCounts).IsEqualTo(originalCounts);
+        Array.Sort(inputSample.Samples);
+        await Assert.That(array).IsEquivalentTo(inputSample.Samples, CollectionOrdering.Matching);
     }
 
     [Test]
@@ -62,7 +59,7 @@ public class QuickSortMedian3Tests
         var twoSorted = new[] { 1, 2 };
         QuickSortMedian3.Sort(twoSorted.AsSpan(), stats);
 
-        await Assert.That(twoSorted).IsEqualTo([1, 2]);
+        await Assert.That(twoSorted).IsEquivalentTo([1, 2], CollectionOrdering.Matching);
     }
 
     [Test]
@@ -72,7 +69,7 @@ public class QuickSortMedian3Tests
         var twoReversed = new[] { 2, 1 };
         QuickSortMedian3.Sort(twoReversed.AsSpan(), stats);
 
-        await Assert.That(twoReversed).IsEqualTo([1, 2]);
+        await Assert.That(twoReversed).IsEquivalentTo([1, 2], CollectionOrdering.Matching);
     }
 
     [Test]
@@ -82,7 +79,7 @@ public class QuickSortMedian3Tests
         var three = new[] { 3, 1, 2 };
         QuickSortMedian3.Sort(three.AsSpan(), stats);
 
-        await Assert.That(three).IsEqualTo([1, 2, 3]);
+        await Assert.That(three).IsEquivalentTo([1, 2, 3], CollectionOrdering.Matching);
     }
 
     [Test]
@@ -95,7 +92,7 @@ public class QuickSortMedian3Tests
         QuickSortMedian3.Sort(array.AsSpan(), 2, 6, stats);
 
         // Expected: first 2 elements unchanged, middle 4 sorted, last 3 unchanged
-        await Assert.That(array).IsEqualTo([5, 3, 1, 2, 8, 9, 7, 4, 6 ]);
+        await Assert.That(array).IsEquivalentTo([5, 3, 1, 2, 8, 9, 7, 4, 6 ], CollectionOrdering.Matching);
     }
 
     [Test]
@@ -107,7 +104,7 @@ public class QuickSortMedian3Tests
         // Sort the entire array using range API
         QuickSortMedian3.Sort(array.AsSpan(), 0, array.Length, stats);
 
-        await Assert.That(array).IsEqualTo([1, 2, 3, 4, 5, 6, 7, 8, 9]);
+        await Assert.That(array).IsEquivalentTo([1, 2, 3, 4, 5, 6, 7, 8, 9], CollectionOrdering.Matching);
     }
 
     [Test]
@@ -117,7 +114,7 @@ public class QuickSortMedian3Tests
         var sorted = Enumerable.Range(1, 100).ToArray();
         QuickSortMedian3.Sort(sorted.AsSpan(), stats);
 
-        await Assert.That(sorted).IsEqualTo(Enumerable.Range(1, 100).ToArray());
+        await Assert.That(sorted).IsEquivalentTo(Enumerable.Range(1, 100).ToArray(), CollectionOrdering.Matching);
     }
 
     [Test]
@@ -127,7 +124,7 @@ public class QuickSortMedian3Tests
         var reversed = Enumerable.Range(1, 100).Reverse().ToArray();
         QuickSortMedian3.Sort(reversed.AsSpan(), stats);
 
-        await Assert.That(reversed).IsEqualTo(Enumerable.Range(1, 100).ToArray());
+        await Assert.That(reversed).IsEquivalentTo(Enumerable.Range(1, 100).ToArray(), CollectionOrdering.Matching);
     }
 
     [Test]
@@ -137,7 +134,7 @@ public class QuickSortMedian3Tests
         var allEqual = Enumerable.Repeat(42, 100).ToArray();
         QuickSortMedian3.Sort(allEqual.AsSpan(), stats);
 
-        await Assert.That(allEqual).IsEqualTo(Enumerable.Repeat(42, 100).ToArray());
+        await Assert.That(allEqual).IsEquivalentTo(Enumerable.Repeat(42, 100).ToArray(), CollectionOrdering.Matching);
     }
 
     [Test]
@@ -147,7 +144,7 @@ public class QuickSortMedian3Tests
         var duplicates = new[] { 1, 2, 1, 3, 2, 1, 4, 3, 2, 1, 5, 4, 3, 2, 1 };
         QuickSortMedian3.Sort(duplicates.AsSpan(), stats);
 
-        await Assert.That(duplicates).IsEqualTo([1, 1, 1, 1, 1, 2, 2, 2, 2, 3, 3, 3, 4, 4, 5 ]);
+        await Assert.That(duplicates).IsEquivalentTo([1, 1, 1, 1, 1, 2, 2, 2, 2, 3, 3, 3, 4, 4, 5 ], CollectionOrdering.Matching);
     }
 
     [Test]
@@ -160,7 +157,7 @@ public class QuickSortMedian3Tests
 
         QuickSortMedian3.Sort(large.AsSpan(), stats);
 
-        await Assert.That(large).IsEqualTo(expected);
+        await Assert.That(large).IsEquivalentTo(expected, CollectionOrdering.Matching);
     }
 
     [Test]
@@ -174,7 +171,7 @@ public class QuickSortMedian3Tests
 
         QuickSortMedian3.Sort(nearlySorted.AsSpan(), stats);
 
-        await Assert.That(nearlySorted).IsEqualTo(Enumerable.Range(1, 100).ToArray());
+        await Assert.That(nearlySorted).IsEquivalentTo(Enumerable.Range(1, 100).ToArray(), CollectionOrdering.Matching);
     }
 
     [Test]
@@ -184,7 +181,7 @@ public class QuickSortMedian3Tests
         var small = new[] { 5, 2, 8, 1, 9, 3, 7, 4, 6, 10, 15, 12, 18, 11, 19, 13, 17, 14, 16, 20 };
         QuickSortMedian3.Sort(small.AsSpan(), stats);
 
-        await Assert.That(small).IsEqualTo(Enumerable.Range(1, 20).ToArray());
+        await Assert.That(small).IsEquivalentTo(Enumerable.Range(1, 20).ToArray(), CollectionOrdering.Matching);
     }
 
     [Test]
@@ -194,7 +191,7 @@ public class QuickSortMedian3Tests
         var strings = new[] { "zebra", "apple", "mango", "banana", "cherry" };
         QuickSortMedian3.Sort(strings.AsSpan(), stats);
 
-        await Assert.That(strings).IsEqualTo(["apple", "banana", "cherry", "mango", "zebra"]);
+        await Assert.That(strings).IsEquivalentTo(["apple", "banana", "cherry", "mango", "zebra"], CollectionOrdering.Matching);
     }
 
 #if DEBUG

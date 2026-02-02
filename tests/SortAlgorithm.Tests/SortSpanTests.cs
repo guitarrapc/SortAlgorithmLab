@@ -1,6 +1,7 @@
 ﻿#if DEBUG
 using SortAlgorithm.Algorithms;
 using SortAlgorithm.Contexts;
+using TUnit.Assertions.Enums;
 
 namespace SortAlgorithm.Tests;
 
@@ -93,7 +94,7 @@ public class SortSpanTests
         }
 
         // Assert - Both should produce the same result
-        await Assert.That(destination2).IsEqualTo(destination1);
+        await Assert.That(destination2).IsEquivalentTo(destination1, CollectionOrdering.Matching);
 
         // Assert - CopyTo should have the same statistics as loop
         // (Both are counted as reads + writes, but CopyTo is more efficient in tracking)

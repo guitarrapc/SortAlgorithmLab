@@ -1,5 +1,6 @@
 ﻿using SortAlgorithm.Algorithms;
 using SortAlgorithm.Contexts;
+using TUnit.Assertions.Enums;
 
 namespace SortAlgorithm.Tests;
 
@@ -27,17 +28,13 @@ public class RotateMergeSortNonOptimizedNonOptimizedTests
 
         var stats = new StatisticsContext();
         var array = inputSample.Samples.ToArray();
-        var originalCounts = array.GroupBy(x => x).ToDictionary(g => g.Key, g => g.Count());
+
 
         RotateMergeSortNonOptimized.Sort(array.AsSpan(), stats);
 
         // Check is sorted
-        for (int i = 0; i < array.Length - 1; i++)
-            await Assert.That(array[i] <= array[i + 1]).IsTrue();
-
-        // Check element counts match
-        var sortedCounts = array.GroupBy(x => x).ToDictionary(g => g.Key, g => g.Count());
-                await Assert.That(sortedCounts).IsEqualTo(originalCounts);
+        Array.Sort(inputSample.Samples);
+        await Assert.That(array).IsEquivalentTo(inputSample.Samples, CollectionOrdering.Matching);
     }
 
     [Test]
@@ -50,7 +47,7 @@ public class RotateMergeSortNonOptimizedNonOptimizedTests
         RotateMergeSortNonOptimized.Sort(items.AsSpan(), stats);
 
         // Verify sorting correctness - values should be in ascending order
-        await Assert.That(items.Select(x => x.Value).ToArray()).IsEqualTo(MockStabilityData.Sorted);
+        await Assert.That(items.Select(x => x.Value).ToArray()).IsEquivalentTo(MockStabilityData.Sorted, CollectionOrdering.Matching);
 
         // Verify stability: for each group of equal values, original order is preserved
         var value1Indices = items.Where(x => x.Value == 1).Select(x => x.OriginalIndex).ToArray();
@@ -58,13 +55,13 @@ public class RotateMergeSortNonOptimizedNonOptimizedTests
         var value3Indices = items.Where(x => x.Value == 3).Select(x => x.OriginalIndex).ToArray();
 
         // Value 1 appeared at original indices 0, 2, 4 - should remain in this order
-        await Assert.That(value1Indices).IsEqualTo(MockStabilityData.Sorted1);
+        await Assert.That(value1Indices).IsEquivalentTo(MockStabilityData.Sorted1, CollectionOrdering.Matching);
 
         // Value 2 appeared at original indices 1, 5 - should remain in this order
-        await Assert.That(value2Indices).IsEqualTo(MockStabilityData.Sorted2);
+        await Assert.That(value2Indices).IsEquivalentTo(MockStabilityData.Sorted2, CollectionOrdering.Matching);
 
         // Value 3 appeared at original index 3
-        await Assert.That(value3Indices).IsEqualTo(MockStabilityData.Sorted3);
+        await Assert.That(value3Indices).IsEquivalentTo(MockStabilityData.Sorted3, CollectionOrdering.Matching);
     }
 
     [Test]
@@ -99,7 +96,7 @@ public class RotateMergeSortNonOptimizedNonOptimizedTests
         RotateMergeSortNonOptimized.Sort(items.AsSpan(), stats);
 
         var resultOrder = items.Select(x => x.OriginalIndex).ToArray();
-        await Assert.That(resultOrder).IsEqualTo(originalOrder);
+        await Assert.That(resultOrder).IsEquivalentTo(originalOrder, CollectionOrdering.Matching);
     }
 
 #if DEBUG
