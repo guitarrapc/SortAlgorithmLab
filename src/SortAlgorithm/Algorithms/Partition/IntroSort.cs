@@ -44,9 +44,10 @@ namespace SortAlgorithm.Algorithms;
 /// The condition l ≤ r (not l &lt; r) ensures elements equal to pivot are swapped, preventing infinite loops on duplicate-heavy arrays.
 /// Boundary checks prevent out-of-bounds access when all elements are smaller/larger than pivot.</description></item>
 /// <item><description><strong>Tail Recursion Optimization:</strong> After partitioning into [left, r] and [l, right],
-/// the algorithm recursively processes only the smaller partition and loops on the larger partition.
-/// This optimization limits the recursion stack depth to O(log n) instead of potentially O(n),
-/// even in pathological cases before the depth limit triggers HeapSort.</description></item>
+/// the algorithm always recursively processes the smaller partition and loops on the larger partition.
+/// This optimization guarantees the recursion stack depth is at most O(log n) (specifically ⌈log₂(n)⌉),
+/// even in pathological cases before the depth limit triggers HeapSort.
+/// This is identical to the strategy used in LLVM libcxx's std::sort implementation.</description></item>
 /// <item><description><strong>InsertionSort Threshold:</strong> For partitions of size ≤ 30, InsertionSort is used instead of QuickSort.
 /// This threshold was determined through empirical benchmarking:
 /// <list type="bullet">
@@ -94,7 +95,7 @@ namespace SortAlgorithm.Algorithms;
 /// </list></description></item>
 /// <item><description>Partition scheme: Hoare partition (bidirectional scan) for fewer swaps and better duplicate handling</description></item>
 /// <item><description>Nearly-sorted detection: Tracks swap count during partitioning; if zero, uses InsertionSort to complete (similar to C++ std::introsort)</description></item>
-/// <item><description>Tail recursion: Always recurse on smaller partition, loop on larger to guarantee O(log n) stack depth</description></item>
+/// <item><description>Tail recursion: Always recurse on smaller partition, loop on larger to guarantee O(log n) stack depth (matches LLVM std::sort)</description></item>
 /// </list>
 /// <para><strong>Historical Context:</strong></para>
 /// <para>
@@ -321,18 +322,35 @@ public static class IntroSort
                 return;
             }
 
-            // Tail recursion optimization: always process left first, then loop on right
-            // This ensures consistent left-to-right ordering for visualization
-            // After partitioning, the right partition is never leftmost (pivot acts as sentinel)
-            if (left < r)
+            // Tail recursion optimization: always recurse on smaller partition, loop on larger
+            // This guarantees O(log n) stack depth even for pathological inputs
+            // (similar to C++ std::introsort and LLVM implementation)
+            var leftSize = r - left + 1;
+            var rightSize = right - l + 1;
+
+            if (leftSize < rightSize)
             {
-                // Recurse on left partition (preserves leftmost flag)
-                IntroSortInternal(s, left, r, depthLimit, insertionSortThreshold, leftmost, context);
+                // Recurse on smaller left partition (preserves leftmost flag)
+                if (left < r)
+                {
+                    IntroSortInternal(s, left, r, depthLimit, insertionSortThreshold, leftmost, context);
+                }
+                // Tail recursion: continue loop with larger right partition
+                // Right partition is never leftmost (element at position r acts as sentinel)
+                leftmost = false;
+                left = l;
             }
-            // Tail recursion: continue loop with right partition
-            // Right partition is never leftmost (element at position r acts as sentinel)
-            leftmost = false;
-            left = l;
+            else
+            {
+                // Recurse on smaller right partition (always non-leftmost)
+                if (l < right)
+                {
+                    IntroSortInternal(s, l, right, depthLimit, insertionSortThreshold, false, context);
+                }
+                // Tail recursion: continue loop with larger left partition
+                // Preserve leftmost flag for left partition
+                right = r;
+            }
         }
     }
 
