@@ -64,9 +64,9 @@ public class ComparisonModeService : IDisposable
 
         try
         {
-            var operations = _executor.ExecuteAndRecord(_state.InitialArray, metadata);
+            var (operations, statistics) = _executor.ExecuteAndRecord(_state.InitialArray, metadata);
             var playback = new PlaybackService();
-            playback.LoadOperations(_state.InitialArray, operations);
+            playback.LoadOperations(_state.InitialArray, operations, statistics);
             
             // PlaybackServiceのStateChangedイベントを購読
             playback.StateChanged += OnPlaybackStateChanged;

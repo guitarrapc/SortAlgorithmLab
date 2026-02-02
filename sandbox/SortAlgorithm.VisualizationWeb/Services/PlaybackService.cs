@@ -1,4 +1,5 @@
 ﻿using System.Buffers;
+using SortAlgorithm.Contexts;
 using SortAlgorithm.VisualizationWeb.Models;
 
 namespace SortAlgorithm.VisualizationWeb.Services;
@@ -60,7 +61,7 @@ public class PlaybackService : IDisposable
     /// <summary>
     /// ソート操作をロードする
     /// </summary>
-    public void LoadOperations(ReadOnlySpan<int> initialArray, List<SortOperation> operations)
+    public void LoadOperations(ReadOnlySpan<int> initialArray, List<SortOperation> operations, StatisticsContext statistics)
     {
         Stop();
         _operations = operations;
@@ -82,7 +83,8 @@ public class PlaybackService : IDisposable
             PlaybackState = PlaybackState.Stopped,
             Mode = currentMode, // モードを引き継ぐ
             IsSortCompleted = false, // 明示的にfalseに設定
-            ShowCompletionHighlight = false // ハイライト表示もfalse
+            ShowCompletionHighlight = false, // ハイライト表示もfalse
+            Statistics = statistics // StatisticsContextを設定
         };
         
         StateChanged?.Invoke();
@@ -384,7 +386,6 @@ public class PlaybackService : IDisposable
             case OperationType.Compare:
                 State.CompareIndices.Add(operation.Index1);
                 State.CompareIndices.Add(operation.Index2);
-                if (updateStats) State.CompareCount++;
                 break;
                 
             case OperationType.Swap:
@@ -395,12 +396,10 @@ public class PlaybackService : IDisposable
                     var arr = GetArray(operation.BufferId1).AsSpan();
                     (arr[operation.Index1], arr[operation.Index2]) = (arr[operation.Index2], arr[operation.Index1]);
                 }
-                if (updateStats) State.SwapCount++;
                 break;
                 
             case OperationType.IndexRead:
                 State.ReadIndices.Add(operation.Index1);
-                if (updateStats) State.IndexReadCount++;
                 break;
                 
             case OperationType.IndexWrite:
@@ -413,7 +412,6 @@ public class PlaybackService : IDisposable
                         arr[operation.Index1] = operation.Value.Value;
                     }
                 }
-                if (updateStats) State.IndexWriteCount++;
                 break;
                 
             case OperationType.RangeCopy:
@@ -446,11 +444,6 @@ public class PlaybackService : IDisposable
                         sourceSpan.Slice(operation.Index1, operation.Length)
                             .CopyTo(destSpan.Slice(operation.Index2, operation.Length));
                     }
-                }
-                if (updateStats)
-                {
-                    State.IndexReadCount += (ulong)operation.Length;
-                    State.IndexWriteCount += (ulong)operation.Length;
                 }
                 break;
         }
@@ -507,10 +500,7 @@ public class PlaybackService : IDisposable
     
     private void ResetStatistics()
     {
-        State.CompareCount = 0;
-        State.SwapCount = 0;
-        State.IndexReadCount = 0;
-        State.IndexWriteCount = 0;
+        // StatisticsContextがある場合は何もしない（イミュータブル）
     }
     
     /// <summary>
