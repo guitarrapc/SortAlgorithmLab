@@ -606,6 +606,11 @@ public class PlaybackService : IDisposable
         // タスクの完了を待機（最大1秒）
         _playbackTask?.Wait(TimeSpan.FromSeconds(1));
         
+        // 累積統計配列をクリア（メモリリーク防止）
+        _cumulativeStats = [];
+        _operations.Clear();
+        _initialBuffers.Clear();
+        
         // ArrayPoolに配列を返却
         if (_pooledArray != null)
         {
