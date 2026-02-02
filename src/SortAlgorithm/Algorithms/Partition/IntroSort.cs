@@ -298,13 +298,13 @@ public static class IntroSort
             while (l <= r)
             {
                 // Move l forward while elements are less than pivot
-                while (l < right && s.Read(l).CompareTo(pivot) < 0)
+                while (l < right && s.Compare(l, pivot) < 0)
                 {
                     l++;
                 }
 
                 // Move r backward while elements are greater than pivot
-                while (r > left && s.Read(r).CompareTo(pivot) > 0)
+                while (r > left && s.Compare(r, pivot) > 0)
                 {
                     r--;
                 }
@@ -336,7 +336,7 @@ public static class IntroSort
                 var allEqual = true;
                 for (var i = left; i <= right && allEqual; i++)
                 {
-                    if (s.Read(i).CompareTo(pivot) != 0)
+                    if (s.Compare(i, pivot) != 0)
                     {
                         allEqual = false;
                     }
@@ -353,7 +353,7 @@ public static class IntroSort
                 var allEqual = true;
                 for (var i = left; i <= right && allEqual; i++)
                 {
-                    if (s.Read(i).CompareTo(pivot) != 0)
+                    if (s.Compare(i, pivot) != 0)
                     {
                         allEqual = false;
                     }
