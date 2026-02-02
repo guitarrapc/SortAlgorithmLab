@@ -1,13 +1,12 @@
 ﻿using SortAlgorithm.Algorithms;
 using SortAlgorithm.Contexts;
-using SortAlgorithm.Tests.Mocks;
 using TUnit.Assertions.Enums;
 
 namespace SortAlgorithm.Tests;
 
 public class GnomeSortNonOptimizedTests
 {
-    [Test]
+    [Test, SkipCI]
     [MethodDataSource(typeof(MockRandomData), nameof(MockRandomData.Generate))]
     [MethodDataSource(typeof(MockNegativePositiveRandomData), nameof(MockNegativePositiveRandomData.Generate))]
     [MethodDataSource(typeof(MockNegativeRandomData), nameof(MockNegativeRandomData.Generate))]
@@ -24,8 +23,6 @@ public class GnomeSortNonOptimizedTests
     [MethodDataSource(typeof(MockHighlySkewedData), nameof(MockHighlySkewedData.Generate))]
     public async Task SortResultOrderTest(IInputSample<int> inputSample)
     {
-        CISKipHelper.IsCI();
-
         if (inputSample.Samples.Length > 512)
             return;
 
@@ -40,12 +37,10 @@ public class GnomeSortNonOptimizedTests
         await Assert.That(array).IsEquivalentTo(inputSample.Samples, CollectionOrdering.Matching);
     }
 
-    [Test]
+    [Test, SkipCI]
     [MethodDataSource(typeof(MockStabilityData), nameof(MockStabilityData.Generate))]
     public async Task StabilityTest(StabilityTestItem[] items)
     {
-        CISKipHelper.IsCI();
-
         // Test stability: equal elements should maintain relative order
         var stats = new StatisticsContext();
 
@@ -69,12 +64,10 @@ public class GnomeSortNonOptimizedTests
         await Assert.That(value3Indices).IsEquivalentTo(MockStabilityData.Sorted3, CollectionOrdering.Matching);
     }
 
-    [Test]
+    [Test, SkipCI]
     [MethodDataSource(typeof(MockStabilityWithIdData), nameof(MockStabilityWithIdData.Generate))]
     public async Task StabilityTestWithComplex(StabilityTestItemWithId[] items)
     {
-        CISKipHelper.IsCI();
-
         // Test stability with more complex scenario - multiple equal values
         var stats = new StatisticsContext();
 
@@ -90,12 +83,10 @@ public class GnomeSortNonOptimizedTests
         }
     }
 
-    [Test]
+    [Test, SkipCI]
     [MethodDataSource(typeof(MockStabilityAllEqualsData), nameof(MockStabilityAllEqualsData.Generate))]
     public async Task StabilityTestWithAllEqual(StabilityTestItem[] items)
     {
-        CISKipHelper.IsCI();
-
         // Edge case: all elements have the same value
         // They should remain in original order
         var stats = new StatisticsContext();
@@ -111,12 +102,10 @@ public class GnomeSortNonOptimizedTests
 
 #if DEBUG
 
-    [Test]
+    [Test, SkipCI]
     [MethodDataSource(typeof(MockSortedData), nameof(MockSortedData.Generate))]
     public async Task StatisticsSortedTest(IInputSample<int> inputSample)
     {
-        CISKipHelper.IsCI();
-
         if (inputSample.Samples.Length > 1024)
             return;
 
@@ -131,15 +120,13 @@ public class GnomeSortNonOptimizedTests
         await Assert.That(stats.SwapCount).IsEqualTo(0UL);
     }
 
-    [Test]
+    [Test, SkipCI]
     [Arguments(10)]
     [Arguments(20)]
     [Arguments(50)]
     [Arguments(100)]
     public async Task TheoreticalValuesSortedTest(int n)
     {
-        CISKipHelper.IsCI();
-
         var stats = new StatisticsContext();
         var sorted = Enumerable.Range(0, n).ToArray();
         GnomeSortNonOptimized.Sort(sorted.AsSpan(), stats);
@@ -161,15 +148,13 @@ public class GnomeSortNonOptimizedTests
         await Assert.That(stats.IndexReadCount >= minIndexReads).IsTrue().Because($"IndexReadCount ({stats.IndexReadCount}) should be >= {minIndexReads}");
     }
 
-    [Test]
+    [Test, SkipCI]
     [Arguments(10)]
     [Arguments(20)]
     [Arguments(50)]
     [Arguments(100)]
     public async Task TheoreticalValuesReversedTest(int n)
     {
-        CISKipHelper.IsCI();
-
         var stats = new StatisticsContext();
         var reversed = Enumerable.Range(0, n).Reverse().ToArray();
         GnomeSortNonOptimized.Sort(reversed.AsSpan(), stats);
@@ -193,15 +178,13 @@ public class GnomeSortNonOptimizedTests
         await Assert.That(stats.IndexReadCount >= minIndexReads).IsTrue().Because($"IndexReadCount ({stats.IndexReadCount}) should be >= {minIndexReads}");
     }
 
-    [Test]
+    [Test, SkipCI]
     [Arguments(10)]
     [Arguments(20)]
     [Arguments(50)]
     [Arguments(100)]
     public async Task TheoreticalValuesRandomTest(int n)
     {
-        CISKipHelper.IsCI();
-
         var stats = new StatisticsContext();
         var random = Enumerable.Range(0, n).OrderBy(_ => Guid.NewGuid()).ToArray();
         GnomeSortNonOptimized.Sort(random.AsSpan(), stats);

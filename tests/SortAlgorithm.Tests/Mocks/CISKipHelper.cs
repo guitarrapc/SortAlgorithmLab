@@ -1,9 +1,9 @@
-﻿namespace SortAlgorithm.Tests.Mocks;
+﻿namespace SortAlgorithm.Tests;
 
-internal static class CISKipHelper
+public class SkipCIAttribute : SkipAttribute
 {
-    public static void IsCI()
-    {
-        Skip.When(Environment.GetEnvironmentVariable("CI")?.Equals("true", StringComparison.OrdinalIgnoreCase) ?? false, "Skip on CI");
-    }
+    public SkipCIAttribute() : base("Local only test") { }
+
+    public override Task<bool> ShouldSkip(TestRegisteredContext context)
+        => Task.FromResult(Environment.GetEnvironmentVariable("CI")?.Equals("true", StringComparison.OrdinalIgnoreCase) ?? false);
 }

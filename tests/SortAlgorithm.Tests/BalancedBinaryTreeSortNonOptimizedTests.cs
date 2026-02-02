@@ -1,13 +1,12 @@
 ﻿using SortAlgorithm.Algorithms;
 using SortAlgorithm.Contexts;
-using SortAlgorithm.Tests.Mocks;
 using TUnit.Assertions.Enums;
 
 namespace SortAlgorithm.Tests;
 
 public class BalancedBinaryTreeSortNonOptimizedTests
 {
-    [Test]
+    [Test, SkipCI]
     [MethodDataSource(typeof(MockRandomData), nameof(MockRandomData.Generate))]
     [MethodDataSource(typeof(MockNegativePositiveRandomData), nameof(MockNegativePositiveRandomData.Generate))]
     [MethodDataSource(typeof(MockNegativeRandomData), nameof(MockNegativeRandomData.Generate))]
@@ -24,8 +23,6 @@ public class BalancedBinaryTreeSortNonOptimizedTests
     [MethodDataSource(typeof(MockHighlySkewedData), nameof(MockHighlySkewedData.Generate))]
     public async Task SortResultOrderTest(IInputSample<int> inputSample)
     {
-        CISKipHelper.IsCI();
-
         var stats = new StatisticsContext();
         var array = inputSample.Samples.ToArray();
 
@@ -39,12 +36,10 @@ public class BalancedBinaryTreeSortNonOptimizedTests
 
 #if DEBUG
 
-    [Test]
+    [Test, SkipCI]
     [MethodDataSource(typeof(MockSortedData), nameof(MockSortedData.Generate))]
     public async Task StatisticsSortedTest(IInputSample<int> inputSample)
     {
-        CISKipHelper.IsCI();
-
         var stats = new StatisticsContext();
         var array = inputSample.Samples.ToArray();
         BalancedBinaryTreeSortNonOptimized.Sort(array.AsSpan(), stats);
@@ -56,15 +51,13 @@ public class BalancedBinaryTreeSortNonOptimizedTests
         await Assert.That(stats.SwapCount).IsEqualTo(0UL);
     }
 
-    [Test]
+    [Test, SkipCI]
     [Arguments(10)]
     [Arguments(20)]
     [Arguments(50)]
     [Arguments(100)]
     public async Task TheoreticalValuesSortedTest(int n)
     {
-        CISKipHelper.IsCI();
-
         var stats = new StatisticsContext();
         var sorted = Enumerable.Range(0, n).ToArray();
         BalancedBinaryTreeSortNonOptimized.Sort(sorted.AsSpan(), stats);
@@ -87,15 +80,13 @@ public class BalancedBinaryTreeSortNonOptimizedTests
         await Assert.That(stats.SwapCount).IsEqualTo(0UL);
     }
 
-    [Test]
+    [Test, SkipCI]
     [Arguments(10)]
     [Arguments(20)]
     [Arguments(50)]
     [Arguments(100)]
     public async Task TheoreticalValuesReversedTest(int n)
     {
-        CISKipHelper.IsCI();
-
         var stats = new StatisticsContext();
         var reversed = Enumerable.Range(0, n).Reverse().ToArray();
         BalancedBinaryTreeSortNonOptimized.Sort(reversed.AsSpan(), stats);
@@ -118,15 +109,13 @@ public class BalancedBinaryTreeSortNonOptimizedTests
         await Assert.That(stats.SwapCount).IsEqualTo(0UL);
     }
 
-    [Test]
+    [Test, SkipCI]
     [Arguments(10)]
     [Arguments(20)]
     [Arguments(50)]
     [Arguments(100)]
     public async Task TheoreticalValuesRandomTest(int n)
     {
-        CISKipHelper.IsCI();
-
         var stats = new StatisticsContext();
         var random = Enumerable.Range(0, n).OrderBy(_ => Guid.NewGuid()).ToArray();
         BalancedBinaryTreeSortNonOptimized.Sort(random.AsSpan(), stats);
@@ -148,15 +137,13 @@ public class BalancedBinaryTreeSortNonOptimizedTests
         await Assert.That(stats.SwapCount).IsEqualTo(0UL);
     }
 
-    [Test]
+    [Test, SkipCI]
     [Arguments(10)]
     [Arguments(20)]
     [Arguments(50)]
     [Arguments(100)]
     public async Task TheoreticalValuesBalancedPropertyTest(int n)
     {
-        CISKipHelper.IsCI();
-
         var stats = new StatisticsContext();
         var random = Enumerable.Range(0, n).OrderBy(_ => Guid.NewGuid()).ToArray();
         BalancedBinaryTreeSortNonOptimized.Sort(random.AsSpan(), stats);

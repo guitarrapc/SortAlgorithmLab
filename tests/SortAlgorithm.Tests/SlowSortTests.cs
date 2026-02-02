@@ -1,13 +1,12 @@
 ﻿using SortAlgorithm.Algorithms;
 using SortAlgorithm.Contexts;
-using SortAlgorithm.Tests.Mocks;
 using TUnit.Assertions.Enums;
 
 namespace SortAlgorithm.Tests;
 
 public class SlowSortTests
 {
-    [Test]
+    [Test, SkipCI]
     [MethodDataSource(typeof(MockRandomData), nameof(MockRandomData.Generate))]
     [MethodDataSource(typeof(MockNegativePositiveRandomData), nameof(MockNegativePositiveRandomData.Generate))]
     [MethodDataSource(typeof(MockNegativeRandomData), nameof(MockNegativeRandomData.Generate))]
@@ -24,8 +23,6 @@ public class SlowSortTests
     [MethodDataSource(typeof(MockHighlySkewedData), nameof(MockHighlySkewedData.Generate))]
     public async Task SortResultOrderTest(IInputSample<int> inputSample)
     {
-        CISKipHelper.IsCI();
-
         // Slow Sort is extremely slow, so we limit to small arrays
         if (inputSample.Samples.Length > 10)
             return;
@@ -43,12 +40,10 @@ public class SlowSortTests
 
 #if DEBUG
 
-    [Test]
+    [Test, SkipCI]
     [MethodDataSource(typeof(MockSortedData), nameof(MockSortedData.Generate))]
     public async Task StatisticsSortedTest(IInputSample<int> inputSample)
     {
-        CISKipHelper.IsCI();
-
         // Slow Sort is extremely slow, so we limit to small arrays
         if (inputSample.Samples.Length > 10)
             return;
@@ -64,11 +59,9 @@ public class SlowSortTests
         await Assert.That(stats.SwapCount).IsEqualTo(0UL); // Already sorted
     }
 
-    [Test]
+    [Test, SkipCI]
     public async Task TheoreticalValuesSortedTest()
     {
-        CISKipHelper.IsCI();
-
         // Slow Sort on sorted data still performs all comparisons but no swaps
         // T(n) = T(⌊n/2⌋) + T(⌈n/2⌉) + T(n-1) + 1
         // For n=5: T(5) = T(2) + T(3) + T(4) + 1 = 1 + 3 + 6 + 1 = 11
@@ -90,14 +83,12 @@ public class SlowSortTests
         await Assert.That(IsSorted(sorted)).IsTrue().Because("Array should remain sorted");
     }
 
-    [Test]
+    [Test, SkipCI]
     [Arguments(3)]
     [Arguments(4)]
     [Arguments(5)]
     public async Task TheoreticalValuesReversedTest(int n)
     {
-        CISKipHelper.IsCI();
-
         // Slow Sort on reversed data performs all comparisons and many swaps
         // The number of comparisons is data-independent and follows T(n) = 2T(⌊n/2⌋) + T(n-1) + 1
         // But the number of swaps is data-dependent
@@ -121,14 +112,12 @@ public class SlowSortTests
         await Assert.That(stats.IndexReadCount).IsEqualTo(expectedReads);
     }
 
-    [Test]
+    [Test, SkipCI]
     [Arguments(3)]
     [Arguments(4)]
     [Arguments(5)]
     public async Task TheoreticalValuesRandomTest(int n)
     {
-        CISKipHelper.IsCI();
-
         // Slow Sort has data-independent comparison count
         // but data-dependent swap count
         var stats = new StatisticsContext();
@@ -155,7 +144,7 @@ public class SlowSortTests
         await Assert.That(stats.IndexReadCount).IsEqualTo(expectedReads);
     }
 
-    [Test]
+    [Test, SkipCI]
     [Arguments(2, 1)]   // T(2) = T(1) + T(1) + T(1) + 1 = 0 + 0 + 0 + 1 = 1
     [Arguments(3, 3)]   // T(3) = T(1) + T(2) + T(2) + 1 = 0 + 1 + 1 + 1 = 3
     [Arguments(4, 6)]   // T(4) = T(2) + T(2) + T(3) + 1 = 1 + 1 + 3 + 1 = 6
@@ -167,8 +156,6 @@ public class SlowSortTests
     [Arguments(10, 82)] // T(10) = T(5) + T(5) + T(9) + 1 = 11 + 11 + 59 + 1 = 82
     public async Task TheoreticalComparisonCountTest(int n, int expectedComparisons)
     {
-        CISKipHelper.IsCI();
-
         // Test the theoretical comparison count for Slow Sort
         // Comparison count follows: T(n) = T(⌊n/2⌋) + T(⌈n/2⌉) + T(n-1) + 1 when n >= 2
         // T(0) = 0, T(1) = 0
@@ -186,11 +173,9 @@ public class SlowSortTests
         await Assert.That(stats.IndexReadCount).IsEqualTo(expectedReads);
     }
 
-    [Test]
+    [Test, SkipCI]
     public async Task EdgeCaseSingleElementTest()
     {
-        CISKipHelper.IsCI();
-
         var stats = new StatisticsContext();
         var array = new[] { 42 };
         SlowSort.Sort(array.AsSpan(), stats);
@@ -203,11 +188,9 @@ public class SlowSortTests
         await Assert.That(array).IsEquivalentTo([42], CollectionOrdering.Matching);
     }
 
-    [Test]
+    [Test, SkipCI]
     public async Task EdgeCaseEmptyTest()
     {
-        CISKipHelper.IsCI();
-
         var stats = new StatisticsContext();
         var array = Array.Empty<int>();
         SlowSort.Sort(array.AsSpan(), stats);
@@ -219,11 +202,9 @@ public class SlowSortTests
         await Assert.That(stats.IndexReadCount).IsEqualTo(0UL);
     }
 
-    [Test]
+    [Test, SkipCI]
     public async Task EdgeCaseTwoElementsSortedTest()
     {
-        CISKipHelper.IsCI();
-
         var stats = new StatisticsContext();
         var array = new[] { 1, 2 };
         SlowSort.Sort(array.AsSpan(), stats);
@@ -236,11 +217,9 @@ public class SlowSortTests
         await Assert.That(array).IsEquivalentTo([1, 2], CollectionOrdering.Matching);
     }
 
-    [Test]
+    [Test, SkipCI]
     public async Task EdgeCaseTwoElementsReversedTest()
     {
-        CISKipHelper.IsCI();
-
         var stats = new StatisticsContext();
         var array = new[] { 2, 1 };
         SlowSort.Sort(array.AsSpan(), stats);
@@ -253,15 +232,13 @@ public class SlowSortTests
         await Assert.That(array).IsEquivalentTo([1, 2], CollectionOrdering.Matching);
     }
 
-    [Test]
+    [Test, SkipCI]
     [Arguments(3)]
     [Arguments(5)]
     [Arguments(7)]
     [Arguments(10)]
     public async Task IndexReadWriteConsistencyTest(int n)
     {
-        CISKipHelper.IsCI();
-
         // Verify that IndexRead and IndexWrite counts are consistent with Compare and Swap counts
         var stats = new StatisticsContext();
         var array = Enumerable.Range(0, n).Reverse().ToArray();
@@ -277,7 +254,7 @@ public class SlowSortTests
         await Assert.That(IsSorted(array)).IsTrue().Because("Array should be sorted");
     }
 
-    [Test]
+    [Test, SkipCI]
     [Arguments(2)]
     [Arguments(3)]
     [Arguments(4)]
@@ -286,8 +263,6 @@ public class SlowSortTests
     [Arguments(7)]
     public async Task ReversedDataMaximumSwapsTest(int n)
     {
-        CISKipHelper.IsCI();
-
         // Test that reversed data produces the maximum number of swaps
         // This validates that the algorithm is performing swaps correctly
         var stats = new StatisticsContext();
@@ -306,14 +281,12 @@ public class SlowSortTests
         await Assert.That(stats.IndexWriteCount).IsEqualTo(stats.SwapCount * 2);
     }
 
-    [Test]
+    [Test, SkipCI]
     [Arguments(3)]
     [Arguments(5)]
     [Arguments(7)]
     public async Task ComparisonCountDataIndependentTest(int n)
     {
-        CISKipHelper.IsCI();
-
         // Verify that comparison count is data-independent
         // Sorted, reversed, and random data should all have the same comparison count
         var statsSorted = new StatisticsContext();

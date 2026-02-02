@@ -1,13 +1,12 @@
 ﻿using SortAlgorithm.Algorithms;
 using SortAlgorithm.Contexts;
-using SortAlgorithm.Tests.Mocks;
 using TUnit.Assertions.Enums;
 
 namespace SortAlgorithm.Tests;
 
 public class InsertionSortNonOptimizedTests
 {
-    [Test]
+    [Test, SkipCI]
     [MethodDataSource(typeof(MockRandomData), nameof(MockRandomData.Generate))]
     [MethodDataSource(typeof(MockNegativePositiveRandomData), nameof(MockNegativePositiveRandomData.Generate))]
     [MethodDataSource(typeof(MockNegativeRandomData), nameof(MockNegativeRandomData.Generate))]
@@ -24,8 +23,6 @@ public class InsertionSortNonOptimizedTests
     [MethodDataSource(typeof(MockHighlySkewedData), nameof(MockHighlySkewedData.Generate))]
     public async Task SortResultOrderTest(IInputSample<int> inputSample)
     {
-        CISKipHelper.IsCI();
-
         if (inputSample.Samples.Length > 512)
             return;
 
@@ -40,12 +37,10 @@ public class InsertionSortNonOptimizedTests
         await Assert.That(array).IsEquivalentTo(inputSample.Samples, CollectionOrdering.Matching);
     }
 
-    [Test]
+    [Test, SkipCI]
     [MethodDataSource(typeof(MockStabilityData), nameof(MockStabilityData.Generate))]
     public async Task StabilityTest(StabilityTestItem[] items)
     {
-        CISKipHelper.IsCI();
-
         // Test stability: equal elements should maintain relative order
         var stats = new StatisticsContext();
 
@@ -69,12 +64,10 @@ public class InsertionSortNonOptimizedTests
         await Assert.That(value3Indices).IsEquivalentTo(MockStabilityData.Sorted3, CollectionOrdering.Matching);
     }
 
-    [Test]
+    [Test, SkipCI]
     [MethodDataSource(typeof(MockStabilityWithIdData), nameof(MockStabilityWithIdData.Generate))]
     public async Task StabilityTestWithComplex(StabilityTestItemWithId[] items)
     {
-        CISKipHelper.IsCI();
-
         // Test stability with more complex scenario - multiple equal values
         var stats = new StatisticsContext();
 
@@ -90,12 +83,10 @@ public class InsertionSortNonOptimizedTests
         }
     }
 
-    [Test]
+    [Test, SkipCI]
     [MethodDataSource(typeof(MockStabilityAllEqualsData), nameof(MockStabilityAllEqualsData.Generate))]
     public async Task StabilityTestWithAllEqual(StabilityTestItem[] items)
     {
-        CISKipHelper.IsCI();
-
         // Edge case: all elements have the same value
         // They should remain in original order
         var stats = new StatisticsContext();
@@ -109,11 +100,9 @@ public class InsertionSortNonOptimizedTests
         await Assert.That(items.Select(x => x.OriginalIndex).ToArray()).IsEquivalentTo(MockStabilityAllEqualsData.Sorted, CollectionOrdering.Matching);
     }
 
-    [Test]
+    [Test, SkipCI]
     public async Task RangeSortTest()
     {
-        CISKipHelper.IsCI();
-
         var stats = new StatisticsContext();
         var array = new[] { 5, 3, 8, 1, 9, 2, 7, 4, 6 };
 
@@ -124,11 +113,9 @@ public class InsertionSortNonOptimizedTests
         await Assert.That(array).IsEquivalentTo([5, 3, 1, 2, 8, 9, 7, 4, 6 ], CollectionOrdering.Matching);
     }
 
-    [Test]
+    [Test, SkipCI]
     public async Task RangeSortFullArrayTest()
     {
-        CISKipHelper.IsCI();
-
         var stats = new StatisticsContext();
         var array = new[] { 5, 3, 8, 1, 9, 2, 7, 4, 6 };
 
@@ -138,11 +125,9 @@ public class InsertionSortNonOptimizedTests
         await Assert.That(array).IsEquivalentTo([1, 2, 3, 4, 5, 6, 7, 8, 9], CollectionOrdering.Matching);
     }
 
-    [Test]
+    [Test, SkipCI]
     public async Task RangeSortSingleElementTest()
     {
-        CISKipHelper.IsCI();
-
         var stats = new StatisticsContext();
         var array = new[] { 5, 3, 8, 1, 9 };
 
@@ -153,11 +138,9 @@ public class InsertionSortNonOptimizedTests
         await Assert.That(array).IsEquivalentTo([5, 3, 8, 1, 9], CollectionOrdering.Matching);
     }
 
-    [Test]
+    [Test, SkipCI]
     public async Task RangeSortBeginningTest()
     {
-        CISKipHelper.IsCI();
-
         var stats = new StatisticsContext();
         var array = new[] { 9, 7, 5, 3, 1, 2, 4, 6, 8 };
 
@@ -168,11 +151,9 @@ public class InsertionSortNonOptimizedTests
         await Assert.That(array).IsEquivalentTo([1, 3, 5, 7, 9, 2, 4, 6, 8], CollectionOrdering.Matching);
     }
 
-    [Test]
+    [Test, SkipCI]
     public async Task RangeSortEndTest()
     {
-        CISKipHelper.IsCI();
-
         var stats = new StatisticsContext();
         var array = new[] { 1, 3, 5, 7, 9, 8, 6, 4, 2 };
 
@@ -185,12 +166,10 @@ public class InsertionSortNonOptimizedTests
 
 #if DEBUG
 
-    [Test]
+    [Test, SkipCI]
     [MethodDataSource(typeof(MockSortedData), nameof(MockSortedData.Generate))]
     public async Task StatisticsSortedTest(IInputSample<int> inputSample)
     {
-        CISKipHelper.IsCI();
-
         if (inputSample.Samples.Length > 1024)
             return;
 
@@ -205,15 +184,13 @@ public class InsertionSortNonOptimizedTests
         await Assert.That(stats.SwapCount).IsEqualTo(0UL);
     }
 
-    [Test]
+    [Test, SkipCI]
     [Arguments(10)]
     [Arguments(20)]
     [Arguments(50)]
     [Arguments(100)]
     public async Task TheoreticalValuesSortedTest(int n)
     {
-        CISKipHelper.IsCI();
-
         var stats = new StatisticsContext();
         var sorted = Enumerable.Range(0, n).ToArray();
         InsertionSortNonOptimized.Sort(sorted.AsSpan(), stats);
@@ -237,15 +214,13 @@ public class InsertionSortNonOptimizedTests
         await Assert.That(stats.IndexReadCount >= minIndexReads).IsTrue().Because($"IndexReadCount ({stats.IndexReadCount}) should be >= {minIndexReads}");
     }
 
-    [Test]
+    [Test, SkipCI]
     [Arguments(10)]
     [Arguments(20)]
     [Arguments(50)]
     [Arguments(100)]
     public async Task TheoreticalValuesReversedTest(int n)
     {
-        CISKipHelper.IsCI();
-
         var stats = new StatisticsContext();
         var reversed = Enumerable.Range(0, n).Reverse().ToArray();
         InsertionSortNonOptimized.Sort(reversed.AsSpan(), stats);
@@ -272,15 +247,13 @@ public class InsertionSortNonOptimizedTests
         await Assert.That(stats.IndexReadCount >= minIndexReads).IsTrue().Because($"IndexReadCount ({stats.IndexReadCount}) should be >= {minIndexReads}");
     }
 
-    [Test]
+    [Test, SkipCI]
     [Arguments(10)]
     [Arguments(20)]
     [Arguments(50)]
     [Arguments(100)]
     public async Task TheoreticalValuesRandomTest(int n)
     {
-        CISKipHelper.IsCI();
-
         var stats = new StatisticsContext();
         var random = Enumerable.Range(0, n).OrderBy(_ => Guid.NewGuid()).ToArray();
         InsertionSortNonOptimized.Sort(random.AsSpan(), stats);

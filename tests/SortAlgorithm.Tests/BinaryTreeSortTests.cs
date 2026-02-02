@@ -1,6 +1,5 @@
 ﻿using SortAlgorithm.Algorithms;
 using SortAlgorithm.Contexts;
-using SortAlgorithm.Tests.Mocks;
 using TUnit.Assertions.Enums;
 
 namespace SortAlgorithm.Tests;
@@ -24,7 +23,6 @@ public class BinaryTreeSortTests
     [MethodDataSource(typeof(MockHighlySkewedData), nameof(MockHighlySkewedData.Generate))]
     public async Task SortResultOrderTest(IInputSample<int> inputSample)
     {
-        CISKipHelper.IsCI();
         Skip.When(inputSample.Samples.Length > 1024, "Skip large inputs for order test");
 
         var stats = new StatisticsContext();
@@ -44,8 +42,6 @@ public class BinaryTreeSortTests
     [MethodDataSource(typeof(MockSortedData), nameof(MockSortedData.Generate))]
     public async Task StatisticsSortedTest(IInputSample<int> inputSample)
     {
-        CISKipHelper.IsCI();
-
         if (inputSample.Samples.Length > 1024)
             return;
 
@@ -67,8 +63,6 @@ public class BinaryTreeSortTests
     [Arguments(100)]
     public async Task TheoreticalValuesSortedTest(int n)
     {
-        CISKipHelper.IsCI();
-
         var stats = new StatisticsContext();
         var sorted = Enumerable.Range(0, n).ToArray();
         BinaryTreeSort.Sort(sorted.AsSpan(), stats);
@@ -95,8 +89,6 @@ public class BinaryTreeSortTests
     [Arguments(100)]
     public async Task TheoreticalValuesReversedTest(int n)
     {
-        CISKipHelper.IsCI();
-
         var stats = new StatisticsContext();
         var reversed = Enumerable.Range(0, n).Reverse().ToArray();
         BinaryTreeSort.Sort(reversed.AsSpan(), stats);
@@ -123,8 +115,6 @@ public class BinaryTreeSortTests
     [Arguments(100)]
     public async Task TheoreticalValuesRandomTest(int n)
     {
-        CISKipHelper.IsCI();
-
         var stats = new StatisticsContext();
         var random = Enumerable.Range(0, n).OrderBy(_ => Guid.NewGuid()).ToArray();
         BinaryTreeSort.Sort(random.AsSpan(), stats);
@@ -157,8 +147,6 @@ public class BinaryTreeSortTests
     [Arguments(31)] // Perfect binary tree: 5 levels
     public async Task TheoreticalValuesBalancedTest(int n)
     {
-        CISKipHelper.IsCI();
-
         var stats = new StatisticsContext();
         // Create a sequence that produces a balanced BST
         // Using middle-out insertion order for near-perfect balance
@@ -202,7 +190,6 @@ public class BinaryTreeSortTests
         AddMiddle(0, n - 1);
         return result.AsSpan();
     }
-
 
 #endif
 

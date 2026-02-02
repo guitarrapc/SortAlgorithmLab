@@ -1,13 +1,12 @@
 ﻿using SortAlgorithm.Algorithms;
 using SortAlgorithm.Contexts;
-using SortAlgorithm.Tests.Mocks;
 using TUnit.Assertions.Enums;
 
 namespace SortAlgorithm.Tests;
 
 public class BogoSortTests
 {
-    [Test]
+    [Test, SkipCI]
     [MethodDataSource(typeof(MockRandomData), nameof(MockRandomData.Generate))]
     [MethodDataSource(typeof(MockNegativePositiveRandomData), nameof(MockNegativePositiveRandomData.Generate))]
     [MethodDataSource(typeof(MockNegativeRandomData), nameof(MockNegativeRandomData.Generate))]
@@ -24,8 +23,6 @@ public class BogoSortTests
     [MethodDataSource(typeof(MockHighlySkewedData), nameof(MockHighlySkewedData.Generate))]
     public async Task SortResultOrderTest(IInputSample<int> inputSample)
     {
-        CISKipHelper.IsCI();
-
         // Bogo Sort is extremely slow, so we limit to small arrays
         if (inputSample.Samples.Length > 10)
             return;
@@ -43,12 +40,10 @@ public class BogoSortTests
 
 #if DEBUG
 
-    [Test]
+    [Test, SkipCI]
     [MethodDataSource(typeof(MockSortedData), nameof(MockSortedData.Generate))]
     public async Task StatisticsSortedTest(IInputSample<int> inputSample)
     {
-        CISKipHelper.IsCI();
-
         // Bogo Sort is extremely slow, so we limit to small arrays
         if (inputSample.Samples.Length <= 10)
         {
@@ -64,11 +59,9 @@ public class BogoSortTests
         }
     }
 
-    [Test]
+    [Test, SkipCI]
     public async Task TheoreticalValuesSortedTest()
     {
-        CISKipHelper.IsCI();
-
         // Bogo Sort for sorted data should:
         // 1. Check if sorted (n-1 comparisons, 2*(n-1) reads)
         // 2. Already sorted, so no shuffle needed
@@ -89,11 +82,9 @@ public class BogoSortTests
         await Assert.That(stats.IndexReadCount).IsEqualTo(expectedReads);
     }
 
-    [Test]
+    [Test, SkipCI]
     public async Task TheoreticalValuesSingleShuffleTest()
     {
-        CISKipHelper.IsCI();
-
         // Test with a very small array that requires exactly one shuffle
         // For array [1, 0], it needs one shuffle to become [0, 1]
         var stats = new StatisticsContext();
@@ -115,14 +106,12 @@ public class BogoSortTests
         await Assert.That(array).IsEquivalentTo([0, 1], CollectionOrdering.Matching);
     }
 
-    [Test]
+    [Test, SkipCI]
     [Arguments(3)]
     [Arguments(5)]
     [Arguments(7)]
     public async Task TheoreticalValuesRandomTest(int n)
     {
-        CISKipHelper.IsCI();
-
         // Bogo Sort has unbounded runtime for random data
         // We can only test that:
         // 1. The array gets sorted
@@ -147,14 +136,12 @@ public class BogoSortTests
         await Assert.That(stats.IndexWriteCount >= 0).IsTrue().Because($"IndexWriteCount ({stats.IndexWriteCount}) should be >= 0");
     }
 
-    [Test]
+    [Test, SkipCI]
     [Arguments(3)]
     [Arguments(5)]
     [Arguments(7)]
     public async Task TheoreticalValuesReversedTest(int n)
     {
-        CISKipHelper.IsCI();
-
         // Bogo Sort for reversed data has unbounded runtime
         // We verify that:
         // 1. The array gets sorted

@@ -2,6 +2,19 @@
 
 namespace SortAlgorithm.Tests;
 
+/// <summary>
+/// Generates anti-quicksort data specifically designed for middle-pivot QuickSort.
+/// Uses McIlroy's adversarial algorithm and pipe organ pattern.
+/// Reference: https://www.cs.dartmouth.edu/~doug/mdmspe.pdf
+/// </summary>
+/// <remarks>
+/// This generator creates worst-case data for QuickSort implementations that:
+/// - Select the middle element as pivot: (left + right) / 2
+/// - Use Hoare's partitioning scheme
+///
+/// The pipe organ pattern [0,1,2,...,n/2,n/2-1,...,2,1,0] is particularly effective,
+/// causing ~19x more comparisons than random data on size=1000.
+/// </remarks>
 public static class MockAntiQuickSortData
 {
     public static IEnumerable<Func<InputSample<int>>> Generate()
@@ -36,19 +49,6 @@ public static class MockAntiQuickSortData
         };
     }
 
-    /// <summary>
-    /// Generates anti-quicksort data specifically designed for middle-pivot QuickSort.
-    /// Uses McIlroy's adversarial algorithm and pipe organ pattern.
-    /// Reference: https://www.cs.dartmouth.edu/~doug/mdmspe.pdf
-    /// </summary>
-    /// <remarks>
-    /// This generator creates worst-case data for QuickSort implementations that:
-    /// - Select the middle element as pivot: (left + right) / 2
-    /// - Use Hoare's partitioning scheme
-    ///
-    /// The pipe organ pattern [0,1,2,...,n/2,n/2-1,...,2,1,0] is particularly effective,
-    /// causing ~19x more comparisons than random data on size=1000.
-    /// </remarks>
     public static class AntiQuickSortDataGenerator
     {
         /// <summary>

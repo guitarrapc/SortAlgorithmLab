@@ -1,13 +1,12 @@
 ﻿using SortAlgorithm.Algorithms;
 using SortAlgorithm.Contexts;
-using SortAlgorithm.Tests.Mocks;
 using TUnit.Assertions.Enums;
 
 namespace SortAlgorithm.Tests;
 
 public class StoogeSortTests
 {
-    [Test]
+    [Test, SkipCI]
     [MethodDataSource(typeof(MockRandomData), nameof(MockRandomData.Generate))]
     [MethodDataSource(typeof(MockNegativePositiveRandomData), nameof(MockNegativePositiveRandomData.Generate))]
     [MethodDataSource(typeof(MockNegativeRandomData), nameof(MockNegativeRandomData.Generate))]
@@ -24,8 +23,6 @@ public class StoogeSortTests
     [MethodDataSource(typeof(MockHighlySkewedData), nameof(MockHighlySkewedData.Generate))]
     public async Task SortResultOrderTest(IInputSample<int> inputSample)
     {
-        CISKipHelper.IsCI();
-
         // Stooge Sort is extremely slow, so we limit to small arrays
         if (inputSample.Samples.Length > 10)
             return;
@@ -43,12 +40,10 @@ public class StoogeSortTests
 
 #if DEBUG
 
-    [Test]
+    [Test, SkipCI]
     [MethodDataSource(typeof(MockSortedData), nameof(MockSortedData.Generate))]
     public async Task StatisticsSortedTest(IInputSample<int> inputSample)
     {
-        CISKipHelper.IsCI();
-
         // Stooge Sort is extremely slow, so we limit to small arrays
         if (inputSample.Samples.Length <= 10)
         {
@@ -64,11 +59,9 @@ public class StoogeSortTests
         }
     }
 
-    [Test]
+    [Test, SkipCI]
     public async Task TheoreticalValuesSortedTest()
     {
-        CISKipHelper.IsCI();
-
         // Stooge Sort on sorted data still performs all comparisons but no swaps
         // T(n) = 3T(⌈2n/3⌉) + 1 (comparison)
         // For n=5: Expected structure:
@@ -93,14 +86,12 @@ public class StoogeSortTests
         await Assert.That(IsSorted(sorted)).IsTrue().Because("Array should remain sorted");
     }
 
-    [Test]
+    [Test, SkipCI]
     [Arguments(3)]
     [Arguments(4)]
     [Arguments(5)]
     public async Task TheoreticalValuesReversedTest(int n)
     {
-        CISKipHelper.IsCI();
-
         // Stooge Sort on reversed data performs maximum swaps
         // The algorithm always performs the same number of comparisons regardless of input,
         // but the number of swaps varies based on data arrangement
@@ -125,14 +116,12 @@ public class StoogeSortTests
         await Assert.That(stats.IndexReadCount).IsEqualTo(expectedReads);
     }
 
-    [Test]
+    [Test, SkipCI]
     [Arguments(3)]
     [Arguments(4)]
     [Arguments(5)]
     public async Task TheoreticalValuesRandomTest(int n)
     {
-        CISKipHelper.IsCI();
-
         // Stooge Sort has data-independent comparison count
         // but data-dependent swap count
         var stats = new StatisticsContext();
@@ -159,15 +148,13 @@ public class StoogeSortTests
         await Assert.That(stats.IndexReadCount).IsEqualTo(expectedReads);
     }
 
-    [Test]
+    [Test, SkipCI]
     [Arguments(2, 1)]  // Base case: 2 elements
     [Arguments(3, 4)]  // T(3) = 3×T(2) + 1 = 3×1 + 1 = 4
     [Arguments(4, 13)] // T(4) = 3×T(3) + 1 = 3×4 + 1 = 13
     [Arguments(5, 40)] // T(5) = 3×T(4) + 1 = 3×13 + 1 = 40
     public async Task TheoreticalComparisonCountTest(int n, int expectedComparisons)
     {
-        CISKipHelper.IsCI();
-
         // Test the theoretical comparison count for Stooge Sort
         // Comparison count follows: T(n) = 3T(⌈2n/3⌉) + 1 when n >= 3
         // T(1) = 0, T(2) = 1
@@ -185,11 +172,9 @@ public class StoogeSortTests
         await Assert.That(stats.IndexReadCount).IsEqualTo(expectedReads);
     }
 
-    [Test]
+    [Test, SkipCI]
     public async Task EdgeCaseSingleElementTest()
     {
-        CISKipHelper.IsCI();
-
         var stats = new StatisticsContext();
         var array = new[] { 42 };
         StoogeSort.Sort(array.AsSpan(), stats);
@@ -202,11 +187,9 @@ public class StoogeSortTests
         await Assert.That(array).IsEquivalentTo([42], CollectionOrdering.Matching);
     }
 
-    [Test]
+    [Test, SkipCI]
     public async Task EdgeCaseEmptyTest()
     {
-        CISKipHelper.IsCI();
-
         var stats = new StatisticsContext();
         var array = Array.Empty<int>();
         StoogeSort.Sort(array.AsSpan(), stats);
@@ -218,11 +201,9 @@ public class StoogeSortTests
         await Assert.That(stats.IndexReadCount).IsEqualTo(0UL);
     }
 
-    [Test]
+    [Test, SkipCI]
     public async Task EdgeCaseTwoElementsSortedTest()
     {
-        CISKipHelper.IsCI();
-
         var stats = new StatisticsContext();
         var array = new[] { 1, 2 };
         StoogeSort.Sort(array.AsSpan(), stats);
@@ -235,11 +216,9 @@ public class StoogeSortTests
         await Assert.That(array).IsEquivalentTo([1, 2], CollectionOrdering.Matching);
     }
 
-    [Test]
+    [Test, SkipCI]
     public async Task EdgeCaseTwoElementsReversedTest()
     {
-        CISKipHelper.IsCI();
-
         var stats = new StatisticsContext();
         var array = new[] { 2, 1 };
         StoogeSort.Sort(array.AsSpan(), stats);

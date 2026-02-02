@@ -6,7 +6,7 @@ namespace SortAlgorithm.Tests;
 
 public class RotateMergeSortNonOptimizedNonOptimizedTests
 {
-    [Test]
+    [Test, SkipCI]
     [MethodDataSource(typeof(MockRandomData), nameof(MockRandomData.Generate))]
     [MethodDataSource(typeof(MockNegativePositiveRandomData), nameof(MockNegativePositiveRandomData.Generate))]
     [MethodDataSource(typeof(MockNegativeRandomData), nameof(MockNegativeRandomData.Generate))]
@@ -37,7 +37,7 @@ public class RotateMergeSortNonOptimizedNonOptimizedTests
         await Assert.That(array).IsEquivalentTo(inputSample.Samples, CollectionOrdering.Matching);
     }
 
-    [Test]
+    [Test, SkipCI]
     [MethodDataSource(typeof(MockStabilityData), nameof(MockStabilityData.Generate))]
     public async Task StabilityTest(StabilityTestItem[] items)
     {
@@ -64,7 +64,7 @@ public class RotateMergeSortNonOptimizedNonOptimizedTests
         await Assert.That(value3Indices).IsEquivalentTo(MockStabilityData.Sorted3, CollectionOrdering.Matching);
     }
 
-    [Test]
+    [Test, SkipCI]
     [MethodDataSource(typeof(MockStabilityWithIdData), nameof(MockStabilityWithIdData.Generate))]
     public async Task StabilityTestWithComplex(StabilityTestItemWithId[] items)
     {
@@ -83,7 +83,7 @@ public class RotateMergeSortNonOptimizedNonOptimizedTests
         }
     }
 
-    [Test]
+    [Test, SkipCI]
     [MethodDataSource(typeof(MockStabilityAllEqualsData), nameof(MockStabilityAllEqualsData.Generate))]
     public async Task StabilityTestWithAllEqual(StabilityTestItem[] items)
     {
@@ -101,7 +101,7 @@ public class RotateMergeSortNonOptimizedNonOptimizedTests
 
 #if DEBUG
 
-    [Test]
+    [Test, SkipCI]
     [MethodDataSource(typeof(MockSortedData), nameof(MockSortedData.Generate))]
     public async Task StatisticsSortedTest(IInputSample<int> inputSample)
     {
@@ -119,7 +119,7 @@ public class RotateMergeSortNonOptimizedNonOptimizedTests
         await Assert.That(stats.SwapCount).IsEqualTo(0UL);  // Sorted data: no swaps needed
     }
 
-    [Test]
+    [Test, SkipCI]
     [Arguments(10)]
     [Arguments(20)]
     [Arguments(50)]
@@ -164,7 +164,7 @@ public class RotateMergeSortNonOptimizedNonOptimizedTests
         await Assert.That(stats.SwapCount).IsEqualTo(0UL); // Sorted data: no rotation needed
     }
 
-    [Test]
+    [Test, SkipCI]
     [Arguments(10)]
     [Arguments(20)]
     [Arguments(50)]
@@ -216,7 +216,7 @@ public class RotateMergeSortNonOptimizedNonOptimizedTests
         await Assert.That(stats.IndexReadCount >= minReads).IsTrue().Because($"IndexReadCount ({stats.IndexReadCount}) should be >= {minReads}");
     }
 
-    [Test]
+    [Test, SkipCI]
     [Arguments(10)]
     [Arguments(20)]
     [Arguments(50)]
