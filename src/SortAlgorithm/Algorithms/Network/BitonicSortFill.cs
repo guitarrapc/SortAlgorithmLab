@@ -112,12 +112,14 @@ public static class BitonicSortFill
         int paddedLength = NextPowerOfTwo(originalLength);
         
         // Find the maximum value in the input for padding
-        T maxValue = span[0];
+        // Create SortSpan for statistics tracking during max value search
+        var tempSortSpan = new SortSpan<T>(span, context, BUFFER_MAIN);
+        T maxValue = tempSortSpan.Read(0);
         for (int i = 1; i < originalLength; i++)
         {
-            if (span[i].CompareTo(maxValue) > 0)
+            if (tempSortSpan.Compare(i, maxValue) > 0)
             {
-                maxValue = span[i];
+                maxValue = tempSortSpan.Read(i);
             }
         }
 

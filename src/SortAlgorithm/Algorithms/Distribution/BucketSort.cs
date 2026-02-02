@@ -303,18 +303,18 @@ public static class BucketSortInteger
         where T : IBinaryInteger<T>, IMinMaxValue<T>, IComparable<T>
     {
         // Find min and max
-        var minValue = span[0];
-        var maxValue = span[0];
+        var minValue = s.Read(0);
+        var maxValue = s.Read(0);
 
         for (var i = 1; i < span.Length; i++)
         {
             var value = s.Read(i);
-            if (value.CompareTo(minValue) < 0) minValue = value;
-            if (value.CompareTo(maxValue) > 0) maxValue = value;
+            if (s.Compare(value, minValue) < 0) minValue = value;
+            if (s.Compare(value, maxValue) > 0) maxValue = value;
         }
 
         // If all elements are the same, no need to sort
-        if (minValue.CompareTo(maxValue) == 0) return;
+        if (s.Compare(minValue, maxValue) == 0) return;
 
         // Convert to long for range calculation
         var min = ConvertToLong(minValue);
