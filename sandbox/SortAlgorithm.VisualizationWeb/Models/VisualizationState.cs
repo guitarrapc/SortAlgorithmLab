@@ -3,6 +3,17 @@
 namespace SortAlgorithm.VisualizationWeb.Models;
 
 /// <summary>
+/// 各操作時点での累積統計
+/// </summary>
+internal struct CumulativeStats
+{
+    public ulong CompareCount;
+    public ulong SwapCount;
+    public ulong IndexReadCount;
+    public ulong IndexWriteCount;
+}
+
+/// <summary>
 /// 可視化の状態を保持するクラス
 /// </summary>
 public class VisualizationState
@@ -37,20 +48,79 @@ public class VisualizationState
     /// <summary>再生状態</summary>
     public PlaybackState PlaybackState { get; set; } = PlaybackState.Stopped;
 
-    /// <summary>統計情報（StatisticsContextから取得した正確な値）</summary>
+    /// <summary>統計情報（StatisticsContextから取得した最終値）</summary>
     public StatisticsContext? Statistics { get; set; }
 
-    /// <summary>比較回数（StatisticsContextがある場合はそれを使用、なければレガシー値）</summary>
-    public ulong CompareCount => Statistics?.CompareCount ?? 0;
+    /// <summary>累積統計（各操作インデックスでの統計値）</summary>
+    internal CumulativeStats[]? CumulativeStats { get; set; }
 
-    /// <summary>スワップ回数（StatisticsContextがある場合はそれを使用、なければレガシー値）</summary>
-    public ulong SwapCount => Statistics?.SwapCount ?? 0;
+    /// <summary>比較回数（累積統計または最終値を使用）</summary>
+    public ulong CompareCount
+    {
+        get
+        {
+            // ソート完了時は最終値（StatisticsContext）を使用
+            if (IsSortCompleted && Statistics != null)
+                return Statistics.CompareCount;
 
-    /// <summary>読み込み回数（StatisticsContextがある場合はそれを使用、なければレガシー値）</summary>
-    public ulong IndexReadCount => Statistics?.IndexReadCount ?? 0;
+            // プレイバック中は現在のインデックスに対応する累積値を使用
+            if (CumulativeStats != null && CurrentOperationIndex >= 0 && CurrentOperationIndex < CumulativeStats.Length)
+                return CumulativeStats[CurrentOperationIndex].CompareCount;
 
-    /// <summary>書き込み回数（StatisticsContextがある場合はそれを使用、なければレガシー値）</summary>
-    public ulong IndexWriteCount => Statistics?.IndexWriteCount ?? 0;
+            return 0;
+        }
+    }
+
+    /// <summary>スワップ回数（累積統計または最終値を使用）</summary>
+    public ulong SwapCount
+    {
+        get
+        {
+            // ソート完了時は最終値（StatisticsContext）を使用
+            if (IsSortCompleted && Statistics != null)
+                return Statistics.SwapCount;
+
+            // プレイバック中は現在のインデックスに対応する累積値を使用
+            if (CumulativeStats != null && CurrentOperationIndex >= 0 && CurrentOperationIndex < CumulativeStats.Length)
+                return CumulativeStats[CurrentOperationIndex].SwapCount;
+
+            return 0;
+        }
+    }
+
+    /// <summary>読み込み回数（累積統計または最終値を使用）</summary>
+    public ulong IndexReadCount
+    {
+        get
+        {
+            // ソート完了時は最終値（StatisticsContext）を使用
+            if (IsSortCompleted && Statistics != null)
+                return Statistics.IndexReadCount;
+
+            // プレイバック中は現在のインデックスに対応する累積値を使用
+            if (CumulativeStats != null && CurrentOperationIndex >= 0 && CurrentOperationIndex < CumulativeStats.Length)
+                return CumulativeStats[CurrentOperationIndex].IndexReadCount;
+
+            return 0;
+        }
+    }
+
+    /// <summary>書き込み回数（累積統計または最終値を使用）</summary>
+    public ulong IndexWriteCount
+    {
+        get
+        {
+            // ソート完了時は最終値（StatisticsContext）を使用
+            if (IsSortCompleted && Statistics != null)
+                return Statistics.IndexWriteCount;
+
+            // プレイバック中は現在のインデックスに対応する累積値を使用
+            if (CumulativeStats != null && CurrentOperationIndex >= 0 && CurrentOperationIndex < CumulativeStats.Length)
+                return CumulativeStats[CurrentOperationIndex].IndexWriteCount;
+
+            return 0;
+        }
+    }
 
     /// <summary>ソートが完了したかどうか</summary>
     public bool IsSortCompleted { get; set; }
@@ -58,3 +128,4 @@ public class VisualizationState
     /// <summary>ソート完了ハイライトを表示するかどうか（2秒間のみ）</summary>
     public bool ShowCompletionHighlight { get; set; }
 }
+

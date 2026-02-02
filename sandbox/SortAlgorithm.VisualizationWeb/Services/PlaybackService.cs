@@ -17,6 +17,9 @@ public class PlaybackService : IDisposable
     private int[] _initialArray = [];
     private Dictionary<int, int[]> _initialBuffers = new();
     
+    // 累積統計（各操作インデックスでの統計値）
+    private CumulativeStats[] _cumulativeStats = [];
+    
     private const int TARGET_FPS = 60; // ベースフレームレート
     private const int MAX_ARRAY_SIZE = 4096; // 最大配列サイズ
     private const double RENDER_INTERVAL_MS = 16.67; // UI更新間隔（60 FPS）
@@ -72,6 +75,69 @@ public class PlaybackService : IDisposable
         _initialArray = _pooledArray.AsSpan(0, _currentArraySize).ToArray(); // 初期状態のコピーを保持
         _initialBuffers.Clear();
         
+        // 累積統計を計算（StatisticsContextの計算ロジックを使用）
+        _cumulativeStats = new CumulativeStats[operations.Count + 1]; // +1は初期状態用
+        ulong cumulativeCompares = 0;
+        ulong cumulativeSwaps = 0;
+        ulong cumulativeReads = 0;
+        ulong cumulativeWrites = 0;
+        
+        for (int i = 0; i < operations.Count; i++)
+        {
+            var op = operations[i];
+            
+            // StatisticsContextと同じロジックで累積統計を計算
+            switch (op.Type)
+            {
+                case OperationType.Compare:
+                    cumulativeCompares++;
+                    break;
+                    
+                case OperationType.Swap:
+                    if (op.BufferId1 >= 0) // StatisticsContextと同じ条件
+                    {
+                        cumulativeSwaps++;
+                        cumulativeReads += 2;  // Swap = 2 reads
+                        cumulativeWrites += 2; // Swap = 2 writes
+                    }
+                    break;
+                    
+                case OperationType.IndexRead:
+                    if (op.BufferId1 >= 0)
+                    {
+                        cumulativeReads++;
+                    }
+                    break;
+                    
+                case OperationType.IndexWrite:
+                    if (op.BufferId1 >= 0)
+                    {
+                        cumulativeWrites++;
+                    }
+                    break;
+                    
+                case OperationType.RangeCopy:
+                    if (op.BufferId1 >= 0)
+                    {
+                        cumulativeReads += (ulong)op.Length;
+                    }
+                    if (op.BufferId2 >= 0)
+                    {
+                        cumulativeWrites += (ulong)op.Length;
+                    }
+                    break;
+            }
+            
+            // この操作後の累積統計を保存（インデックスi+1に保存）
+            _cumulativeStats[i + 1] = new CumulativeStats
+            {
+                CompareCount = cumulativeCompares,
+                SwapCount = cumulativeSwaps,
+                IndexReadCount = cumulativeReads,
+                IndexWriteCount = cumulativeWrites
+            };
+        }
+        
         // 現在のVisualizationModeを保持
         var currentMode = State.Mode;
         
@@ -84,7 +150,8 @@ public class PlaybackService : IDisposable
             Mode = currentMode, // モードを引き継ぐ
             IsSortCompleted = false, // 明示的にfalseに設定
             ShowCompletionHighlight = false, // ハイライト表示もfalse
-            Statistics = statistics // StatisticsContextを設定
+            Statistics = statistics, // StatisticsContextを設定（最終値として保持）
+            CumulativeStats = _cumulativeStats // 累積統計配列を設定
         };
         
         StateChanged?.Invoke();
