@@ -27,9 +27,17 @@ public class CocktailShakerSortTests
 
         var stats = new StatisticsContext();
         var array = inputSample.Samples.ToArray();
-        CocktailShakerSort.Sort(array.AsSpan(),stats);
+        var originalCounts = array.GroupBy(x => x).ToDictionary(g => g.Key, g => g.Count());
 
-        Assert.Equal((ulong)inputSample.Samples.Length, (ulong)array.Length);
+        CocktailShakerSort.Sort(array.AsSpan(), stats);
+
+        // Check is sorted
+        for (int i = 0; i < array.Length - 1; i++)
+            Assert.True(array[i] <= array[i + 1]);
+
+        // Check element counts match
+        var sortedCounts = array.GroupBy(x => x).ToDictionary(g => g.Key, g => g.Count());
+        Assert.Equal(originalCounts, sortedCounts);
     }
 
     [Theory]

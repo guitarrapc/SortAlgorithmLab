@@ -3,7 +3,7 @@ using SortAlgorithm.Contexts;
 
 namespace SortAlgorithm.Tests;
 
-public class BottomUpMergeSortTests
+public class BottomupMergeSortTests
 {
     [Theory]
     [ClassData(typeof(MockRandomData))]
@@ -24,9 +24,17 @@ public class BottomUpMergeSortTests
     {
         var stats = new StatisticsContext();
         var array = inputSample.Samples.ToArray();
-        BottomUpMergeSort.Sort(array.AsSpan(), stats);
+        var originalCounts = array.GroupBy(x => x).ToDictionary(g => g.Key, g => g.Count());
 
-        Assert.Equal((ulong)inputSample.Samples.Length, (ulong)array.Length);
+        BottomupMergeSort.Sort(array.AsSpan(), stats);
+
+        // Check is sorted
+        for (int i = 0; i < array.Length - 1; i++)
+            Assert.True(array[i] <= array[i + 1]);
+
+        // Check element counts match
+        var sortedCounts = array.GroupBy(x => x).ToDictionary(g => g.Key, g => g.Count());
+        Assert.Equal(originalCounts, sortedCounts);
     }
 
     [Theory]
@@ -36,7 +44,7 @@ public class BottomUpMergeSortTests
         // Test stability: equal elements should maintain relative order
         var stats = new StatisticsContext();
 
-        BottomUpMergeSort.Sort(items.AsSpan(), stats);
+        BottomupMergeSort.Sort(items.AsSpan(), stats);
 
         // Verify sorting correctness - values should be in ascending order
         Assert.Equal(MockStabilityData.Sorted, items.Select(x => x.Value).ToArray());
@@ -63,7 +71,7 @@ public class BottomUpMergeSortTests
         // Test stability with more complex scenario - multiple equal values
         var stats = new StatisticsContext();
 
-        BottomUpMergeSort.Sort(items.AsSpan(), stats);
+        BottomupMergeSort.Sort(items.AsSpan(), stats);
 
         // Expected: [2:B, 2:D, 2:F, 5:A, 5:C, 5:G, 8:E]
         // Keys are sorted, and elements with the same key maintain original order
@@ -83,7 +91,7 @@ public class BottomUpMergeSortTests
         // They should remain in original order
         var stats = new StatisticsContext();
 
-        BottomUpMergeSort.Sort(items.AsSpan(), stats);
+        BottomupMergeSort.Sort(items.AsSpan(), stats);
 
         // All values are 1
         Assert.All(items, item => Assert.Equal(1, item.Value));
@@ -100,7 +108,7 @@ public class BottomUpMergeSortTests
     {
         var stats = new StatisticsContext();
         var array = inputSample.Samples.ToArray();
-        BottomUpMergeSort.Sort(array.AsSpan(), stats);
+        BottomupMergeSort.Sort(array.AsSpan(), stats);
 
         Assert.Equal((ulong)inputSample.Samples.Length, (ulong)array.Length);
     }
@@ -114,7 +122,7 @@ public class BottomUpMergeSortTests
     {
         var stats = new StatisticsContext();
         var sorted = Enumerable.Range(0, n).ToArray();
-        BottomUpMergeSort.Sort(sorted.AsSpan(), stats);
+        BottomupMergeSort.Sort(sorted.AsSpan(), stats);
 
         // Bottom-Up Merge Sort with optimization for sorted data:
         // Unlike top-down merge sort, bottom-up processes all merge levels explicitly.
@@ -164,7 +172,7 @@ public class BottomUpMergeSortTests
     {
         var stats = new StatisticsContext();
         var reversed = Enumerable.Range(0, n).Reverse().ToArray();
-        BottomUpMergeSort.Sort(reversed.AsSpan(), stats);
+        BottomupMergeSort.Sort(reversed.AsSpan(), stats);
 
         // Bottom-Up Merge Sort comparisons for reversed data:
         // Reversed data cannot skip merges, so all merge operations occur.
@@ -210,7 +218,7 @@ public class BottomUpMergeSortTests
     {
         var stats = new StatisticsContext();
         var random = Enumerable.Range(0, n).OrderBy(_ => Guid.NewGuid()).ToArray();
-        BottomUpMergeSort.Sort(random.AsSpan(), stats);
+        BottomupMergeSort.Sort(random.AsSpan(), stats);
 
         // Bottom-Up Merge Sort with optimization for random data:
         // Random data can have some sorted partitions, allowing skip optimization.

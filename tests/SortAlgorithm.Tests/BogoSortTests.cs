@@ -24,14 +24,22 @@ public class BogoSortTests
     public void SortResultOrderTest(IInputSample<int> inputSample)
     {
         // Bogo Sort is extremely slow, so we limit to small arrays
-        if (inputSample.Samples.Length <= 10)
-        {
-            var stats = new StatisticsContext();
-            var array = inputSample.Samples.ToArray();
-            BogoSort.Sort(array.AsSpan(), stats);
+        if (inputSample.Samples.Length > 10)
+            return;
 
-            Assert.Equal((ulong)inputSample.Samples.Length, (ulong)array.Length);
-        }
+        var stats = new StatisticsContext();
+        var array = inputSample.Samples.ToArray();
+        var originalCounts = array.GroupBy(x => x).ToDictionary(g => g.Key, g => g.Count());
+
+        BogoSort.Sort(array.AsSpan(), stats);
+
+        // Check is sorted
+        for (int i = 0; i < array.Length - 1; i++)
+            Assert.True(array[i] <= array[i + 1]);
+
+        // Check element counts match
+        var sortedCounts = array.GroupBy(x => x).ToDictionary(g => g.Key, g => g.Count());
+        Assert.Equal(originalCounts, sortedCounts);
     }
 
 #if DEBUG

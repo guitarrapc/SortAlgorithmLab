@@ -53,7 +53,7 @@ public class AlgorithmRegistry
 
         // Merge Sorts - O(n log n) - 推奨2048
         Add("Merge sort", "Merge Sorts", "O(n log n)", MAX_SIZE, 2048, (arr, ctx) => MergeSort.Sort(arr.AsSpan(), ctx));
-        Add("Bottom-up merge sort", "Merge Sorts", "O(n log n)", MAX_SIZE, 2048, (arr, ctx) => BottomUpMergeSort.Sort(arr.AsSpan(), ctx));
+        Add("Bottom-up merge sort", "Merge Sorts", "O(n log n)", MAX_SIZE, 2048, (arr, ctx) => BottomupMergeSort.Sort(arr.AsSpan(), ctx));
         Add("Rotate merge sort", "Merge Sorts", "O(n log² n)", MAX_SIZE, 1024, (arr, ctx) => RotateMergeSort.Sort(arr.AsSpan(), ctx));
         Add("Timsort", "Merge Sorts", "O(n log n)", MAX_SIZE, 2048, (arr, ctx) => TimSort.Sort(arr.AsSpan(), ctx));
         Add("Powersort", "Merge Sorts", "O(n log n)", MAX_SIZE, 2048, (arr, ctx) => PowerSort.Sort(arr.AsSpan(), ctx));

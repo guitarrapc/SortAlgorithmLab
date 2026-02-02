@@ -70,7 +70,7 @@ namespace SortAlgorithm.Algorithms;
 /// <para><strong>Reference:</strong></para>
 /// <para>Wiki: https://en.wikipedia.org/wiki/Merge_sort#Bottom-up_implementation</para>
 /// </remarks>
-public static class BottomUpMergeSort
+public static class BottomupMergeSort
 {
     // Buffer identifiers for visualization
     private const int BUFFER_MAIN = 0;       // Main input array
