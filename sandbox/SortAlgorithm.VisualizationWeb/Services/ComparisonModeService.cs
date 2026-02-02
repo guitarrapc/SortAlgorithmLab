@@ -216,6 +216,9 @@ public class ComparisonModeService : IDisposable
             {
                 _debug.Log($"  - {instance.AlgorithmName}: Compares={instance.State.CompareCount:N0}, Swaps={instance.State.SwapCount:N0}");
             }
+            
+            // 全アルゴリズム完了時に自動的に一時停止
+            Pause();
         }
     }
     

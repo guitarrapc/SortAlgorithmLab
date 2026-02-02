@@ -643,6 +643,12 @@ private string _runningAlgorithmName = string.Empty;
 
     private void OnStateChanged()
     {
+        // 比較モードの再生状態を同期
+        if (_isComparisonMode && ComparisonMode.State.IsEnabled)
+        {
+            _isComparisonPlaying = ComparisonMode.IsPlaying();
+        }
+        
         InvokeAsync(StateHasChanged);
     }
 
