@@ -5,22 +5,22 @@ namespace SortAlgorithm.Tests;
 
 public class BlockQuickSortTests
 {
-    [Theory]
-    [ClassData(typeof(MockRandomData))]
-    [ClassData(typeof(MockNegativePositiveRandomData))]
-    [ClassData(typeof(MockNegativeRandomData))]
-    [ClassData(typeof(MockReversedData))]
-    [ClassData(typeof(MockMountainData))]
-    [ClassData(typeof(MockNearlySortedData))]
-    [ClassData(typeof(MockSameValuesData))]
-    [ClassData(typeof(MockAntiQuickSortData))]
-    [ClassData(typeof(MockQuickSortWorstCaseData))]
-    [ClassData(typeof(MockAllIdenticalData))]
-    [ClassData(typeof(MockTwoDistinctValuesData))]
-    [ClassData(typeof(MockHalfZeroHalfOneData))]
-    [ClassData(typeof(MockManyDuplicatesSqrtRangeData))]
-    [ClassData(typeof(MockHighlySkewedData))]
-    public void SortResultOrderTest(IInputSample<int> inputSample)
+    [Test]
+    [MethodDataSource(typeof(MockRandomData), nameof(MockRandomData.Generate))]
+    [MethodDataSource(typeof(MockNegativePositiveRandomData), nameof(MockNegativePositiveRandomData.Generate))]
+    [MethodDataSource(typeof(MockNegativeRandomData), nameof(MockNegativeRandomData.Generate))]
+    [MethodDataSource(typeof(MockReversedData), nameof(MockReversedData.Generate))]
+    [MethodDataSource(typeof(MockMountainData), nameof(MockMountainData.Generate))]
+    [MethodDataSource(typeof(MockNearlySortedData), nameof(MockNearlySortedData.Generate))]
+    [MethodDataSource(typeof(MockSameValuesData), nameof(MockSameValuesData.Generate))]
+    [MethodDataSource(typeof(MockAntiQuickSortData), nameof(MockAntiQuickSortData.Generate))]
+    [MethodDataSource(typeof(MockQuickSortWorstCaseData), nameof(MockQuickSortWorstCaseData.Generate))]
+    [MethodDataSource(typeof(MockAllIdenticalData), nameof(MockAllIdenticalData.Generate))]
+    [MethodDataSource(typeof(MockTwoDistinctValuesData), nameof(MockTwoDistinctValuesData.Generate))]
+    [MethodDataSource(typeof(MockHalfZeroHalfOneData), nameof(MockHalfZeroHalfOneData.Generate))]
+    [MethodDataSource(typeof(MockManyDuplicatesSqrtRangeData), nameof(MockManyDuplicatesSqrtRangeData.Generate))]
+    [MethodDataSource(typeof(MockHighlySkewedData), nameof(MockHighlySkewedData.Generate))]
+    public async Task SortResultOrderTest(IInputSample<int> inputSample)
     {
         var stats = new StatisticsContext();
         var array = inputSample.Samples.ToArray();
@@ -30,63 +30,63 @@ public class BlockQuickSortTests
 
         // Check is sorted
         for (int i = 0; i < array.Length - 1; i++)
-            Assert.True(array[i] <= array[i + 1]);
+            await Assert.That(array[i] <= array[i + 1]).IsTrue();
 
         // Check element counts match
         var sortedCounts = array.GroupBy(x => x).ToDictionary(g => g.Key, g => g.Count());
-        Assert.Equal(originalCounts, sortedCounts);
+                await Assert.That(sortedCounts).IsEqualTo(originalCounts);
     }
 
-    [Fact]
-    public void EdgeCaseEmptyArrayTest()
+    [Test]
+    public async Task EdgeCaseEmptyArrayTest()
     {
         var stats = new StatisticsContext();
         var empty = Array.Empty<int>();
         BlockQuickSort.Sort(empty.AsSpan(), stats);
     }
 
-    [Fact]
-    public void EdgeCaseSingleElementTest()
+    [Test]
+    public async Task EdgeCaseSingleElementTest()
     {
         var stats = new StatisticsContext();
         var single = new[] { 42 };
         BlockQuickSort.Sort(single.AsSpan(), stats);
 
-        Assert.Equal(42, single[0]);
+        await Assert.That(single[0]).IsEqualTo(42);
     }
 
-    [Fact]
-    public void EdgeCaseTwoElementsSortedTest()
+    [Test]
+    public async Task EdgeCaseTwoElementsSortedTest()
     {
         var stats = new StatisticsContext();
         var twoSorted = new[] { 1, 2 };
         BlockQuickSort.Sort(twoSorted.AsSpan(), stats);
 
-        Assert.Equal([1, 2], twoSorted);
+        await Assert.That(twoSorted).IsEqualTo([1, 2]);
     }
 
-    [Fact]
-    public void EdgeCaseTwoElementsReversedTest()
+    [Test]
+    public async Task EdgeCaseTwoElementsReversedTest()
     {
         var stats = new StatisticsContext();
         var twoReversed = new[] { 2, 1 };
         BlockQuickSort.Sort(twoReversed.AsSpan(), stats);
 
-        Assert.Equal([1, 2], twoReversed);
+        await Assert.That(twoReversed).IsEqualTo([1, 2]);
     }
 
-    [Fact]
-    public void EdgeCaseThreeElementsTest()
+    [Test]
+    public async Task EdgeCaseThreeElementsTest()
     {
         var stats = new StatisticsContext();
         var three = new[] { 3, 1, 2 };
         BlockQuickSort.Sort(three.AsSpan(), stats);
 
-        Assert.Equal([1, 2, 3], three);
+        await Assert.That(three).IsEqualTo([1, 2, 3]);
     }
 
-    [Fact]
-    public void RangeSortTest()
+    [Test]
+    public async Task RangeSortTest()
     {
         var stats = new StatisticsContext();
         var array = new[] { 5, 3, 8, 1, 9, 2, 7, 4, 6 };
@@ -95,11 +95,11 @@ public class BlockQuickSortTests
         BlockQuickSort.Sort(array.AsSpan(), 2, 6, stats);
 
         // Expected: first 2 elements unchanged, middle 4 sorted, last 3 unchanged
-        Assert.Equal(new[] { 5, 3, 1, 2, 8, 9, 7, 4, 6 }, array);
+        await Assert.That(array).IsEqualTo([5, 3, 1, 2, 8, 9, 7, 4, 6 ]);
     }
 
-    [Fact]
-    public void RangeSortFullArrayTest()
+    [Test]
+    public async Task RangeSortFullArrayTest()
     {
         var stats = new StatisticsContext();
         var array = new[] { 5, 3, 8, 1, 9, 2, 7, 4, 6 };
@@ -107,51 +107,51 @@ public class BlockQuickSortTests
         // Sort the entire array using range API
         BlockQuickSort.Sort(array.AsSpan(), 0, array.Length, stats);
 
-        Assert.Equal(new[] { 1, 2, 3, 4, 5, 6, 7, 8, 9 }, array);
+        await Assert.That(array).IsEqualTo([1, 2, 3, 4, 5, 6, 7, 8, 9]);
     }
 
-    [Fact]
-    public void SortedArrayTest()
+    [Test]
+    public async Task SortedArrayTest()
     {
         var stats = new StatisticsContext();
         var sorted = Enumerable.Range(1, 100).ToArray();
         BlockQuickSort.Sort(sorted.AsSpan(), stats);
 
-        Assert.Equal(Enumerable.Range(1, 100).ToArray(), sorted);
+        await Assert.That(sorted).IsEqualTo(Enumerable.Range(1, 100).ToArray());
     }
 
-    [Fact]
-    public void ReverseSortedArrayTest()
+    [Test]
+    public async Task ReverseSortedArrayTest()
     {
         var stats = new StatisticsContext();
         var reversed = Enumerable.Range(1, 100).Reverse().ToArray();
         BlockQuickSort.Sort(reversed.AsSpan(), stats);
 
-        Assert.Equal(Enumerable.Range(1, 100).ToArray(), reversed);
+        await Assert.That(reversed).IsEqualTo(Enumerable.Range(1, 100).ToArray());
     }
 
-    [Fact]
-    public void AllEqualElementsTest()
+    [Test]
+    public async Task AllEqualElementsTest()
     {
         var stats = new StatisticsContext();
         var allEqual = Enumerable.Repeat(42, 100).ToArray();
         BlockQuickSort.Sort(allEqual.AsSpan(), stats);
 
-        Assert.Equal(Enumerable.Repeat(42, 100).ToArray(), allEqual);
+        await Assert.That(allEqual).IsEqualTo(Enumerable.Repeat(42, 100).ToArray());
     }
 
-    [Fact]
-    public void ManyDuplicatesTest()
+    [Test]
+    public async Task ManyDuplicatesTest()
     {
         var stats = new StatisticsContext();
         var duplicates = new[] { 1, 2, 1, 3, 2, 1, 4, 3, 2, 1, 5, 4, 3, 2, 1 };
         BlockQuickSort.Sort(duplicates.AsSpan(), stats);
 
-        Assert.Equal(new[] { 1, 1, 1, 1, 1, 2, 2, 2, 2, 3, 3, 3, 4, 4, 5 }, duplicates);
+        await Assert.That(duplicates).IsEqualTo([1, 1, 1, 1, 1, 2, 2, 2, 2, 3, 3, 3, 4, 4, 5 ]);
     }
 
-    [Fact]
-    public void LargeArrayTest()
+    [Test]
+    public async Task LargeArrayTest()
     {
         var stats = new StatisticsContext();
         var random = new Random(42);
@@ -160,11 +160,11 @@ public class BlockQuickSortTests
 
         BlockQuickSort.Sort(large.AsSpan(), stats);
 
-        Assert.Equal(expected, large);
+        await Assert.That(large).IsEqualTo(expected);
     }
 
-    [Fact]
-    public void NearlySortedArrayTest()
+    [Test]
+    public async Task NearlySortedArrayTest()
     {
         var stats = new StatisticsContext();
         var nearlySorted = Enumerable.Range(1, 100).ToArray();
@@ -174,50 +174,50 @@ public class BlockQuickSortTests
 
         BlockQuickSort.Sort(nearlySorted.AsSpan(), stats);
 
-        Assert.Equal(Enumerable.Range(1, 100).ToArray(), nearlySorted);
+        await Assert.That(nearlySorted).IsEqualTo(Enumerable.Range(1, 100).ToArray());
     }
 
-    [Fact]
-    public void SmallArrayInsertionSortThresholdTest()
+    [Test]
+    public async Task SmallArrayInsertionSortThresholdTest()
     {
         var stats = new StatisticsContext();
         var small = new[] { 5, 2, 8, 1, 9, 3, 7, 4, 6, 10, 15, 12, 18, 11, 19, 13, 17, 14, 16, 20 };
         BlockQuickSort.Sort(small.AsSpan(), stats);
 
-        Assert.Equal(Enumerable.Range(1, 20).ToArray(), small);
+        await Assert.That(small).IsEqualTo(Enumerable.Range(1, 20).ToArray());
     }
 
-    [Fact]
-    public void StringSortTest()
+    [Test]
+    public async Task StringSortTest()
     {
         var stats = new StatisticsContext();
         var strings = new[] { "zebra", "apple", "mango", "banana", "cherry" };
         BlockQuickSort.Sort(strings.AsSpan(), stats);
 
-        Assert.Equal(new[] { "apple", "banana", "cherry", "mango", "zebra" }, strings);
+        await Assert.That(strings).IsEqualTo(["apple", "banana", "cherry", "mango", "zebra"]);
     }
 
 #if DEBUG
 
-        [Theory]
-    [ClassData(typeof(MockSortedData))]
-    public void StatisticsSortedTest(IInputSample<int> inputSample)
+        [Test]
+    [MethodDataSource(typeof(MockSortedData), nameof(MockSortedData.Generate))]
+    public async Task StatisticsSortedTest(IInputSample<int> inputSample)
     {
         var stats = new StatisticsContext();
         var array = inputSample.Samples.ToArray();
         BlockQuickSort.Sort(array.AsSpan(), stats);
 
-        Assert.Equal((ulong)inputSample.Samples.Length, (ulong)array.Length);
-        Assert.NotEqual(0UL, stats.IndexReadCount);
-        Assert.NotEqual(0UL, stats.CompareCount);
+        await Assert.That((ulong)array.Length).IsEqualTo((ulong)inputSample.Samples.Length);
+        await Assert.That(stats.IndexReadCount).IsNotEqualTo(0UL);
+        await Assert.That(stats.CompareCount).IsNotEqualTo(0UL);
     }
 
-    [Theory]
-    [InlineData(10)]
-    [InlineData(20)]
-    [InlineData(50)]
-    [InlineData(100)]
-    public void TheoreticalValuesSortedTest(int n)
+    [Test]
+    [Arguments(10)]
+    [Arguments(20)]
+    [Arguments(50)]
+    [Arguments(100)]
+    public async Task TheoreticalValuesSortedTest(int n)
     {
         var stats = new StatisticsContext();
         var sorted = Enumerable.Range(0, n).ToArray();
@@ -240,21 +240,20 @@ public class BlockQuickSortTests
         minSwaps = 0UL; // Sorted data may need no swaps
         maxSwaps = (ulong)(n * Math.Max(1, Math.Log(n, 2))); // Upper bound
 
-        Assert.InRange(stats.CompareCount, minCompares, maxCompares);
-        Assert.InRange(stats.SwapCount, minSwaps, maxSwaps);
+        await Assert.That(stats.CompareCount).IsBetween(minCompares, maxCompares);
+        await Assert.That(stats.SwapCount).IsBetween(minSwaps, maxSwaps);
 
         // IndexReads: Each comparison reads elements, each swap reads and writes
         var minIndexReads = stats.CompareCount;
-        Assert.True(stats.IndexReadCount >= minIndexReads,
-            $"IndexReadCount ({stats.IndexReadCount}) should be >= {minIndexReads}");
+        await Assert.That(stats.IndexReadCount >= minIndexReads).IsTrue().Because($"IndexReadCount ({stats.IndexReadCount}) should be >= {minIndexReads}");
     }
 
-    [Theory]
-    [InlineData(10)]
-    [InlineData(20)]
-    [InlineData(50)]
-    [InlineData(100)]
-    public void TheoreticalValuesReversedTest(int n)
+    [Test]
+    [Arguments(10)]
+    [Arguments(20)]
+    [Arguments(50)]
+    [Arguments(100)]
+    public async Task TheoreticalValuesReversedTest(int n)
     {
         var stats = new StatisticsContext();
         var reversed = Enumerable.Range(0, n).Reverse().ToArray();
@@ -284,20 +283,19 @@ public class BlockQuickSortTests
             maxCompares = (ulong)(n * n); // Allow for worst-case InsertionSort on partitions
         }
 
-        Assert.InRange(stats.CompareCount, minCompares, maxCompares);
+        await Assert.That(stats.CompareCount).IsBetween(minCompares, maxCompares);
 
         // IndexReads and IndexWrites should be proportional to operations
         var minIndexReads = stats.CompareCount;
-        Assert.True(stats.IndexReadCount >= minIndexReads,
-            $"IndexReadCount ({stats.IndexReadCount}) should be >= {minIndexReads}");
+        await Assert.That(stats.IndexReadCount >= minIndexReads).IsTrue().Because($"IndexReadCount ({stats.IndexReadCount}) should be >= {minIndexReads}");
     }
 
-    [Theory]
-    [InlineData(10)]
-    [InlineData(20)]
-    [InlineData(50)]
-    [InlineData(100)]
-    public void TheoreticalValuesRandomTest(int n)
+    [Test]
+    [Arguments(10)]
+    [Arguments(20)]
+    [Arguments(50)]
+    [Arguments(100)]
+    public async Task TheoreticalValuesRandomTest(int n)
     {
         var stats = new StatisticsContext();
         var random = Enumerable.Range(0, n).OrderBy(_ => Guid.NewGuid()).ToArray();
@@ -315,11 +313,10 @@ public class BlockQuickSortTests
         ulong minCompares = (ulong)(n - 1); // Minimum: at least n-1 comparisons
         ulong maxCompares = (ulong)(n * n); // Allow for InsertionSort worst-case on partitions
 
-        Assert.InRange(stats.CompareCount, minCompares, maxCompares);
+        await Assert.That(stats.CompareCount).IsBetween(minCompares, maxCompares);
 
         var minIndexReads = stats.CompareCount;
-        Assert.True(stats.IndexReadCount >= minIndexReads,
-            $"IndexReadCount ({stats.IndexReadCount}) should be >= {minIndexReads}");
+        await Assert.That(stats.IndexReadCount >= minIndexReads).IsTrue().Because($"IndexReadCount ({stats.IndexReadCount}) should be >= {minIndexReads}");
     }
 
 #endif

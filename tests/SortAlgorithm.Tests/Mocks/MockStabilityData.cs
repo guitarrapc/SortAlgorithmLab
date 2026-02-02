@@ -1,8 +1,6 @@
-﻿using System.Collections;
+﻿namespace SortAlgorithm.Tests;
 
-namespace SortAlgorithm.Tests;
-
-public class MockStabilityData : IEnumerable<object[]>
+public static class MockStabilityData
 {
     public static int[] Sorted => _sorted;
     private static int[] _sorted = [1, 1, 1, 2, 2, 3];
@@ -16,11 +14,9 @@ public class MockStabilityData : IEnumerable<object[]>
     public static int[] Sorted3 => _sorted3;
     private static int[] _sorted3 = [3];
 
-    private List<object[]> testData = new List<object[]>();
-
-    public MockStabilityData()
+    public static IEnumerable<Func<StabilityTestItem[]>> Generate()
     {
-        testData.Add([new StabilityTestItem[]
+        yield return () => new StabilityTestItem[]
         {
             new (1, 0),
             new (2, 1),
@@ -28,10 +24,6 @@ public class MockStabilityData : IEnumerable<object[]>
             new (3, 3),
             new (1, 4),
             new (2, 5),
-        }]);
+        };
     }
-
-    public IEnumerator<object[]> GetEnumerator() => testData.GetEnumerator();
-
-    IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
 }

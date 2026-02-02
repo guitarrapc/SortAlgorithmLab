@@ -5,22 +5,22 @@ namespace SortAlgorithm.Tests;
 
 public class SmoothSortTests
 {
-    [Theory]
-    [ClassData(typeof(MockRandomData))]
-    [ClassData(typeof(MockNegativePositiveRandomData))]
-    [ClassData(typeof(MockNegativeRandomData))]
-    [ClassData(typeof(MockReversedData))]
-    [ClassData(typeof(MockMountainData))]
-    [ClassData(typeof(MockNearlySortedData))]
-    [ClassData(typeof(MockSameValuesData))]
-    [ClassData(typeof(MockAntiQuickSortData))]
-    [ClassData(typeof(MockQuickSortWorstCaseData))]
-    [ClassData(typeof(MockAllIdenticalData))]
-    [ClassData(typeof(MockTwoDistinctValuesData))]
-    [ClassData(typeof(MockHalfZeroHalfOneData))]
-    [ClassData(typeof(MockManyDuplicatesSqrtRangeData))]
-    [ClassData(typeof(MockHighlySkewedData))]
-    public void SortResultOrderTest(IInputSample<int> inputSample)
+    [Test]
+    [MethodDataSource(typeof(MockRandomData), nameof(MockRandomData.Generate))]
+    [MethodDataSource(typeof(MockNegativePositiveRandomData), nameof(MockNegativePositiveRandomData.Generate))]
+    [MethodDataSource(typeof(MockNegativeRandomData), nameof(MockNegativeRandomData.Generate))]
+    [MethodDataSource(typeof(MockReversedData), nameof(MockReversedData.Generate))]
+    [MethodDataSource(typeof(MockMountainData), nameof(MockMountainData.Generate))]
+    [MethodDataSource(typeof(MockNearlySortedData), nameof(MockNearlySortedData.Generate))]
+    [MethodDataSource(typeof(MockSameValuesData), nameof(MockSameValuesData.Generate))]
+    [MethodDataSource(typeof(MockAntiQuickSortData), nameof(MockAntiQuickSortData.Generate))]
+    [MethodDataSource(typeof(MockQuickSortWorstCaseData), nameof(MockQuickSortWorstCaseData.Generate))]
+    [MethodDataSource(typeof(MockAllIdenticalData), nameof(MockAllIdenticalData.Generate))]
+    [MethodDataSource(typeof(MockTwoDistinctValuesData), nameof(MockTwoDistinctValuesData.Generate))]
+    [MethodDataSource(typeof(MockHalfZeroHalfOneData), nameof(MockHalfZeroHalfOneData.Generate))]
+    [MethodDataSource(typeof(MockManyDuplicatesSqrtRangeData), nameof(MockManyDuplicatesSqrtRangeData.Generate))]
+    [MethodDataSource(typeof(MockHighlySkewedData), nameof(MockHighlySkewedData.Generate))]
+    public async Task SortResultOrderTest(IInputSample<int> inputSample)
     {
         var stats = new StatisticsContext();
         var array = inputSample.Samples.ToArray();
@@ -30,36 +30,36 @@ public class SmoothSortTests
 
         // Check is sorted
         for (int i = 0; i < array.Length - 1; i++)
-            Assert.True(array[i] <= array[i + 1]);
+            await Assert.That(array[i] <= array[i + 1]).IsTrue();
 
         // Check element counts match
         var sortedCounts = array.GroupBy(x => x).ToDictionary(g => g.Key, g => g.Count());
-        Assert.Equal(originalCounts, sortedCounts);
+                await Assert.That(sortedCounts).IsEqualTo(originalCounts);
     }
 
 #if DEBUG
 
-    [Theory]
-    [ClassData(typeof(MockSortedData))]
-    public void StatisticsSortedTest(IInputSample<int> inputSample)
+    [Test]
+    [MethodDataSource(typeof(MockSortedData), nameof(MockSortedData.Generate))]
+    public async Task StatisticsSortedTest(IInputSample<int> inputSample)
     {
         var stats = new StatisticsContext();
         var array = inputSample.Samples.ToArray();
         SmoothSort.Sort(array.AsSpan(), stats);
 
-        Assert.Equal((ulong)inputSample.Samples.Length, (ulong)array.Length);
-        Assert.NotEqual(0UL, stats.IndexReadCount);
-        Assert.Equal(0UL, stats.IndexWriteCount);
-        Assert.NotEqual(0UL, stats.CompareCount);
-        Assert.Equal(0UL, stats.SwapCount);
+        await Assert.That((ulong)array.Length).IsEqualTo((ulong)inputSample.Samples.Length);
+        await Assert.That(stats.IndexReadCount).IsNotEqualTo(0UL);
+        await Assert.That(stats.IndexWriteCount).IsEqualTo(0UL);
+        await Assert.That(stats.CompareCount).IsNotEqualTo(0UL);
+        await Assert.That(stats.SwapCount).IsEqualTo(0UL);
     }
 
-    [Theory]
-    [InlineData(10)]
-    [InlineData(20)]
-    [InlineData(50)]
-    [InlineData(100)]
-    public void TheoreticalValuesSortedTest(int n)
+    [Test]
+    [Arguments(10)]
+    [Arguments(20)]
+    [Arguments(50)]
+    [Arguments(100)]
+    public async Task TheoreticalValuesSortedTest(int n)
     {
         var stats = new StatisticsContext();
         var sorted = Enumerable.Range(0, n).ToArray();
@@ -72,21 +72,19 @@ public class SmoothSortTests
         var minCompares = (ulong)n;
         var maxCompares = (ulong)(n * Math.Log(n, 2) * 2); // Allow some overhead
 
-        Assert.InRange(stats.CompareCount, minCompares, maxCompares);
-        Assert.True(stats.IndexReadCount >= stats.CompareCount,
-            $"IndexReadCount ({stats.IndexReadCount}) should be >= CompareCount ({stats.CompareCount})");
+        await Assert.That(stats.CompareCount).IsBetween(minCompares, maxCompares);
+        await Assert.That(stats.IndexReadCount >= stats.CompareCount).IsTrue().Because($"IndexReadCount ({stats.IndexReadCount}) should be >= CompareCount ({stats.CompareCount})");
 
         // Sorted data should have minimal operations
-        Assert.True(stats.CompareCount < (ulong)(n * n / 2),
-            $"Sorted data should be O(n), not O(n²). CompareCount: {stats.CompareCount}, n²/2: {n * n / 2}");
+        await Assert.That(stats.CompareCount < (ulong)(n * n / 2)).IsTrue().Because($"Sorted data should be O(n), not O(n²). CompareCount: {stats.CompareCount}, n²/2: {n * n / 2}");
     }
 
-    [Theory]
-    [InlineData(10)]
-    [InlineData(20)]
-    [InlineData(50)]
-    [InlineData(100)]
-    public void TheoreticalValuesReversedTest(int n)
+    [Test]
+    [Arguments(10)]
+    [Arguments(20)]
+    [Arguments(50)]
+    [Arguments(100)]
+    public async Task TheoreticalValuesReversedTest(int n)
     {
         var stats = new StatisticsContext();
         var reversed = Enumerable.Range(0, n).Reverse().ToArray();
@@ -97,20 +95,18 @@ public class SmoothSortTests
         var minCompares = (ulong)(n * Math.Log(n, 2));
         var maxCompares = (ulong)(n * Math.Log(n, 2) * 4); // Allow overhead for Leonardo heap operations
 
-        Assert.InRange(stats.CompareCount, minCompares, maxCompares);
-        Assert.NotEqual(0UL, stats.SwapCount);
-        Assert.True(stats.IndexReadCount >= stats.CompareCount,
-            $"IndexReadCount ({stats.IndexReadCount}) should be >= CompareCount ({stats.CompareCount})");
-        Assert.True(stats.IndexWriteCount >= stats.SwapCount * 2,
-            $"IndexWriteCount ({stats.IndexWriteCount}) should be >= SwapCount * 2 ({stats.SwapCount * 2})");
+        await Assert.That(stats.CompareCount).IsBetween(minCompares, maxCompares);
+        await Assert.That(stats.SwapCount).IsNotEqualTo(0UL);
+        await Assert.That(stats.IndexReadCount >= stats.CompareCount).IsTrue().Because($"IndexReadCount ({stats.IndexReadCount}) should be >= CompareCount ({stats.CompareCount})");
+        await Assert.That(stats.IndexWriteCount >= stats.SwapCount * 2).IsTrue().Because($"IndexWriteCount ({stats.IndexWriteCount}) should be >= SwapCount * 2 ({stats.SwapCount * 2})");
     }
 
-    [Theory]
-    [InlineData(10)]
-    [InlineData(20)]
-    [InlineData(50)]
-    [InlineData(100)]
-    public void TheoreticalValuesRandomTest(int n)
+    [Test]
+    [Arguments(10)]
+    [Arguments(20)]
+    [Arguments(50)]
+    [Arguments(100)]
+    public async Task TheoreticalValuesRandomTest(int n)
     {
         var stats = new StatisticsContext();
         var random = Enumerable.Range(0, n).OrderBy(_ => Guid.NewGuid()).ToArray();
@@ -121,9 +117,8 @@ public class SmoothSortTests
         var minCompares = (ulong)n; // Best case
         var maxCompares = (ulong)(n * Math.Log(n, 2) * 4); // Worst case with overhead
 
-        Assert.InRange(stats.CompareCount, minCompares, maxCompares);
-        Assert.True(stats.IndexReadCount >= stats.CompareCount,
-            $"IndexReadCount ({stats.IndexReadCount}) should be >= CompareCount ({stats.CompareCount})");
+        await Assert.That(stats.CompareCount).IsBetween(minCompares, maxCompares);
+        await Assert.That(stats.IndexReadCount >= stats.CompareCount).IsTrue().Because($"IndexReadCount ({stats.IndexReadCount}) should be >= CompareCount ({stats.CompareCount})");
     }
 
 #endif

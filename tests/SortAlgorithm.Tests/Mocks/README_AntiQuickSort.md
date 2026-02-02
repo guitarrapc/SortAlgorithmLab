@@ -53,9 +53,9 @@ McIlroyの論文 ([PDF](https://www.cs.dartmouth.edu/~doug/mdmspe.pdf)) に基�
 ### テストでの使用
 
 ```csharp
-[Theory]
-[ClassData(typeof(MockAntiQuickSortData))]
-public void SortTest(IInputSample<int> inputSample)
+[Test]
+[MethodDataSource(typeof(MockDataSource), nameof(MockDataSource.AntiQuickSortData))]
+public async Task SortTest(IInputSample<int> inputSample)
 {
     var stats = new StatisticsContext();
     var array = inputSample.Samples.ToArray();

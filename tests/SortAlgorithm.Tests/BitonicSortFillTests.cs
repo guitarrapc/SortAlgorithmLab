@@ -5,15 +5,22 @@ namespace SortAlgorithm.Tests;
 
 public class BitonicSortFillTests
 {
-    [Theory]
-    [ClassData(typeof(MockRandomData))]
-    [ClassData(typeof(MockNegativePositiveRandomData))]
-    [ClassData(typeof(MockNegativeRandomData))]
-    [ClassData(typeof(MockReversedData))]
-    [ClassData(typeof(MockMountainData))]
-    [ClassData(typeof(MockNearlySortedData))]
-    [ClassData(typeof(MockSameValuesData))]
-    public void SortResultOrderTest(IInputSample<int> inputSample)
+    [Test]
+    [MethodDataSource(typeof(MockRandomData), nameof(MockRandomData.Generate))]
+    [MethodDataSource(typeof(MockNegativePositiveRandomData), nameof(MockNegativePositiveRandomData.Generate))]
+    [MethodDataSource(typeof(MockNegativeRandomData), nameof(MockNegativeRandomData.Generate))]
+    [MethodDataSource(typeof(MockReversedData), nameof(MockReversedData.Generate))]
+    [MethodDataSource(typeof(MockMountainData), nameof(MockMountainData.Generate))]
+    [MethodDataSource(typeof(MockNearlySortedData), nameof(MockNearlySortedData.Generate))]
+    [MethodDataSource(typeof(MockSameValuesData), nameof(MockSameValuesData.Generate))]
+    [MethodDataSource(typeof(MockAntiQuickSortData), nameof(MockAntiQuickSortData.Generate))]
+    [MethodDataSource(typeof(MockQuickSortWorstCaseData), nameof(MockQuickSortWorstCaseData.Generate))]
+    [MethodDataSource(typeof(MockAllIdenticalData), nameof(MockAllIdenticalData.Generate))]
+    [MethodDataSource(typeof(MockTwoDistinctValuesData), nameof(MockTwoDistinctValuesData.Generate))]
+    [MethodDataSource(typeof(MockHalfZeroHalfOneData), nameof(MockHalfZeroHalfOneData.Generate))]
+    [MethodDataSource(typeof(MockManyDuplicatesSqrtRangeData), nameof(MockManyDuplicatesSqrtRangeData.Generate))]
+    [MethodDataSource(typeof(MockHighlySkewedData), nameof(MockHighlySkewedData.Generate))]
+    public async Task SortResultOrderTest(IInputSample<int> inputSample)
     {
         var stats = new StatisticsContext();
         var array = inputSample.Samples.ToArray();
@@ -23,15 +30,15 @@ public class BitonicSortFillTests
 
         // Check is sorted
         for (int i = 0; i < array.Length - 1; i++)
-            Assert.True(array[i] <= array[i + 1]);
+            await Assert.That(array[i] <= array[i + 1]).IsTrue();
 
         // Check element counts match
         var sortedCounts = array.GroupBy(x => x).ToDictionary(g => g.Key, g => g.Count());
-        Assert.Equal(originalCounts, sortedCounts);
+        await Assert.That(sortedCounts).IsEqualTo(originalCounts);
     }
 
-    [Fact]
-    public void NonPowerOfTwoSizes()
+    [Test]
+    public async Task NonPowerOfTwoSizes()
     {
         // Test various non-power-of-2 sizes
         int[] sizes = [3, 5, 7, 10, 15, 100, 127, 200, 1000];
@@ -45,103 +52,103 @@ public class BitonicSortFillTests
 
             BitonicSortFill.Sort(array.AsSpan(), stats);
 
-            Assert.Equal(size, array.Length);
-            Assert.Equal(expected, array);
+            await Assert.That(size).IsEqualTo(array.Length);
+            await Assert.That(array).IsEqualTo(expected);
         }
     }
 
-    [Fact]
-    public void EmptyArray()
+    [Test]
+    public async Task EmptyArray()
     {
         var stats = new StatisticsContext();
         var array = Array.Empty<int>();
         BitonicSortFill.Sort(array.AsSpan(), stats);
-        Assert.Empty(array);
+        await Assert.That(array).IsEmpty();
     }
 
-    [Fact]
-    public void SingleElement()
+    [Test]
+    public async Task SingleElement()
     {
         var stats = new StatisticsContext();
         var array = new int[] { 42 };
         BitonicSortFill.Sort(array.AsSpan(), stats);
-        Assert.Single(array);
-        Assert.Equal(42, array[0]);
+        await Assert.That(array).IsSingleElement();
+        await Assert.That(array[0]).IsEqualTo(42);
     }
 
-    [Fact]
-    public void TwoElements()
+    [Test]
+    public async Task TwoElements()
     {
         var stats = new StatisticsContext();
         var array = new int[] { 2, 1 };
         BitonicSortFill.Sort(array.AsSpan(), stats);
-        Assert.Equal(2, array.Length);
-        Assert.Equal(1, array[0]);
-        Assert.Equal(2, array[1]);
+        await Assert.That(array.Length).IsEqualTo(2);
+        await Assert.That(array[0]).IsEqualTo(1);
+        await Assert.That(array[1]).IsEqualTo(2);
     }
 
-    [Fact]
-    public void FourElements()
+    [Test]
+    public async Task FourElements()
     {
         var stats = new StatisticsContext();
         var array = new int[] { 3, 1, 4, 2 };
         BitonicSortFill.Sort(array.AsSpan(), stats);
-        Assert.Equal(new int[] { 1, 2, 3, 4 }, array);
+        await Assert.That(array).IsEqualTo([1, 2, 3, 4]);
     }
 
-    [Fact]
-    public void EightElements()
+    [Test]
+    public async Task EightElements()
     {
         var stats = new StatisticsContext();
         var array = new int[] { 5, 2, 8, 1, 9, 3, 7, 4 };
         BitonicSortFill.Sort(array.AsSpan(), stats);
-        Assert.Equal(new int[] { 1, 2, 3, 4, 5, 7, 8, 9 }, array);
+        await Assert.That(array).IsEqualTo([1, 2, 3, 4, 5, 7, 8, 9]);
     }
 
-    [Fact]
-    public void SixteenElementsAllSame()
+    [Test]
+    public async Task SixteenElementsAllSame()
     {
         var stats = new StatisticsContext();
         var array = Enumerable.Repeat(42, 16).ToArray();
         BitonicSortFill.Sort(array.AsSpan(), stats);
-        Assert.All(array, x => Assert.Equal(42, x));
+        foreach (var item in array) await Assert.That(item).IsEqualTo(42);
     }
 
-    [Fact]
-    public void HundredElements()
+    [Test]
+    public async Task HundredElements()
     {
         var stats = new StatisticsContext();
         var array = Enumerable.Range(0, 100).Reverse().ToArray();
         BitonicSortFill.Sort(array.AsSpan(), stats);
-        Assert.Equal(Enumerable.Range(0, 100).ToArray(), array);
+        await Assert.That(array).IsEqualTo(Enumerable.Range(0, 100).ToArray());
     }
 
 #if DEBUG
 
-    [Theory]
-    [ClassData(typeof(MockPowerOfTwoSortedData))]
-    public void StatisticsSortedTest(IInputSample<int> inputSample)
+    [Test]
+    [MethodDataSource(typeof(MockPowerOfTwoSortedData), nameof(MockPowerOfTwoSortedData.Generate))]
+    public async Task StatisticsSortedTest(IInputSample<int> inputSample)
     {
         var stats = new StatisticsContext();
         var array = inputSample.Samples.ToArray();
         BitonicSortFill.Sort(array.AsSpan(), stats);
 
-        Assert.Equal((ulong)inputSample.Samples.Length, (ulong)array.Length);
+        await Assert.That((ulong)array.Length).IsEqualTo((ulong)inputSample.Samples.Length);
 
         // Bitonic sort has O(n log^2 n) comparisons regardless of input
-        Assert.True(stats.CompareCount > 0);
-        Assert.True(stats.IndexReadCount > 0);
+        await Assert.That(stats.CompareCount > 0).IsTrue();
+        await Assert.That(stats.IndexReadCount > 0).IsTrue();
     }
 
-    [Theory]
-    [InlineData(2)]
-    [InlineData(4)]
-    [InlineData(8)]
-    [InlineData(16)]
-    [InlineData(32)]
-    [InlineData(64)]
-    [InlineData(128)]
-    public void TheoreticalValuesSortedTest(int n)
+    [Test]
+    [Arguments(2)]
+    [Arguments(4)]
+    [Arguments(8)]
+    [Arguments(16)]
+    [Arguments(32)]
+    [Arguments(64)]
+    [Arguments(128)]
+    public async Task TheoreticalValuesSortedTest(int n)
     {
         var stats = new StatisticsContext();
         var sorted = Enumerable.Range(0, n).ToArray();
@@ -157,22 +164,22 @@ public class BitonicSortFillTests
         var expectedReads = expectedCompares * 2 + stats.SwapCount * 2;
         var expectedWrites = stats.SwapCount * 2;
 
-        Assert.Equal(expectedCompares, stats.CompareCount);
+        await Assert.That(stats.CompareCount).IsEqualTo(expectedCompares);
         // Note: BitonicSort may perform some swaps even on sorted data
-        Assert.True(stats.SwapCount >= 0);
-        Assert.Equal(expectedWrites, stats.IndexWriteCount);
-        Assert.Equal(expectedReads, stats.IndexReadCount);
+        await Assert.That(stats.SwapCount >= 0).IsTrue();
+        await Assert.That(stats.IndexWriteCount).IsEqualTo(expectedWrites);
+        await Assert.That(stats.IndexReadCount).IsEqualTo(expectedReads);
     }
 
-    [Theory]
-    [InlineData(2)]
-    [InlineData(4)]
-    [InlineData(8)]
-    [InlineData(16)]
-    [InlineData(32)]
-    [InlineData(64)]
-    [InlineData(128)]
-    public void TheoreticalValuesReversedTest(int n)
+    [Test]
+    [Arguments(2)]
+    [Arguments(4)]
+    [Arguments(8)]
+    [Arguments(16)]
+    [Arguments(32)]
+    [Arguments(64)]
+    [Arguments(128)]
+    public async Task TheoreticalValuesReversedTest(int n)
     {
         var stats = new StatisticsContext();
         var reversed = Enumerable.Range(0, n).Reverse().ToArray();
@@ -187,21 +194,21 @@ public class BitonicSortFillTests
         var expectedReads = expectedCompares * 2 + stats.SwapCount * 2;
         var expectedWrites = stats.SwapCount * 2;
 
-        Assert.Equal(expectedCompares, stats.CompareCount);
-        Assert.True(stats.SwapCount > 0, "Reversed array should require swaps");
-        Assert.Equal(expectedWrites, stats.IndexWriteCount);
-        Assert.Equal(expectedReads, stats.IndexReadCount);
+        await Assert.That(stats.CompareCount).IsEqualTo(expectedCompares);
+        await Assert.That(stats.SwapCount > 0).IsTrue().Because("Reversed array should require swaps");
+        await Assert.That(stats.IndexWriteCount).IsEqualTo(expectedWrites);
+        await Assert.That(stats.IndexReadCount).IsEqualTo(expectedReads);
     }
 
-    [Theory]
-    [InlineData(2)]
-    [InlineData(4)]
-    [InlineData(8)]
-    [InlineData(16)]
-    [InlineData(32)]
-    [InlineData(64)]
-    [InlineData(128)]
-    public void TheoreticalValuesRandomTest(int n)
+    [Test]
+    [Arguments(2)]
+    [Arguments(4)]
+    [Arguments(8)]
+    [Arguments(16)]
+    [Arguments(32)]
+    [Arguments(64)]
+    [Arguments(128)]
+    public async Task TheoreticalValuesRandomTest(int n)
     {
         var stats = new StatisticsContext();
         var random = Enumerable.Range(0, n).OrderBy(_ => Guid.NewGuid()).ToArray();
@@ -216,10 +223,10 @@ public class BitonicSortFillTests
         var expectedReads = expectedCompares * 2 + stats.SwapCount * 2;
         var expectedWrites = stats.SwapCount * 2;
 
-        Assert.Equal(expectedCompares, stats.CompareCount);
-        Assert.True(stats.SwapCount >= 0);
-        Assert.Equal(expectedWrites, stats.IndexWriteCount);
-        Assert.Equal(expectedReads, stats.IndexReadCount);
+        await Assert.That(stats.CompareCount).IsEqualTo(expectedCompares);
+        await Assert.That(stats.SwapCount >= 0).IsTrue();
+        await Assert.That(stats.IndexWriteCount).IsEqualTo(expectedWrites);
+        await Assert.That(stats.IndexReadCount).IsEqualTo(expectedReads);
     }
 
     /// <summary>

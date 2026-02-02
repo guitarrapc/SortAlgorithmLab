@@ -1,19 +1,24 @@
-﻿using System.Collections;
+﻿namespace SortAlgorithm.Tests;
 
-namespace SortAlgorithm.Tests;
-
-public class MockReversedData : IEnumerable<object[]>
+public static class MockReversedData
 {
-    private List<object[]> testData = new List<object[]>();
 
-    public MockReversedData()
+    public static IEnumerable<Func<InputSample<int>>> Generate()
     {
-        testData.Add([new InputSample<int>() { InputType = InputType.Reversed, Samples = Enumerable.Range(0, 100).Reverse().ToArray() }]);
-        testData.Add([new InputSample<int>() { InputType = InputType.Reversed, Samples = Enumerable.Range(0, 1000).Reverse().ToArray() }]);
-        testData.Add([new InputSample<int>() { InputType = InputType.Reversed, Samples = Enumerable.Range(0, 10000).Reverse().ToArray() }]);
+        yield return () => new InputSample<int>()
+        {
+            InputType = InputType.Reversed,
+            Samples = Enumerable.Range(0, 100).Reverse().ToArray()
+        };
+        yield return () => new InputSample<int>()
+        {
+            InputType = InputType.Reversed,
+            Samples = Enumerable.Range(0, 1000).Reverse().ToArray()
+        };
+        yield return () => new InputSample<int>()
+        {
+            InputType = InputType.Reversed,
+            Samples = Enumerable.Range(0, 10000).Reverse().ToArray()
+        };
     }
-
-    public IEnumerator<object[]> GetEnumerator() => testData.GetEnumerator();
-
-    IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
 }

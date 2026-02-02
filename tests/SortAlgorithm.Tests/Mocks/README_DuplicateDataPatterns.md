@@ -107,13 +107,13 @@ These mock data classes provide standardized test datasets for sorting algorithm
 These mock classes are used in the `SortResultOrderTest` theory in BlockQuickSortTests:
 
 ```csharp
-[Theory]
-[ClassData(typeof(MockAllIdenticalData))]
-[ClassData(typeof(MockTwoDistinctValuesData))]
-[ClassData(typeof(MockHalfZeroHalfOneData))]
-[ClassData(typeof(MockManyDuplicatesSqrtRangeData))]
-[ClassData(typeof(MockHighlySkewedData))]
-public void SortResultOrderTest(IInputSample<int> inputSample)
+[Test]
+[MethodDataSource(typeof(MockDataSource), nameof(MockDataSource.AllIdenticalData))]
+[MethodDataSource(typeof(MockDataSource), nameof(MockDataSource.TwoDistinctValuesData))]
+[MethodDataSource(typeof(MockDataSource), nameof(MockDataSource.HalfZeroHalfOneData))]
+[MethodDataSource(typeof(MockDataSource), nameof(MockDataSource.ManyDuplicatesSqrtRangeData))]
+[MethodDataSource(typeof(MockDataSource), nameof(MockDataSource.HighlySkewedData))]
+public async Task SortResultOrderTest(IInputSample<int> inputSample)
 {
     // Test implementation
 }
@@ -135,17 +135,17 @@ Each mock class provides multiple size variations:
 These mock data classes are designed to be reusable across all sorting algorithm tests. To use them in another algorithm's tests:
 
 ```csharp
-[Theory]
-[ClassData(typeof(MockAllIdenticalData))]
-[ClassData(typeof(MockTwoDistinctValuesData))]
+[Test]
+[MethodDataSource(typeof(MockDataSource), nameof(MockDataSource.AllIdenticalData))]
+[MethodDataSource(typeof(MockDataSource), nameof(MockDataSource.TwoDistinctValuesData))]
 // ... other mock data classes
-public void YourSortAlgorithmTest(IInputSample<int> inputSample)
+public async Task YourSortAlgorithmTest(IInputSample<int> inputSample)
 {
     var array = inputSample.Samples.ToArray();
     YourSortAlgorithm.Sort(array.AsSpan());
     
     // Verify sorted
-    Assert.True(IsSorted(array));
+    await Assert.That(IsSorted(array)).IsTrue();
 }
 ```
 

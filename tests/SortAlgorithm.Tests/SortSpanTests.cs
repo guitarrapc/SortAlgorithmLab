@@ -6,8 +6,8 @@ namespace SortAlgorithm.Tests;
 
 public class SortSpanTests
 {
-    [Fact]
-    public void CopyTo_ShouldCopyRangeToAnotherSortSpan()
+    [Test]
+    public async Task CopyTo_ShouldCopyRangeToAnotherSortSpan()
     {
         // Arrange
         var source = new[] { 1, 2, 3, 4, 5 };
@@ -21,15 +21,15 @@ public class SortSpanTests
         sourceSpan.CopyTo(1, destSpan, 0, 3); // Copy [2, 3, 4] to destination[0..3]
 
         // Assert
-        Assert.Equal(2, destination[0]);
-        Assert.Equal(3, destination[1]);
-        Assert.Equal(4, destination[2]);
-        Assert.Equal(0, destination[3]); // Not copied
-        Assert.Equal(0, destination[4]); // Not copied
+        await Assert.That(destination[0]).IsEqualTo(2);
+        await Assert.That(destination[1]).IsEqualTo(3);
+        await Assert.That(destination[2]).IsEqualTo(4);
+        await Assert.That(destination[3]).IsEqualTo(0); // Not copied
+        await Assert.That(destination[4]).IsEqualTo(0); // Not copied
     }
 
-    [Fact]
-    public void CopyTo_ShouldTrackStatistics()
+    [Test]
+    public async Task CopyTo_ShouldTrackStatistics()
     {
         // Arrange
         var source = new[] { 1, 2, 3, 4, 5 };
@@ -43,12 +43,12 @@ public class SortSpanTests
         sourceSpan.CopyTo(0, destSpan, 0, 3); // Copy 3 elements
 
         // Assert - Should count as 3 reads + 3 writes
-        Assert.Equal(3UL, context.IndexReadCount);
-        Assert.Equal(3UL, context.IndexWriteCount);
+        await Assert.That(context.IndexReadCount).IsEqualTo(3UL);
+        await Assert.That(context.IndexWriteCount).IsEqualTo(3UL);
     }
 
-    [Fact]
-    public void CopyTo_ShouldCopyToRegularSpan()
+    [Test]
+    public async Task CopyTo_ShouldCopyToRegularSpan()
     {
         // Arrange
         var source = new[] { 1, 2, 3, 4, 5 };
@@ -61,14 +61,14 @@ public class SortSpanTests
         sourceSpan.CopyTo(2, destination.AsSpan(), 1, 2); // Copy [3, 4] to destination[1..3]
 
         // Assert
-        Assert.Equal(0, destination[0]); // Not copied
-        Assert.Equal(3, destination[1]);
-        Assert.Equal(4, destination[2]);
-        Assert.Equal(0, destination[3]); // Not copied
+        await Assert.That(destination[0]).IsEqualTo(0); // Not copied
+        await Assert.That(destination[1]).IsEqualTo(3);
+        await Assert.That(destination[2]).IsEqualTo(4);
+        await Assert.That(destination[3]).IsEqualTo(0); // Not copied
     }
 
-    [Fact]
-    public void CopyTo_VerifyBetterThanLoopWrite()
+    [Test]
+    public async Task CopyTo_VerifyBetterThanLoopWrite()
     {
         // Arrange
         var source = new[] { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 };
@@ -93,14 +93,14 @@ public class SortSpanTests
         }
 
         // Assert - Both should produce the same result
-        Assert.Equal(destination1, destination2);
+        await Assert.That(destination2).IsEqualTo(destination1);
 
         // Assert - CopyTo should have the same statistics as loop
         // (Both are counted as reads + writes, but CopyTo is more efficient in tracking)
-        Assert.Equal(10UL, contextCopyTo.IndexReadCount);
-        Assert.Equal(10UL, contextCopyTo.IndexWriteCount);
-        Assert.Equal(10UL, contextLoop.IndexReadCount);
-        Assert.Equal(10UL, contextLoop.IndexWriteCount);
+        await Assert.That(contextCopyTo.IndexReadCount).IsEqualTo(10UL);
+        await Assert.That(contextCopyTo.IndexWriteCount).IsEqualTo(10UL);
+        await Assert.That(contextLoop.IndexReadCount).IsEqualTo(10UL);
+        await Assert.That(contextLoop.IndexWriteCount).IsEqualTo(10UL);
     }
 }
 

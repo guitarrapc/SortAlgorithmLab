@@ -1,28 +1,30 @@
 ﻿using SortAlgorithm.Algorithms;
 using SortAlgorithm.Contexts;
-using SortAlgorithm.Tests.Attributes;
+using SortAlgorithm.Tests.Mocks;
 
 namespace SortAlgorithm.Tests;
 
 public class BogoSortTests
 {
-    [CISkippableTheory]
-    [ClassData(typeof(MockRandomData))]
-    [ClassData(typeof(MockNegativePositiveRandomData))]
-    [ClassData(typeof(MockNegativeRandomData))]
-    [ClassData(typeof(MockReversedData))]
-    [ClassData(typeof(MockMountainData))]
-    [ClassData(typeof(MockNearlySortedData))]
-    [ClassData(typeof(MockSameValuesData))]
-    [ClassData(typeof(MockAntiQuickSortData))]
-    [ClassData(typeof(MockQuickSortWorstCaseData))]
-    [ClassData(typeof(MockAllIdenticalData))]
-    [ClassData(typeof(MockTwoDistinctValuesData))]
-    [ClassData(typeof(MockHalfZeroHalfOneData))]
-    [ClassData(typeof(MockManyDuplicatesSqrtRangeData))]
-    [ClassData(typeof(MockHighlySkewedData))]
-    public void SortResultOrderTest(IInputSample<int> inputSample)
+    [Test]
+    [MethodDataSource(typeof(MockRandomData), nameof(MockRandomData.Generate))]
+    [MethodDataSource(typeof(MockNegativePositiveRandomData), nameof(MockNegativePositiveRandomData.Generate))]
+    [MethodDataSource(typeof(MockNegativeRandomData), nameof(MockNegativeRandomData.Generate))]
+    [MethodDataSource(typeof(MockReversedData), nameof(MockReversedData.Generate))]
+    [MethodDataSource(typeof(MockMountainData), nameof(MockMountainData.Generate))]
+    [MethodDataSource(typeof(MockNearlySortedData), nameof(MockNearlySortedData.Generate))]
+    [MethodDataSource(typeof(MockSameValuesData), nameof(MockSameValuesData.Generate))]
+    [MethodDataSource(typeof(MockAntiQuickSortData), nameof(MockAntiQuickSortData.Generate))]
+    [MethodDataSource(typeof(MockQuickSortWorstCaseData), nameof(MockQuickSortWorstCaseData.Generate))]
+    [MethodDataSource(typeof(MockAllIdenticalData), nameof(MockAllIdenticalData.Generate))]
+    [MethodDataSource(typeof(MockTwoDistinctValuesData), nameof(MockTwoDistinctValuesData.Generate))]
+    [MethodDataSource(typeof(MockHalfZeroHalfOneData), nameof(MockHalfZeroHalfOneData.Generate))]
+    [MethodDataSource(typeof(MockManyDuplicatesSqrtRangeData), nameof(MockManyDuplicatesSqrtRangeData.Generate))]
+    [MethodDataSource(typeof(MockHighlySkewedData), nameof(MockHighlySkewedData.Generate))]
+    public async Task SortResultOrderTest(IInputSample<int> inputSample)
     {
+        CISKipHelper.IsCI();
+
         // Bogo Sort is extremely slow, so we limit to small arrays
         if (inputSample.Samples.Length > 10)
             return;
@@ -35,19 +37,21 @@ public class BogoSortTests
 
         // Check is sorted
         for (int i = 0; i < array.Length - 1; i++)
-            Assert.True(array[i] <= array[i + 1]);
+            await Assert.That(array[i] <= array[i + 1]).IsTrue();
 
         // Check element counts match
         var sortedCounts = array.GroupBy(x => x).ToDictionary(g => g.Key, g => g.Count());
-        Assert.Equal(originalCounts, sortedCounts);
+        await Assert.That(sortedCounts).IsEqualTo(originalCounts);
     }
 
 #if DEBUG
 
-    [CISkippableTheory]
-    [ClassData(typeof(MockSortedData))]
-    public void StatisticsSortedTest(IInputSample<int> inputSample)
+    [Test]
+    [MethodDataSource(typeof(MockSortedData), nameof(MockSortedData.Generate))]
+    public async Task StatisticsSortedTest(IInputSample<int> inputSample)
     {
+        CISKipHelper.IsCI();
+
         // Bogo Sort is extremely slow, so we limit to small arrays
         if (inputSample.Samples.Length <= 10)
         {
@@ -55,17 +59,19 @@ public class BogoSortTests
             var array = inputSample.Samples.ToArray();
             BogoSort.Sort(array.AsSpan(), stats);
 
-            Assert.Equal((ulong)inputSample.Samples.Length, (ulong)array.Length);
-            Assert.NotEqual(0UL, stats.IndexReadCount);
-            Assert.Equal(0UL, stats.IndexWriteCount);
-            Assert.NotEqual(0UL, stats.CompareCount);
-            Assert.Equal(0UL, stats.SwapCount);
+            await Assert.That((ulong)array.Length).IsEqualTo((ulong)inputSample.Samples.Length);
+            await Assert.That(stats.IndexReadCount).IsNotEqualTo(0UL);
+            await Assert.That(stats.IndexWriteCount).IsEqualTo(0UL);
+            await Assert.That(stats.CompareCount).IsNotEqualTo(0UL);
+            await Assert.That(stats.SwapCount).IsEqualTo(0UL);
         }
     }
 
-    [CISkippableFact]
-    public void TheoreticalValuesSortedTest()
+    [Test]
+    public async Task TheoreticalValuesSortedTest()
     {
+        CISKipHelper.IsCI();
+
         // Bogo Sort for sorted data should:
         // 1. Check if sorted (n-1 comparisons, 2*(n-1) reads)
         // 2. Already sorted, so no shuffle needed
@@ -80,15 +86,17 @@ public class BogoSortTests
         var expectedWrites = 0UL;
         var expectedReads = (ulong)(2 * (n - 1));
 
-        Assert.Equal(expectedCompares, stats.CompareCount);
-        Assert.Equal(expectedSwaps, stats.SwapCount);
-        Assert.Equal(expectedWrites, stats.IndexWriteCount);
-        Assert.Equal(expectedReads, stats.IndexReadCount);
+        await Assert.That(stats.CompareCount).IsEqualTo(expectedCompares);
+        await Assert.That(stats.SwapCount).IsEqualTo(expectedSwaps);
+        await Assert.That(stats.IndexWriteCount).IsEqualTo(expectedWrites);
+        await Assert.That(stats.IndexReadCount).IsEqualTo(expectedReads);
     }
 
-    [CISkippableFact]
-    public void TheoreticalValuesSingleShuffleTest()
+    [Test]
+    public async Task TheoreticalValuesSingleShuffleTest()
     {
+        CISKipHelper.IsCI();
+
         // Test with a very small array that requires exactly one shuffle
         // For array [1, 0], it needs one shuffle to become [0, 1]
         var stats = new StatisticsContext();
@@ -103,19 +111,21 @@ public class BogoSortTests
         //
         // Note: Actual values depend on Random.Shared.Next results
         // We can only verify that sorting happened and operations were counted
-        Assert.True(stats.CompareCount >= (ulong)(n - 1));
-        Assert.NotEqual(0UL, stats.SwapCount);
-        Assert.NotEqual(0UL, stats.IndexWriteCount);
-        Assert.NotEqual(0UL, stats.IndexReadCount);
-        Assert.Equal(new[] { 0, 1 }, array);
+        await Assert.That(stats.CompareCount >= (ulong)(n - 1)).IsTrue();
+        await Assert.That(stats.SwapCount).IsNotEqualTo(0UL);
+        await Assert.That(stats.IndexWriteCount).IsNotEqualTo(0UL);
+        await Assert.That(stats.IndexReadCount).IsNotEqualTo(0UL);
+        await Assert.That(array).IsEqualTo([0, 1]);
     }
 
-    [CISkippableTheory]
-    [InlineData(3)]
-    [InlineData(5)]
-    [InlineData(7)]
-    public void TheoreticalValuesRandomTest(int n)
+    [Test]
+    [Arguments(3)]
+    [Arguments(5)]
+    [Arguments(7)]
+    public async Task TheoreticalValuesRandomTest(int n)
     {
+        CISKipHelper.IsCI();
+
         // Bogo Sort has unbounded runtime for random data
         // We can only test that:
         // 1. The array gets sorted
@@ -127,27 +137,27 @@ public class BogoSortTests
         BogoSort.Sort(random.AsSpan(), stats);
 
         // Verify the array is sorted
-        Assert.Equal(Enumerable.Range(0, n), random);
+        await Assert.That(random).IsEqualTo(Enumerable.Range(0, n));
 
         // Verify operations were performed
-        Assert.NotEqual(0UL, stats.CompareCount);
-        Assert.True(stats.IndexReadCount > 0);
+        await Assert.That(stats.CompareCount).IsNotEqualTo(0UL);
+        await Assert.That(stats.IndexReadCount > 0).IsTrue();
 
         // For non-sorted input, there must be at least one shuffle
         // Each shuffle performs n swaps (2n reads + 2n writes)
         // Minimum is when array becomes sorted after first shuffle
-        Assert.True(stats.SwapCount >= 0,
-            $"SwapCount ({stats.SwapCount}) should be >= 0");
-        Assert.True(stats.IndexWriteCount >= 0,
-            $"IndexWriteCount ({stats.IndexWriteCount}) should be >= 0");
+        await Assert.That(stats.SwapCount >= 0).IsTrue().Because($"SwapCount ({stats.SwapCount}) should be >= 0");
+        await Assert.That(stats.IndexWriteCount >= 0).IsTrue().Because($"IndexWriteCount ({stats.IndexWriteCount}) should be >= 0");
     }
 
-    [CISkippableTheory]
-    [InlineData(3)]
-    [InlineData(5)]
-    [InlineData(7)]
-    public void TheoreticalValuesReversedTest(int n)
+    [Test]
+    [Arguments(3)]
+    [Arguments(5)]
+    [Arguments(7)]
+    public async Task TheoreticalValuesReversedTest(int n)
     {
+        CISKipHelper.IsCI();
+
         // Bogo Sort for reversed data has unbounded runtime
         // We verify that:
         // 1. The array gets sorted
@@ -158,14 +168,13 @@ public class BogoSortTests
         BogoSort.Sort(reversed.AsSpan(), stats);
 
         // Verify the array is sorted
-        Assert.Equal(Enumerable.Range(0, n), reversed);
+        await Assert.That(reversed).IsEqualTo(Enumerable.Range(0, n));
 
         // Verify significant operations were performed
-        Assert.True(stats.CompareCount >= (ulong)(n - 1),
-            $"CompareCount ({stats.CompareCount}) should be >= {n - 1}");
-        Assert.NotEqual(0UL, stats.SwapCount);
-        Assert.NotEqual(0UL, stats.IndexWriteCount);
-        Assert.NotEqual(0UL, stats.IndexReadCount);
+        await Assert.That(stats.CompareCount >= (ulong)(n - 1)).IsTrue().Because($"CompareCount ({stats.CompareCount}) should be >= {n - 1}");
+        await Assert.That(stats.SwapCount).IsNotEqualTo(0UL);
+        await Assert.That(stats.IndexWriteCount).IsNotEqualTo(0UL);
+        await Assert.That(stats.IndexReadCount).IsNotEqualTo(0UL);
     }
 
 #endif
