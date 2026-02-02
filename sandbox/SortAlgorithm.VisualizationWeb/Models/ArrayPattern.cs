@@ -5,6 +5,8 @@
 /// </summary>
 public enum ArrayPattern
 {
+    // Basic Patterns
+    
     /// <summary>
     /// ランダム配列
     /// </summary>
@@ -20,30 +22,73 @@ public enum ArrayPattern
     /// </summary>
     Reversed,
 
+    // Nearly Sorted Patterns
+    
+    /// <summary>
+    /// ほぼソート済み配列（5%のペアをランダムスワップ）
+    /// </summary>
+    AlmostSorted,
+
     /// <summary>
     /// ほぼソート済み配列（要素の10%をランダムに入れ替え）
     /// </summary>
     NearlySorted,
 
     /// <summary>
-    /// ほぼソート済み配列（最後の10%のみシャッフル）
+    /// スクランブル末尾（約14%の要素を末尾に抽出してシャッフル）
     /// </summary>
-    NearlySortedLast,
+    ScrambledTail,
 
     /// <summary>
-    /// ほぼソート済み配列（最初の10%のみシャッフル）
+    /// スクランブル先頭（約14%の要素を先頭に抽出してシャッフル）
     /// </summary>
-    NearlySortedStart,
+    ScrambledHead,
 
     /// <summary>
-    /// 重複要素を多く含む配列（ユニーク値は配列サイズの10%程度）
+    /// ノイズ入り（小ブロックごとにシャッフルされた配列）
     /// </summary>
-    FewUnique,
+    Noisy,
+
+    // Merge Patterns
+    
+    /// <summary>
+    /// 最終マージ状態（偶数・奇数インデックスが別々にソート済み）
+    /// </summary>
+    FinalMerge,
 
     /// <summary>
-    /// 重複多数（ユニーク値は配列サイズの20%程度、より多くの重複）
+    /// シャッフル後最終マージ（全体をシャッフル後、前半と後半を別々にソート）
     /// </summary>
-    ManyDuplicates,
+    ShuffledFinalMerge,
+
+    /// <summary>
+    /// ソートギア状（4-wayインターリーブでソート済み）
+    /// </summary>
+    Sawtooth,
+
+    // Partitioned Patterns
+    
+    /// <summary>
+    /// パーティション済み（ソート後、前半と後半を別々にシャッフル）
+    /// </summary>
+    Partitioned,
+
+    /// <summary>
+    /// 半分ソート済み（前半のみソート済み、後半はランダム）
+    /// </summary>
+    HalfSorted,
+
+    /// <summary>
+    /// 半分反転（後半が逆順）
+    /// </summary>
+    HalfReversed,
+
+    // Shape Patterns
+    
+    /// <summary>
+    /// パイプオルガン型（偶数要素が前半、奇数要素が後半逆順）
+    /// </summary>
+    PipeOrgan,
 
     /// <summary>
     /// 山型配列（中央が最大値、両端が小さい値）
@@ -55,13 +100,71 @@ public enum ArrayPattern
     /// </summary>
     ValleyShape,
 
+    // Radix/Interleaved Patterns
+    
+    /// <summary>
+    /// 最終基数パス（偶数・奇数要素が交互配置）
+    /// </summary>
+    FinalRadix,
+
+    /// <summary>
+    /// インターレース（最小値を先頭、残りを両端から交互配置）
+    /// </summary>
+    Interlaced,
+
     /// <summary>
     /// ジグザグパターン（交互に上下する）
     /// </summary>
     Zigzag,
 
+    // Tree/Heap Patterns
+    
     /// <summary>
-    /// 半分ソート済み（前半のみソート済み、後半はランダム）
+    /// 二分探索木中順走査（ランダム挿入からの中順走査結果）
     /// </summary>
-    HalfSorted
+    BstTraversal,
+
+    /// <summary>
+    /// ヒープ化済み（max-heap構造）
+    /// </summary>
+    Heapified,
+
+    // Duplicate Patterns
+    
+    /// <summary>
+    /// 少数ユニーク値（3種類の値: 25%, 50%, 75%位置）
+    /// </summary>
+    FewUnique,
+
+    /// <summary>
+    /// 重複多数（ユニーク値は配列サイズの20%程度）
+    /// </summary>
+    ManyDuplicates,
+
+    /// <summary>
+    /// 全要素同一（全て同じ値）
+    /// </summary>
+    AllEqual,
+
+    // Distribution Patterns
+    
+    /// <summary>
+    /// 正弦波分布
+    /// </summary>
+    SineWave,
+
+    /// <summary>
+    /// 余弦波分布
+    /// </summary>
+    CosineWave,
+
+    /// <summary>
+    /// ベル曲線分布（正規分布）
+    /// </summary>
+    BellCurve,
+
+    /// <summary>
+    /// パーリンノイズ曲線
+    /// </summary>
+    PerlinNoiseCurve,
 }
