@@ -77,8 +77,10 @@ namespace SortAlgorithm.Algorithms;
 /// </list>
 /// This optimization is safe because quicksort's partitioning ensures *(begin-1) ≤ pivot ≤ all elements in right partition.</description></item>
 /// <item><description><strong>Tail Recursion Elimination:</strong> After partitioning into [begin, pivotPos) and [pivotPos+1, end),
-/// the algorithm recursively processes the left partition and loops on the right partition.
-/// This limits the recursion stack depth to O(log n) instead of potentially O(n).</description></item>
+/// the algorithm always recursively processes the smaller partition and loops on the larger partition.
+/// This optimization guarantees the recursion stack depth is at most O(log n) (specifically ⌈log₂(n)⌉),
+/// even in pathological cases before the bad partition limit triggers HeapSort.
+/// This is identical to the strategy used in LLVM libcxx's std::sort and our IntroSort implementation.</description></item>
 /// </list>
 /// <para><strong>Performance Characteristics:</strong></para>
 /// <list type="bullet">
@@ -288,11 +290,28 @@ public static class PDQSort
                 }
             }
 
-            // Sort the left partition first using recursion and do tail recursion elimination for
-            // the right-hand partition
-            PDQSortLoop(s, begin, pivotPos, badAllowed, leftmost, context);
-            begin = pivotPos + 1;
-            leftmost = false;
+            // Tail recursion optimization: always recurse on smaller partition, loop on larger
+            // This guarantees O(log n) stack depth even for pathological inputs
+            // (similar to IntroSort and LLVM std::sort implementation)
+            var leftSize = pivotPos - begin;
+            var rightSize = end - (pivotPos + 1);
+
+            if (leftSize < rightSize)
+            {
+                // Recurse on smaller left partition (preserves leftmost flag)
+                PDQSortLoop(s, begin, pivotPos, badAllowed, leftmost, context);
+                // Tail recursion: continue loop with larger right partition
+                begin = pivotPos + 1;
+                leftmost = false;
+            }
+            else
+            {
+                // Recurse on smaller right partition (always non-leftmost)
+                PDQSortLoop(s, pivotPos + 1, end, badAllowed, false, context);
+                // Tail recursion: continue loop with larger left partition
+                end = pivotPos;
+                // Preserve leftmost flag for left partition
+            }
         }
     }
 
