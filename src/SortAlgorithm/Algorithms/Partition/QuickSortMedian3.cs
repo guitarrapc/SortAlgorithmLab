@@ -159,13 +159,13 @@ public static class QuickSortMedian3
             while (l <= r)
             {
                 // Move l forward while elements are less than pivot
-                while (l < right && s.Read(l).CompareTo(pivot) < 0)
+                while (l < right && s.Compare(l, pivot) < 0)
                 {
                     l++;
                 }
 
                 // Move r backward while elements are greater than pivot
-                while (r > left && s.Read(r).CompareTo(pivot) > 0)
+                while (r > left && s.Compare(r, pivot) > 0)
                 {
                     r--;
                 }

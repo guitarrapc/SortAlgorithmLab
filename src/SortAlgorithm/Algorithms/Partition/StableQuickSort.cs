@@ -192,8 +192,7 @@ public static class StableQuickSort
             // Phase 1: Count elements in each partition
             for (var i = left; i <= right; i++)
             {
-                var element = s.Read(i);
-                var cmp = element.CompareTo(pivot);
+                var cmp = s.Compare(i, pivot);
                 if (cmp < 0)
                 {
                     lessIdx++;
