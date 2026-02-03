@@ -84,6 +84,7 @@ When implementing or reviewing sorting algorithms, refer to these detailed guide
 - **[SortSpan Usage](.github/agent_docs/sortspan_usage.md)** - How to use SortSpan for all operations
 - **[Implementation Template](.github/agent_docs/implementation_template.md)** - Template for new algorithms
 - **[Coding Style](.github/agent_docs/coding_style.md)** - C# style conventions for this project
+- **[Testing Guidelines](.github/agent_docs/testing_guidelines.md)** - Writing effective unit tests
 
 **Key Rule:** Always use `SortSpan<T>` methods (`Read`, `Write`, `Compare`, `Swap`) instead of direct array access. This ensures accurate statistics tracking.
 
