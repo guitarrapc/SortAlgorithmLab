@@ -65,6 +65,9 @@ public class ArrayPatternGenerator
 
             // Tree/Heap
             ArrayPattern.BstTraversal => GenerateBstTraversal(size, random),
+            ArrayPattern.InvertedBst => GenerateInvertedBst(size),
+            ArrayPattern.LogarithmicSlopes => GenerateLogarithmicSlopes(size),
+            ArrayPattern.HalfRotation => GenerateHalfRotation(size),
             ArrayPattern.Heapified => GenerateHeapified(size),
             ArrayPattern.SmoothHeapified => GenerateSmoothHeapified(size),
             ArrayPattern.PoplarHeapified => GeneratePoplarHeapified(size),
@@ -151,6 +154,9 @@ public class ArrayPatternGenerator
 
             // Tree/Heap
             ArrayPattern.BstTraversal => "🌳 BST In-Order Traversal",
+            ArrayPattern.InvertedBst => "🌳 Inverted BST",
+            ArrayPattern.LogarithmicSlopes => "📈 Logarithmic Slopes",
+            ArrayPattern.HalfRotation => "🔄 Half Rotation",
             ArrayPattern.Heapified => "📚 Heapified (Max-Heap)",
             ArrayPattern.SmoothHeapified => "📚 Smooth Heapified",
             ArrayPattern.PoplarHeapified => "📚 Poplar Heapified",
@@ -924,6 +930,104 @@ public class ArrayPatternGenerator
         }
 
         return [.. bst];
+    }
+
+    /// <summary>
+    /// 逆BST（レベル順 → 中順変換の逆操作）
+    /// BSTのレベル順走査インデックスを生成し、それを使って配列を再配置
+    /// </summary>
+    private int[] GenerateInvertedBst(int size)
+    {
+        var array = Enumerable.Range(1, size).ToArray();
+        var levelOrderIndices = new int[size];
+
+        // Generate level-order traversal indices using queue
+        var queue = new Queue<(int start, int end)>();
+        queue.Enqueue((0, size));
+        var i = 0;
+
+        while (queue.Count > 0)
+        {
+            var (start, end) = queue.Dequeue();
+            if (start != end)
+            {
+                var mid = (start + end) / 2;
+                levelOrderIndices[i++] = mid;
+                queue.Enqueue((start, mid));
+                queue.Enqueue((mid + 1, end));
+            }
+        }
+
+        // Rearrange array using level-order indices
+        var temp = new int[size];
+        Array.Copy(array, temp, size);
+
+        for (i = 0; i < size; i++)
+        {
+            array[levelOrderIndices[i]] = temp[i];
+        }
+
+        return array;
+    }
+
+    /// <summary>
+    /// 対数スロープ（2のべき乗ベースの配置）
+    /// 各インデックスiに対して、log2(i)に基づいた位置から値を取得
+    /// </summary>
+    private int[] GenerateLogarithmicSlopes(int size)
+    {
+        var temp = Enumerable.Range(1, size).ToArray();
+        var array = new int[size];
+
+        array[0] = temp[0];
+
+        for (var i = 1; i < size; i++)
+        {
+            // Calculate log base 2
+            var log = (int)(Math.Log(i) / Math.Log(2));
+            var power = (int)Math.Pow(2, log);
+
+            // Get value from position based on formula: 2 * (i - power) + 1
+            var sourceIndex = 2 * (i - power) + 1;
+            array[i] = sourceIndex < size ? temp[sourceIndex] : temp[i];
+        }
+
+        return array;
+    }
+
+    /// <summary>
+    /// 半分回転（前半と後半を入れ替え）
+    /// 配列を中央で分割し、各要素を対応する位置と入れ替え
+    /// </summary>
+    private int[] GenerateHalfRotation(int size)
+    {
+        var array = Enumerable.Range(1, size).ToArray();
+        var mid = (size + 1) / 2;
+
+        if (size % 2 == 0)
+        {
+            // Even size: simple swap
+            for (int a = 0, m = mid; m < size; a++, m++)
+            {
+                (array[a], array[m]) = (array[m], array[a]);
+            }
+        }
+        else
+        {
+            // Odd size: cyclic rotation
+            var temp = array[0];
+            var a = 0;
+            var m = mid;
+
+            while (m < size)
+            {
+                array[a++] = array[m];
+                array[m++] = array[a];
+            }
+            array[a] = temp;
+        }
+
+        return array;
     }
 
     /// <summary>

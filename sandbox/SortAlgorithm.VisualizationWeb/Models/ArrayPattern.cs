@@ -180,6 +180,21 @@ public enum ArrayPattern
     BstTraversal,
 
     /// <summary>
+    /// 逆BST（レベル順 → 中順変換の逆操作）
+    /// </summary>
+    InvertedBst,
+
+    /// <summary>
+    /// 対数スロープ（2のべき乗ベースの配置）
+    /// </summary>
+    LogarithmicSlopes,
+
+    /// <summary>
+    /// 半分回転（前半と後半を入れ替え）
+    /// </summary>
+    HalfRotation,
+
+    /// <summary>
     /// ヒープ化済み（max-heap構造）
     /// </summary>
     Heapified,
