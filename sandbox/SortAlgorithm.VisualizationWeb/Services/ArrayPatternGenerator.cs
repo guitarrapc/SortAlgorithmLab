@@ -1101,25 +1101,48 @@ public class ArrayPatternGenerator
 
     /// <summary>
     /// スムースヒープ化済み（Smooth Sortのヒープ構造）
-    /// Leonardo数列ベースのヒープ
+    /// Leonardo数列ベースのヒープ（簡略版）
     /// </summary>
     private int[] GenerateSmoothHeapified(int size)
     {
         var array = Enumerable.Range(1, size).ToArray();
 
-        // Leonardo numbers for smooth heap
+        // Shuffle first to create a non-sorted starting point
+        var random = new Random(42); // Use seed for reproducibility
+        for (var i = size - 1; i > 0; i--)
+        {
+            var j = random.Next(i + 1);
+            (array[i], array[j]) = (array[j], array[i]);
+        }
+
+        // Build Leonardo heaps
+        // Leonardo numbers: 1, 1, 3, 5, 9, 15, 25, 41...
         var leonardo = GenerateLeonardoNumbers(size);
 
-        // Build smooth heap using Leonardo numbers
-        var heapSize = 0;
-        for (var i = 0; i < size; i++)
+        // Process array in sections based on Leonardo numbers
+        var pos = 0;
+        foreach (var leonardoSize in leonardo)
         {
-            // Simple approximation: treat as max-heap with Leonardo number structure
-            if (heapSize > 0 && i % leonardo[Math.Min(heapSize, leonardo.Length - 1)] == 0)
+            if (pos + leonardoSize > size) break;
+
+            var end = Math.Min(pos + leonardoSize, size);
+
+            // Build max-heap for this Leonardo section
+            for (var i = (end - pos) / 2 - 1; i >= 0; i--)
             {
-                SmoothSift(array, i, leonardo, heapSize);
+                LeonardoHeapify(array, pos, end, pos + i);
             }
-            heapSize++;
+
+            pos = end;
+        }
+
+        // Heapify remaining elements
+        if (pos < size)
+        {
+            for (var i = (size - pos) / 2 - 1; i >= 0; i--)
+            {
+                LeonardoHeapify(array, pos, size, pos + i);
+            }
         }
 
         return array;
@@ -1129,20 +1152,29 @@ public class ArrayPatternGenerator
             var nums = new List<int> { 1, 1 };
             while (nums[^1] < max)
             {
-                nums.Add(nums[^1] + nums[^2] + 1);
+                var next = nums[^1] + nums[^2] + 1;
+                if (next > max) break;
+                nums.Add(next);
             }
             return [.. nums];
         }
 
-        static void SmoothSift(int[] arr, int pos, int[] leonardo, int heapSize)
+        static void LeonardoHeapify(int[] arr, int start, int end, int i)
         {
-            if (pos == 0) return;
+            var largest = i;
+            var left = start + 2 * (i - start) + 1;
+            var right = start + 2 * (i - start) + 2;
 
-            var parent = pos / 2;
-            if (parent < pos && arr[parent] < arr[pos])
+            if (left < end && arr[left] > arr[largest])
+                largest = left;
+
+            if (right < end && arr[right] > arr[largest])
+                largest = right;
+
+            if (largest != i)
             {
-                (arr[parent], arr[pos]) = (arr[pos], arr[parent]);
-                SmoothSift(arr, parent, leonardo, heapSize);
+                (arr[i], arr[largest]) = (arr[largest], arr[i]);
+                LeonardoHeapify(arr, start, end, largest);
             }
         }
     }
@@ -1156,16 +1188,16 @@ public class ArrayPatternGenerator
         var array = Enumerable.Range(1, size).ToArray();
 
         // Poplar heap: forest of complete binary trees
-        // Each tree has size 2^k - 1
+        // Each tree has size 2^k - 1 (1, 3, 7, 15, 31, ...)
         var pos = 0;
-        var treeSize = 1;
 
         while (pos < size)
         {
-            // Calculate next power of 2 - 1
-            while (treeSize * 2 - 1 <= size - pos)
+            // Calculate largest tree size that fits: 2^k - 1
+            var treeSize = 1;
+            while ((treeSize * 2 + 1) <= size - pos)
             {
-                treeSize = treeSize * 2 - 1;
+                treeSize = treeSize * 2 + 1;  // 1 → 3 → 7 → 15 → 31 ...
             }
 
             // Build max-heap for this tree
@@ -1176,27 +1208,21 @@ public class ArrayPatternGenerator
             }
 
             pos = end;
-            treeSize = 1;
         }
 
         return array;
 
         static void PoplarHeapify(int[] arr, int start, int end, int i)
         {
-            var size = end - start;
             var largest = i;
             var left = start + 2 * (i - start) + 1;
             var right = start + 2 * (i - start) + 2;
 
             if (left < end && arr[left] > arr[largest])
-            {
                 largest = left;
-            }
 
             if (right < end && arr[right] > arr[largest])
-            {
                 largest = right;
-            }
 
             if (largest != i)
             {
@@ -1208,54 +1234,75 @@ public class ArrayPatternGenerator
 
     /// <summary>
     /// 三角ヒープ化済み（Triangular Heapソート用）
-    /// 三角数ベースのヒープ構造
+    /// 三角数ベースのヒープ構造（簡略版）
     /// </summary>
     private int[] GenerateTriangularHeapified(int size)
     {
         var array = Enumerable.Range(1, size).ToArray();
-
-        // Triangular heap: each level has k elements (1, 2, 3, 4, ...)
-        // Build from bottom up
-        var level = 0;
-        var pos = 0;
-        var triangularNumbers = new List<int>();
-
-        // Calculate triangular numbers up to size
-        for (var i = 1; pos < size; i++)
+        
+        // Shuffle first to create a non-sorted starting point
+        var random = new Random(43); // Use different seed from Smooth
+        for (var i = size - 1; i > 0; i--)
         {
-            pos += i;
-            triangularNumbers.Add(pos);
+            var j = random.Next(i + 1);
+            (array[i], array[j]) = (array[j], array[i]);
         }
-
+        
+        // Triangular heap: each row has k elements (1, 2, 3, 4, ...)
+        // Triangular numbers: 1, 3, 6, 10, 15, 21, 28, 36, 45, 55...
+        // T(n) = n(n+1)/2
+        
+        // Build triangular heap structure
+        // We'll create a simpler version: divide into triangular sections and heapify each
+        var triangularSizes = new List<int>();
+        var sum = 0;
+        for (var i = 1; sum < size; i++)
+        {
+            var triangularSize = i; // Row size: 1, 2, 3, 4...
+            if (sum + triangularSize > size)
+                triangularSize = size - sum;
+            
+            triangularSizes.Add(triangularSize);
+            sum += triangularSize;
+            
+            if (sum >= size) break;
+        }
+        
         // Heapify each triangular section
-        for (var i = triangularNumbers.Count - 1; i >= 0; i--)
+        var pos = 0;
+        foreach (var sectionSize in triangularSizes)
         {
-            var start = i == 0 ? 0 : triangularNumbers[i - 1];
-            var end = Math.Min(triangularNumbers[i], size);
-
-            for (var j = end - 1; j >= start; j--)
+            if (pos >= size) break;
+            
+            var end = Math.Min(pos + sectionSize, size);
+            
+            // Build max-heap for this section
+            for (var i = (end - pos) / 2 - 1; i >= 0; i--)
             {
-                TriangularSift(array, j, end, i + 1);
+                TriangularHeapify(array, pos, end, pos + i);
             }
+            
+            pos = end;
         }
-
+        
         return array;
-
-        static void TriangularSift(int[] arr, int pos, int end, int level)
+        
+        static void TriangularHeapify(int[] arr, int start, int end, int i)
         {
-            if (pos >= end - 1) return;
-
-            // In triangular heap, children are in the next level
-            var childStart = pos + level;
-            var childEnd = Math.Min(pos + level + 1, end);
-
-            for (var child = childStart; child < childEnd && child < end; child++)
+            var largest = i;
+            var left = start + 2 * (i - start) + 1;
+            var right = start + 2 * (i - start) + 2;
+            
+            if (left < end && arr[left] > arr[largest])
+                largest = left;
+            
+            if (right < end && arr[right] > arr[largest])
+                largest = right;
+            
+            if (largest != i)
             {
-                if (arr[pos] < arr[child])
-                {
-                    (arr[pos], arr[child]) = (arr[child], arr[pos]);
-                    TriangularSift(arr, child, end, level + 1);
-                }
+                (arr[i], arr[largest]) = (arr[largest], arr[i]);
+                TriangularHeapify(arr, start, end, largest);
             }
         }
     }
