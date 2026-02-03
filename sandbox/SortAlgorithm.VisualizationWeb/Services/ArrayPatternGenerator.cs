@@ -36,7 +36,7 @@ public class ArrayPatternGenerator
             ArrayPattern.ShuffledOdds => GenerateShuffledOdds(size, random),
             ArrayPattern.ShuffledHalf => GenerateShuffledHalf(size, random),
             ArrayPattern.DoubleLayered => GenerateDoubleLayered(size),
-            
+
             // Merge Patterns
             ArrayPattern.FinalMerge => GenerateFinalMerge(size),
             ArrayPattern.ShuffledFinalMerge => GenerateShuffledFinalMerge(size, random),
@@ -66,6 +66,9 @@ public class ArrayPatternGenerator
             // Tree/Heap
             ArrayPattern.BstTraversal => GenerateBstTraversal(size, random),
             ArrayPattern.Heapified => GenerateHeapified(size),
+            ArrayPattern.SmoothHeapified => GenerateSmoothHeapified(size),
+            ArrayPattern.PoplarHeapified => GeneratePoplarHeapified(size),
+            ArrayPattern.TriangularHeapified => GenerateTriangularHeapified(size),
 
             // Duplicates
             ArrayPattern.FewUnique => GenerateFewUnique(size, random),
@@ -119,7 +122,7 @@ public class ArrayPatternGenerator
             ArrayPattern.ShuffledOdds => "🔢 Shuffled Odds Only",
             ArrayPattern.ShuffledHalf => "📊 Shuffled Half (Front Sorted)",
             ArrayPattern.DoubleLayered => "🔄 Double Layered (Symmetric Swap)",
-            
+
             // Merge Patterns
             ArrayPattern.FinalMerge => "🔗 Final Merge (Even/Odd Sorted)",
             ArrayPattern.ShuffledFinalMerge => "🔗 Shuffled Final Merge",
@@ -149,6 +152,9 @@ public class ArrayPatternGenerator
             // Tree/Heap
             ArrayPattern.BstTraversal => "🌳 BST In-Order Traversal",
             ArrayPattern.Heapified => "📚 Heapified (Max-Heap)",
+            ArrayPattern.SmoothHeapified => "📚 Smooth Heapified",
+            ArrayPattern.PoplarHeapified => "📚 Poplar Heapified",
+            ArrayPattern.TriangularHeapified => "📚 Triangular Heapified",
 
             // Duplicates
             ArrayPattern.FewUnique => "🔢 Few Unique (3 Values)",
@@ -470,7 +476,7 @@ public class ArrayPatternGenerator
     private int[] GenerateShuffledOdds(int size, Random random)
     {
         var array = Enumerable.Range(1, size).ToArray();
-        
+
         // Fisher-Yates shuffle but only for odd indices
         for (var i = 1; i < size; i += 2)
         {
@@ -478,7 +484,7 @@ public class ArrayPatternGenerator
             var randomOddIndex = (random.Next((size - i) / 2) * 2) + i;
             (array[i], array[randomOddIndex]) = (array[randomOddIndex], array[i]);
         }
-        
+
         return array;
     }
 
@@ -489,11 +495,11 @@ public class ArrayPatternGenerator
     {
         // Shuffle entire array
         var array = Enumerable.Range(1, size).OrderBy(_ => random.Next()).ToArray();
-        
+
         // Sort only the first half
         var mid = size / 2;
         Array.Sort(array, 0, mid);
-        
+
         return array;
     }
 
@@ -503,13 +509,13 @@ public class ArrayPatternGenerator
     private int[] GenerateDoubleLayered(int size)
     {
         var array = Enumerable.Range(1, size).ToArray();
-        
+
         // Swap even indices with their symmetric positions
         for (var i = 0; i < size / 2; i += 2)
         {
             (array[i], array[size - i - 1]) = (array[size - i - 1], array[i]);
         }
-        
+
         return array;
     }
 
@@ -955,6 +961,167 @@ public class ArrayPatternGenerator
             {
                 (arr[i], arr[largest]) = (arr[largest], arr[i]);
                 Heapify(arr, n, largest);
+            }
+        }
+    }
+
+    /// <summary>
+    /// スムースヒープ化済み（Smooth Sortのヒープ構造）
+    /// Leonardo数列ベースのヒープ
+    /// </summary>
+    private int[] GenerateSmoothHeapified(int size)
+    {
+        var array = Enumerable.Range(1, size).ToArray();
+
+        // Leonardo numbers for smooth heap
+        var leonardo = GenerateLeonardoNumbers(size);
+
+        // Build smooth heap using Leonardo numbers
+        var heapSize = 0;
+        for (var i = 0; i < size; i++)
+        {
+            // Simple approximation: treat as max-heap with Leonardo number structure
+            if (heapSize > 0 && i % leonardo[Math.Min(heapSize, leonardo.Length - 1)] == 0)
+            {
+                SmoothSift(array, i, leonardo, heapSize);
+            }
+            heapSize++;
+        }
+
+        return array;
+
+        static int[] GenerateLeonardoNumbers(int max)
+        {
+            var nums = new List<int> { 1, 1 };
+            while (nums[^1] < max)
+            {
+                nums.Add(nums[^1] + nums[^2] + 1);
+            }
+            return [.. nums];
+        }
+
+        static void SmoothSift(int[] arr, int pos, int[] leonardo, int heapSize)
+        {
+            if (pos == 0) return;
+
+            var parent = pos / 2;
+            if (parent < pos && arr[parent] < arr[pos])
+            {
+                (arr[parent], arr[pos]) = (arr[pos], arr[parent]);
+                SmoothSift(arr, parent, leonardo, heapSize);
+            }
+        }
+    }
+
+    /// <summary>
+    /// ポプラヒープ化済み（Poplar Heapソート用）
+    /// 複数の完全二分木の森を形成
+    /// </summary>
+    private int[] GeneratePoplarHeapified(int size)
+    {
+        var array = Enumerable.Range(1, size).ToArray();
+
+        // Poplar heap: forest of complete binary trees
+        // Each tree has size 2^k - 1
+        var pos = 0;
+        var treeSize = 1;
+
+        while (pos < size)
+        {
+            // Calculate next power of 2 - 1
+            while (treeSize * 2 - 1 <= size - pos)
+            {
+                treeSize = treeSize * 2 - 1;
+            }
+
+            // Build max-heap for this tree
+            var end = Math.Min(pos + treeSize, size);
+            for (var i = (end - pos) / 2 - 1; i >= 0; i--)
+            {
+                PoplarHeapify(array, pos, end, pos + i);
+            }
+
+            pos = end;
+            treeSize = 1;
+        }
+
+        return array;
+
+        static void PoplarHeapify(int[] arr, int start, int end, int i)
+        {
+            var size = end - start;
+            var largest = i;
+            var left = start + 2 * (i - start) + 1;
+            var right = start + 2 * (i - start) + 2;
+
+            if (left < end && arr[left] > arr[largest])
+            {
+                largest = left;
+            }
+
+            if (right < end && arr[right] > arr[largest])
+            {
+                largest = right;
+            }
+
+            if (largest != i)
+            {
+                (arr[i], arr[largest]) = (arr[largest], arr[i]);
+                PoplarHeapify(arr, start, end, largest);
+            }
+        }
+    }
+
+    /// <summary>
+    /// 三角ヒープ化済み（Triangular Heapソート用）
+    /// 三角数ベースのヒープ構造
+    /// </summary>
+    private int[] GenerateTriangularHeapified(int size)
+    {
+        var array = Enumerable.Range(1, size).ToArray();
+
+        // Triangular heap: each level has k elements (1, 2, 3, 4, ...)
+        // Build from bottom up
+        var level = 0;
+        var pos = 0;
+        var triangularNumbers = new List<int>();
+
+        // Calculate triangular numbers up to size
+        for (var i = 1; pos < size; i++)
+        {
+            pos += i;
+            triangularNumbers.Add(pos);
+        }
+
+        // Heapify each triangular section
+        for (var i = triangularNumbers.Count - 1; i >= 0; i--)
+        {
+            var start = i == 0 ? 0 : triangularNumbers[i - 1];
+            var end = Math.Min(triangularNumbers[i], size);
+
+            for (var j = end - 1; j >= start; j--)
+            {
+                TriangularSift(array, j, end, i + 1);
+            }
+        }
+
+        return array;
+
+        static void TriangularSift(int[] arr, int pos, int end, int level)
+        {
+            if (pos >= end - 1) return;
+
+            // In triangular heap, children are in the next level
+            var childStart = pos + level;
+            var childEnd = Math.Min(pos + level + 1, end);
+
+            for (var child = childStart; child < childEnd && child < end; child++)
+            {
+                if (arr[pos] < arr[child])
+                {
+                    (arr[pos], arr[child]) = (arr[child], arr[pos]);
+                    TriangularSift(arr, child, end, level + 1);
+                }
             }
         }
     }
