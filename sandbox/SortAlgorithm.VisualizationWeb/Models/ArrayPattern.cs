@@ -25,6 +25,16 @@ public enum ArrayPattern
     // Nearly Sorted Patterns
     
     /// <summary>
+    /// ナイーブシャッフル（各要素を順番にランダム位置とスワップ）
+    /// </summary>
+    NaiveShuffle,
+
+    /// <summary>
+    /// 単一要素移動（ソート済みから1つの要素だけをランダム位置に移動）
+    /// </summary>
+    SingleElementMoved,
+
+    /// <summary>
     /// ほぼソート済み配列（5%のペアをランダムスワップ）
     /// </summary>
     AlmostSorted,

@@ -1,4 +1,4 @@
-﻿using SortAlgorithm.VisualizationWeb.Models;
+using SortAlgorithm.VisualizationWeb.Models;
 
 namespace SortAlgorithm.VisualizationWeb.Services;
 
@@ -26,6 +26,8 @@ public class ArrayPatternGenerator
             ArrayPattern.Reversed => GenerateReversed(size),
             
             // Nearly Sorted
+            ArrayPattern.NaiveShuffle => GenerateNaiveShuffle(size, random),
+            ArrayPattern.SingleElementMoved => GenerateSingleElementMoved(size, random),
             ArrayPattern.AlmostSorted => GenerateAlmostSorted(size, random),
             ArrayPattern.NearlySorted => GenerateNearlySorted(size, random),
             ArrayPattern.ScrambledTail => GenerateScrambledTail(size, random),
@@ -98,6 +100,8 @@ public class ArrayPatternGenerator
             ArrayPattern.Reversed => "↘️ Reversed (Descending)",
             
             // Nearly Sorted
+            ArrayPattern.NaiveShuffle => "🔀 Naive Shuffle",
+            ArrayPattern.SingleElementMoved => "➡️ Single Element Moved",
             ArrayPattern.AlmostSorted => "≈ Almost Sorted (5% Pair Swaps)",
             ArrayPattern.NearlySorted => "≈ Nearly Sorted (10% Random)",
             ArrayPattern.ScrambledTail => "📍 Scrambled Tail (14% at End)",
@@ -179,6 +183,59 @@ public class ArrayPatternGenerator
     private int[] GenerateReversed(int size)
     {
         return Enumerable.Range(1, size).Reverse().ToArray();
+    }
+
+    /// <summary>
+    /// ナイーブシャッフル（各要素を順番にランダム位置とスワップ）
+    /// Fisher-Yatesの間違った実装パターン
+    /// </summary>
+    private int[] GenerateNaiveShuffle(int size, Random random)
+    {
+        var array = Enumerable.Range(1, size).ToArray();
+        
+        // Naive shuffle: swap each element with a random position (including itself)
+        // This is NOT the correct Fisher-Yates algorithm
+        for (var i = 0; i < size; i++)
+        {
+            var randomIndex = random.Next(size);
+            (array[i], array[randomIndex]) = (array[randomIndex], array[i]);
+        }
+        
+        return array;
+    }
+
+    /// <summary>
+    /// 単一要素移動（ソート済みから1つの要素だけをランダム位置に移動）
+    /// </summary>
+    private int[] GenerateSingleElementMoved(int size, Random random)
+    {
+        var array = Enumerable.Range(1, size).ToArray();
+        
+        if (size < 2) return array;
+        
+        // Pick a random element to move
+        var sourceIndex = random.Next(size);
+        var destIndex = random.Next(size);
+        
+        if (sourceIndex == destIndex) return array;
+        
+        // Move element using rotation
+        var element = array[sourceIndex];
+        
+        if (destIndex < sourceIndex)
+        {
+            // Shift elements right
+            Array.Copy(array, destIndex, array, destIndex + 1, sourceIndex - destIndex);
+            array[destIndex] = element;
+        }
+        else
+        {
+            // Shift elements left
+            Array.Copy(array, sourceIndex + 1, array, sourceIndex, destIndex - sourceIndex);
+            array[destIndex] = element;
+        }
+        
+        return array;
     }
 
     /// <summary>
