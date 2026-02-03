@@ -79,7 +79,6 @@ public class ArrayPatternGenerator
             ArrayPattern.AllEqual => GenerateAllEqual(size),
 
             // Distributions
-            ArrayPattern.LinearDistribution => GenerateLinearDistribution(size),
             ArrayPattern.QuadraticDistribution => GenerateQuadraticDistribution(size),
             ArrayPattern.SquareRootDistribution => GenerateSquareRootDistribution(size),
             ArrayPattern.CubicDistribution => GenerateCubicDistribution(size),
@@ -183,7 +182,6 @@ public class ArrayPatternGenerator
             ArrayPattern.AllEqual => "⚪ All Equal",
 
             // Distributions
-            ArrayPattern.LinearDistribution => "📏 Linear (1,2,3...)",
             ArrayPattern.QuadraticDistribution => "📊 Quadratic (x²)",
             ArrayPattern.SquareRootDistribution => "📊 Square Root (√x)",
             ArrayPattern.CubicDistribution => "📊 Cubic (x³ Centered)",
@@ -1464,28 +1462,21 @@ public class ArrayPatternGenerator
     // Additional Mathematical Distributions
 
     /// <summary>
-    /// 線形分布（1, 2, 3, ...）
-    /// </summary>
-    private int[] GenerateLinearDistribution(int size)
-    {
-        return Enumerable.Range(1, size).ToArray();
-    }
-
-    /// <summary>
     /// 二次曲線分布（x²）
     /// </summary>
     private int[] GenerateQuadraticDistribution(int size)
     {
         var array = new int[size];
         var n = size - 1;
-
+        
         for (var i = 0; i < size; i++)
         {
             var x = (double)i / n;
             array[i] = (int)(n * x * x) + 1;
         }
-
-        return array;
+        
+        // Shuffle to randomize order while keeping value distribution
+        return ShuffleArray(array);
     }
 
     /// <summary>
@@ -1495,14 +1486,14 @@ public class ArrayPatternGenerator
     {
         var array = new int[size];
         var n = size - 1;
-
+        
         for (var i = 0; i < size; i++)
         {
             var x = (double)i / n;
             array[i] = (int)(n * Math.Sqrt(x)) + 1;
         }
-
-        return array;
+        
+        return ShuffleArray(array);
     }
 
     /// <summary>
@@ -1512,15 +1503,15 @@ public class ArrayPatternGenerator
     {
         var array = new int[size];
         var h = size / 2.0;
-
+        
         for (var i = 0; i < size; i++)
         {
             var val = i / h - 1;
             var cubic = val * val * val;
             array[i] = (int)(h * (cubic + 1));
         }
-
-        return array;
+        
+        return ShuffleArray(array);
     }
 
     /// <summary>
@@ -1530,15 +1521,15 @@ public class ArrayPatternGenerator
     {
         var array = new int[size];
         var h = size / 2.0;
-
+        
         for (var i = 0; i < size; i++)
         {
             var val = i / h - 1;
             var quintic = Math.Pow(val, 5);
             array[i] = (int)(h * (quintic + 1));
         }
-
-        return array;
+        
+        return ShuffleArray(array);
     }
 
     /// <summary>
@@ -1548,15 +1539,15 @@ public class ArrayPatternGenerator
     {
         var array = new int[size];
         var h = size / 2.0;
-
+        
         for (var i = 0; i < size; i++)
         {
             var val = i / h - 1;
             var root = val < 0 ? -Math.Pow(-val, 1.0 / 3.0) : Math.Pow(val, 1.0 / 3.0);
             array[i] = (int)(h * (root + 1));
         }
-
-        return array;
+        
+        return ShuffleArray(array);
     }
 
     /// <summary>
@@ -1566,14 +1557,28 @@ public class ArrayPatternGenerator
     {
         var array = new int[size];
         var h = size / 2.0;
-
+        
         for (var i = 0; i < size; i++)
         {
             var val = i / h - 1;
             var root = val < 0 ? -Math.Pow(-val, 1.0 / 5.0) : Math.Pow(val, 1.0 / 5.0);
             array[i] = (int)(h * (root + 1));
         }
+        
+        return ShuffleArray(array);
+    }
 
+    /// <summary>
+    /// Fisher-Yatesシャッフル（配列をランダム化）
+    /// </summary>
+    private int[] ShuffleArray(int[] array)
+    {
+        var random = new Random();
+        for (var i = array.Length - 1; i > 0; i--)
+        {
+            var j = random.Next(i + 1);
+            (array[i], array[j]) = (array[j], array[i]);
+        }
         return array;
     }
 

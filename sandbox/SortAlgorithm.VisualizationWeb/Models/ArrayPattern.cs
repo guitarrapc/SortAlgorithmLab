@@ -234,11 +234,6 @@ public enum ArrayPattern
     // Distribution Patterns
 
     /// <summary>
-    /// 線形分布（1, 2, 3, ...）
-    /// </summary>
-    LinearDistribution,
-
-    /// <summary>
     /// 二次曲線分布
     /// </summary>
     QuadraticDistribution,
