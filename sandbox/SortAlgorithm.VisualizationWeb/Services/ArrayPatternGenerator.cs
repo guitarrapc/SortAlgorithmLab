@@ -33,7 +33,10 @@ public class ArrayPatternGenerator
             ArrayPattern.ScrambledTail => GenerateScrambledTail(size, random),
             ArrayPattern.ScrambledHead => GenerateScrambledHead(size, random),
             ArrayPattern.Noisy => GenerateNoisy(size, random),
-
+            ArrayPattern.ShuffledOdds => GenerateShuffledOdds(size, random),
+            ArrayPattern.ShuffledHalf => GenerateShuffledHalf(size, random),
+            ArrayPattern.DoubleLayered => GenerateDoubleLayered(size),
+            
             // Merge Patterns
             ArrayPattern.FinalMerge => GenerateFinalMerge(size),
             ArrayPattern.ShuffledFinalMerge => GenerateShuffledFinalMerge(size, random),
@@ -113,7 +116,10 @@ public class ArrayPatternGenerator
             ArrayPattern.ScrambledTail => "📍 Scrambled Tail (14% at End)",
             ArrayPattern.ScrambledHead => "📍 Scrambled Head (14% at Start)",
             ArrayPattern.Noisy => "🔊 Noisy (Block Shuffled)",
-
+            ArrayPattern.ShuffledOdds => "🔢 Shuffled Odds Only",
+            ArrayPattern.ShuffledHalf => "📊 Shuffled Half (Front Sorted)",
+            ArrayPattern.DoubleLayered => "🔄 Double Layered (Symmetric Swap)",
+            
             // Merge Patterns
             ArrayPattern.FinalMerge => "🔗 Final Merge (Even/Odd Sorted)",
             ArrayPattern.ShuffledFinalMerge => "🔗 Shuffled Final Merge",
@@ -455,6 +461,55 @@ public class ArrayPatternGenerator
             Array.Copy(block, 0, array, i, end - i);
         }
 
+        return array;
+    }
+
+    /// <summary>
+    /// 奇数インデックスのみシャッフル（偶数インデックスはソート済み）
+    /// </summary>
+    private int[] GenerateShuffledOdds(int size, Random random)
+    {
+        var array = Enumerable.Range(1, size).ToArray();
+        
+        // Fisher-Yates shuffle but only for odd indices
+        for (var i = 1; i < size; i += 2)
+        {
+            // Random odd index from current position to end
+            var randomOddIndex = (random.Next((size - i) / 2) * 2) + i;
+            (array[i], array[randomOddIndex]) = (array[randomOddIndex], array[i]);
+        }
+        
+        return array;
+    }
+
+    /// <summary>
+    /// 半分シャッフル（全体をシャッフル後、前半のみソート）
+    /// </summary>
+    private int[] GenerateShuffledHalf(int size, Random random)
+    {
+        // Shuffle entire array
+        var array = Enumerable.Range(1, size).OrderBy(_ => random.Next()).ToArray();
+        
+        // Sort only the first half
+        var mid = size / 2;
+        Array.Sort(array, 0, mid);
+        
+        return array;
+    }
+
+    /// <summary>
+    /// ダブルレイヤー（偶数インデックスを対称位置とスワップ）
+    /// </summary>
+    private int[] GenerateDoubleLayered(int size)
+    {
+        var array = Enumerable.Range(1, size).ToArray();
+        
+        // Swap even indices with their symmetric positions
+        for (var i = 0; i < size / 2; i += 2)
+        {
+            (array[i], array[size - i - 1]) = (array[size - i - 1], array[i]);
+        }
+        
         return array;
     }
 

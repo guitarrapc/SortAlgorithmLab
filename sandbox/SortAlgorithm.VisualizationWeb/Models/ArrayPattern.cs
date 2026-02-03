@@ -59,6 +59,21 @@ public enum ArrayPattern
     /// </summary>
     Noisy,
 
+    /// <summary>
+    /// 奇数インデックスのみシャッフル（偶数インデックスはソート済み）
+    /// </summary>
+    ShuffledOdds,
+
+    /// <summary>
+    /// 半分シャッフル（全体をシャッフル後、前半のみソート）
+    /// </summary>
+    ShuffledHalf,
+
+    /// <summary>
+    /// ダブルレイヤー（偶数インデックスを対称位置とスワップ）
+    /// </summary>
+    DoubleLayered,
+
     // Merge Patterns
 
     /// <summary>
