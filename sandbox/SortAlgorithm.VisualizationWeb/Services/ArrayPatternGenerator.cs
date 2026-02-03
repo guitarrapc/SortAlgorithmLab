@@ -79,10 +79,25 @@ public class ArrayPatternGenerator
             ArrayPattern.AllEqual => GenerateAllEqual(size),
 
             // Distributions
+            ArrayPattern.LinearDistribution => GenerateLinearDistribution(size),
+            ArrayPattern.QuadraticDistribution => GenerateQuadraticDistribution(size),
+            ArrayPattern.SquareRootDistribution => GenerateSquareRootDistribution(size),
+            ArrayPattern.CubicDistribution => GenerateCubicDistribution(size),
+            ArrayPattern.QuinticDistribution => GenerateQuinticDistribution(size),
+            ArrayPattern.CubeRootDistribution => GenerateCubeRootDistribution(size),
+            ArrayPattern.FifthRootDistribution => GenerateFifthRootDistribution(size),
             ArrayPattern.SineWave => GenerateSineWave(size),
             ArrayPattern.CosineWave => GenerateCosineWave(size),
             ArrayPattern.BellCurve => GenerateBellCurve(size),
             ArrayPattern.PerlinNoiseCurve => GeneratePerlinNoiseCurve(size, random),
+            ArrayPattern.RulerDistribution => GenerateRulerDistribution(size),
+            ArrayPattern.BlancmangeDistribution => GenerateBlancmangeDistribution(size),
+            ArrayPattern.CantorDistribution => GenerateCantorDistribution(size),
+            ArrayPattern.DivisorsDistribution => GenerateDivisorsDistribution(size),
+            ArrayPattern.FsdDistribution => GenerateFsdDistribution(size),
+            ArrayPattern.ReverseLogDistribution => GenerateReverseLogDistribution(size, random),
+            ArrayPattern.ModuloDistribution => GenerateModuloDistribution(size),
+            ArrayPattern.TotientDistribution => GenerateTotientDistribution(size),
 
             // Advanced/Fractal
             ArrayPattern.CirclePass => GenerateCirclePass(size, random),
@@ -168,10 +183,25 @@ public class ArrayPatternGenerator
             ArrayPattern.AllEqual => "⚪ All Equal",
 
             // Distributions
+            ArrayPattern.LinearDistribution => "📏 Linear (1,2,3...)",
+            ArrayPattern.QuadraticDistribution => "📊 Quadratic (x²)",
+            ArrayPattern.SquareRootDistribution => "📊 Square Root (√x)",
+            ArrayPattern.CubicDistribution => "📊 Cubic (x³ Centered)",
+            ArrayPattern.QuinticDistribution => "📊 Quintic (x⁵ Centered)",
+            ArrayPattern.CubeRootDistribution => "📊 Cube Root (∛x)",
+            ArrayPattern.FifthRootDistribution => "📊 Fifth Root (⁵√x)",
             ArrayPattern.SineWave => "〰️ Sine Wave",
             ArrayPattern.CosineWave => "〰️ Cosine Wave",
             ArrayPattern.BellCurve => "🔔 Bell Curve (Normal)",
             ArrayPattern.PerlinNoiseCurve => "🌊 Perlin Noise Curve",
+            ArrayPattern.RulerDistribution => "📐 Ruler Function",
+            ArrayPattern.BlancmangeDistribution => "🍮 Blancmange Curve",
+            ArrayPattern.CantorDistribution => "∞ Cantor Function",
+            ArrayPattern.DivisorsDistribution => "➗ Sum of Divisors",
+            ArrayPattern.FsdDistribution => "✈️ Fly Straight Dangit",
+            ArrayPattern.ReverseLogDistribution => "📉 Reverse Log",
+            ArrayPattern.ModuloDistribution => "% Modulo Function",
+            ArrayPattern.TotientDistribution => "φ Euler Totient",
 
             // Advanced/Fractal
             ArrayPattern.CirclePass => "⭕ Circle Sort Pass",
@@ -1371,6 +1401,407 @@ public class ArrayPatternGenerator
         }
     }
 
+    // Additional Mathematical Distributions
+
+    /// <summary>
+    /// 線形分布（1, 2, 3, ...）
+    /// </summary>
+    private int[] GenerateLinearDistribution(int size)
+    {
+        return Enumerable.Range(1, size).ToArray();
+    }
+
+    /// <summary>
+    /// 二次曲線分布（x²）
+    /// </summary>
+    private int[] GenerateQuadraticDistribution(int size)
+    {
+        var array = new int[size];
+        var n = size - 1;
+
+        for (var i = 0; i < size; i++)
+        {
+            var x = (double)i / n;
+            array[i] = (int)(n * x * x) + 1;
+        }
+
+        return array;
+    }
+
+    /// <summary>
+    /// 平方根曲線分布（√x）
+    /// </summary>
+    private int[] GenerateSquareRootDistribution(int size)
+    {
+        var array = new int[size];
+        var n = size - 1;
+
+        for (var i = 0; i < size; i++)
+        {
+            var x = (double)i / n;
+            array[i] = (int)(n * Math.Sqrt(x)) + 1;
+        }
+
+        return array;
+    }
+
+    /// <summary>
+    /// 三次曲線分布（x³ 中心）
+    /// </summary>
+    private int[] GenerateCubicDistribution(int size)
+    {
+        var array = new int[size];
+        var h = size / 2.0;
+
+        for (var i = 0; i < size; i++)
+        {
+            var val = i / h - 1;
+            var cubic = val * val * val;
+            array[i] = (int)(h * (cubic + 1));
+        }
+
+        return array;
+    }
+
+    /// <summary>
+    /// 五次曲線分布（x⁵ 中心）
+    /// </summary>
+    private int[] GenerateQuinticDistribution(int size)
+    {
+        var array = new int[size];
+        var h = size / 2.0;
+
+        for (var i = 0; i < size; i++)
+        {
+            var val = i / h - 1;
+            var quintic = Math.Pow(val, 5);
+            array[i] = (int)(h * (quintic + 1));
+        }
+
+        return array;
+    }
+
+    /// <summary>
+    /// 立方根曲線分布（∛x）
+    /// </summary>
+    private int[] GenerateCubeRootDistribution(int size)
+    {
+        var array = new int[size];
+        var h = size / 2.0;
+
+        for (var i = 0; i < size; i++)
+        {
+            var val = i / h - 1;
+            var root = val < 0 ? -Math.Pow(-val, 1.0 / 3.0) : Math.Pow(val, 1.0 / 3.0);
+            array[i] = (int)(h * (root + 1));
+        }
+
+        return array;
+    }
+
+    /// <summary>
+    /// 五乗根曲線分布（⁵√x）
+    /// </summary>
+    private int[] GenerateFifthRootDistribution(int size)
+    {
+        var array = new int[size];
+        var h = size / 2.0;
+
+        for (var i = 0; i < size; i++)
+        {
+            var val = i / h - 1;
+            var root = val < 0 ? -Math.Pow(-val, 1.0 / 5.0) : Math.Pow(val, 1.0 / 5.0);
+            array[i] = (int)(h * (root + 1));
+        }
+
+        return array;
+    }
+
+    /// <summary>
+    /// ルーラー関数分布
+    /// </summary>
+    private int[] GenerateRulerDistribution(int size)
+    {
+        var array = new int[size];
+        var step = Math.Max(1, size / 256);
+        var floorLog2 = (int)(Math.Log(size / (double)step) / Math.Log(2));
+        var lowest = step;
+        while (2 * lowest <= size / 4)
+        {
+            lowest *= 2;
+        }
+
+        var digits = new bool[floorLog2 + 2];
+        int i, j;
+
+        for (i = 0; i + step <= size; i += step)
+        {
+            for (j = 0; j < digits.Length && digits[j]; j++)
+            { }
+
+            digits[j] = true;
+
+            for (var k = 0; k < step; k++)
+            {
+                var value = size / 2 - Math.Min((1 << j) * step, lowest);
+                array[i + k] = value;
+            }
+
+            for (var k = 0; k < j; k++)
+            {
+                digits[k] = false;
+            }
+        }
+
+        for (j = 0; j < digits.Length && digits[j]; j++)
+        { }
+
+        digits[j] = true;
+
+        while (i < size)
+        {
+            var value = Math.Max(size / 2 - (1 << j) * step, size / 4);
+            array[i++] = value;
+        }
+
+        return array;
+    }
+
+    /// <summary>
+    /// ブランマンジェ曲線分布
+    /// </summary>
+    private int[] GenerateBlancmangeDistribution(int size)
+    {
+        var array = new int[size];
+        var floorLog2 = (int)(Math.Log(size) / Math.Log(2));
+
+        for (var i = 0; i < size; i++)
+        {
+            var value = (int)(size * CurveSum(floorLog2, (double)i / size));
+            array[i] = value;
+        }
+
+        return array;
+
+        static double CurveSum(int n, double x)
+        {
+            var sum = 0.0;
+            while (n >= 0)
+            {
+                sum += Curve(n--, x);
+            }
+            return sum;
+        }
+
+        static double Curve(int n, double x)
+        {
+            return TriangleWave((1 << n) * x) / (1 << n);
+        }
+
+        static double TriangleWave(double x)
+        {
+            return Math.Abs(x - (int)(x + 0.5));
+        }
+    }
+
+    /// <summary>
+    /// カントール関数分布
+    /// </summary>
+    private int[] GenerateCantorDistribution(int size)
+    {
+        var array = new int[size];
+        CantorRecursive(array, 0, size, 0, size - 1);
+        return array;
+
+        static void CantorRecursive(int[] arr, int a, int b, int min, int max)
+        {
+            if (b - a < 1 || max == min) return;
+
+            var mid = (min + max) / 2;
+            if (b - a == 1)
+            {
+                arr[a] = mid;
+                return;
+            }
+
+            var t1 = (a + a + b) / 3;
+            var t2 = (a + b + b + 2) / 3;
+
+            for (var i = t1; i < t2; i++)
+            {
+                arr[i] = mid;
+            }
+
+            CantorRecursive(arr, a, t1, min, mid);
+            CantorRecursive(arr, t2, b, mid + 1, max);
+        }
+    }
+
+    /// <summary>
+    /// 約数の和関数分布
+    /// </summary>
+    private int[] GenerateDivisorsDistribution(int size)
+    {
+        var n = new int[size];
+        n[0] = 0;
+        if (size > 1)
+        {
+            n[1] = 1;
+        }
+
+        var max = 1.0;
+        for (var i = 2; i < size; i++)
+        {
+            n[i] = SumDivisors(i);
+            if (n[i] > max)
+            {
+                max = n[i];
+            }
+        }
+
+        var scale = Math.Min((size - 1) / max, 1);
+        var array = new int[size];
+        for (var i = 0; i < size; i++)
+        {
+            array[i] = (int)(n[i] * scale);
+        }
+
+        return array;
+
+        static int SumDivisors(int num)
+        {
+            var sum = num + 1;
+            for (var i = 2; i <= (int)Math.Sqrt(num); i++)
+            {
+                if (num % i == 0)
+                {
+                    if (i == num / i)
+                    {
+                        sum += i;
+                    }
+                    else
+                    {
+                        sum += i + num / i;
+                    }
+                }
+            }
+            return sum;
+        }
+    }
+
+    /// <summary>
+    /// FSD分布（Fly Straight Dangit - OEIS A133058）
+    /// </summary>
+    private int[] GenerateFsdDistribution(int size)
+    {
+        var fsd = new int[size];
+        fsd[0] = 1;
+        if (size > 1)
+        {
+            fsd[1] = 1;
+        }
+
+        var max = 1.0;
+        for (var i = 2; i < size; i++)
+        {
+            var g = Gcd(fsd[i - 1], i);
+            fsd[i] = fsd[i - 1] / g + (g == 1 ? i + 1 : 0);
+            if (fsd[i] > max)
+            {
+                max = fsd[i];
+            }
+        }
+
+        var scale = Math.Min((size - 1) / max, 1);
+        var array = new int[size];
+        for (var i = 0; i < size; i++)
+        {
+            array[i] = (int)(fsd[i] * scale);
+        }
+
+        return array;
+
+        static int Gcd(int a, int b)
+        {
+            if (b == 0)
+            {
+                return a;
+            }
+            return Gcd(b, a % b);
+        }
+    }
+
+    /// <summary>
+    /// 逆対数分布（減少ランダム）
+    /// </summary>
+    private int[] GenerateReverseLogDistribution(int size, Random random)
+    {
+        var array = new int[size];
+
+        for (var i = 0; i < size; i++)
+        {
+            var r = random.Next(size - i) + i;
+            array[i] = r + 1;
+        }
+
+        return array;
+    }
+
+    /// <summary>
+    /// モジュロ関数分布
+    /// </summary>
+    private int[] GenerateModuloDistribution(int size)
+    {
+        var array = new int[size];
+
+        for (var i = 0; i < size; i++)
+        {
+            array[i] = 2 * (size % (i + 1));
+        }
+
+        return array;
+    }
+
+    /// <summary>
+    /// オイラーのトーシェント関数分布
+    /// </summary>
+    private int[] GenerateTotientDistribution(int size)
+    {
+        var array = new int[size];
+        var minPrimeFactors = new int[size];
+        var primes = new List<int>();
+
+        array[0] = 0;
+        if (size > 1)
+        {
+            array[1] = 1;
+        }
+
+        for (var i = 2; i < size; i++)
+        {
+            if (minPrimeFactors[i] == 0)
+            {
+                primes.Add(i);
+                minPrimeFactors[i] = i;
+                array[i] = i - 1;
+            }
+
+            foreach (var prime in primes)
+            {
+                if (i * prime >= size) break;
+
+                var last = prime == minPrimeFactors[i];
+
+                minPrimeFactors[i * prime] = prime;
+                array[i * prime] = array[i] * (last ? prime : prime - 1);
+
+                if (last) break;
+            }
+        }
+
+        return array;
+    }
+
     // Advanced/Fractal Patterns
 
     /// <summary>
@@ -1393,7 +1824,8 @@ public class ArrayPatternGenerator
 
         static void CircleSortRoutine(int[] arr, int lo, int hi, int end)
         {
-            if (lo == hi) return;
+            if (lo == hi)
+                return;
 
             var low = lo;
             var high = hi;

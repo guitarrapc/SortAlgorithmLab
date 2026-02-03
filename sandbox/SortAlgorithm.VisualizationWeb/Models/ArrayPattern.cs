@@ -234,6 +234,41 @@ public enum ArrayPattern
     // Distribution Patterns
 
     /// <summary>
+    /// 線形分布（1, 2, 3, ...）
+    /// </summary>
+    LinearDistribution,
+
+    /// <summary>
+    /// 二次曲線分布
+    /// </summary>
+    QuadraticDistribution,
+
+    /// <summary>
+    /// 平方根曲線分布
+    /// </summary>
+    SquareRootDistribution,
+
+    /// <summary>
+    /// 三次曲線分布（中心）
+    /// </summary>
+    CubicDistribution,
+
+    /// <summary>
+    /// 五次曲線分布（中心）
+    /// </summary>
+    QuinticDistribution,
+
+    /// <summary>
+    /// 立方根曲線分布
+    /// </summary>
+    CubeRootDistribution,
+
+    /// <summary>
+    /// 五乗根曲線分布
+    /// </summary>
+    FifthRootDistribution,
+
+    /// <summary>
     /// 正弦波分布
     /// </summary>
     SineWave,
@@ -252,6 +287,46 @@ public enum ArrayPattern
     /// パーリンノイズ曲線
     /// </summary>
     PerlinNoiseCurve,
+
+    /// <summary>
+    /// ルーラー関数分布
+    /// </summary>
+    RulerDistribution,
+
+    /// <summary>
+    /// ブランマンジェ曲線分布
+    /// </summary>
+    BlancmangeDistribution,
+
+    /// <summary>
+    /// カントール関数分布
+    /// </summary>
+    CantorDistribution,
+
+    /// <summary>
+    /// 約数の和関数分布
+    /// </summary>
+    DivisorsDistribution,
+
+    /// <summary>
+    /// FSD分布（Fly Straight Dangit - OEIS A133058）
+    /// </summary>
+    FsdDistribution,
+
+    /// <summary>
+    /// 逆対数分布（減少ランダム）
+    /// </summary>
+    ReverseLogDistribution,
+
+    /// <summary>
+    /// モジュロ関数分布
+    /// </summary>
+    ModuloDistribution,
+
+    /// <summary>
+    /// オイラーのトーシェント関数分布
+    /// </summary>
+    TotientDistribution,
 
     // Advanced/Fractal Patterns
 
