@@ -6,7 +6,7 @@
 public enum ArrayPattern
 {
     // Basic Patterns
-    
+
     /// <summary>
     /// ランダム配列
     /// </summary>
@@ -23,7 +23,7 @@ public enum ArrayPattern
     Reversed,
 
     // Nearly Sorted Patterns
-    
+
     /// <summary>
     /// ナイーブシャッフル（各要素を順番にランダム位置とスワップ）
     /// </summary>
@@ -60,7 +60,7 @@ public enum ArrayPattern
     Noisy,
 
     // Merge Patterns
-    
+
     /// <summary>
     /// 最終マージ状態（偶数・奇数インデックスが別々にソート済み）
     /// </summary>
@@ -77,7 +77,7 @@ public enum ArrayPattern
     Sawtooth,
 
     // Partitioned Patterns
-    
+
     /// <summary>
     /// パーティション済み（ソート後、前半と後半を別々にシャッフル）
     /// </summary>
@@ -94,7 +94,7 @@ public enum ArrayPattern
     HalfReversed,
 
     // Shape Patterns
-    
+
     /// <summary>
     /// パイプオルガン型（偶数要素が前半、奇数要素が後半逆順）
     /// </summary>
@@ -111,11 +111,41 @@ public enum ArrayPattern
     ValleyShape,
 
     // Radix/Interleaved Patterns
-    
+
     /// <summary>
     /// 最終基数パス（偶数・奇数要素が交互配置）
     /// </summary>
     FinalRadix,
+
+    /// <summary>
+    /// 真の最終基数パス（ビットマスクベース）
+    /// </summary>
+    RealFinalRadix,
+
+    /// <summary>
+    /// 再帰的最終基数パス
+    /// </summary>
+    RecursiveFinalRadix,
+
+    /// <summary>
+    /// 最終バイトニックパス（反転後にPipe Organ配置）
+    /// </summary>
+    FinalBitonicPass,
+
+    /// <summary>
+    /// ビット反転順序（FFT用）
+    /// </summary>
+    BitReversal,
+
+    /// <summary>
+    /// ブロックごとにランダムシャッフル
+    /// </summary>
+    BlockRandomly,
+
+    /// <summary>
+    /// ブロックごとに反転
+    /// </summary>
+    BlockReverse,
 
     /// <summary>
     /// インターレース（最小値を先頭、残りを両端から交互配置）
@@ -128,7 +158,7 @@ public enum ArrayPattern
     Zigzag,
 
     // Tree/Heap Patterns
-    
+
     /// <summary>
     /// 二分探索木中順走査（ランダム挿入からの中順走査結果）
     /// </summary>
@@ -140,7 +170,7 @@ public enum ArrayPattern
     Heapified,
 
     // Duplicate Patterns
-    
+
     /// <summary>
     /// 少数ユニーク値（3種類の値: 25%, 50%, 75%位置）
     /// </summary>
@@ -157,7 +187,7 @@ public enum ArrayPattern
     AllEqual,
 
     // Distribution Patterns
-    
+
     /// <summary>
     /// 正弦波分布
     /// </summary>
@@ -179,7 +209,7 @@ public enum ArrayPattern
     PerlinNoiseCurve,
 
     // Advanced/Fractal Patterns
-    
+
     /// <summary>
     /// サークルソート初回パス（シャッフル後にサークルソート1パス）
     /// </summary>
@@ -211,7 +241,7 @@ public enum ArrayPattern
     Triangular,
 
     // Adversarial Patterns (Worst-case for specific algorithms)
-    
+
     /// <summary>
     /// QuickSort最悪ケース（median-of-3 pivot用）
     /// </summary>

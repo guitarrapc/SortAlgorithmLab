@@ -1,4 +1,4 @@
-using SortAlgorithm.VisualizationWeb.Models;
+﻿using SortAlgorithm.VisualizationWeb.Models;
 
 namespace SortAlgorithm.VisualizationWeb.Services;
 
@@ -24,7 +24,7 @@ public class ArrayPatternGenerator
             ArrayPattern.Random => GenerateRandom(size, random),
             ArrayPattern.Sorted => GenerateSorted(size),
             ArrayPattern.Reversed => GenerateReversed(size),
-            
+
             // Nearly Sorted
             ArrayPattern.NaiveShuffle => GenerateNaiveShuffle(size, random),
             ArrayPattern.SingleElementMoved => GenerateSingleElementMoved(size, random),
@@ -33,42 +33,48 @@ public class ArrayPatternGenerator
             ArrayPattern.ScrambledTail => GenerateScrambledTail(size, random),
             ArrayPattern.ScrambledHead => GenerateScrambledHead(size, random),
             ArrayPattern.Noisy => GenerateNoisy(size, random),
-            
+
             // Merge Patterns
             ArrayPattern.FinalMerge => GenerateFinalMerge(size),
             ArrayPattern.ShuffledFinalMerge => GenerateShuffledFinalMerge(size, random),
             ArrayPattern.Sawtooth => GenerateSawtooth(size),
-            
+
             // Partitioned
             ArrayPattern.Partitioned => GeneratePartitioned(size, random),
             ArrayPattern.HalfSorted => GenerateHalfSorted(size, random),
             ArrayPattern.HalfReversed => GenerateHalfReversed(size),
-            
+
             // Shape
             ArrayPattern.PipeOrgan => GeneratePipeOrgan(size),
             ArrayPattern.MountainShape => GenerateMountainShape(size),
             ArrayPattern.ValleyShape => GenerateValleyShape(size),
-            
+
             // Radix/Interleaved
             ArrayPattern.FinalRadix => GenerateFinalRadix(size),
+            ArrayPattern.RealFinalRadix => GenerateRealFinalRadix(size),
+            ArrayPattern.RecursiveFinalRadix => GenerateRecursiveFinalRadix(size),
+            ArrayPattern.FinalBitonicPass => GenerateFinalBitonicPass(size),
+            ArrayPattern.BitReversal => GenerateBitReversal(size),
+            ArrayPattern.BlockRandomly => GenerateBlockRandomly(size, random),
+            ArrayPattern.BlockReverse => GenerateBlockReverse(size),
             ArrayPattern.Interlaced => GenerateInterlaced(size),
             ArrayPattern.Zigzag => GenerateZigzag(size),
-            
+
             // Tree/Heap
             ArrayPattern.BstTraversal => GenerateBstTraversal(size, random),
             ArrayPattern.Heapified => GenerateHeapified(size),
-            
+
             // Duplicates
             ArrayPattern.FewUnique => GenerateFewUnique(size, random),
             ArrayPattern.ManyDuplicates => GenerateManyDuplicates(size, random),
             ArrayPattern.AllEqual => GenerateAllEqual(size),
-            
+
             // Distributions
             ArrayPattern.SineWave => GenerateSineWave(size),
             ArrayPattern.CosineWave => GenerateCosineWave(size),
             ArrayPattern.BellCurve => GenerateBellCurve(size),
             ArrayPattern.PerlinNoiseCurve => GeneratePerlinNoiseCurve(size, random),
-            
+
             // Advanced/Fractal
             ArrayPattern.CirclePass => GenerateCirclePass(size, random),
             ArrayPattern.PairwisePass => GeneratePairwisePass(size, random),
@@ -76,13 +82,13 @@ public class ArrayPatternGenerator
             ArrayPattern.GrayCodeFractal => GenerateGrayCodeFractal(size),
             ArrayPattern.SierpinskiTriangle => GenerateSierpinskiTriangle(size),
             ArrayPattern.Triangular => GenerateTriangular(size),
-            
+
             // Adversarial
             ArrayPattern.QuickSortAdversary => GenerateQuickSortAdversary(size),
             ArrayPattern.PdqSortAdversary => GeneratePdqSortAdversary(size),
             ArrayPattern.GrailSortAdversary => GenerateGrailSortAdversary(size, random),
             ArrayPattern.ShuffleMergeAdversary => GenerateShuffleMergeAdversary(size),
-            
+
             _ => GenerateRandom(size, random)
         };
     }
@@ -98,7 +104,7 @@ public class ArrayPatternGenerator
             ArrayPattern.Random => "🎲 Random",
             ArrayPattern.Sorted => "↗️ Sorted (Ascending)",
             ArrayPattern.Reversed => "↘️ Reversed (Descending)",
-            
+
             // Nearly Sorted
             ArrayPattern.NaiveShuffle => "🔀 Naive Shuffle",
             ArrayPattern.SingleElementMoved => "➡️ Single Element Moved",
@@ -107,42 +113,48 @@ public class ArrayPatternGenerator
             ArrayPattern.ScrambledTail => "📍 Scrambled Tail (14% at End)",
             ArrayPattern.ScrambledHead => "📍 Scrambled Head (14% at Start)",
             ArrayPattern.Noisy => "🔊 Noisy (Block Shuffled)",
-            
+
             // Merge Patterns
             ArrayPattern.FinalMerge => "🔗 Final Merge (Even/Odd Sorted)",
             ArrayPattern.ShuffledFinalMerge => "🔗 Shuffled Final Merge",
             ArrayPattern.Sawtooth => "⚙️ Sawtooth (4-way Interleaved)",
-            
+
             // Partitioned
             ArrayPattern.Partitioned => "📐 Partitioned (Halves Shuffled)",
             ArrayPattern.HalfSorted => "📊 Half Sorted",
             ArrayPattern.HalfReversed => "↕️ Half Reversed",
-            
+
             // Shape
             ArrayPattern.PipeOrgan => "🎹 Pipe Organ",
             ArrayPattern.MountainShape => "⛰️ Mountain Shape",
             ArrayPattern.ValleyShape => "🏞️ Valley Shape",
-            
+
             // Radix/Interleaved
             ArrayPattern.FinalRadix => "🔢 Final Radix Pass",
+            ArrayPattern.RealFinalRadix => "🔢 Real Final Radix (Bitmask)",
+            ArrayPattern.RecursiveFinalRadix => "🔢 Recursive Final Radix",
+            ArrayPattern.FinalBitonicPass => "🔄 Final Bitonic Pass",
+            ArrayPattern.BitReversal => "🔁 Bit Reversal (FFT)",
+            ArrayPattern.BlockRandomly => "🧱 Block Randomly Shuffled",
+            ArrayPattern.BlockReverse => "🧱 Block Reversed",
             ArrayPattern.Interlaced => "🔀 Interlaced",
             ArrayPattern.Zigzag => "〰️ Zigzag Pattern",
-            
+
             // Tree/Heap
             ArrayPattern.BstTraversal => "🌳 BST In-Order Traversal",
             ArrayPattern.Heapified => "📚 Heapified (Max-Heap)",
-            
+
             // Duplicates
             ArrayPattern.FewUnique => "🔢 Few Unique (3 Values)",
             ArrayPattern.ManyDuplicates => "🔢 Many Duplicates (20%)",
             ArrayPattern.AllEqual => "⚪ All Equal",
-            
+
             // Distributions
             ArrayPattern.SineWave => "〰️ Sine Wave",
             ArrayPattern.CosineWave => "〰️ Cosine Wave",
             ArrayPattern.BellCurve => "🔔 Bell Curve (Normal)",
             ArrayPattern.PerlinNoiseCurve => "🌊 Perlin Noise Curve",
-            
+
             // Advanced/Fractal
             ArrayPattern.CirclePass => "⭕ Circle Sort Pass",
             ArrayPattern.PairwisePass => "🔗 Pairwise Pass",
@@ -150,13 +162,13 @@ public class ArrayPatternGenerator
             ArrayPattern.GrayCodeFractal => "🔲 Gray Code Fractal",
             ArrayPattern.SierpinskiTriangle => "🔺 Sierpinski Triangle",
             ArrayPattern.Triangular => "🔻 Triangular",
-            
+
             // Adversarial
             ArrayPattern.QuickSortAdversary => "⚔️ QuickSort Adversary",
             ArrayPattern.PdqSortAdversary => "⚔️ PDQ Adversary",
             ArrayPattern.GrailSortAdversary => "⚔️ Grail Adversary",
             ArrayPattern.ShuffleMergeAdversary => "⚔️ ShuffleMerge Adversary",
-            
+
             _ => pattern.ToString()
         };
     }
@@ -192,7 +204,7 @@ public class ArrayPatternGenerator
     private int[] GenerateNaiveShuffle(int size, Random random)
     {
         var array = Enumerable.Range(1, size).ToArray();
-        
+
         // Naive shuffle: swap each element with a random position (including itself)
         // This is NOT the correct Fisher-Yates algorithm
         for (var i = 0; i < size; i++)
@@ -200,7 +212,7 @@ public class ArrayPatternGenerator
             var randomIndex = random.Next(size);
             (array[i], array[randomIndex]) = (array[randomIndex], array[i]);
         }
-        
+
         return array;
     }
 
@@ -210,18 +222,18 @@ public class ArrayPatternGenerator
     private int[] GenerateSingleElementMoved(int size, Random random)
     {
         var array = Enumerable.Range(1, size).ToArray();
-        
+
         if (size < 2) return array;
-        
+
         // Pick a random element to move
         var sourceIndex = random.Next(size);
         var destIndex = random.Next(size);
-        
+
         if (sourceIndex == destIndex) return array;
-        
+
         // Move element using rotation
         var element = array[sourceIndex];
-        
+
         if (destIndex < sourceIndex)
         {
             // Shift elements right
@@ -234,7 +246,7 @@ public class ArrayPatternGenerator
             Array.Copy(array, sourceIndex + 1, array, sourceIndex, destIndex - sourceIndex);
             array[destIndex] = element;
         }
-        
+
         return array;
     }
 
@@ -244,7 +256,7 @@ public class ArrayPatternGenerator
     private int[] GenerateNearlySorted(int size, Random random)
     {
         var array = Enumerable.Range(1, size).ToArray();
-        
+
         // 要素の10%をランダムに入れ替え
         var swapCount = Math.Max(1, size / 10);
         for (int i = 0; i < swapCount; i++)
@@ -253,7 +265,7 @@ public class ArrayPatternGenerator
             var index2 = random.Next(size);
             (array[index1], array[index2]) = (array[index2], array[index1]);
         }
-        
+
         return array;
     }
 
@@ -264,11 +276,11 @@ public class ArrayPatternGenerator
     {
         var array = new int[size];
         var values = Enumerable.Range(1, size).ToArray();
-        
+
         // 小さい値から大きい値へ、そして大きい値から小さい値へ
         int left = 0;
         int right = size - 1;
-        
+
         for (int i = 0; i < size; i++)
         {
             if (i % 2 == 0)
@@ -282,7 +294,7 @@ public class ArrayPatternGenerator
                 array[right--] = values[i];
             }
         }
-        
+
         return array;
     }
 
@@ -293,11 +305,11 @@ public class ArrayPatternGenerator
     {
         var array = new int[size];
         var values = Enumerable.Range(1, size).Reverse().ToArray();
-        
+
         // 大きい値から小さい値へ、そして小さい値から大きい値へ
         int left = 0;
         int right = size - 1;
-        
+
         for (int i = 0; i < size; i++)
         {
             if (i % 2 == 0)
@@ -311,7 +323,7 @@ public class ArrayPatternGenerator
                 array[right--] = values[i];
             }
         }
-        
+
         return array;
     }
 
@@ -321,11 +333,11 @@ public class ArrayPatternGenerator
     private int[] GenerateZigzag(int size)
     {
         var array = new int[size];
-        
+
         // 小さい値と大きい値を交互に配置
         var lowValues = Enumerable.Range(1, size / 2).ToList();
         var highValues = Enumerable.Range(size / 2 + 1, size - size / 2).ToList();
-        
+
         for (int i = 0; i < size; i++)
         {
             if (i % 2 == 0)
@@ -341,7 +353,7 @@ public class ArrayPatternGenerator
                 array[i] = index < highValues.Count ? highValues[index] : lowValues[i - highValues.Count];
             }
         }
-        
+
         return array;
     }
 
@@ -363,14 +375,14 @@ public class ArrayPatternGenerator
     {
         var array = Enumerable.Range(1, size).ToArray();
         var swapCount = Math.Max(1, size / 20);
-        
+
         for (var i = 0; i < swapCount; i++)
         {
             var idx1 = random.Next(size);
             var idx2 = random.Next(size);
             (array[idx1], array[idx2]) = (array[idx2], array[idx1]);
         }
-        
+
         return array;
     }
 
@@ -382,18 +394,22 @@ public class ArrayPatternGenerator
         var array = Enumerable.Range(1, size).ToArray();
         var extracted = new List<int>();
         var kept = new List<int>();
-        
+
         for (var i = 0; i < size; i++)
         {
             if (random.NextDouble() < 1.0 / 7.0)
+            {
                 extracted.Add(array[i]);
+            }
             else
+            {
                 kept.Add(array[i]);
+            }
         }
-        
+
         // Shuffle extracted elements
         var shuffled = extracted.OrderBy(_ => random.Next()).ToArray();
-        
+
         return [.. kept, .. shuffled];
     }
 
@@ -405,18 +421,22 @@ public class ArrayPatternGenerator
         var array = Enumerable.Range(1, size).ToArray();
         var extracted = new List<int>();
         var kept = new List<int>();
-        
+
         for (var i = size - 1; i >= 0; i--)
         {
             if (random.NextDouble() < 1.0 / 7.0)
+            {
                 extracted.Add(array[i]);
+            }
             else
+            {
                 kept.Insert(0, array[i]);
+            }
         }
-        
+
         // Shuffle extracted elements
         var shuffled = extracted.OrderBy(_ => random.Next()).ToArray();
-        
+
         return [.. shuffled, .. kept];
     }
 
@@ -427,14 +447,14 @@ public class ArrayPatternGenerator
     {
         var array = Enumerable.Range(1, size).ToArray();
         var blockSize = Math.Max(4, (int)(Math.Sqrt(size) / 2));
-        
+
         for (var i = 0; i + blockSize <= size; i += random.Next(blockSize - 1) + 1)
         {
             var end = Math.Min(i + blockSize, size);
             var block = array[i..end].OrderBy(_ => random.Next()).ToArray();
             Array.Copy(block, 0, array, i, end - i);
         }
-        
+
         return array;
     }
 
@@ -445,11 +465,11 @@ public class ArrayPatternGenerator
     {
         var array = new int[size];
         var sorted = Enumerable.Range(1, size).ToArray();
-        
+
         // Even indices get first half, odd indices get second half
         var evenIdx = 0;
         var oddIdx = 0;
-        
+
         for (var i = 0; i < size; i++)
         {
             if (i % 2 == 0)
@@ -461,7 +481,7 @@ public class ArrayPatternGenerator
                 array[i] = sorted[size / 2 + oddIdx++];
             }
         }
-        
+
         return array;
     }
 
@@ -472,10 +492,10 @@ public class ArrayPatternGenerator
     {
         var array = Enumerable.Range(1, size).OrderBy(_ => random.Next()).ToArray();
         var mid = size / 2;
-        
+
         Array.Sort(array, 0, mid);
         Array.Sort(array, mid, size - mid);
-        
+
         return array;
     }
 
@@ -487,14 +507,14 @@ public class ArrayPatternGenerator
         var array = new int[size];
         var sorted = Enumerable.Range(1, size).ToArray();
         var indices = new[] { 0, 0, 0, 0 };
-        
+
         for (var i = 0; i < size; i++)
         {
             var group = i % 4;
             var sourceIdx = group * (size / 4) + indices[group]++;
             array[i] = sorted[Math.Min(sourceIdx, size - 1)];
         }
-        
+
         return array;
     }
 
@@ -505,10 +525,10 @@ public class ArrayPatternGenerator
     {
         var array = Enumerable.Range(1, size).ToArray();
         var mid = size / 2;
-        
+
         var firstHalf = array[..mid].OrderBy(_ => random.Next()).ToArray();
         var secondHalf = array[mid..].OrderBy(_ => random.Next()).ToArray();
-        
+
         return [.. firstHalf, .. secondHalf];
     }
 
@@ -519,9 +539,9 @@ public class ArrayPatternGenerator
     {
         var array = Enumerable.Range(1, size).ToArray();
         var mid = size / 2;
-        
+
         Array.Reverse(array, mid, size - mid);
-        
+
         return array;
     }
 
@@ -534,7 +554,7 @@ public class ArrayPatternGenerator
         var sorted = Enumerable.Range(1, size).ToArray();
         var left = 0;
         var right = size - 1;
-        
+
         for (var i = 0; i < size; i++)
         {
             if (i % 2 == 0)
@@ -546,7 +566,7 @@ public class ArrayPatternGenerator
                 array[right--] = sorted[i];
             }
         }
-        
+
         return array;
     }
 
@@ -558,15 +578,248 @@ public class ArrayPatternGenerator
         var array = new int[size];
         var sorted = Enumerable.Range(1, size).ToArray();
         var mid = size / 2;
-        
+
         for (var i = 0; i < mid; i++)
         {
             array[i * 2] = sorted[mid + i];
             if (i * 2 + 1 < size)
+            {
                 array[i * 2 + 1] = sorted[i];
+            }
         }
-        
+
         return array;
+    }
+
+    /// <summary>
+    /// 真の最終基数パス（ビットマスクベースの基数ソート）
+    /// </summary>
+    private int[] GenerateRealFinalRadix(int size)
+    {
+        var array = Enumerable.Range(1, size).ToArray();
+
+        // Calculate bit mask (highest bit position)
+        var mask = 0;
+        for (var i = 0; i < size; i++)
+        {
+            while (mask < array[i])
+            {
+                mask = (mask << 1) + 1;
+            }
+        }
+        mask >>= 1;
+
+        // Counting sort by masked bits
+        var counts = new int[mask + 2];
+        var temp = new int[size];
+        Array.Copy(array, temp, size);
+
+        for (var i = 0; i < size; i++)
+        {
+            counts[(array[i] & mask) + 1]++;
+        }
+
+        for (var i = 1; i < counts.Length; i++)
+        {
+            counts[i] += counts[i - 1];
+        }
+
+        var result = new int[size];
+        for (var i = 0; i < size; i++)
+        {
+            result[counts[temp[i] & mask]++] = temp[i];
+        }
+
+        return result;
+    }
+
+    /// <summary>
+    /// 再帰的最終基数パス（再帰的インターリーブ）
+    /// </summary>
+    private int[] GenerateRecursiveFinalRadix(int size)
+    {
+        var array = Enumerable.Range(1, size).ToArray();
+        WeaveRecursive(array, 0, size, 1);
+        return array;
+
+        static void WeaveRecursive(int[] arr, int pos, int length, int gap)
+        {
+            if (length < 2) return;
+
+            var mod2 = length % 2;
+            length -= mod2;
+            var mid = length / 2;
+            var temp = new int[mid];
+
+            // Extract first half
+            for (int i = pos, j = 0; i < pos + gap * mid; i += gap, j++)
+            {
+                temp[j] = arr[i];
+            }
+
+            // Interleave
+            for (int i = pos + gap * mid, j = pos, k = 0; i < pos + gap * length; i += gap, j += 2 * gap, k++)
+            {
+                arr[j] = arr[i];
+                arr[j + gap] = temp[k];
+            }
+
+            WeaveRecursive(arr, pos, mid + mod2, 2 * gap);
+            WeaveRecursive(arr, pos + gap, mid, 2 * gap);
+        }
+    }
+
+    /// <summary>
+    /// 最終バイトニックパス（配列を反転後にPipe Organ配置）
+    /// </summary>
+    private int[] GenerateFinalBitonicPass(int size)
+    {
+        var array = Enumerable.Range(1, size).ToArray();
+
+        // Reverse the array
+        Array.Reverse(array);
+
+        // Create pipe organ pattern (even indices go to front, odd indices go to back reversed)
+        var temp = new int[size];
+        var front = 0;
+        var back = size;
+
+        for (var i = 0; i < size; i++)
+        {
+            if (i % 2 == 0)
+            {
+                temp[front++] = array[i];
+            }
+            else
+            {
+                temp[--back] = array[i];
+            }
+        }
+
+        return temp;
+    }
+
+    /// <summary>
+    /// ビット反転順序（FFT用のビット反転配列）
+    /// </summary>
+    private int[] GenerateBitReversal(int size)
+    {
+        var len = 1 << (int)(Math.Log(size) / Math.Log(2));
+        var temp = Enumerable.Range(1, size).ToArray();
+        var array = new int[size];
+
+        // Initialize with indices
+        for (var i = 0; i < len; i++)
+        {
+            array[i] = i;
+        }
+
+        // Bit reversal permutation
+        var m = 0;
+        var d1 = len >> 1;
+        var d2 = d1 + (d1 >> 1);
+
+        for (var i = 1; i < len - 1; i++)
+        {
+            var j = d1;
+
+            for (int k = i, n = d2; (k & 1) == 0; j -= n, k >>= 1, n >>= 1)
+            { }
+
+            m += j;
+            if (m > i)
+            {
+                (array[i], array[m]) = (array[m], array[i]);
+            }
+        }
+
+        // Map back to values
+        var result = new int[size];
+        for (var i = 0; i < len && i < size; i++)
+        {
+            result[i] = temp[array[i] % size];
+        }
+
+        for (var i = len; i < size; i++)
+        {
+            result[i] = temp[i];
+        }
+
+        return result;
+    }
+
+    /// <summary>
+    /// ブロックごとにランダムシャッフル
+    /// </summary>
+    private int[] GenerateBlockRandomly(int size, Random random)
+    {
+        var array = Enumerable.Range(1, size).ToArray();
+        var blockSize = Pow2LessThanOrEqual((int)Math.Sqrt(size));
+        var adjustedSize = size - (size % blockSize);
+
+        // Fisher-Yates shuffle but on blocks
+        for (var i = 0; i < adjustedSize; i += blockSize)
+        {
+            var randomBlock = random.Next((adjustedSize - i) / blockSize) * blockSize + i;
+            BlockSwap(array, i, randomBlock, blockSize);
+        }
+
+        return array;
+
+        static void BlockSwap(int[] arr, int a, int b, int length)
+        {
+            for (var i = 0; i < length; i++)
+            {
+                (arr[a + i], arr[b + i]) = (arr[b + i], arr[a + i]);
+            }
+        }
+
+        static int Pow2LessThanOrEqual(int value)
+        {
+            var val = 1;
+            while (val <= value)
+            {
+                val <<= 1;
+            }
+            return val >> 1;
+        }
+    }
+
+    /// <summary>
+    /// ブロックごとに反転（ブロック順序を反転）
+    /// </summary>
+    private int[] GenerateBlockReverse(int size)
+    {
+        var array = Enumerable.Range(1, size).ToArray();
+        var blockSize = Pow2LessThanOrEqual((int)Math.Sqrt(size));
+        var adjustedSize = size - (size % blockSize);
+
+        var i = 0;
+        var j = adjustedSize - blockSize;
+
+        while (i < j)
+        {
+            BlockSwap(array, i, j, blockSize);
+            i += blockSize;
+            j -= blockSize;
+        }
+
+        return array;
+
+        static void BlockSwap(int[] arr, int a, int b, int length)
+        {
+            for (var k = 0; k < length; k++)
+            {
+                (arr[a + k], arr[b + k]) = (arr[b + k], arr[a + k]);
+            }
+        }
+
+        static int Pow2LessThanOrEqual(int value)
+        {
+            var val = 1;
+            while (val <= value) val <<= 1;
+            return val >> 1;
+        }
     }
 
     /// <summary>
@@ -576,19 +829,23 @@ public class ArrayPatternGenerator
     {
         var array = new int[size];
         var sorted = Enumerable.Range(1, size).ToArray();
-        
+
         array[0] = sorted[0];
         var left = 1;
         var right = size - 1;
-        
+
         for (var i = 1; i < size; i++)
         {
             if (i % 2 == 1)
+            {
                 array[i] = sorted[right--];
+            }
             else
+            {
                 array[i] = sorted[left++];
+            }
         }
-        
+
         return array;
     }
 
@@ -599,10 +856,12 @@ public class ArrayPatternGenerator
     {
         var values = Enumerable.Range(1, size).OrderBy(_ => random.Next()).ToArray();
         var bst = new SortedSet<int>();
-        
+
         foreach (var value in values)
+        {
             bst.Add(value);
-        
+        }
+
         return [.. bst];
     }
 
@@ -612,25 +871,31 @@ public class ArrayPatternGenerator
     private int[] GenerateHeapified(int size)
     {
         var array = Enumerable.Range(1, size).ToArray();
-        
+
         // Build max-heap
         for (var i = size / 2 - 1; i >= 0; i--)
+        {
             Heapify(array, size, i);
-        
+        }
+
         return array;
-        
+
         static void Heapify(int[] arr, int n, int i)
         {
             var largest = i;
             var left = 2 * i + 1;
             var right = 2 * i + 2;
-            
+
             if (left < n && arr[left] > arr[largest])
+            {
                 largest = left;
-            
+            }
+
             if (right < n && arr[right] > arr[largest])
+            {
                 largest = right;
-            
+            }
+
             if (largest != i)
             {
                 (arr[i], arr[largest]) = (arr[largest], arr[i]);
@@ -646,22 +911,26 @@ public class ArrayPatternGenerator
     {
         var values = new[] { size / 4, size / 2, size * 3 / 4 };
         var counts = new int[3];
-        
+
         // Randomly distribute counts
         for (var i = 0; i < Math.Min(size, 8); i++)
         {
             if (random.NextDouble() < 0.5)
+            {
                 counts[0]++;
+            }
         }
         counts[2] = size - counts[0];
         var remaining = Math.Min(size, 8) - counts[0];
         counts[2] = remaining;
         counts[1] = size - counts[0] - counts[2];
-        
+
         var result = new List<int>();
         for (var i = 0; i < 3; i++)
+        {
             result.AddRange(Enumerable.Repeat(values[i], counts[i]));
-        
+        }
+
         return [.. result];
     }
 
@@ -697,7 +966,7 @@ public class ArrayPatternGenerator
         {
             array[i] = (int)(n * (Math.Sin(c * i) + 1) / 2) + 1;
         }
-        
+
         return array;
     }
 
@@ -714,7 +983,7 @@ public class ArrayPatternGenerator
         {
             array[i] = (int)(n * (Math.Cos(c * i) + 1) / 2) + 1;
         }
-        
+
         return array;
     }
 
@@ -728,18 +997,18 @@ public class ArrayPatternGenerator
         var position = -4.0;
         var constant = 1264;
         var factor = size / 512.0;
-        
+
         for (var i = 0; i < size; i++)
         {
             var square = Math.Pow(position, 2);
             var halfNegSquare = -square / 2.0;
             var numerator = constant * factor * Math.Pow(Math.E, halfNegSquare);
             var denominator = Math.Sqrt(2 * Math.PI);
-            
+
             array[i] = Math.Max(1, (int)(numerator / denominator));
             position += step;
         }
-        
+
         return array;
     }
 
@@ -749,27 +1018,27 @@ public class ArrayPatternGenerator
     private int[] GeneratePerlinNoiseCurve(int size, Random random)
     {
         var array = new int[size];
-        
+
         for (var i = 0; i < size; i++)
         {
             var x = (double)i / size;
             var noise = PerlinNoise(x, random);
             array[i] = Math.Max(1, Math.Min(size, (int)(noise * size)));
         }
-        
+
         return array;
-        
+
         static double PerlinNoise(double x, Random rnd)
         {
             var xi = (int)Math.Floor(x) & 255;
             var xf = x - Math.Floor(x);
             var u = Fade(xf);
-            
+
             var a = rnd.Next(256);
             var b = rnd.Next(256);
-            
+
             return Lerp(u, Grad(a, xf), Grad(b, xf - 1));
-            
+
             static double Fade(double t) => t * t * t * (t * (t * 6 - 15) + 10);
             static double Lerp(double t, double a, double b) => a + t * (b - a);
             static double Grad(int hash, double x) => (hash & 1) == 0 ? x : -x;
@@ -784,31 +1053,36 @@ public class ArrayPatternGenerator
     private int[] GenerateCirclePass(int size, Random random)
     {
         var array = Enumerable.Range(1, size).OrderBy(_ => random.Next()).ToArray();
-        
+
         // Calculate power of 2 >= size
         var n = 1;
-        while (n < size) n *= 2;
-        
+        while (n < size)
+        {
+            n *= 2;
+        }
+
         CircleSortRoutine(array, 0, n - 1, size);
-        
+
         return array;
-        
+
         static void CircleSortRoutine(int[] arr, int lo, int hi, int end)
         {
             if (lo == hi) return;
-            
+
             var low = lo;
             var high = hi;
             var mid = (hi - lo) / 2;
-            
+
             while (lo < hi)
             {
                 if (hi < end && arr[lo] > arr[hi])
+                {
                     (arr[lo], arr[hi]) = (arr[hi], arr[lo]);
+                }
                 lo++;
                 hi--;
             }
-            
+
             CircleSortRoutine(arr, low, low + mid, end);
             if (low + mid + 1 < end)
             {
@@ -823,7 +1097,7 @@ public class ArrayPatternGenerator
     private int[] GeneratePairwisePass(int size, Random random)
     {
         var array = Enumerable.Range(1, size).OrderBy(_ => random.Next()).ToArray();
-        
+
         // Sort adjacent pairs
         for (var i = 1; i < size; i += 2)
         {
@@ -832,7 +1106,7 @@ public class ArrayPatternGenerator
                 (array[i - 1], array[i]) = (array[i], array[i - 1]);
             }
         }
-        
+
         // Use pigeonhole sort on even/odd indices separately
         // Values are 1..size, so we need counts array of size+1
         for (var m = 0; m < 2; m++)
@@ -844,7 +1118,7 @@ public class ArrayPatternGenerator
             {
                 counts[array[k]]++;
             }
-            
+
             // Place elements back
             var j = m;
             for (var i = 1; i <= size; i++)
@@ -857,7 +1131,7 @@ public class ArrayPatternGenerator
                 }
             }
         }
-        
+
         return array;
     }
 
@@ -869,13 +1143,13 @@ public class ArrayPatternGenerator
         var array = Enumerable.Range(1, size).ToArray();
         ReversalRecursive(array, 0, size);
         return array;
-        
+
         static void ReversalRecursive(int[] arr, int a, int b)
         {
             if (b - a < 2) return;
-            
+
             Array.Reverse(arr, a, b - a);
-            
+
             var m = (a + b) / 2;
             ReversalRecursive(arr, a, m);
             ReversalRecursive(arr, m, b);
@@ -890,11 +1164,11 @@ public class ArrayPatternGenerator
         var array = Enumerable.Range(1, size).ToArray();
         GrayCodeRecursive(array, 0, size, false);
         return array;
-        
+
         static void GrayCodeRecursive(int[] arr, int a, int b, bool backward)
         {
             if (b - a < 3) return;
-            
+
             var m = (a + b) / 2;
 
             if (backward)
@@ -905,7 +1179,7 @@ public class ArrayPatternGenerator
             {
                 Array.Reverse(arr, m, b - m);
             }
-            
+
             GrayCodeRecursive(arr, a, m, false);
             GrayCodeRecursive(arr, m, b, true);
         }
@@ -918,7 +1192,7 @@ public class ArrayPatternGenerator
     {
         var triangle = new int[size];
         TriangleRecursive(triangle, 0, size);
-        
+
         var sorted = Enumerable.Range(1, size).ToArray();
         var result = new int[size];
 
@@ -926,25 +1200,32 @@ public class ArrayPatternGenerator
         {
             result[i] = sorted[triangle[i]];
         }
-        
+
         return result;
-        
+
         static void TriangleRecursive(int[] arr, int a, int b)
         {
-            if (b - a < 2) return;
+            if (b - a < 2)
+                return;
             if (b - a == 2)
             {
                 arr[a + 1]++;
                 return;
             }
-            
+
             var h = (b - a) / 3;
             var t1 = (a + a + b) / 3;
             var t2 = (a + b + b + 2) / 3;
-            
-            for (var i = a; i < t1; i++) arr[i] += h;
-            for (var i = t1; i < t2; i++) arr[i] += 2 * h;
-            
+
+            for (var i = a; i < t1; i++)
+            {
+                arr[i] += h;
+            }
+            for (var i = t1; i < t2; i++)
+            {
+                arr[i] += 2 * h;
+            }
+
             TriangleRecursive(arr, a, t1);
             TriangleRecursive(arr, t1, t2);
             TriangleRecursive(arr, t2, b);
@@ -960,7 +1241,7 @@ public class ArrayPatternGenerator
         var j = 0;
         var k = 2;
         var max = 0;
-        
+
         for (var i = 1; i < size; i++, j++)
         {
             if (i == k)
@@ -971,24 +1252,32 @@ public class ArrayPatternGenerator
             triangle[i] = triangle[j] + 1;
             if (triangle[i] > max) max = triangle[i];
         }
-        
+
         // Counting sort to get indices
         var counts = new int[max + 1];
         for (var i = 0; i < size; i++)
+        {
             counts[triangle[i]]++;
-        
+        }
+
         for (var i = 1; i < counts.Length; i++)
+        {
             counts[i] += counts[i - 1];
-        
+        }
+
         for (var i = size - 1; i >= 0; i--)
+        {
             triangle[i] = --counts[triangle[i]];
-        
+        }
+
         var sorted = Enumerable.Range(1, size).ToArray();
         var result = new int[size];
-        
+
         for (var i = 0; i < size; i++)
+        {
             result[i] = sorted[triangle[i]];
-        
+        }
+
         return result;
     }
 
@@ -1000,11 +1289,13 @@ public class ArrayPatternGenerator
     private int[] GenerateQuickSortAdversary(int size)
     {
         var array = Enumerable.Range(1, size).ToArray();
-        
+
         // Swap elements to create worst case for median-of-3 quicksort
         for (int j = size - size % 2 - 2, i = j - 1; i >= 0; i -= 2, j--)
+        {
             (array[i], array[j]) = (array[j], array[i]);
-        
+        }
+
         return array;
     }
 
@@ -1016,7 +1307,7 @@ public class ArrayPatternGenerator
     {
         // Simplified PDQ adversary: reverse sorted with strategic swaps
         var array = Enumerable.Range(1, size).Reverse().ToArray();
-        
+
         // Create imbalance patterns that PDQ struggles with
         var blockSize = Math.Max(1, size / 8);
         for (var i = 0; i + blockSize < size; i += blockSize * 2)
@@ -1024,7 +1315,7 @@ public class ArrayPatternGenerator
             var end = Math.Min(i + blockSize, size);
             Array.Sort(array, i, end - i);
         }
-        
+
         return array;
     }
 
@@ -1037,25 +1328,25 @@ public class ArrayPatternGenerator
         {
             return Enumerable.Range(1, size).Reverse().ToArray();
         }
-        
+
         var blockLen = 1;
         while (blockLen * blockLen < size)
         {
             blockLen *= 2;
         }
-        
+
         var numKeys = (size - 1) / blockLen + 1;
         var keys = blockLen + numKeys;
-        
+
         var array = Enumerable.Range(1, size).OrderBy(_ => random.Next()).ToArray();
-        
+
         // Sort and reverse the keys section
         Array.Sort(array, 0, keys);
         Array.Reverse(array, 0, keys);
-        
+
         // Sort the remaining section
         Array.Sort(array, keys, size - keys);
-        
+
         return array;
     }
 
@@ -1068,12 +1359,12 @@ public class ArrayPatternGenerator
         var temp = new int[size];
         var d = 2;
         var end = 1 << (int)(Math.Log(size - 1) / Math.Log(2) + 1);
-        
+
         while (d <= end)
         {
             var i = 0;
             var dec = 0;
-            
+
             while (i < size)
             {
                 var j = i;
@@ -1083,7 +1374,7 @@ public class ArrayPatternGenerator
                     dec -= d;
                     j++;
                 }
-                
+
                 var k = j;
                 dec += size;
                 while (dec >= d)
@@ -1091,19 +1382,19 @@ public class ArrayPatternGenerator
                     dec -= d;
                     k++;
                 }
-                
+
                 // Reverse merge the sections
                 var mid = j;
                 Array.Copy(array, i, temp, i, mid - i);
                 Array.Copy(array, mid, temp, mid, k - mid);
                 Array.Reverse(temp, i, mid - i);
                 Array.Copy(temp, i, array, i, k - i);
-                
+
                 i = k;
             }
             d *= 2;
         }
-        
+
         return array;
     }
 }
