@@ -947,19 +947,32 @@ public class ArrayPatternGenerator
     }
 
     /// <summary>
-    /// 二分探索木中順走査（ランダム挿入からの中順走査結果）
+    /// 二分探索木レベル順走査（Level-Order Traversal / BFS）
+    /// ソート済み配列からBSTを構築し、レベル順で再配置
     /// </summary>
     private int[] GenerateBstTraversal(int size, Random random)
     {
-        var values = Enumerable.Range(1, size).OrderBy(_ => random.Next()).ToArray();
-        var bst = new SortedSet<int>();
-
-        foreach (var value in values)
+        var temp = Enumerable.Range(1, size).ToArray();
+        var array = new int[size];
+        
+        // BFS (Level-Order Traversal) using queue
+        var queue = new Queue<(int start, int end)>();
+        queue.Enqueue((0, size));
+        var i = 0;
+        
+        while (queue.Count > 0)
         {
-            bst.Add(value);
+            var (start, end) = queue.Dequeue();
+            if (start != end)
+            {
+                var mid = (start + end) / 2;
+                array[i++] = temp[mid];
+                queue.Enqueue((start, mid));
+                queue.Enqueue((mid + 1, end));
+            }
         }
-
-        return [.. bst];
+        
+        return array;
     }
 
     /// <summary>
