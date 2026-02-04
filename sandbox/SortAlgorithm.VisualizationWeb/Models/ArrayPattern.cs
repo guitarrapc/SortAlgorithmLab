@@ -65,6 +65,11 @@ public enum ArrayPattern
     ShuffledHalf,
 
     /// <summary>
+    /// 偶数値逆順・奇数値順序（偶数の値を逆順に、奇数の値を順序通りに配置）
+    /// </summary>
+    EvensReversedOddsInOrder,
+
+    /// <summary>
     /// ダブルレイヤー（偶数インデックスを対称位置とスワップ）
     /// </summary>
     DoubleLayered,

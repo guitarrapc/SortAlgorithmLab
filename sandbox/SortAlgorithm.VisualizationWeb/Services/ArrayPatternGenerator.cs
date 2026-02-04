@@ -34,6 +34,7 @@ public class ArrayPatternGenerator
             ArrayPattern.Noisy => GenerateNoisy(size, random),
             ArrayPattern.ShuffledOdds => GenerateShuffledOdds(size, random),
             ArrayPattern.ShuffledHalf => GenerateShuffledHalf(size, random),
+            ArrayPattern.EvensReversedOddsInOrder => GenerateEvensReversedOddsInOrder(size),
             ArrayPattern.DoubleLayered => GenerateDoubleLayered(size),
 
             // Merge Patterns
@@ -135,6 +136,7 @@ public class ArrayPatternGenerator
             ArrayPattern.Noisy => "🔊 Noisy (Block Shuffled)",
             ArrayPattern.ShuffledOdds => "🔢 Shuffled Odds Only",
             ArrayPattern.ShuffledHalf => "📊 Shuffled Half (Front Sorted)",
+            ArrayPattern.EvensReversedOddsInOrder => "⇅ Evens Reversed, Odds In-Order",
             ArrayPattern.DoubleLayered => "🔄 Double Layered (Symmetric Swap)",
 
             // Merge Patterns
@@ -525,6 +527,57 @@ public class ArrayPatternGenerator
         for (var i = 0; i < size / 2; i += 2)
         {
             (array[i], array[size - i - 1]) = (array[size - i - 1], array[i]);
+        }
+
+        return array;
+    }
+
+    /// <summary>
+    /// 偶数値逆順・奇数値順序（偶数の値を逆順に、奇数の値を順序通りに配置）
+    /// </summary>
+    private int[] GenerateEvensReversedOddsInOrder(int size)
+    {
+        var evens = new List<int>();
+        var odds = new List<int>();
+
+        // Separate even and odd values
+        for (var i = 1; i <= size; i++)
+        {
+            if (i % 2 == 0)
+            {
+                evens.Add(i);
+            }
+            else
+            {
+                odds.Add(i);
+            }
+        }
+
+        // Reverse even values
+        evens.Reverse();
+
+        // Interleave odds (in order) and evens (reversed)
+        var array = new int[size];
+        var evenIdx = 0;
+        var oddIdx = 0;
+
+        for (var i = 0; i < size; i++)
+        {
+            if ((i + 1) % 2 == 0 && evenIdx < evens.Count)
+            {
+                // Position for even value
+                array[i] = evens[evenIdx++];
+            }
+            else if (oddIdx < odds.Count)
+            {
+                // Position for odd value
+                array[i] = odds[oddIdx++];
+            }
+            else if (evenIdx < evens.Count)
+            {
+                // Fill remaining with evens
+                array[i] = evens[evenIdx++];
+            }
         }
 
         return array;
