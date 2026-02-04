@@ -26,7 +26,6 @@ public class ArrayPatternGenerator
             ArrayPattern.Reversed => GenerateReversed(size),
 
             // Nearly Sorted
-            ArrayPattern.NaiveShuffle => GenerateNaiveShuffle(size, random),
             ArrayPattern.SingleElementMoved => GenerateSingleElementMoved(size, random),
             ArrayPattern.AlmostSorted => GenerateAlmostSorted(size, random),
             ArrayPattern.NearlySorted => GenerateNearlySorted(size, random),
@@ -129,7 +128,6 @@ public class ArrayPatternGenerator
             ArrayPattern.Reversed => "↘️ Reversed (Descending)",
 
             // Nearly Sorted
-            ArrayPattern.NaiveShuffle => "🔀 Naive Shuffle",
             ArrayPattern.SingleElementMoved => "➡️ Single Element Moved",
             ArrayPattern.AlmostSorted => "≈ Almost Sorted (5% Pair Swaps)",
             ArrayPattern.NearlySorted => "≈ Nearly Sorted (10% Random)",
@@ -241,25 +239,6 @@ public class ArrayPatternGenerator
     private int[] GenerateReversed(int size)
     {
         return Enumerable.Range(1, size).Reverse().ToArray();
-    }
-
-    /// <summary>
-    /// ナイーブシャッフル（各要素を順番にランダム位置とスワップ）
-    /// Fisher-Yatesの間違った実装パターン
-    /// </summary>
-    private int[] GenerateNaiveShuffle(int size, Random random)
-    {
-        var array = Enumerable.Range(1, size).ToArray();
-
-        // Naive shuffle: swap each element with a random position (including itself)
-        // This is NOT the correct Fisher-Yates algorithm
-        for (var i = 0; i < size; i++)
-        {
-            var randomIndex = random.Next(size);
-            (array[i], array[randomIndex]) = (array[randomIndex], array[i]);
-        }
-
-        return array;
     }
 
     /// <summary>
