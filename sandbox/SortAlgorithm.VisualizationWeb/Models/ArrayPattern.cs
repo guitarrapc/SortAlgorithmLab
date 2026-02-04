@@ -70,6 +70,11 @@ public enum ArrayPattern
     EvensReversedOddsInOrder,
 
     /// <summary>
+    /// 偶数値順序・奇数値スクランブル（偶数の値を順序通りに、奇数の値をスクランブルして配置）
+    /// </summary>
+    EvensInOrderScrambledOdds,
+
+    /// <summary>
     /// ダブルレイヤー（偶数インデックスを対称位置とスワップ）
     /// </summary>
     DoubleLayered,

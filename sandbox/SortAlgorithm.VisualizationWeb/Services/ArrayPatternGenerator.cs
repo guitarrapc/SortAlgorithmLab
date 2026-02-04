@@ -35,6 +35,7 @@ public class ArrayPatternGenerator
             ArrayPattern.ShuffledOdds => GenerateShuffledOdds(size, random),
             ArrayPattern.ShuffledHalf => GenerateShuffledHalf(size, random),
             ArrayPattern.EvensReversedOddsInOrder => GenerateEvensReversedOddsInOrder(size),
+            ArrayPattern.EvensInOrderScrambledOdds => GenerateEvensInOrderScrambledOdds(size, random),
             ArrayPattern.DoubleLayered => GenerateDoubleLayered(size),
 
             // Merge Patterns
@@ -111,7 +112,7 @@ public class ArrayPatternGenerator
             ArrayPattern.GrailSortAdversary => GenerateGrailSortAdversary(size, random),
             ArrayPattern.ShuffleMergeAdversary => GenerateShuffleMergeAdversary(size),
 
-            _ => GenerateRandom(size, random)
+            _ => throw new NotImplementedException($"{nameof(pattern)} not implemented")
         };
     }
 
@@ -136,7 +137,8 @@ public class ArrayPatternGenerator
             ArrayPattern.Noisy => "🔊 Noisy (Block Shuffled)",
             ArrayPattern.ShuffledOdds => "🔢 Shuffled Odds Only",
             ArrayPattern.ShuffledHalf => "📊 Shuffled Half (Front Sorted)",
-            ArrayPattern.EvensReversedOddsInOrder => "⇅ Evens Reversed, Odds In-Order",
+            ArrayPattern.EvensReversedOddsInOrder => "🎲 Evens Reversed, Odds In-Order",
+            ArrayPattern.EvensInOrderScrambledOdds => "🎲 Evens In-Order, Scrambled Odds",
             ArrayPattern.DoubleLayered => "🔄 Double Layered (Symmetric Swap)",
 
             // Merge Patterns
@@ -557,6 +559,61 @@ public class ArrayPatternGenerator
         evens.Reverse();
 
         // Interleave odds (in order) and evens (reversed)
+        var array = new int[size];
+        var evenIdx = 0;
+        var oddIdx = 0;
+
+        for (var i = 0; i < size; i++)
+        {
+            if ((i + 1) % 2 == 0 && evenIdx < evens.Count)
+            {
+                // Position for even value
+                array[i] = evens[evenIdx++];
+            }
+            else if (oddIdx < odds.Count)
+            {
+                // Position for odd value
+                array[i] = odds[oddIdx++];
+            }
+            else if (evenIdx < evens.Count)
+            {
+                // Fill remaining with evens
+                array[i] = evens[evenIdx++];
+            }
+        }
+
+        return array;
+    }
+
+    /// <summary>
+    /// 偶数値順序・奇数値スクランブル（偶数の値を順序通りに、奇数の値をスクランブルして配置）
+    /// </summary>
+    private int[] GenerateEvensInOrderScrambledOdds(int size, Random random)
+    {
+        var evens = new List<int>();
+        var odds = new List<int>();
+
+        // Separate even and odd values
+        for (var i = 1; i <= size; i++)
+        {
+            if (i % 2 == 0)
+            {
+                evens.Add(i);
+            }
+            else
+            {
+                odds.Add(i);
+            }
+        }
+
+        // Shuffle odd values using Fisher-Yates
+        for (var i = odds.Count - 1; i > 0; i--)
+        {
+            var j = random.Next(i + 1);
+            (odds[i], odds[j]) = (odds[j], odds[i]);
+        }
+
+        // Interleave evens (in order) and odds (scrambled)
         var array = new int[size];
         var evenIdx = 0;
         var oddIdx = 0;
