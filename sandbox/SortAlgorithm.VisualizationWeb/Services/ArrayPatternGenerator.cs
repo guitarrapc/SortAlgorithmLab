@@ -68,7 +68,6 @@ public class ArrayPatternGenerator
             ArrayPattern.LogarithmicSlopes => GenerateLogarithmicSlopes(size),
             ArrayPattern.HalfRotation => GenerateHalfRotation(size),
             ArrayPattern.Heapified => GenerateHeapified(size),
-            ArrayPattern.SmoothHeapified => GenerateSmoothHeapified(size),
             ArrayPattern.PoplarHeapified => GeneratePoplarHeapified(size),
             ArrayPattern.TriangularHeapified => GenerateTriangularHeapified(size),
 
@@ -170,7 +169,6 @@ public class ArrayPatternGenerator
             ArrayPattern.LogarithmicSlopes => "📈 Logarithmic Slopes",
             ArrayPattern.HalfRotation => "🔄 Half Rotation",
             ArrayPattern.Heapified => "📚 Heapified (Max-Heap)",
-            ArrayPattern.SmoothHeapified => "📚 Smooth Heapified",
             ArrayPattern.PoplarHeapified => "📚 Poplar Heapified",
             ArrayPattern.TriangularHeapified => "📚 Triangular Heapified",
 
@@ -1089,86 +1087,6 @@ public class ArrayPatternGenerator
             {
                 (arr[i], arr[largest]) = (arr[largest], arr[i]);
                 Heapify(arr, n, largest);
-            }
-        }
-    }
-
-    /// <summary>
-    /// スムースヒープ化済み（Smooth Sortのヒープ構造）
-    /// Leonardo数列ベースのヒープ（簡略版）
-    /// </summary>
-    private int[] GenerateSmoothHeapified(int size)
-    {
-        var array = Enumerable.Range(1, size).ToArray();
-
-        // Shuffle first to create a non-sorted starting point
-        var random = new Random(42); // Use seed for reproducibility
-        for (var i = size - 1; i > 0; i--)
-        {
-            var j = random.Next(i + 1);
-            (array[i], array[j]) = (array[j], array[i]);
-        }
-
-        // Build Leonardo heaps
-        // Leonardo numbers: 1, 1, 3, 5, 9, 15, 25, 41...
-        var leonardo = GenerateLeonardoNumbers(size);
-
-        // Process array in sections based on Leonardo numbers
-        var pos = 0;
-        foreach (var leonardoSize in leonardo)
-        {
-            if (pos + leonardoSize > size) break;
-
-            var end = Math.Min(pos + leonardoSize, size);
-
-            // Build max-heap for this Leonardo section
-            for (var i = (end - pos) / 2 - 1; i >= 0; i--)
-            {
-                LeonardoHeapify(array, pos, end, pos + i);
-            }
-
-            pos = end;
-        }
-
-        // Heapify remaining elements
-        if (pos < size)
-        {
-            for (var i = (size - pos) / 2 - 1; i >= 0; i--)
-            {
-                LeonardoHeapify(array, pos, size, pos + i);
-            }
-        }
-
-        return array;
-
-        static int[] GenerateLeonardoNumbers(int max)
-        {
-            var nums = new List<int> { 1, 1 };
-            while (nums[^1] < max)
-            {
-                var next = nums[^1] + nums[^2] + 1;
-                if (next > max) break;
-                nums.Add(next);
-            }
-            return [.. nums];
-        }
-
-        static void LeonardoHeapify(int[] arr, int start, int end, int i)
-        {
-            var largest = i;
-            var left = start + 2 * (i - start) + 1;
-            var right = start + 2 * (i - start) + 2;
-
-            if (left < end && arr[left] > arr[largest])
-                largest = left;
-
-            if (right < end && arr[right] > arr[largest])
-                largest = right;
-
-            if (largest != i)
-            {
-                (arr[i], arr[largest]) = (arr[largest], arr[i]);
-                LeonardoHeapify(arr, start, end, largest);
             }
         }
     }

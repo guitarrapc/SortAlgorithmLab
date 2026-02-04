@@ -195,11 +195,6 @@ public enum ArrayPattern
     Heapified,
 
     /// <summary>
-    /// スムースヒープ化済み（Smooth Sortのヒープ構造）
-    /// </summary>
-    SmoothHeapified,
-
-    /// <summary>
     /// ポプラヒープ化済み（Poplar Heapソート用）
     /// </summary>
     PoplarHeapified,
