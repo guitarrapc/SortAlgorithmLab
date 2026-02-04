@@ -575,21 +575,25 @@ public class ArrayPatternGenerator
 
     /// <summary>
     /// ソートギア状（4-wayインターリーブでソート済み）
+    /// ArrayVのSawtoothパターン：4つの連続した上昇グループを生成
     /// </summary>
     private int[] GenerateSawtooth(int size)
     {
-        var array = new int[size];
         var sorted = Enumerable.Range(1, size).ToArray();
-        var indices = new[] { 0, 0, 0, 0 };
+        var result = new int[size];
+        const int count = 4;
+        var k = 0;
 
-        for (var i = 0; i < size; i++)
+        // 4-wayインターリーブ：各グループの要素を順番に収集
+        for (var j = 0; j < count; j++)
         {
-            var group = i % 4;
-            var sourceIdx = group * (size / 4) + indices[group]++;
-            array[i] = sorted[Math.Min(sourceIdx, size - 1)];
+            for (var i = j; i < size; i += count)
+            {
+                result[k++] = sorted[i];
+            }
         }
 
-        return array;
+        return result;
     }
 
     /// <summary>
