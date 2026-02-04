@@ -94,6 +94,16 @@
                 </div>
 
                 <div class="stat-item">
+                    <span class="stat-label">
+                        Auto Switch to Recommended Size
+                    </span>
+                    <label class="toggle-switch">
+                        <input type="checkbox" @bind="_autoSwitchToRecommendedSize" />
+                        <span class="toggle-slider"></span>
+                    </label>
+                </div>
+
+                <div class="stat-item">
                     <span class="stat-label">Array Pattern</span>
                     <select @bind="SelectedPattern" style="width: 100%;">
                         @foreach (ArrayPattern pattern in Enum.GetValues(typeof(ArrayPattern)))
@@ -221,6 +231,9 @@ private string _runningAlgorithmName = string.Empty;
     private bool _isComparisonMode = false;
     private bool _isComparisonPlaying = false;
     private bool _statsTableOpen = false;
+    
+    // 推奨サイズへの自動切り替え
+    private bool _autoSwitchToRecommendedSize = false;
 
     private int[] AvailableSizes = [8, 16, 32, 64, 128, 256, 512, 1024, 2048, 4096];
 
@@ -292,7 +305,10 @@ private string _runningAlgorithmName = string.Empty;
 
     private void OnAlgorithmChanged()
     {
-        SetRecommendedSize();
+        if (_autoSwitchToRecommendedSize)
+        {
+            SetRecommendedSize();
+        }
         StateHasChanged();
     }
 
