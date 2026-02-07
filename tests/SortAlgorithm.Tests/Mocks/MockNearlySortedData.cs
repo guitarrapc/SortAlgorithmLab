@@ -1,23 +1,26 @@
-﻿namespace SortAlgorithm.Tests;
+﻿using SortAlgorithm.Utils;
+
+namespace SortAlgorithm.Tests;
 
 public static class MockNearlySortedData
 {
     public static IEnumerable<Func<InputSample<int>>> Generate()
     {
+        var random = new Random(42);
         yield return () => new InputSample<int>()
         {
             InputType = InputType.NearlySorted,
-            Samples = Enumerable.Range(0, 90).Concat(Enumerable.Range(0, 100).Sample(10)).ToArray()
+            Samples = ArrayPatterns.GenerateNearlySorted(100, random),
         };
         yield return () => new InputSample<int>()
         {
             InputType = InputType.NearlySorted,
-            Samples = Enumerable.Range(0, 990).Concat(Enumerable.Range(0, 1000).Sample(10)).ToArray()
+            Samples = ArrayPatterns.GenerateNearlySorted(1000, random),
         };
         yield return () => new InputSample<int>()
         {
             InputType = InputType.NearlySorted,
-            Samples = Enumerable.Range(0, 9990).Concat(Enumerable.Range(0, 10000).Sample(10)).ToArray()
+            Samples = ArrayPatterns.GenerateNearlySorted(10000, random),
         };
     }
 }

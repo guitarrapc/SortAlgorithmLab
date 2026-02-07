@@ -212,7 +212,7 @@ public enum ArrayPattern
     // Duplicate Patterns
 
     /// <summary>
-    /// 少数ユニーク値（3種類の値: 25%, 50%, 75%位置）
+    /// 少数ユニーク値（16種類の値）
     /// </summary>
     FewUnique,
 
@@ -220,6 +220,11 @@ public enum ArrayPattern
     /// 重複多数（ユニーク値は配列サイズの20%程度）
     /// </summary>
     ManyDuplicates,
+
+    /// <summary>
+    /// 偏った重複（90%が同一値、残りはユニーク値）
+    /// </summary>
+    SkewedDuplicates,
 
     /// <summary>
     /// 全要素同一（全て同じ値）

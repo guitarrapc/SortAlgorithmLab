@@ -76,6 +76,7 @@ public class ArrayPatternGenerator
             // Duplicates
             ArrayPattern.FewUnique => ArrayPatterns.GenerateFewUnique(size, random),
             ArrayPattern.ManyDuplicates => ArrayPatterns.GenerateManyDuplicates(size, random),
+            ArrayPattern.SkewedDuplicates => ArrayPatterns.GenerateSkewedDuplicates(size, random),
             ArrayPattern.AllEqual => ArrayPatterns.GenerateAllEqual(size),
 
             // Distributions
@@ -153,7 +154,6 @@ public class ArrayPatternGenerator
 
             // Shape
             ArrayPattern.PipeOrgan => "🎹 Pipe Organ",
-            ArrayPattern.MountainShape => "⛰️ Mountain Shape",
             ArrayPattern.ValleyShape => "🏞️ Valley Shape",
 
             // Radix/Interleaved
@@ -177,8 +177,9 @@ public class ArrayPatternGenerator
             ArrayPattern.TriangularHeapified => "📚 Triangular Heapified",
 
             // Duplicates
-            ArrayPattern.FewUnique => "🔢 Few Unique (3 Values)",
+            ArrayPattern.FewUnique => "🔢 Few Unique (16 Values)",
             ArrayPattern.ManyDuplicates => "🔢 Many Duplicates (20%)",
+            ArrayPattern.SkewedDuplicates => "🔢 Skewed Duplicates",
             ArrayPattern.AllEqual => "⚪ All Equal",
 
             // Distributions

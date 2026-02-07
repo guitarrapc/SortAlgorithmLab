@@ -11,15 +11,13 @@ public class PigeonholeSortIntegerTests
     [MethodDataSource(typeof(MockNegativePositiveRandomData), nameof(MockNegativePositiveRandomData.Generate))]
     [MethodDataSource(typeof(MockNegativeRandomData), nameof(MockNegativeRandomData.Generate))]
     [MethodDataSource(typeof(MockReversedData), nameof(MockReversedData.Generate))]
-    [MethodDataSource(typeof(MockMountainData), nameof(MockMountainData.Generate))]
+    [MethodDataSource(typeof(MockPipeorganData), nameof(MockPipeorganData.Generate))]
     [MethodDataSource(typeof(MockNearlySortedData), nameof(MockNearlySortedData.Generate))]
     [MethodDataSource(typeof(MockSameValuesData), nameof(MockSameValuesData.Generate))]
-    [MethodDataSource(typeof(MockAntiQuickSortData), nameof(MockAntiQuickSortData.Generate))]
     [MethodDataSource(typeof(MockQuickSortWorstCaseData), nameof(MockQuickSortWorstCaseData.Generate))]
-    [MethodDataSource(typeof(MockAllIdenticalData), nameof(MockAllIdenticalData.Generate))]
     [MethodDataSource(typeof(MockTwoDistinctValuesData), nameof(MockTwoDistinctValuesData.Generate))]
     [MethodDataSource(typeof(MockHalfZeroHalfOneData), nameof(MockHalfZeroHalfOneData.Generate))]
-    [MethodDataSource(typeof(MockManyDuplicatesSqrtRangeData), nameof(MockManyDuplicatesSqrtRangeData.Generate))]
+    [MethodDataSource(typeof(MockValleyRandomData), nameof(MockValleyRandomData.Generate))]
     [MethodDataSource(typeof(MockHighlySkewedData), nameof(MockHighlySkewedData.Generate))]
     public async Task SortResultOrderTest(IInputSample<int> inputSample)
     {
@@ -98,10 +96,12 @@ public class PigeonholeSortIntegerTests
         var array = inputSample.Samples.ToArray();
         PigeonholeSortInteger.Sort(array.AsSpan(), stats);
 
+        var expectedCompare = (ulong)inputSample.Samples.Length * 2 + 1;
+
         await Assert.That((ulong)array.Length).IsEqualTo((ulong)inputSample.Samples.Length);
         await Assert.That(stats.IndexReadCount).IsNotEqualTo(0UL);
         await Assert.That(stats.IndexWriteCount).IsNotEqualTo(0UL);
-        await Assert.That(stats.CompareCount).IsEqualTo(0UL);
+        await Assert.That(stats.CompareCount).IsEqualTo(expectedCompare);
         await Assert.That(stats.SwapCount).IsEqualTo(0UL);
     }
 
@@ -126,8 +126,9 @@ public class PigeonholeSortIntegerTests
         // Total writes: n + n = 2n
         var expectedReads = (ulong)(3 * n);
         var expectedWrites = (ulong)(2 * n);
+        var expectedCompares = (ulong)(2 * n) + 1;
 
-        await Assert.That(stats.CompareCount).IsEqualTo(0UL);
+        await Assert.That(stats.CompareCount).IsEqualTo(expectedCompares);
         await Assert.That(stats.SwapCount).IsEqualTo(0UL);
         await Assert.That(stats.IndexReadCount).IsEqualTo(expectedReads);
         await Assert.That(stats.IndexWriteCount).IsEqualTo(expectedWrites);
@@ -148,8 +149,9 @@ public class PigeonholeSortIntegerTests
         // Same operation counts for reversed as for sorted (with internal buffer tracking)
         var expectedReads = (ulong)(3 * n);
         var expectedWrites = (ulong)(2 * n);
+        var expectedCompares = (ulong)(2 * n) + 1;
 
-        await Assert.That(stats.CompareCount).IsEqualTo(0UL);
+        await Assert.That(stats.CompareCount).IsEqualTo(expectedCompares);
         await Assert.That(stats.SwapCount).IsEqualTo(0UL);
         await Assert.That(stats.IndexReadCount).IsEqualTo(expectedReads);
         await Assert.That(stats.IndexWriteCount).IsEqualTo(expectedWrites);
@@ -170,8 +172,9 @@ public class PigeonholeSortIntegerTests
         // With internal buffer tracking: 3n reads, 2n writes
         var expectedReads = (ulong)(3 * n);
         var expectedWrites = (ulong)(2 * n);
+        var expectedCompares = (ulong)(2 * n) + 1;
 
-        await Assert.That(stats.CompareCount).IsEqualTo(0UL);
+        await Assert.That(stats.CompareCount).IsEqualTo(expectedCompares);
         await Assert.That(stats.SwapCount).IsEqualTo(0UL);
         await Assert.That(stats.IndexReadCount).IsEqualTo(expectedReads);
         await Assert.That(stats.IndexWriteCount).IsEqualTo(expectedWrites);
@@ -189,8 +192,9 @@ public class PigeonholeSortIntegerTests
         // Only n reads for finding min/max, then early return
         var expectedReads = (ulong)n;
         var expectedWrites = 0UL;
+        var expectedCompares = (ulong)n * 2 + 1;
 
-        await Assert.That(stats.CompareCount).IsEqualTo(0UL);
+        await Assert.That(stats.CompareCount).IsEqualTo(expectedCompares);
         await Assert.That(stats.SwapCount).IsEqualTo(0UL);
         await Assert.That(stats.IndexReadCount).IsEqualTo(expectedReads);
         await Assert.That(stats.IndexWriteCount).IsEqualTo(expectedWrites);

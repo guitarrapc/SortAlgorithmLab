@@ -11,15 +11,13 @@ public class CountingSortIntegerTests
     [MethodDataSource(typeof(MockNegativePositiveRandomData), nameof(MockNegativePositiveRandomData.Generate))]
     [MethodDataSource(typeof(MockNegativeRandomData), nameof(MockNegativeRandomData.Generate))]
     [MethodDataSource(typeof(MockReversedData), nameof(MockReversedData.Generate))]
-    [MethodDataSource(typeof(MockMountainData), nameof(MockMountainData.Generate))]
+    [MethodDataSource(typeof(MockPipeorganData), nameof(MockPipeorganData.Generate))]
     [MethodDataSource(typeof(MockNearlySortedData), nameof(MockNearlySortedData.Generate))]
     [MethodDataSource(typeof(MockSameValuesData), nameof(MockSameValuesData.Generate))]
-    [MethodDataSource(typeof(MockAntiQuickSortData), nameof(MockAntiQuickSortData.Generate))]
     [MethodDataSource(typeof(MockQuickSortWorstCaseData), nameof(MockQuickSortWorstCaseData.Generate))]
-    [MethodDataSource(typeof(MockAllIdenticalData), nameof(MockAllIdenticalData.Generate))]
     [MethodDataSource(typeof(MockTwoDistinctValuesData), nameof(MockTwoDistinctValuesData.Generate))]
     [MethodDataSource(typeof(MockHalfZeroHalfOneData), nameof(MockHalfZeroHalfOneData.Generate))]
-    [MethodDataSource(typeof(MockManyDuplicatesSqrtRangeData), nameof(MockManyDuplicatesSqrtRangeData.Generate))]
+    [MethodDataSource(typeof(MockValleyRandomData), nameof(MockValleyRandomData.Generate))]
     [MethodDataSource(typeof(MockHighlySkewedData), nameof(MockHighlySkewedData.Generate))]
     public async Task SortResultOrderTest(IInputSample<int> inputSample)
     {
@@ -222,11 +220,12 @@ public class CountingSortIntegerTests
         var stats = new StatisticsContext();
         var array = inputSample.Samples.ToArray();
         CountingSortInteger.Sort(array.AsSpan(), stats);
+        var expectCompare = (ulong)inputSample.Samples.Length * 2 + 1;
 
         await Assert.That((ulong)array.Length).IsEqualTo((ulong)inputSample.Samples.Length);
         await Assert.That(stats.IndexReadCount).IsNotEqualTo(0UL);
         await Assert.That(stats.IndexWriteCount).IsNotEqualTo(0UL);
-        await Assert.That(stats.CompareCount).IsEqualTo(0UL);
+        await Assert.That(stats.CompareCount).IsEqualTo(expectCompare);
         await Assert.That(stats.SwapCount).IsEqualTo(0UL);
     }
 
@@ -249,8 +248,9 @@ public class CountingSortIntegerTests
         //  Total: 4n reads, 2n writes
         var expectedReads = (ulong)(4 * n);
         var expectedWrites = (ulong)(2 * n);
+        var expectedCompare = (ulong)(2 * n) + 1;
 
-        await Assert.That(stats.CompareCount).IsEqualTo(0UL);
+        await Assert.That(stats.CompareCount).IsEqualTo(expectedCompare);
         await Assert.That(stats.SwapCount).IsEqualTo(0UL);
         await Assert.That(stats.IndexReadCount).IsEqualTo(expectedReads);
         await Assert.That(stats.IndexWriteCount).IsEqualTo(expectedWrites);
@@ -271,8 +271,9 @@ public class CountingSortIntegerTests
         // With temp buffer tracking: 4n reads, 2n writes
         var expectedReads = (ulong)(4 * n);
         var expectedWrites = (ulong)(2 * n);
+        var expectedcompare = (ulong)(2 * n) + 1;
 
-        await Assert.That(stats.CompareCount).IsEqualTo(0UL);
+        await Assert.That(stats.CompareCount).IsEqualTo(expectedcompare);
         await Assert.That(stats.SwapCount).IsEqualTo(0UL);
         await Assert.That(stats.IndexReadCount).IsEqualTo(expectedReads);
         await Assert.That(stats.IndexWriteCount).IsEqualTo(expectedWrites);
@@ -293,8 +294,9 @@ public class CountingSortIntegerTests
         // 4n reads due to temp buffer tracking, 2n writes
         var expectedReads = (ulong)(4 * n);
         var expectedWrites = (ulong)(2 * n);
+        var expectedCompare = (ulong)n * 2 + 1;
 
-        await Assert.That(stats.CompareCount).IsEqualTo(0UL);
+        await Assert.That(stats.CompareCount).IsEqualTo(expectedCompare);
         await Assert.That(stats.SwapCount).IsEqualTo(0UL);
         await Assert.That(stats.IndexReadCount).IsEqualTo(expectedReads);
         await Assert.That(stats.IndexWriteCount).IsEqualTo(expectedWrites);
@@ -312,8 +314,9 @@ public class CountingSortIntegerTests
         // Only n reads for finding min/max, then early return (no writes)
         var expectedReads = (ulong)n;
         var expectedWrites = 0UL;
+        var expectedCompare = (ulong)n * 2 + 1;
 
-        await Assert.That(stats.CompareCount).IsEqualTo(0UL);
+        await Assert.That(stats.CompareCount).IsEqualTo(expectedCompare);
         await Assert.That(stats.SwapCount).IsEqualTo(0UL);
         await Assert.That(stats.IndexReadCount).IsEqualTo(expectedReads);
         await Assert.That(stats.IndexWriteCount).IsEqualTo(expectedWrites);

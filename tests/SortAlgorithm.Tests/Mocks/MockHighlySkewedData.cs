@@ -1,4 +1,6 @@
-﻿namespace SortAlgorithm.Tests;
+﻿using SortAlgorithm.Utils;
+
+namespace SortAlgorithm.Tests;
 
 /// <summary>
 /// Test data with highly skewed distribution where most elements have the same value.
@@ -11,32 +13,20 @@ public static class MockHighlySkewedData
     {
         var random = new Random(42);
 
-        // Small array - 90% are value 1, 10% are random
         yield return () => new InputSample<int>()
         {
             InputType = InputType.HighlySkewed,
-            Samples = Enumerable.Range(0, 100).Select(_ => random.Next(10) < 9 ? 1 : random.Next(100)).ToArray()
+            Samples = ArrayPatterns.GenerateSkewedDuplicates(100, random),
         };
-
-        // Medium array - 90% are value 1, 10% are random
         yield return () => new InputSample<int>()
         {
             InputType = InputType.HighlySkewed,
-            Samples = Enumerable.Range(0, 500).Select(_ => random.Next(10) < 9 ? 1 : random.Next(500)).ToArray()
+            Samples = ArrayPatterns.GenerateSkewedDuplicates(1000, random),
         };
-
-        // Large array - 90% are value 1, 10% are random
         yield return () => new InputSample<int>()
         {
             InputType = InputType.HighlySkewed,
-            Samples = Enumerable.Range(0, 1000).Select(_ => random.Next(10) < 9 ? 1 : random.Next(1000)).ToArray()
-        };
-
-        // Very large array - 90% are value 1, 10% are random
-        yield return () => new InputSample<int>()
-        {
-            InputType = InputType.HighlySkewed,
-            Samples = Enumerable.Range(0, 10000).Select(_ => random.Next(10) < 9 ? 1 : random.Next(10000)).ToArray()
+            Samples = ArrayPatterns.GenerateSkewedDuplicates(10000, random),
         };
     }
 }

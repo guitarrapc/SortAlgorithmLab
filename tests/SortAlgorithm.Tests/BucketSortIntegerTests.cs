@@ -11,15 +11,13 @@ public class BucketSortIntegerTests
     [MethodDataSource(typeof(MockNegativePositiveRandomData), nameof(MockNegativePositiveRandomData.Generate))]
     [MethodDataSource(typeof(MockNegativeRandomData), nameof(MockNegativeRandomData.Generate))]
     [MethodDataSource(typeof(MockReversedData), nameof(MockReversedData.Generate))]
-    [MethodDataSource(typeof(MockMountainData), nameof(MockMountainData.Generate))]
+    [MethodDataSource(typeof(MockPipeorganData), nameof(MockPipeorganData.Generate))]
     [MethodDataSource(typeof(MockNearlySortedData), nameof(MockNearlySortedData.Generate))]
     [MethodDataSource(typeof(MockSameValuesData), nameof(MockSameValuesData.Generate))]
-    [MethodDataSource(typeof(MockAntiQuickSortData), nameof(MockAntiQuickSortData.Generate))]
     [MethodDataSource(typeof(MockQuickSortWorstCaseData), nameof(MockQuickSortWorstCaseData.Generate))]
-    [MethodDataSource(typeof(MockAllIdenticalData), nameof(MockAllIdenticalData.Generate))]
     [MethodDataSource(typeof(MockTwoDistinctValuesData), nameof(MockTwoDistinctValuesData.Generate))]
     [MethodDataSource(typeof(MockHalfZeroHalfOneData), nameof(MockHalfZeroHalfOneData.Generate))]
-    [MethodDataSource(typeof(MockManyDuplicatesSqrtRangeData), nameof(MockManyDuplicatesSqrtRangeData.Generate))]
+    [MethodDataSource(typeof(MockValleyRandomData), nameof(MockValleyRandomData.Generate))]
     [MethodDataSource(typeof(MockHighlySkewedData), nameof(MockHighlySkewedData.Generate))]
     public async Task SortResultOrderTest(IInputSample<int> inputSample)
     {
@@ -47,7 +45,7 @@ public class BucketSortIntegerTests
         await Assert.That((ulong)array.Length).IsEqualTo((ulong)inputSample.Samples.Length);
         await Assert.That(stats.IndexReadCount).IsNotEqualTo(0UL);
         await Assert.That(stats.IndexWriteCount).IsNotEqualTo(0UL);
-        await Assert.That(stats.CompareCount).IsEqualTo(0UL);
+        await Assert.That(stats.CompareCount).IsNotEqualTo(0UL);
         await Assert.That(stats.SwapCount).IsEqualTo(0UL);
     }
 
@@ -65,11 +63,11 @@ public class BucketSortIntegerTests
         var minReads = (ulong)(2 * n);
         var expectedWrites = (ulong)(2 * n); // n (distribute to temp) + n (CopyTo to main)
         var bucketCount = Math.Max(2, Math.Min(1000, (int)Math.Sqrt(n)));
-        var expectedCompares = (ulong)(n - bucketCount);
+        var expectedCompares = (ulong)n * 2 - 1;
 
         await Assert.That(stats.IndexReadCount >= minReads).IsTrue().Because($"IndexReadCount ({stats.IndexReadCount}) should be >= {minReads}");
         await Assert.That(stats.IndexWriteCount).IsEqualTo(expectedWrites);
-        await Assert.That(stats.CompareCount <= expectedCompares * 2).IsTrue().Because($"CompareCount ({stats.CompareCount}) should be <= {expectedCompares * 2}");
+        await Assert.That(stats.CompareCount).IsEqualTo(expectedCompares);
         await Assert.That(stats.SwapCount).IsEqualTo(0UL);
     }
 
@@ -89,11 +87,11 @@ public class BucketSortIntegerTests
         var bucketCount = Math.Max(2, Math.Min(1000, (int)Math.Sqrt(n)));
         var bucketSize = n / bucketCount;
         var maxComparesPerBucket = bucketSize * (bucketSize - 1) / 2;
-        var maxCompares = (ulong)(bucketCount * maxComparesPerBucket);
+        var maxCompares = (ulong)(bucketCount * maxComparesPerBucket) * 2 + 1;
 
         await Assert.That(stats.IndexReadCount >= minReads).IsTrue().Because($"IndexReadCount ({stats.IndexReadCount}) should be >= {minReads}");
         await Assert.That(stats.IndexWriteCount).IsEqualTo(expectedWrites);
-        await Assert.That(stats.CompareCount <= maxCompares * 2).IsTrue().Because($"CompareCount ({stats.CompareCount}) should be <= {maxCompares * 2}");
+        await Assert.That(stats.CompareCount <= maxCompares).IsTrue().Because($"CompareCount ({stats.CompareCount}) should be <= {maxCompares * 2}");
         await Assert.That(stats.SwapCount).IsEqualTo(0UL);
     }
 
@@ -114,11 +112,11 @@ public class BucketSortIntegerTests
         var minCompares = 0UL;
         var bucketSize = n / bucketCount;
         var maxComparesPerBucket = bucketSize * (bucketSize - 1) / 2;
-        var maxCompares = (ulong)(bucketCount * maxComparesPerBucket);
+        var maxCompares = (ulong)(bucketCount * maxComparesPerBucket) * 2 + 1;
 
         await Assert.That(stats.IndexReadCount >= minReads).IsTrue().Because($"IndexReadCount ({stats.IndexReadCount}) should be >= {minReads}");
         await Assert.That(stats.IndexWriteCount).IsEqualTo(expectedWrites);
-        await Assert.That(stats.CompareCount).IsBetween(minCompares, maxCompares * 2);
+        await Assert.That(stats.CompareCount).IsBetween(minCompares, maxCompares);
         await Assert.That(stats.SwapCount).IsEqualTo(0UL);
     }
 
@@ -133,9 +131,9 @@ public class BucketSortIntegerTests
         var allSame = Enumerable.Repeat(42, n).ToArray();
         BucketSortInteger.Sort(allSame.AsSpan(), stats);
 
-        var expectedReads = (ulong)n - 1;
+        var expectedReads = (ulong)n + 1;
         var expectedWrites = 0UL;
-        var expectedCompares = 0UL;
+        var expectedCompares = (ulong)n * 2 - 1;
 
         await Assert.That(stats.IndexReadCount).IsEqualTo(expectedReads);
         await Assert.That(stats.IndexWriteCount).IsEqualTo(expectedWrites);

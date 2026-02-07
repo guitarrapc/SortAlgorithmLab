@@ -1,4 +1,6 @@
-﻿namespace SortAlgorithm.Tests;
+﻿using SortAlgorithm.Utils;
+
+namespace SortAlgorithm.Tests;
 
 public static class MockSortedData
 {
@@ -8,17 +10,17 @@ public static class MockSortedData
         yield return () => new InputSample<int>()
         {
             InputType = InputType.Sorted,
-            Samples = Enumerable.Range(0, 100).ToArray()
+            Samples = ArrayPatterns.GenerateSorted(100),
         };
         yield return () => new InputSample<int>()
         {
             InputType = InputType.Sorted,
-            Samples = Enumerable.Range(0, 1000).ToArray()
+            Samples = ArrayPatterns.GenerateSorted(1000),
         };
         yield return () => new InputSample<int>()
         {
             InputType = InputType.Sorted,
-            Samples = Enumerable.Range(0, 10000).ToArray()
+            Samples = ArrayPatterns.GenerateSorted(10000),
         };
     }
 }

@@ -1174,35 +1174,59 @@ internal static class ArrayPatterns
     }
 
     /// <summary>
-    /// 少数ユニーク値（3種類の値）
+    /// 少数ユニーク値（16種類の値）
     /// <br/>
     /// Generate few unique values (3 distinct values)
     /// </summary>
     public static int[] GenerateFewUnique(int size, Random random)
     {
-        var values = new[] { size / 4, size / 2, size * 3 / 4 };
-        var counts = new int[3];
+        return GenerateFewUnique(size, 16, random);
+    }
 
-        // Randomly distribute counts
-        for (var i = 0; i < Math.Min(size, 8); i++)
+    /// <summary>
+    /// 少数ユニーク値（指定されたユニーク数）
+    /// <br/>
+    /// Generate few unique values (specified number of distinct values)
+    /// </summary>
+    public static int[] GenerateFewUnique(int size, int uniqueCount, Random random)
+    {
+        if (uniqueCount < 1)
+            throw new ArgumentException("Unique count must be at least 1", nameof(uniqueCount));
+        if (uniqueCount > size)
+            uniqueCount = size;
+
+        // Generate evenly distributed unique values across the range
+        var values = new int[uniqueCount];
+        for (var i = 0; i < uniqueCount; i++)
         {
-            if (random.NextDouble() < 0.5)
+            values[i] = (int)((i + 1) * (double)size / (uniqueCount + 1));
+        }
+
+        // Evenly distribute counts for each unique value
+        var baseCount = size / uniqueCount;
+        var remainder = size % uniqueCount;
+
+        // Build result array
+        var result = new int[size];
+        var index = 0;
+        for (var i = 0; i < uniqueCount; i++)
+        {
+            // Each unique value gets baseCount occurrences, plus 1 for the first 'remainder' values
+            var count = baseCount + (i < remainder ? 1 : 0);
+            for (var j = 0; j < count; j++)
             {
-                counts[0]++;
+                result[index++] = values[i];
             }
         }
-        counts[2] = size - counts[0];
-        var remaining = Math.Min(size, 8) - counts[0];
-        counts[2] = remaining;
-        counts[1] = size - counts[0] - counts[2];
 
-        var result = new List<int>();
-        for (var i = 0; i < 3; i++)
+        // Shuffle using Fisher-Yates algorithm
+        for (var i = size - 1; i > 0; i--)
         {
-            result.AddRange(Enumerable.Repeat(values[i], counts[i]));
+            var j = random.Next(i + 1);
+            (result[i], result[j]) = (result[j], result[i]);
         }
 
-        return [.. result];
+        return result;
     }
 
     /// <summary>
@@ -1216,6 +1240,50 @@ internal static class ArrayPatterns
         return Enumerable.Range(0, size)
             .Select(_ => random.Next(1, uniqueCount + 1))
             .ToArray();
+    }
+
+    /// <summary>
+    /// 偏った重複（90%が同一値、残りがユニーク値）
+    /// <br/>
+    /// Generate skewed duplicates (90% same value, rest unique values)
+    /// </summary>
+    public static int[] GenerateSkewedDuplicates(int size, Random random)
+    {
+        var result = new int[size];
+        
+        // The dominant value (used for 90% of the array)
+        var dominantValue = size / 2;
+        
+        // Calculate counts: 90% for dominant value, 10% for unique values
+        var dominantCount = (int)(size * 0.9);
+        var uniqueCount = size - dominantCount;
+        
+        // Fill with dominant value
+        for (var i = 0; i < dominantCount; i++)
+        {
+            result[i] = dominantValue;
+        }
+        
+        // Fill rest with unique values
+        for (var i = dominantCount; i < size; i++)
+        {
+            // Generate unique values different from the dominant value
+            var value = random.Next(1, size + 1);
+            while (value == dominantValue)
+            {
+                value = random.Next(1, size + 1);
+            }
+            result[i] = value;
+        }
+        
+        // Shuffle using Fisher-Yates algorithm
+        for (var i = size - 1; i > 0; i--)
+        {
+            var j = random.Next(i + 1);
+            (result[i], result[j]) = (result[j], result[i]);
+        }
+        
+        return result;
     }
 
     /// <summary>

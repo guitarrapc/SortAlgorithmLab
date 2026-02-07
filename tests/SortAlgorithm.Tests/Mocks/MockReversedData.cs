@@ -1,4 +1,6 @@
-﻿namespace SortAlgorithm.Tests;
+﻿using SortAlgorithm.Utils;
+
+namespace SortAlgorithm.Tests;
 
 public static class MockReversedData
 {
@@ -8,17 +10,17 @@ public static class MockReversedData
         yield return () => new InputSample<int>()
         {
             InputType = InputType.Reversed,
-            Samples = Enumerable.Range(0, 100).Reverse().ToArray()
+            Samples = ArrayPatterns.GenerateReversed(100),
         };
         yield return () => new InputSample<int>()
         {
             InputType = InputType.Reversed,
-            Samples = Enumerable.Range(0, 1000).Reverse().ToArray()
+            Samples = ArrayPatterns.GenerateReversed(1000),
         };
         yield return () => new InputSample<int>()
         {
             InputType = InputType.Reversed,
-            Samples = Enumerable.Range(0, 10000).Reverse().ToArray()
+            Samples = ArrayPatterns.GenerateReversed(10000),
         };
     }
 }

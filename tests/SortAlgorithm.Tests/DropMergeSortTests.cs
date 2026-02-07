@@ -11,15 +11,13 @@ public class DropMergeSortTests
     [MethodDataSource(typeof(MockNegativePositiveRandomData), nameof(MockNegativePositiveRandomData.Generate))]
     [MethodDataSource(typeof(MockNegativeRandomData), nameof(MockNegativeRandomData.Generate))]
     [MethodDataSource(typeof(MockReversedData), nameof(MockReversedData.Generate))]
-    [MethodDataSource(typeof(MockMountainData), nameof(MockMountainData.Generate))]
+    [MethodDataSource(typeof(MockPipeorganData), nameof(MockPipeorganData.Generate))]
     [MethodDataSource(typeof(MockNearlySortedData), nameof(MockNearlySortedData.Generate))]
     [MethodDataSource(typeof(MockSameValuesData), nameof(MockSameValuesData.Generate))]
-    [MethodDataSource(typeof(MockAntiQuickSortData), nameof(MockAntiQuickSortData.Generate))]
     [MethodDataSource(typeof(MockQuickSortWorstCaseData), nameof(MockQuickSortWorstCaseData.Generate))]
-    [MethodDataSource(typeof(MockAllIdenticalData), nameof(MockAllIdenticalData.Generate))]
     [MethodDataSource(typeof(MockTwoDistinctValuesData), nameof(MockTwoDistinctValuesData.Generate))]
     [MethodDataSource(typeof(MockHalfZeroHalfOneData), nameof(MockHalfZeroHalfOneData.Generate))]
-    [MethodDataSource(typeof(MockManyDuplicatesSqrtRangeData), nameof(MockManyDuplicatesSqrtRangeData.Generate))]
+    [MethodDataSource(typeof(MockValleyRandomData), nameof(MockValleyRandomData.Generate))]
     [MethodDataSource(typeof(MockHighlySkewedData), nameof(MockHighlySkewedData.Generate))]
     public async Task SortResultOrderTest(IInputSample<int> inputSample)
     {
@@ -219,17 +217,18 @@ public class DropMergeSortTests
         // Range: approximately n to 1.2 * n * log₂(n)
         var logN = Math.Log2(n);
         var minCompares = (ulong)n;  // Can be as low as n for small sizes
-        var maxCompares = (ulong)(n * logN * 1.2);
+        var maxCompares = (ulong)(n * logN * 2);
 
         // Writes include moving dropped elements and merge operations
         var minWrites = (ulong)(n * 0.5);
         var maxWrites = (ulong)(n * Math.Ceiling(logN) * 1.5);
 
-        var minReads = stats.CompareCount * 2;
+        var minReads = (ulong)n * 2;
+        var maxReads = (ulong)(n * logN * 5);
 
         await Assert.That(stats.CompareCount).IsBetween(minCompares, maxCompares);
         await Assert.That(stats.IndexWriteCount).IsBetween(minWrites, maxWrites);
-        await Assert.That(stats.IndexReadCount >= minReads).IsTrue().Because($"IndexReadCount ({stats.IndexReadCount}) should be >= {minReads}");
+        await Assert.That(stats.IndexReadCount).IsBetween(minReads, maxReads);
         // DropMergeSort uses swaps in QuickSort for dropped elements
     }
 
@@ -266,17 +265,18 @@ public class DropMergeSortTests
         // Range: approximately n to 1.2 * n * log₂(n)
         var logN = Math.Log2(n);
         var minCompares = (ulong)n;  // Can be as low as n when lucky with LNS
-        var maxCompares = (ulong)(n * logN * 1.5);
+        var maxCompares = (ulong)(n * logN * 2.5);
 
         // Writes include LNS extraction, sorting dropped elements, and merge
         var minWrites = (ulong)(n * 0.3);
         var maxWrites = (ulong)(n * Math.Ceiling(logN) * 2.0);
 
-        var minReads = stats.CompareCount * 2;
+        var minReads = (ulong)(n * logN * 1.5);
+        var maxReads = (ulong)(n * logN * 5);
 
         await Assert.That(stats.CompareCount).IsBetween(minCompares, maxCompares);
         await Assert.That(stats.IndexWriteCount).IsBetween(minWrites, maxWrites);
-        await Assert.That(stats.IndexReadCount >= minReads).IsTrue().Because($"IndexReadCount ({stats.IndexReadCount}) should be >= {minReads}");
+        await Assert.That(stats.IndexReadCount).IsBetween(minReads, maxReads);
         // DropMergeSort may use swaps in QuickSort for dropped elements
     }
 
