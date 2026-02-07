@@ -17,7 +17,7 @@ public class ComparisonModeService : IDisposable
         _debug = debug;
     }
 
-    public void Enable(int[] initialArray, int arraySize, ArrayPattern pattern)
+    public void Enable(int[] initialArray, int arraySize, ArrayPatternMetadata pattern)
     {
         Stop();
         
@@ -35,7 +35,7 @@ public class ComparisonModeService : IDisposable
         _state.CurrentArraySize = arraySize;
         _state.CurrentPattern = pattern;
         
-        _debug.Log($"[ComparisonModeService] Enabled with size={arraySize}, pattern={pattern}");
+        _debug.Log($"[ComparisonModeService] Enabled with size={arraySize}, pattern={pattern.Name}");
         NotifyStateChanged();
     }
     public void Disable()
@@ -54,7 +54,7 @@ public class ComparisonModeService : IDisposable
         _state.IsEnabled = false;
         _state.InitialArray = Array.Empty<int>();
         _state.CurrentArraySize = 0;
-        _state.CurrentPattern = ArrayPattern.Random;
+        _state.CurrentPattern = null;
         NotifyStateChanged();
     }
     public void AddAlgorithm(string algorithmName, AlgorithmMetadata metadata)

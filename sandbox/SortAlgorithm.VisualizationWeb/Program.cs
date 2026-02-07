@@ -12,7 +12,7 @@ builder.Services.AddScoped(sp => new HttpClient { BaseAddress = new Uri(builder.
 builder.Services.AddSingleton<PlaybackService>();
 builder.Services.AddSingleton<SortExecutor>();
 builder.Services.AddSingleton<AlgorithmRegistry>();
-builder.Services.AddSingleton<ArrayPatternGenerator>();
+builder.Services.AddSingleton<ArrayPatternRegistry>();
 builder.Services.AddSingleton<ComparisonModeService>();
 builder.Services.AddSingleton<DebugSettings>();
 

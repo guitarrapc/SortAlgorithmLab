@@ -23,7 +23,7 @@ public class ComparisonState
     /// <summary>
     /// 現在の配列パターン
     /// </summary>
-    public ArrayPattern CurrentPattern { get; set; }
+    public ArrayPatternMetadata? CurrentPattern { get; set; }
     
     /// <summary>
     /// 比較モードが有効か
