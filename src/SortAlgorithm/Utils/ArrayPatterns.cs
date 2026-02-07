@@ -90,68 +90,6 @@ internal static class ArrayPatterns
     }
 
     /// <summary>
-    /// 山型の配列を生成（中央が最大値）
-    /// <br/>
-    /// Generate mountain shape array (center is maximum value)
-    /// </summary>
-    public static int[] GenerateMountainShape(int size)
-    {
-        var array = new int[size];
-        var values = Enumerable.Range(1, size).ToArray();
-
-        // 小さい値から大きい値へ、そして大きい値から小さい値へ
-        int left = 0;
-        int right = size - 1;
-
-        for (int i = 0; i < size; i++)
-        {
-            if (i % 2 == 0)
-            {
-                // 左側に小さい値を配置
-                array[left++] = values[i];
-            }
-            else
-            {
-                // 右側に小さい値を配置
-                array[right--] = values[i];
-            }
-        }
-
-        return array;
-    }
-
-    /// <summary>
-    /// 谷型の配列を生成（中央が最小値）
-    /// <br/>
-    /// Generate valley shape array (center is minimum value)
-    /// </summary>
-    public static int[] GenerateValleyShape(int size)
-    {
-        var array = new int[size];
-        var values = Enumerable.Range(1, size).Reverse().ToArray();
-
-        // 大きい値から小さい値へ、そして小さい値から大きい値へ
-        int left = 0;
-        int right = size - 1;
-
-        for (int i = 0; i < size; i++)
-        {
-            if (i % 2 == 0)
-            {
-                // 左側に大きい値を配置
-                array[left++] = values[i];
-            }
-            else
-            {
-                // 右側に大きい値を配置
-                array[right--] = values[i];
-            }
-        }
-
-        return array;
-    }
-
-    /// <summary>
     /// ジグザグパターンの配列を生成（交互に上下する）
     /// <br/>
     /// Generate zigzag pattern array (alternating up and down)
@@ -583,6 +521,37 @@ internal static class ArrayPatterns
             else
             {
                 array[right--] = sorted[i];
+            }
+        }
+
+        return array;
+    }
+
+    /// <summary>
+    /// 谷型の配列を生成（中央が最小値）
+    /// <br/>
+    /// Generate valley shape array (center is minimum value)
+    /// </summary>
+    public static int[] GenerateValleyShape(int size)
+    {
+        var array = new int[size];
+        var values = Enumerable.Range(1, size).Reverse().ToArray();
+
+        // 大きい値から小さい値へ、そして小さい値から大きい値へ
+        int left = 0;
+        int right = size - 1;
+
+        for (int i = 0; i < size; i++)
+        {
+            if (i % 2 == 0)
+            {
+                // 左側に大きい値を配置
+                array[left++] = values[i];
+            }
+            else
+            {
+                // 右側に大きい値を配置
+                array[right--] = values[i];
             }
         }
 

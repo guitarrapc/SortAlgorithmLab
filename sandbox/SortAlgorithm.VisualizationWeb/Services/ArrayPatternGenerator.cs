@@ -51,7 +51,6 @@ public class ArrayPatternGenerator
 
             // Shape
             ArrayPattern.PipeOrgan => ArrayPatterns.GeneratePipeOrgan(size),
-            ArrayPattern.MountainShape => ArrayPatterns.GenerateMountainShape(size),
             ArrayPattern.ValleyShape => ArrayPatterns.GenerateValleyShape(size),
 
             // Radix/Interleaved

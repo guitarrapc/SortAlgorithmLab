@@ -121,11 +121,6 @@ public enum ArrayPattern
     PipeOrgan,
 
     /// <summary>
-    /// 山型配列（中央が最大値、両端が小さい値）
-    /// </summary>
-    MountainShape,
-
-    /// <summary>
     /// 谷型配列（中央が最小値、両端が大きい値）
     /// </summary>
     ValleyShape,
