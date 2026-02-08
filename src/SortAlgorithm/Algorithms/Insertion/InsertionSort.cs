@@ -74,7 +74,7 @@ Span ...
 /// <item><description>As the final step in hybrid algorithms (e.g., Timsort, Introsort)</description></item>
 /// <item><description>When stability is required with minimal memory overhead</description></item>
 /// </list>
-//// <para><strong>Reference:</strong></para>
+/// <para><strong>Reference:</strong></para>
 /// <para>Wiki: https://en.wikipedia.org/wiki/Insertion_sort</para>
 /// </remarks>
 public static class InsertionSort

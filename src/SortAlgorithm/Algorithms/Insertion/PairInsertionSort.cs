@@ -52,6 +52,7 @@ namespace SortAlgorithm.Algorithms;
 /// </list>
 /// <para><strong>Reference:</strong></para>
 /// <para>Based on pair insertion optimization techniques used in modern sorting libraries</para>
+/// <para>Wiki: https://en.wikipedia.org/wiki/Insertion_sort</para>
 /// </remarks>
 public static class PairInsertionSort
 {
