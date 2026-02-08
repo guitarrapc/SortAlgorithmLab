@@ -1685,7 +1685,7 @@ public static class ArrayPatterns
     {
         var array = new int[size];
         CantorRecursive(array, 0, size, 0, size - 1);
-        return array;
+        return ShuffleArray(array);
 
         static void CantorRecursive(int[] arr, int a, int b, int min, int max)
         {
