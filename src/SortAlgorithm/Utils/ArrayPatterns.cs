@@ -1,6 +1,6 @@
 ﻿namespace SortAlgorithm.Utils;
 
-internal static class ArrayPatterns
+public static class ArrayPatterns
 {
     /// <summary>
     /// ランダム配列を生成
@@ -1049,47 +1049,99 @@ internal static class ArrayPatterns
     {
         var array = Enumerable.Range(1, size).ToArray();
 
+        // Shuffle first to create a non-sorted starting point
+        var random = new Random(42);
+        for (var i = size - 1; i > 0; i--)
+        {
+            var j = random.Next(i + 1);
+            (array[i], array[j]) = (array[j], array[i]);
+        }
+
         // Poplar heap: forest of complete binary trees
         // Each tree has size 2^k - 1 (1, 3, 7, 15, 31, ...)
-        var pos = 0;
+        // Start with small poplars and merge them using binary carry sequence
+        const int smallPoplarSize = 15;
 
-        while (pos < size)
+        if (size <= smallPoplarSize)
         {
-            // Calculate largest tree size that fits: 2^k - 1
-            var treeSize = 1;
-            while ((treeSize * 2 + 1) <= size - pos)
+            Array.Sort(array, 0, size);
+            return array;
+        }
+
+        var poplarLevel = 1;
+        var it = 0;
+        var next = it + smallPoplarSize;
+
+        while (true)
+        {
+            // Make a small poplar (sorted)
+            if (next <= size)
             {
-                treeSize = treeSize * 2 + 1;  // 1 → 3 → 7 → 15 → 31 ...
+                Array.Sort(array, it, Math.Min(next - it, size - it));
             }
 
-            // Build max-heap for this tree
-            var end = Math.Min(pos + treeSize, size);
-            for (var i = (end - pos) / 2 - 1; i >= 0; i--)
+            var poplarSize = smallPoplarSize;
+
+            // Binary carry: merge poplars using bit tricks
+            for (var i = (poplarLevel & -poplarLevel) >> 1; i != 0; i >>= 1)
             {
-                PoplarHeapify(array, pos, end, pos + i);
+                it -= poplarSize;
+                poplarSize = 2 * poplarSize + 1;
+                if (it >= 0 && it + poplarSize <= size)
+                {
+                    Sift(array, it, poplarSize);
+                }
+                if (next < size)
+                {
+                    next++;
+                }
             }
 
-            pos = end;
+            if (size - next <= smallPoplarSize)
+            {
+                if (next < size)
+                {
+                    Array.Sort(array, next, size - next);
+                }
+                break;
+            }
+
+            it = next;
+            next += smallPoplarSize;
+            poplarLevel++;
         }
 
         return array;
 
-        static void PoplarHeapify(int[] arr, int start, int end, int i)
+        static void Sift(int[] arr, int first, int size)
         {
-            var largest = i;
-            var left = start + 2 * (i - start) + 1;
-            var right = start + 2 * (i - start) + 2;
+            if (size < 2) return;
 
-            if (left < end && arr[left] > arr[largest])
-                largest = left;
+            var root = first + (size - 1);
+            var childRoot1 = root - 1;
+            var childRoot2 = first + (size / 2 - 1);
 
-            if (right < end && arr[right] > arr[largest])
-                largest = right;
-
-            if (largest != i)
+            while (true)
             {
-                (arr[i], arr[largest]) = (arr[largest], arr[i]);
-                PoplarHeapify(arr, start, end, largest);
+                var maxRoot = root;
+                if (arr[maxRoot] < arr[childRoot1])
+                {
+                    maxRoot = childRoot1;
+                }
+                if (arr[maxRoot] < arr[childRoot2])
+                {
+                    maxRoot = childRoot2;
+                }
+                if (maxRoot == root) return;
+
+                (arr[root], arr[maxRoot]) = (arr[maxRoot], arr[root]);
+
+                size /= 2;
+                if (size < 2) return;
+
+                root = maxRoot;
+                childRoot1 = root - 1;
+                childRoot2 = maxRoot - (size - size / 2);
             }
         }
     }
