@@ -116,6 +116,7 @@ public class ArrayPatternRegistry
         Add("⚔️ PDQ Adversary", "Adversarial", (size, _) => ArrayPatterns.GeneratePdqSortAdversary(size), "Worst-case for PDQSort");
         Add("⚔️ Grail Adversary", "Adversarial", ArrayPatterns.GenerateGrailSortAdversary, "Worst-case for GrailSort");
         Add("⚔️ ShuffleMerge Adversary", "Adversarial", (size, _) => ArrayPatterns.GenerateShuffleMergeAdversary(size), "Worst-case for ShuffleMerge");
+        Add("⚔️ TimSortDrag Adversary", "Adversarial", (size, _) => ArrayPatterns.GenerateTimsortDragAdversary(size), "Worst-case for Timsort");
     }
 
     private void Add(string name, string category, Func<int, Random, int[]> generator, string description = "")
