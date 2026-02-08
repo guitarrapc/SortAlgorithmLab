@@ -3,8 +3,8 @@
 namespace SortAlgorithm.Algorithms;
 
 /// <summary>
-/// QuickSort、HeapSort、InsertionSortを組み合わせたハイブリッドソートアルゴリズムです。
-/// 通常はQuickSortを使用しますが、小さい配列ではInsertionSort、再帰深度が深くなりすぎた場合はHeapSortに切り替えることで、
+/// QuickSort、HeapSort、InsertionSortを組み合わせたハイブリッドソートアルゴリズム。
+/// 通常はQuickSortを使用、小さい配列ではInsertionSort、再帰深度が深くなりすぎた場合はHeapSortに切り替えることで、
 /// QuickSortの最悪ケースO(n²)を回避し、常にO(n log n)を保証します。
 /// <br/>
 /// A hybrid sorting algorithm that combines QuickSort, HeapSort, and InsertionSort.
@@ -94,52 +94,6 @@ namespace SortAlgorithm.Algorithms;
 /// <item><description>Comparisons : ~1.2-1.4n log₂ n (average) - Lower than pure QuickSort due to InsertionSort handling small partitions</description></item>
 /// <item><description>Swaps       : ~0.33n log₂ n (average) - Hoare partition performs significantly fewer swaps than Lomuto partition</description></item>
 /// </list>
-/// <para><strong>Advantages of Introsort:</strong></para>
-/// <list type="bullet">
-/// <item><description>Worst-case guarantee: Always O(n log n), unlike pure QuickSort which degrades to O(n²)</description></item>
-/// <item><description>Average-case efficiency: Matches QuickSort's performance on typical inputs (~1.4n log₂ n comparisons)</description></item>
-/// <item><description>Cache-friendly: InsertionSort for small partitions improves spatial locality</description></item>
-/// <item><description>Stack-safe: Tail recursion optimization + depth limit ensures O(log n) stack depth</description></item>
-/// <item><description>Practical performance: Used in production libraries (C++ std::sort, .NET Array.Sort, Java Arrays.sort for primitives)</description></item>
-/// <item><description>Robust pivot selection: Ninther (median-of-5) for large arrays and quartile-based median-of-3 for smaller arrays handle various data patterns</description></item>
-/// <item><description>Duplicate-aware: Detects and handles arrays with many equal elements efficiently (common in categorical/boolean data)</description></item>
-/// <item><description>Nearly-sorted optimization: Detects potential nearly-sorted partitions (zero swaps) and uses SortIncomplete with early abort (LLVM libcxx optimization)</description></item>
-/// </list>
-/// <para><strong>Implementation Details:</strong></para>
-/// <list type="bullet">
-/// <item><description>Threshold value: 30 elements for switching to InsertionSort (empirically optimal via benchmarking, 10-30% faster than threshold 16)</description></item>
-/// <item><description>Depth limit: 2 × floor(log₂(n)) - allows some imbalance before triggering HeapSort</description></item>
-/// <item><description>Pivot selection (adaptive):
-/// <list type="bullet">
-/// <item><description>Arrays ≥ 1000: Ninther (median-of-5 using positions: left, left+n/4, mid, mid+3n/4, right)</description></item>
-/// <item><description>Arrays &lt; 1000: Median-of-3 using quartile positions (n/4, n/2, 3n/4)</description></item>
-/// </list></description></item>
-/// <item><description>Partition scheme: Hoare partition (bidirectional scan) for fewer swaps and better duplicate handling</description></item>
-/// <item><description>Duplicate detection: Detects all-equal-to-pivot case after partitioning and terminates early (optimizes arrays with many duplicates)
-/// <list type="bullet">
-/// <item><description>Performance: ~92% reduction in comparisons for all-equal arrays (10K elements: 10K vs. 133K comparisons)</description></item>
-/// <item><description>Effective for: Boolean arrays, categorical data with few distinct values (2-10), sensor data with constant readings</description></item>
-/// <item><description>Detection: When one partition is empty, checks if all elements equal pivot value</description></item>
-/// </list></description></item>
-/// <item><description>Nearly-sorted detection: Tracks swap count during partitioning; if zero, uses SortIncomplete with early abort (LLVM __insertion_sort_incomplete)</description></item>
-/// <item><description>Small array sorting networks: Partitions of 2-5 elements use optimal sorting networks (2-10 comparisons)</description></item>
-/// <item><description>Tail recursion: Always recurse on smaller partition, loop on larger to guarantee O(log n) stack depth (matches LLVM std::sort)</description></item>
-/// </list>
-/// <para><strong>Historical Context:</strong></para>
-/// <para>
-/// Introsort was invented by David Musser in 1997 as a solution to QuickSort's quadratic worst-case behavior.
-/// The name "Introsort" is short for "Introspective Sort" - the algorithm introspects its own behavior (recursion depth)
-/// and adapts by switching to HeapSort when needed. This hybrid approach combines the best characteristics of QuickSort
-/// (fast average case), HeapSort (guaranteed O(n log n)), and InsertionSort (efficient for small arrays).
-/// </para>
-/// <para><strong>Why This Implementation is Theoretically Correct:</strong></para>
-/// <list type="number">
-/// <item><description>Partitioning correctness: Hoare partition maintains invariant s[left..r] ≤ pivot ≤ s[l..right] with proper boundary checks</description></item>
-/// <item><description>Recursion correctness: Both partitions [left, r] and [l, right] are strictly smaller than [left, right] due to pointer advance after swap</description></item>
-/// <item><description>Termination guarantee: Combination of depth limit (triggers HeapSort) and tail recursion (limits stack depth) ensures termination</description></item>
-/// <item><description>Algorithm correctness: InsertionSort, HeapSort, and QuickSort are all proven correct sorting algorithms</description></item>
-/// <item><description>Complexity guarantee: Depth limit of 2⌊log₂(n)⌋ ensures HeapSort fallback before stack overflow or quadratic behavior</description></item>
-/// </list>
 /// <para><strong>Reference:</strong></para>
 /// <para>Wiki: https://en.wikipedia.org/wiki/Introsort</para>
 /// <para>Paper: David R Musser https://webpages.charlotte.edu/rbunescu/courses/ou/cs4040/introsort.pdf</para>
@@ -147,6 +101,12 @@ namespace SortAlgorithm.Algorithms;
 /// </remarks>
 public static class IntroSort
 {
+    // Partitioning correctness: Hoare partition maintains invariant s[left..r] ≤ pivot ≤ s[l..right] with proper boundary checks
+    // Recursion correctness: Both partitions [left, r] and [l, right] are strictly smaller than [left, right] due to pointer advance after swap
+    // Termination guarantee: Combination of depth limit (triggers HeapSort) and tail recursion (limits stack depth) ensures termination
+    // Algorithm correctness: InsertionSort, HeapSort, and QuickSort are all proven correct sorting algorithms
+    // Complexity guarantee: Depth limit of 2⌊log₂(n)⌋ ensures HeapSort fallback before stack overflow or quadratic behavior
+
     // Buffer identifiers for visualization
     private const int BUFFER_MAIN = 0;       // Main input array
 

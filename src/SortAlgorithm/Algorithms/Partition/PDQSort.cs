@@ -4,17 +4,10 @@ using SortAlgorithm.Contexts;
 namespace SortAlgorithm.Algorithms;
 
 /// <summary>
-/// Pattern-Defeating QuickSort (pdqsort) は、ランダム化quicksortの高速な平均ケースとheapsortの高速な最悪ケースを組み合わせ、
-/// 特定のパターンを持つ入力に対して線形時間を実現する改良されたquicksort変種です。David MusserのIntrosortの拡張および改善版です。
+/// ランダム化quicksortの高速な平均ケースとheapsortの高速な最悪ケースを組み合わせ、特定のパターンを持つ入力に対して線形時間を実現する改良されたquicksort変種で、David MusserのIntrosortの拡張および改善版です。
 /// <br/>
-/// PDQSortは、従来のquicksortのパフォーマンスを低下させる、不良パーティション、ソート済みシーケンス、多数の等価要素などのパターンを検出して回避する様々な技術を使用します。
-/// <br/>
-/// Pattern-Defeating QuickSort (PDQSort) is an improved quicksort variant that combines the fast average
-/// case of randomized quicksort with the fast worst case of heapsort, while achieving linear time on
-/// inputs with certain patterns. It is an extension and improvement of David Musser's introsort.
-/// <br/>
-/// PDQSort uses various techniques to detect and defeat patterns that cause traditional quicksort to perform poorly,
-/// including bad partitions, already sorted sequences, and inputs with many equal elements.
+/// Improved quicksort variant and extension and improvement of David Musser's introsort, that combines the fast average case of randomized quicksort with the fast worst case of heapsort, while achieving linear time on
+/// inputs with certain patterns.
 /// </summary>
 /// <remarks>
 /// <para><strong>Theoretical Conditions for Correct PDQSort:</strong></para>
@@ -93,46 +86,18 @@ namespace SortAlgorithm.Algorithms;
 /// <item><description>Comparisons : ~1.2-1.4n log₂ n (average) - Ninther pivot selection and insertion sort reduce constant factors</description></item>
 /// <item><description>Swaps       : ~0.33n log₂ n (average) - Partitioning performs fewer swaps than Lomuto scheme</description></item>
 /// </list>
-/// <para><strong>Advantages of PDQSort:</strong></para>
-/// <list type="bullet">
-/// <item><description>Pattern-aware: Detects and optimizes for sorted, reverse-sorted, and equal-element patterns (O(n) best case)</description></item>
-/// <item><description>Worst-case guarantee: Always O(n log n), unlike pure QuickSort which degrades to O(n²)</description></item>
-/// <item><description>No randomization needed: Deterministic algorithm (unlike randomized quicksort which requires RNG)</description></item>
-/// <item><description>Cache-friendly: InsertionSort for small partitions + unguarded optimization improves locality</description></item>
-/// <item><description>Robust pivot selection: Ninther (median-of-9) handles various data patterns better than median-of-3</description></item>
-/// <item><description>Adversarial-resistant: Pattern-defeating shuffles prevent performance degradation on crafted inputs</description></item>
-/// </list>
-/// <para><strong>Implementation Details:</strong></para>
-/// <list type="bullet">
-/// <item><description>InsertionSortThreshold: 24 elements (empirically optimal, balances overhead vs. efficiency)</description></item>
-/// <item><description>NintherThreshold: 128 elements (above this, use ninther; below this, use median-of-3)</description></item>
-/// <item><description>PartialInsertionSortLimit: 8 element moves (threshold for detecting nearly-sorted partitions)</description></item>
-/// <item><description>Bad partition limit: log₂(n) (allows some imbalance before triggering HeapSort)</description></item>
-/// <item><description>Bad partition criterion: Either partition &lt; n/8 (highly unbalanced)</description></item>
-/// </list>
-/// <para><strong>Historical Context:</strong></para>
-/// <para>
-/// PDQSort was created by Orson Peters in 2015 as an improvement over Introsort (David Musser, 1997).
-/// While Introsort combines QuickSort, HeapSort, and InsertionSort for O(n log n) guarantee,
-/// PDQSort adds pattern detection and adaptive strategies for O(n) best case on common patterns.
-/// The name "Pattern-Defeating" refers to its ability to detect and defeat adversarial input patterns
-/// that cause traditional quicksort implementations to perform poorly.
-/// </para>
-/// <para><strong>Why This Implementation is Theoretically Correct:</strong></para>
-/// <list type="number">
-/// <item><description>Partitioning correctness: PartitionRight maintains invariant [begin..pivotPos-1] &lt; pivot ≤ [pivotPos+1..end-1]</description></item>
-/// <item><description>Recursion correctness: Both partitions are strictly smaller than input (pivotPos excluded from both)</description></item>
-/// <item><description>Termination guarantee: Combination of bad partition limit (triggers HeapSort) and tail recursion ensures termination</description></item>
-/// <item><description>Pattern detection correctness: alreadyPartitioned flag and partial insertion sort correctly identify sorted patterns</description></item>
-/// <item><description>Complexity guarantee: Bad partition limit of log₂(n) ensures HeapSort fallback before O(n²) behavior</description></item>
-/// <item><description>Equal element handling: PartitionLeft optimization correctly handles duplicate-heavy inputs</description></item>
-/// </list>
 /// <para><strong>Reference:</strong></para>
 /// <para>Paper: https://arxiv.org/abs/2106.05123</para>
 /// <para>Other implementation: https://github.com/orlp/pdqsort</para>
 /// </remarks>
 public static class PDQSort
 {
+    // InsertionSortThreshold: 24 elements (empirically optimal, balances overhead vs. efficiency)
+    // NintherThreshold: 128 elements (above this, use ninther; below this, use median-of-3)
+    // PartialInsertionSortLimit: 8 element moves (threshold for detecting nearly-sorted partitions)
+    // Bad partition limit: log₂(n) (allows some imbalance before triggering HeapSort)
+    // Bad partition criterion: Either partition &lt; n/8 (highly unbalanced)
+
     // Constants
     private const int InsertionSortThreshold = 24;
     private const int NintherThreshold = 128;
